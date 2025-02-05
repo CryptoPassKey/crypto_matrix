@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./jquery.js"></script>
+    <script src="./index.js"></script>
+    <title>crypto matrix</title>
+
+
+<style>
+    /* 正方形の四角形を作成 */
+    .square {
+        width: 10mm; /* 正方形の幅 */
+        height: 10mm; /* 正方形の高さ */
+        background-color: #FFFFFF; /* 背景色 */
+        border: 1px dotted #747373; /* 黒枠追加 */
+        position: relative; /* 相対位置指定 */
+    }
+
+    /* 真ん中の大きめの文字 */
+    .center-text {
+        position: absolute; /* 絶対位置指定 */
+        top: 50%; /* 上端を中央に配置 */
+        left: 50%; /* 左端を中央に配置 */
+        transform: translate(-50%, -50%); /* 中央揃え */
+        font-size: 7mm; /* フォントサイズ */
+		color: #000000;
+    }
+
+    /* 四隅の小さい文字 */
+    .corner-text {
+        position: absolute; /* 絶対位置指定 */
+        font-size: 3.6mm; /* フォントサイズ */
+		color: #000000;
+        /*background-color: #cccccc;*/
+        /*font-weight: bold;*/
+    }
+
+    /* 左上 */
+    .top-left {
+        top: -1.7mm; /* 上端に配置 */
+        left: -1mm; /* 左端に配置 */
+    }
+
+    /* 右上 */
+    .top-right {
+        top: -1.7mm; /* 上端に配置 */
+        right: -1mm; /* 右端に配置 */
+    }
+
+    /* 左下 */
+    .bottom-left {
+        bottom: -1.5mm; /* 下端に配置 */
+        left: -1mm; /* 左端に配置 */
+    }
+
+    /* 右下 */
+    .bottom-right {
+        bottom: -1.5mm; /* 下端に配置 */
+        right: -1mm; /* 右端に配置 */
+    }
+</style>
+
+
+</head>
+<body>
+	<hr>
+	
+	seed number: <input id="input-seed-number" />
+    seed update: <button type="button" id="button-seed-update">seed update</button>
+    update: <button type="button" id="button-update">update</button>
+    <br>
+    <span>※ seed は 0～4294967296 の間の数字を入力してください</span>
+	
+    <hr>
+	<div style="position: relative;">
+		<div id="div-encrypto-matrix-main" style="position: absolute; left: 5mm; top: 5mm; width: 91mm; height: 55mm; background-color: #ffffff;">
+		</div>
+	</div>
+	
+<div class="square" style="display: none;">
+    <div class="center-text">A</div>
+    <div class="corner-text top-left">1</div>
+    <div class="corner-text top-right">2</div>
+    <div class="corner-text bottom-left">3</div>
+    <div class="corner-text bottom-right">4</div>
+</div>
+	
+	
+<div style="display: none;">
+	<div class="square" id="div-tile-template" name="wrap">
+		<div class="center-text"  name="center">A</div>
+		<div class="corner-text top-left"  name="top-left">1</div>
+		<div class="corner-text top-right" name="top-right">2</div>
+		<div class="corner-text bottom-left" name="bottom-left">3</div>
+		<div class="corner-text bottom-right" name="bottom-right">4</div>
+	</div>
+</div>
+
+<script>
+window.onload = function() {
+    var indexInstance = new Index();
+    indexInstance.start();
+}
+</script>
+</body>
+</html>

@@ -8,7 +8,9 @@
     <title>crypto matrix</title>
 
 
+
 <style>
+
     /* 正方形の四角形を作成 */
     .square {
         width: 10mm; /* 正方形の幅 */
@@ -20,44 +22,47 @@
 
     /* 真ん中の大きめの文字 */
     .center-text {
-        position: absolute; /* 絶対位置指定 */
-        top: 42%; /* 上端を中央に配置 */
-        left: 50%; /* 左端を中央に配置 */
-        transform: translate(-50%, -50%); /* 中央揃え */
-        font-size: 7mm; /* フォントサイズ */
-		color: #000000;
+    font-family:   monospace;
+    font-size: 7.2mm;
+    color: #000000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     }
+    
 
     /* 四隅の小さい文字 */
     .corner-text {
-        position: absolute; /* 絶対位置指定 */
-        font-size: 3.8mm; /* フォントサイズ */
-		color: #000000;
+    font-family:    monospace;
+    font-size: 3.9mm;
+    color: #000000;
+    position: absolute;
         /*background-color: #cccccc;*/
         /*font-weight: bold;*/
     }
 
     /* 左上 */
     .top-left {
-        top: -2.0mm; /* 上端に配置 */
+        top: -1.0mm; /* 上端に配置 */
         left: -1mm; /* 左端に配置 */
     }
 
     /* 右上 */
     .top-right {
-        top: -2.0mm; /* 上端に配置 */
+        top: -1.0mm; /* 上端に配置 */
         right: -1mm; /* 右端に配置 */
     }
 
     /* 左下 */
     .bottom-left {
-        bottom: -1.5mm; /* 下端に配置 */
+        bottom: -1.0mm; /* 下端に配置 */
         left: -1mm; /* 左端に配置 */
     }
 
     /* 右下 */
     .bottom-right {
-        bottom: -1.5mm; /* 下端に配置 */
+        bottom: -1.0mm; /* 下端に配置 */
         right: -1mm; /* 右端に配置 */
     }
 </style>

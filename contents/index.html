@@ -74,21 +74,45 @@
 </style>
 </head>
 <body>
-    <hr>
-    
-    Crypto Seed→<input id="input-seed-number" />
-    Random Seed→<button type="button" id="button-seed-update">ランダムボタン</button>
-    Crypto Seed→<button type="button" id="button-update">確認ボタン</button>
-    <br>
-    <span>Crypto Seedに0～4294967296 の間の数字を入力してボタンを押してください。</span> <br>
-    この文字変換表を使えば、目的に応じてさまざまな形式のパスワードを簡単に作成できます。以下に具体的な手順を説明します。 <br>
-    数字の暗証番号パスワードなどを作成する場合、左上の数字をつなげます。 <br>
-    英数字のパスワードを作成する場合、右上の英数字をつなげます。 <br>
-    記号を含む英大小数字のパスワードを作成する場合、左下の英数字記号をつなげます。 <br>
-    記号を含む英小数字のパスワードを作成する場合、右下の英数字記号をつなげます。 <br>
-    合言葉+サイト名などを組み合わせてを読むことで複雑なパスワードが作成可能。 <br>
+<hr>
 
-    <hr>
+<!-- 操作エリア -->
+<div class="controls-container">
+    <label for="input-seed-number"><strong>Crypto Seed:</strong></label>
+    <input type="number" id="input-seed-number" min="0" max="4294967295" placeholder="12345678">
+    <button type="button" id="button-seed-update">ランダム生成</button>
+    <button type="button" id="button-update">確認</button>
+</div>
+
+<!-- 説明テキストエリア -->
+<div class="guide-container">
+    <p class="guide-lead">
+        <strong>Crypto Seed</strong> に <code>0</code> 〜 <code>4,294,967,295</code> の間の数字を入力して「確認」ボタンを押してください。<br>
+        <small>※同じ数字を入力すれば、いつでも全く同じ文字変換表を復元できます。</small>
+    </p>
+
+    <p class="guide-intro">
+        この文字変換表を使えば、目的に応じてさまざまな形式のパスワードを簡単に作成・復元できます。
+    </p>
+
+    <div class="guide-steps">
+        <p><strong>【基本の手順】</strong><br>
+        覚えているキーワード（サイト名や合言葉など）の文字を<strong>中央の大きな文字</strong>から順に探し、そのマスの四隅にある文字をつなげます。</p>
+
+        <ul>
+            <li><strong>数字の暗証番号など：</strong> マスの<strong>左上</strong>の数字をつなげる</li>
+            <li><strong>英数字のパスワード：</strong> マスの<strong>右上</strong>の英数字をつなげる</li>
+            <li><strong>記号を含む英大小数字：</strong> マスの<strong>左下</strong>の英数字記号をつなげる</li>
+            <li><strong>記号を含む英小数字：</strong> マスの<strong>右下</strong>の英数字記号をつなげる</li>
+        </ul>
+    </div>
+
+    <p class="guide-footer">
+        自分だけの合言葉とサイト名などを組み合わせて読むことで、非常に複雑で安全なパスワードが作成可能です。
+    </p>
+</div>
+
+<hr>
     <div style="position: relative;">
         <div id="div-encrypto-matrix-main" style="position: absolute; left: 5mm; top: 5mm; width: 91mm; height: 56mm; background-color: #ffffff;">
         </div>

@@ -24,6 +24,7 @@
         background-color: #FFFFFF; /* 背景色 */
         border: 1px dotted #747373; /* 黒枠追加 */
         position: relative; /* 相対位置指定 */
+		z-index: 1;
     }
 
     /* 真ん中の大きめの文字 */
@@ -36,6 +37,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    line-height: 1;
     }
     
 
@@ -46,7 +48,12 @@
     /*font-weight: bold;*/
     color: #000000;
     position: absolute;
+	line-height: 1;
+    background-color: #ffffff;
+    z-index: 10;
+    padding: 0 0.3mm;
     }
+	}
 
 	text-shadow: 
             -1px -1px 0 #FFF,  

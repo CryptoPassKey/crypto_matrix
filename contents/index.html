@@ -9,6 +9,7 @@
 
 
 
+
 <style>
 @font-face {
     font-family: "JetBrains Mono";
@@ -17,76 +18,65 @@
     font-weight: 400;
     font-display: swap;
 }
-    /* 正方形の四角形を作成 */
-    .square {
-        width: 10mm; /* 正方形の幅 */
-        height: 10mm; /* 正方形の高さ */
-        background-color: #FFFFFF; /* 背景色 */
-        border: 1px dotted #747373; /* 黒枠追加 */
-        position: relative; /* 相対位置指定 */
-		z-index: 1;
-    }
 
-    /* 真ん中の大きめの文字 */
-    .center-text {
+/* 正方形の四角形を作成 */
+.square {
+    width: 10mm;
+    height: 10mm;
+    background-color: #FFFFFF;
+    border: 1px dotted #747373;
+    position: relative;
+    z-index: 1;
+}
+
+/* 真ん中の大きめの文字 */
+.center-text {
     font-family: "JetBrains Mono", monospace;
     font-size: 7.2mm;
-    /*font-weight: bold;*/
     color: #000000;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     line-height: 1;
-    }
-    
+}
 
-    /* 四隅の小さい文字 */
-    .corner-text {
+/* 四隅の小さい文字 */
+.corner-text {
     font-family: "JetBrains Mono", monospace;
     font-size: 3.9mm;
-    /*font-weight: bold;*/
     color: #000000;
     position: absolute;
-	line-height: 1;
+    line-height: 1;
     background-color: #ffffff;
     z-index: 10;
     padding: 0 0.3mm;
-    }
+}
 
-	text-shadow: 
-            -1px -1px 0 #FFF,  
-             1px -1px 0 #FFF,
-            -1px  1px 0 #FFF,
-             1px  1px 0 #FFF;
-        z-index: 1; 
-    }
-	
-    /* 左上 */
-    .top-left {
-        top: -1.0mm; /* 上端に配置 */
-        left: -1mm; /* 左端に配置 */
-    }
+/* 左上 */
+.top-left {
+    top: -1.0mm;
+    left: -1mm;
+}
 
-    /* 右上 */
-    .top-right {
-        top: -1.0mm; /* 上端に配置 */
-        right: -1mm; /* 右端に配置 */
-    }
+/* 右上 */
+.top-right {
+    top: -1.0mm;
+    right: -1mm;
+}
 
-    /* 左下 */
-    .bottom-left {
-        bottom: -1.0mm; /* 下端に配置 */
-        left: -1mm; /* 左端に配置 */
-    }
+/* 左下 */
+.bottom-left {
+    bottom: -1.0mm;
+    left: -1mm;
+}
 
-    /* 右下 */
-    .bottom-right {
-        bottom: -1.0mm; /* 下端に配置 */
-        right: -1mm; /* 右端に配置 */
-    }
+/* 右下 */
+.bottom-right {
+    bottom: -1.0mm;
+    right: -1mm;
+}
 </style>
-
 
 </head>
 <body>

@@ -1,152 +1,1225 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
-
-    <script src="./jquery.js"></script>
-    <script src="./index.js"></script>
-    <title>crypto matrix</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Matrix - 暗号マトリックス ＆ マイ・レシピ管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+ 
 
 <style>
-    /* 正方形の四角形を作成 */
+  :root {
+    color-scheme: light;
+
+    --bg-main: #ffffff;
+    --card-bg: #ffffff;
+    --text-main: #17221b;
+    --text-sub: #56635b;
+    --accent: #008a37;
+    --accent-light: #e6ffef;
+    --border-color: #d4ded7;
+
+    --matrix-green: #00ff66;
+    --matrix-border: #00d957;
+    --surface-sub: #f7faf8;
+    --cyan: #009db8;
+
+    --warn-bg: #18181b;
+    --warn-border: #dc2626;
+
+    --font-ui:
+      'Fira Code',
+      'SFMono-Regular',
+      Consolas,
+      'Noto Sans JP',
+      monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--bg-main);
+    accent-color: var(--accent);
+    scrollbar-color: #b5c9bc #ffffff;
+    scrollbar-width: thin;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px 10px 60px;
+    font-family: var(--font-ui);
+    background: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+  }
+
+  ::selection {
+    background: var(--matrix-green);
+    color: #071b0d;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-family: var(--font-ui);
+  }
+
+  input,
+  select,
+  textarea {
+    color: var(--text-main);
+    caret-color: var(--accent);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #77867c;
+    opacity: 1;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: #007a32;
+    text-underline-offset: 3px;
+  }
+
+  .container {
+    max-width: 1020px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+    margin: 0 0 6px;
+    text-align: center;
+    color: var(--text-main);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.84rem;
+    margin: 0 0 12px;
+  }
+
+  /* シード入力バー */
+  .seed-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .seed-bar input {
+    width: 180px;
+    max-width: 100%;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    padding: 6px 10px;
+    border: 1px solid #bdcec3;
+    border-radius: 4px;
+    background: #ffffff;
+    color: var(--text-main);
+  }
+
+  /* ボタン：白〜薄いグレーで統一 */
+.btn {
+  background: #f3f4f4;
+  color: #26312b;
+  border: 1px solid #cbd2ce;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    opacity 0.12s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #e7ebe8;
+  border-color: #a9b5ae;
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #46534b;
+  border-color: #d4dbd7;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f3f5f4;
+  border-color: #b5c0b9;
+  box-shadow: none;
+}
+
+.btn-outline {
+  background: #ffffff;
+  color: #35483c;
+  border-color: #aebeb3;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #f0f5f2;
+  border-color: #879e8f;
+  box-shadow: none;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+  opacity: 0.9;
+  box-shadow: none;
+}
+
+  .btn-outline {
+    background: #ffffff;
+    color: #007a32;
+    border-color: #00c950;
+    box-shadow: none;
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background: var(--accent-light);
+    border-color: #00b849;
+    box-shadow: none;
+  }
+
+  /* 現在の手順・自動言語化ガイド */
+  .verbal-guide-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--matrix-green);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+  }
+
+  .verbal-guide-header {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .verbal-guide-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 0.88rem;
+    color: var(--text-main);
+  }
+
+  .verbal-guide-list li {
+    margin-bottom: 4px;
+  }
+
+  .verbal-guide-list li::marker {
+    color: var(--accent);
+  }
+
+  .verbal-highlight {
+    background: #d6ffe6;
+    color: #075323;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  /* マトリックス＋直下プレイヤー枠 */
+  .matrix-stage {
+    background: var(--card-bg);
+    border: 1px solid #bdcec3;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+
+  .matrix-scroll {
+    overflow-x: auto;
+    padding: 4px 3px 8px;
+  }
+
+  #div-encrypto-matrix-main {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+    min-width: 560px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .square {
+    position: relative;
+    aspect-ratio: 1 / 0.86;
+    border: 1px solid #b9cec0;
+    background: #ffffff;
+    font-family: var(--font-ui);
+    user-select: none;
+    transition:
+      background-color 0.12s,
+      border-color 0.12s,
+      box-shadow 0.12s;
+  }
+
+  .square.active-tile {
+    background-color: #e4ffed !important;
+    border: 2px solid var(--matrix-border) !important;
+    box-shadow: 0 0 8px rgba(0, 255, 102, 0.16);
+  }
+
+  .square.fallback-tile {
+    background-color: #e9faff !important;
+    border: 2px dashed var(--cyan) !important;
+    box-shadow: none;
+  }
+
+  .center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  .corner-text {
+    position: absolute;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #405849;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition:
+      transform 0.12s,
+      background-color 0.12s,
+      color 0.12s;
+  }
+
+  .corner-text.top-left {
+    top: 2px;
+    left: 2px;
+  }
+
+  .corner-text.top-right {
+    top: 2px;
+    right: 2px;
+  }
+
+  .corner-text.bottom-left {
+    bottom: 2px;
+    left: 2px;
+  }
+
+  .corner-text.bottom-right {
+    bottom: 2px;
+    right: 2px;
+  }
+
+  /* 再生中の文字だけ鮮やかな緑＋控えめな発光 */
+  .active-char-spot {
+    background-color: var(--matrix-green) !important;
+    color: #05220e !important;
+    font-weight: 700 !important;
+    transform: scale(1.25);
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.35);
+    z-index: 5;
+  }
+
+  .center-text.active-char-spot {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  /* コントロール＆ルート再生バー */
+  .live-player-bar {
+    margin-top: 12px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .live-inputs-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .live-inputs-row label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-bottom: 3px;
+  }
+
+  .live-inputs-row input,
+  .live-inputs-row select {
+    width: 100%;
+    min-width: 0;
+    padding: 6px 8px;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #bdcec3;
+    background: #ffffff;
+    color: var(--text-main);
+  }
+
+  .live-result-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .pw-chars-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    min-width: 0;
+    font-family: var(--font-ui);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #174c2a;
+    word-break: break-all;
+  }
+
+  .pw-char-span {
+    padding: 1px 3px;
+    border-radius: 3px;
+    transition:
+      background-color 0.12s,
+      color 0.12s,
+      transform 0.12s,
+      box-shadow 0.12s;
+  }
+
+  .pw-char-span.playing-now {
+    background: var(--matrix-green);
+    color: #05220e;
+    transform: scale(1.15);
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+  }
+
+  .step-status-banner {
+    margin-top: 8px;
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    color: #087333;
+    min-height: 1.4em;
+    overflow-wrap: anywhere;
+  }
+
+  .trace-log-box {
+    margin-top: 8px;
+    background: var(--surface-sub);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 10px;
+    max-height: 130px;
+    overflow-y: auto;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: #496352;
+    overflow-wrap: anywhere;
+  }
+
+  .trace-line {
+    padding: 2px 4px;
+    border-left: 2px solid transparent;
+    border-radius: 3px;
+  }
+
+  .trace-line.active-trace-line {
+    background: #dcffe9;
+    color: #12552b;
+    border-left-color: var(--matrix-border);
+    font-weight: 700;
+  }
+
+  /* セクションカードと設定グリッド */
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--matrix-green);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 12px;
+  }
+
+  /* HTML内のインライン背景色・枠色も統一 */
+  .field-group {
+    background: #f8fbf9 !important;
+    border: 1px solid var(--border-color);
+    border-color: var(--border-color) !important;
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+
+  .field-group-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .badge {
+    background: var(--matrix-green);
+    color: #072411;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* インライン指定の青いバッジも上書き */
+  .field-group .badge {
+    background: var(--matrix-green) !important;
+    color: #072411;
+  }
+
+  .sub-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  .sub-row label {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    min-width: 70px;
+  }
+
+  .sub-row select,
+  .sub-row input[type="text"],
+  .sub-row input[type="number"] {
+    flex: 1;
+    min-width: 80px;
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    border: 1px solid #bdcec3;
+    border-radius: 5px;
+    background: #ffffff;
+  }
+
+  .sub-row input[type="number"] {
+    max-width: 90px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+  }
+
+  .hint {
+    font-size: 0.74rem;
+    color: var(--text-sub);
+    margin-top: 4px;
+  }
+
+  /* BIP39 セクション */
+  .seed-words-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 6px;
+    margin: 12px 0;
+  }
+
+  .seed-chip {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-family: var(--font-ui);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .seed-num {
+    font-size: 0.72rem;
+    color: var(--text-sub);
+  }
+
+  .seed-txt {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #234a30;
+    overflow-wrap: anywhere;
+  }
+
+  .seed-textarea {
+    width: 100%;
+    min-height: 76px;
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    padding: 8px;
+    background: #ffffff;
+    color: var(--text-main);
+    border: 1px solid #bdcec3;
+    border-radius: 6px;
+    resize: vertical;
+  }
+
+  /* 警告表示：元の配色を維持 */
+  .cloud-warning {
+    background: var(--warn-bg);
+    border: 2px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    color: #ffffff;
+  }
+
+  .cloud-warning-head {
+    color: #f87171;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+
+  /* 成功・エラー表示：元の配色を維持 */
+  .status-msg {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    display: none;
+  }
+
+  .status-msg.ok {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  .status-msg.err {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  /* スマートフォン */
+  @media (max-width: 600px) {
+    .section-card {
+      padding: 12px;
+    }
+
+    .matrix-stage {
+      padding: 8px;
+    }
+
+    .live-player-bar {
+      padding: 10px;
+    }
+
+    .verbal-guide-card {
+      padding: 10px 12px;
+    }
+
+    .seed-bar input {
+      flex: 1 1 160px;
+      min-width: 0;
+    }
+
+    .live-inputs-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 動きを減らす設定 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* 印刷 */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    html,
+    body {
+      background: #ffffff !important;
+      color: #000000 !important;
+    }
+
+    body {
+      padding: 0;
+    }
+
+    body *,
+    body *::before,
+    body *::after {
+      color: #000000 !important;
+      background: transparent !important;
+      border-color: #777777 !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    .field-group,
+    .field-group .badge {
+      background: #ffffff !important;
+      border-color: #777777 !important;
+    }
+
+    .matrix-scroll {
+      overflow: visible;
+      padding: 0;
+    }
+
+    #div-encrypto-matrix-main {
+      min-width: 0;
+      max-width: 100%;
+    }
+
     .square {
-        width: 10mm;
-        height: 10mm;
-        background-color: #FFFFFF;
-        border: 1px dotted #747373;
-        position: relative;
-        z-index: 1;
+      background: #ffffff !important;
     }
 
-    /* 真ん中の大きめの文字 */
-    .center-text {
-        font-family: 'Fira Code', monospace;
-        font-size: 7.2mm;
-        font-weight: 500;
-        color: #000000;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        line-height: 1;
+    .square.active-tile {
+      background-color: #e6e6e6 !important;
+      border: 2px solid #000000 !important;
     }
 
-    /* 四隅の小さい文字 */
-    .corner-text {
-        font-family: 'Fira Code', monospace;
-        font-size: 3.9mm;
-        color: #000000;
-        position: absolute;
-        line-height: 1;
-        background-color: #ffffff;
-        z-index: 10;
-        padding: 0 0.3mm;
+    .square.fallback-tile {
+      background-color: #f0f0f0 !important;
+      border: 2px dashed #555555 !important;
     }
 
-    /* 左上 */
-    .top-left {
-        top: -1.0mm;
-        left: -1.0mm;
+    .active-char-spot,
+    .pw-char-span.playing-now {
+      background-color: #dddddd !important;
+      color: #000000 !important;
+      outline: 1px solid #000000;
     }
 
-    /* 右上 */
-    .top-right {
-        top: -1.0mm;
-        right: -1.0mm;
+    .section-card,
+    .verbal-guide-card,
+    .field-group,
+    .seed-chip {
+      break-inside: avoid;
     }
-
-    /* 左下 */
-    .bottom-left {
-        bottom: -1.0mm;
-        left: -1.0mm;
-    }
-
-    /* 右下 */
-    .bottom-right {
-        bottom: -1.0mm;
-        right: -1.0mm;
-    }
+  }
 </style>
+
 </head>
 <body>
-<hr>
+  <div class="container">
+    <h1>Crypto Matrix 暗号マトリックス ＆ マイ・レシピ管理</h1>
+    <p class="subtitle">物理カード配列の完全再現・手順・BIP39 24単語バックアップ</p>
 
-<!-- 操作エリア -->
-<div class="controls-container">
-    <label for="input-seed-number"><strong>Crypto Seed:</strong></label>
-    <input type="number" id="input-seed-number" min="0" max="4294967295" placeholder="12345678">
-    <button type="button" id="button-seed-update">ランダム生成</button>
-    <button type="button" id="button-update">確認</button>
-</div>
-
-<!-- 説明テキストエリア -->
-<div class="guide-container">
-    <p class="guide-lead">
-        <strong>Crypto Seed</strong> に <code>0</code> 〜 <code>4,294,967,295</code> の間の数字を入力して「確認」ボタンを押してください。<br>
-        <small>※同じ数字を入力すれば、いつでも全く同じ文字変換表を復元できます。</small>
-    </p>
-
-    <p class="guide-intro">
-        この文字変換表を使えば、目的に応じてさまざまな形式のパスワードを簡単に作成・復元できます。
-    </p>
-
-    <div class="guide-steps">
-        <p><strong>【基本の手順】</strong><br>
-        覚えているキーワード（サイト名や合言葉など）の文字を<strong>中央の大きな文字</strong>から順に探し、そのマスの四隅にある文字をつなげます。</p>
-
-        <ul>
-            <li><strong>数字の暗証番号など：</strong> マスの<strong>左上</strong>の数字をつなげる</li>
-            <li><strong>英数字のパスワード：</strong> マスの<strong>右上</strong>の英数字をつなげる</li>
-            <li><strong>記号を含む英大小数字：</strong> マスの<strong>左下</strong>の英数字記号をつなげる</li>
-            <li><strong>記号を含む英小数字：</strong> マスの<strong>右下</strong>の英数字記号をつなげる</li>
-        </ul>
+    <!-- カードシード番号バー -->
+    <div class="seed-bar no-print">
+      <label for="input-seed-number" style="font-weight:700; font-size:0.88rem;">カード配列シード番号 (seed):</label>
+      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力">
+      <button type="button" class="btn" id="btn-update-matrix">確認（マトリックス更新）</button>
+      <button type="button" class="btn btn-secondary" id="btn-random-matrix">ランダム生成</button>
     </div>
 
-    <p class="guide-footer">
-        自分だけの合言葉とサイト名などを組み合わせて読むことで、非常に複雑で安全なパスワードが作成可能です。
-    </p>
-</div>
+    <!-- マトリックスの上に配置：現在のマイ・レシピ手順（自動言語化説明ボックス） -->
+    <div class="verbal-guide-card">
+      <div class="verbal-guide-header">
+        <span>📖 現在のパスワード作成手順（選択中のマイ・レシピ設定から）</span>
+        <span style="font-size:0.76rem; color:var(--text-sub); font-weight:400;">※下のプルダウンを変更すると説明文も自動で書き換わります</span>
+      </div>
+      <ol class="verbal-guide-list" id="verbal-recipe-steps"></ol>
+    </div>
 
-<hr>
-    <div style="position: relative;">
-        <div id="div-encrypto-matrix-main" style="position: absolute; left: 5mm; top: 5mm; width: 91mm; height: 56mm; background-color: #ffffff;">
+    <!-- マトリックス表示 ＋ 直下ルート再生バー -->
+    <div class="matrix-stage">
+      <div class="matrix-scroll">
+        <div id="div-encrypto-matrix-main"></div>
+      </div>
+
+      <!-- 既存互換テンプレート -->
+      <div id="div-tile-template" style="display:none;">
+        <div class="square">
+          <span class="center-text"></span>
+          <span class="corner-text top-left"></span>
+          <span class="corner-text top-right"></span>
+          <span class="corner-text bottom-left"></span>
+          <span class="corner-text bottom-right"></span>
         </div>
-    </div>
-    
-    <div class="square" style="display: none;">
-        <div class="center-text">A</div>
-        <div class="corner-text top-left">1</div>
-        <div class="corner-text top-right">2</div>
-        <div class="corner-text bottom-left">3</div>
-        <div class="corner-text bottom-right">4</div>
-    </div>
-        
-    <div style="display: none;">
-        <div class="square" id="div-tile-template" name="wrap">
-            <div class="center-text" name="center">A</div>
-            <div class="corner-text top-left" name="top-left">1</div>
-            <div class="corner-text top-right" name="top-right">2</div>
-            <div class="corner-text bottom-left" name="bottom-left">3</div>
-            <div class="corner-text bottom-right" name="bottom-right">4</div>
+      </div>
+
+      <!-- マトリックス直下：リアルタイム確認＆1文字ずつルート再生プレイヤー -->
+      <div class="live-player-bar no-print">
+        <div class="live-inputs-row">
+          <div>
+            <label for="sim-site">テスト用サイト名</label>
+            <input type="text" id="sim-site" value="amazon" placeholder="例: amazon">
+          </div>
+          <div>
+            <label for="sim-secret">テスト用合言葉</label>
+            <input type="text" id="sim-secret" value="taro" placeholder="例: taro">
+          </div>
+          <div>
+            <label for="sim-speed">再生スピード（1文字あたり）</label>
+            <select id="sim-speed">
+              <option value="750">ゆっくり (0.75秒/文字)</option>
+              <option value="450" selected>標準 (0.45秒/文字)</option>
+              <option value="250">高速 (0.25秒/文字)</option>
+            </select>
+          </div>
         </div>
+
+        <div class="live-result-row">
+          <div style="flex:1; min-width:220px;">
+            <div style="font-size:0.74rem; color:#94a3b8;">生成パスワード：</div>
+            <div class="pw-chars-box" id="sim-output-pw"></div>
+            <div style="font-size:0.76rem; color:#cbd5e1; margin-top:3px;" id="sim-output-meta"></div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn" id="btn-play-trace">▶ マトリックス上で1文字ずつルート再生</button>
+            <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;">⏹ 停止</button>
+            <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー</button>
+          </div>
+        </div>
+
+        <div class="step-status-banner" id="sim-step-banner">▶ ボタンを押すと、すぐ上のマトリックスで拾う角が1文字ずつ順番に光ります。</div>
+        <div class="trace-log-box" id="sim-trace-log"></div>
+      </div>
     </div>
 
-    <script>
-    window.onload = function() {
-        var indexInstance = new Index();
-        indexInstance.start();
-    }
-    </script>
-        
-    <div style="margin-top: 65mm; padding-bottom: 20px;">
+    <!-- マイ・レシピ詳細設定セクション -->
+    <div class="section-card">
+      <div class="section-title">
+        <span>1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）</span>
+        <div style="display:flex; gap:6px;" class="no-print">
+          <button type="button" class="btn btn-outline" id="btn-reset-recipe" style="padding:4px 10px; font-size:0.78rem;">標準に戻す</button>
+          <button type="button" class="btn btn-outline" id="btn-random-recipe" style="padding:4px 10px; font-size:0.78rem;">高強度ランダム生成</button>
+        </div>
+      </div>
+
+      <div class="recipe-grid">
+        <!-- G1: キーワード結合＆文字数抽出 -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">1</span>キーワード結合 ＆ 文字抽出数</div>
+          <div class="sub-row">
+            <label for="rc-kw-order">結合順:</label>
+            <select id="rc-kw-order" class="rc-input">
+              <option value="0">サイト名のみ</option>
+              <option value="1" selected>サイト名 ＋ 合言葉</option>
+              <option value="2">合言葉 ＋ サイト名</option>
+              <option value="3">サイト名と合言葉を交互に1文字ずつ</option>
+              <option value="4">合言葉とサイト名を交互に1文字ずつ</option>
+              <option value="5">サイト名前半 ＋ 合言葉 ＋ サイト名後半</option>
+              <option value="6">合言葉前半 ＋ サイト名 ＋ 合言葉後半</option>
+              <option value="7">サイト名(逆順) ＋ 合言葉</option>
+              <option value="8">サイト名 ＋ 合言葉(逆順)</option>
+              <option value="9">全体(サイト名＋合言葉)を逆順</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-kw-filter">抽出方法:</label>
+            <select id="rc-kw-filter" class="rc-input">
+              <option value="0" selected>すべての文字を使用</option>
+              <option value="1">先頭から N 文字のみ抽出</option>
+              <option value="2">末尾から N 文字のみ抽出</option>
+              <option value="3">先頭 N 文字 ＋ 末尾 N 文字を抽出</option>
+              <option value="4">N 文字おきに抽出（ステップ飛ばし）</option>
+              <option value="5">重複文字を除外して使用</option>
+              <option value="6">母音(a,i,u,e,o)を除外して使用</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-kw-num">数値 N:</label>
+            <input type="number" id="rc-kw-num" class="rc-input" value="4" min="1" max="63">
+            <span style="font-size:0.75rem; color:var(--text-sub);">文字 / ステップ</span>
+          </div>
+        </div>
+
+        <!-- G2: 8方向＋自由マス数の位置シフト -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">2</span>マス目の位置シフト（8方向 × 自由マス数）</div>
+          <div class="sub-row">
+            <label for="rc-shift-dir">移動方向:</label>
+            <select id="rc-shift-dir" class="rc-input">
+              <option value="0" selected>シフトなし（そのマスを読む）</option>
+              <option value="1">右へ N マス移動 (→)</option>
+              <option value="2">左へ N マス移動 (←)</option>
+              <option value="3">下へ N マス移動 (↓)</option>
+              <option value="4">上へ N マス移動 (↑)</option>
+              <option value="5">右下斜めへ N マス移動 (↘)</option>
+              <option value="6">左下斜めへ N マス移動 (↙)</option>
+              <option value="7">右上斜めへ N マス移動 (↗)</option>
+              <option value="8">左上斜めへ N マス移動 (↖)</option>
+              <option value="9">カスタム座標移動（横 N マス ＋ 縦 M マス）</option>
+              <option value="10">1文字ごとに「右 N」と「下 M」を交互に移動</option>
+              <option value="11">1文字ごとに「左 N」と「上 M」を交互に移動</option>
+              <option value="12">1文字ごとに時計回り4方向（上→右→下→左）へ N マス</option>
+              <option value="13">1文字ごとに斜め4方向（右上→右下→左下→左上）へ N マス</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-shift-n">距離 N (横):</label>
+            <input type="number" id="rc-shift-n" class="rc-input" value="1" min="0" max="63">
+            <label for="rc-shift-m" style="min-width:65px;">距離 M (縦):</label>
+            <input type="number" id="rc-shift-m" class="rc-input" value="1" min="0" max="63">
+          </div>
+        </div>
+
+        <!-- G3: 四隅の開始角 ＆ 1マス内の取得パターン -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">3</span>四隅の読み取り角 ＆ 1マス内の順序</div>
+          <div class="sub-row">
+            <label for="rc-base-corner">基準の角:</label>
+            <select id="rc-base-corner" class="rc-input">
+              <option value="0" selected>左下 (英大小＋数字＋記号)</option>
+              <option value="1">右下 (英小＋数字＋記号)</option>
+              <option value="2">右上 (英大小＋数字)</option>
+              <option value="3">左上 (数字のみ)</option>
+              <option value="4">1文字ごとに時計回りで基準角を移動 (左上→右上→右下→左下)</option>
+              <option value="5">1文字ごとに反時計回りで基準角を移動 (左上→左下→右下→右上)</option>
+              <option value="6">1文字ごとに「左下」と「右上」を交互に切り替え</option>
+              <option value="7">1文字ごとに「左下」と「右下」を交互に切り替え</option>
+              <option value="8">1文字ごとに「左上」と「左下」を交互に切り替え</option>
+              <option value="9">1文字ごとに「左上」と「右上」を交互に切り替え</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-pick-pattern">1マス取得:</label>
+            <select id="rc-pick-pattern" class="rc-input">
+              <option value="0" selected>1文字のみ（基準の角のみ）</option>
+              <option value="1">2文字：基準角 → 時計回りで次の角</option>
+              <option value="2">2文字：基準角 → 反時計回りで次の角</option>
+              <option value="3">2文字：基準角 → 対角（斜め向かい）の角</option>
+              <option value="4">2文字：縦ペア（上側 → 下側）</option>
+              <option value="5">2文字：縦ペア（下側 → 上側）</option>
+              <option value="6">2文字：横ペア（左側 → 右側）</option>
+              <option value="7">2文字：横ペア（右側 → 左側）</option>
+              <option value="8">2文字：基準角 → 中央の大文字</option>
+              <option value="9">2文字：中央の大文字 → 基準角</option>
+              <option value="10">3文字：基準角から時計回りに3つの角</option>
+              <option value="11">3文字：基準角から反時計回りに3つの角</option>
+              <option value="12">4文字：基準角から時計回りに四隅を一周</option>
+              <option value="13">4文字：基準角から反時計回りに四隅を一周</option>
+              <option value="14">4文字：Z字順（左上→右上→左下→右下）</option>
+              <option value="15">4文字：逆Z字順（右上→左上→右下→左下）</option>
+              <option value="16">4文字：N字順（左下→左上→右下→右上）</option>
+              <option value="17">4文字：クロス対角順（左上→右下→右上→左下）</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- G4: 記号のホワイトリスト・ブラックリスト ＆ 強度維持代替移動 -->
+        <div class="field-group" style="border-color:#0284c7; background:#f0f9ff;">
+          <div class="field-group-title"><span class="badge" style="background:#0284c7;">4</span>サイト別記号ルール（WL/BL）＆ 暗号強度維持の代替移動</div>
+          <div class="sub-row">
+            <label for="rc-sym-mode">記号制限:</label>
+            <select id="rc-sym-mode" class="rc-input">
+              <option value="0" selected>制限なし（すべての記号を許可）</option>
+              <option value="1">ブラックリスト（下に入力した記号を禁止して代替）</option>
+              <option value="2">ホワイトリスト（下に入力した記号のみ許可、他は代替）</option>
+              <option value="3">すべての記号を禁止（英数字のみ許可、記号は代替）</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-sym-list">記号指定:</label>
+            <input type="text" id="rc-sym-list" class="rc-input" value="" placeholder="例: -_!#$%&^()+*/" style="font-family:'Fira Code',monospace;">
+          </div>
+          <div class="sub-row">
+            <label for="rc-sym-fb-dir">代替方向:</label>
+            <select id="rc-sym-fb-dir" class="rc-input">
+              <option value="0" selected>同じマス内で時計回りに次の角を探す（無ければ右へ移動）</option>
+              <option value="1">同じマス内で反時計回りに次の角を探す</option>
+              <option value="2">同じマスの「右上（英数字）」に置き換える</option>
+              <option value="3">右へ K マスずつ移動して探す (→)</option>
+              <option value="4">左へ K マスずつ移動して探す (←)</option>
+              <option value="5">下へ K マスずつ移動して探す (↓)</option>
+              <option value="6">上へ K マスずつ移動して探す (↑)</option>
+              <option value="7">右下斜めへ K マスずつ移動して探す (↘)</option>
+              <option value="8">左下斜めへ K マスずつ移動して探す (↙)</option>
+              <option value="9">右上斜めへ K マスずつ移動して探す (↗)</option>
+              <option value="10">左上斜めへ K マスずつ移動して探す (↖)</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-sym-fb-dist">代替移動 K:</label>
+            <input type="number" id="rc-sym-fb-dist" class="rc-input" value="1" min="1" max="39">
+            <label for="rc-sym-fb-corner" style="min-width:55px;">移動先角:</label>
+            <select id="rc-sym-fb-corner" class="rc-input">
+              <option value="0" selected>元の角と同じ位置（記号・大小維持）</option>
+              <option value="1">時計回りで1つ次の角へシフト</option>
+              <option value="2">左下（英大小＋数字＋許可記号）</option>
+              <option value="3">右下（英小＋数字＋許可記号）</option>
+              <option value="4">右上（英大小＋数字・確実通過）</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- G5: 先頭ソルト（前ソルト） -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">5</span>先頭に追加する四隅なぞり（前ソルト）</div>
+          <div class="sub-row">
+            <label for="rc-pre-target">対象マス:</label>
+            <select id="rc-pre-target" class="rc-input">
+              <option value="0" selected>追加しない（なし）</option>
+              <option value="1">サイト名の「頭文字」のマス</option>
+              <option value="2">サイト名の「末尾文字」のマス</option>
+              <option value="3">合言葉の「頭文字」のマス</option>
+              <option value="4">合言葉の「末尾文字」のマス</option>
+              <option value="5">サイト名の文字数と同じ数字のマス</option>
+              <option value="6">カード四隅の4マス (左上→右上→右下→左下)</option>
+              <option value="7">固定インデックス番号 P のマス（下で数値指定）</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-pre-pattern">なぞり方:</label>
+            <select id="rc-pre-pattern" class="rc-input">
+              <option value="0" selected>左上から時計回りに四隅一周 (4文字)</option>
+              <option value="1">左上から反時計回りに四隅一周 (4文字)</option>
+              <option value="2">左下から時計回りに四隅一周 (4文字)</option>
+              <option value="3">右下から反時計回りに四隅一周 (4文字)</option>
+              <option value="4">Z字順に四隅すべて (左上→右上→左下→右下)</option>
+              <option value="5">クロス対角順 (左上→右下→右上→左下)</option>
+              <option value="6">縦2文字 (左上 → 左下)</option>
+              <option value="7">縦2文字 (右上 → 右下)</option>
+              <option value="8">横2文字 (左上 → 右上)</option>
+              <option value="9">横2文字 (左下 → 右下)</option>
+              <option value="10">斜め2文字 (左上 → 右下)</option>
+              <option value="11">斜め2文字 (右上 → 左下)</option>
+              <option value="12">左下1文字のみ</option>
+              <option value="13">左上(数字)1文字のみ</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-pre-offset">オフセットP:</label>
+            <input type="number" id="rc-pre-offset" class="rc-input" value="0" min="0" max="63">
+            <span style="font-size:0.75rem; color:var(--text-sub);">マス分ずらす / 指定マス番号</span>
+          </div>
+        </div>
+
+        <!-- G6: 末尾ソルト（後ソルト） -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">6</span>末尾に追加する四隅なぞり（後ソルト）</div>
+          <div class="sub-row">
+            <label for="rc-suf-target">対象マス:</label>
+            <select id="rc-suf-target" class="rc-input">
+              <option value="0">追加しない（なし）</option>
+              <option value="1" selected>サイト名の「頭文字」のマス</option>
+              <option value="2">サイト名の「末尾文字」のマス</option>
+              <option value="3">合言葉の「頭文字」のマス</option>
+              <option value="4">合言葉の「末尾文字」のマス</option>
+              <option value="5">合言葉の文字数と同じ数字のマス</option>
+              <option value="6">カード四隅の4マス (左上→右上→右下→左下)</option>
+              <option value="7">固定インデックス番号 S のマス（下で数値指定）</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-suf-pattern">なぞり方:</label>
+            <select id="rc-suf-pattern" class="rc-input">
+              <option value="0" selected>左上から時計回りに四隅一周 (4文字)</option>
+              <option value="1">左上から反時計回りに四隅一周 (4文字)</option>
+              <option value="2">左下から時計回りに四隅一周 (4文字)</option>
+              <option value="3">右下から反時計回りに四隅一周 (4文字)</option>
+              <option value="4">Z字順に四隅すべて (左上→右上→左下→右下)</option>
+              <option value="5">クロス対角順 (左上→右下→右上→左下)</option>
+              <option value="6">縦2文字 (左上 → 左下)</option>
+              <option value="7">縦2文字 (右上 → 右下)</option>
+              <option value="8">横2文字 (左上 → 右上)</option>
+              <option value="9">横2文字 (左下 → 右下)</option>
+              <option value="10">斜め2文字 (左上 → 右下)</option>
+              <option value="11">斜め2文字 (右上 → 左下)</option>
+              <option value="12">左下1文字のみ</option>
+              <option value="13">左上(数字)1文字のみ</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-suf-offset">オフセットS:</label>
+            <input type="number" id="rc-suf-offset" class="rc-input" value="0" min="0" max="63">
+            <span style="font-size:0.75rem; color:var(--text-sub);">マス分ずらす / 指定マス番号</span>
+          </div>
+        </div>
+
+        <!-- G7: 秘密のアンカーマス ＆ 任意位置挿入 -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">7</span>秘密の起点マス（アンカー）＆ 挿入位置</div>
+          <div class="sub-row">
+            <label for="rc-anc-tile">起点マス:</label>
+            <select id="rc-anc-tile" class="rc-input"></select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-anc-mode">挿入方法:</label>
+            <select id="rc-anc-mode" class="rc-input">
+              <option value="0" selected>使用しない（アンカーなし）</option>
+              <option value="1">四隅一周(時計回り)を「末尾」に追加</option>
+              <option value="2">四隅一周(反時計回り)を「先頭」に追加</option>
+              <option value="3">上2文字(左上+右上)を先頭、下2文字(左下+右下)を末尾に挟む</option>
+              <option value="4">パスワードの「中央」に四隅一周(時計回り)を挿入</option>
+              <option value="5">先頭から A 文字目の後ろに四隅一周(時計回り)を挿入</option>
+              <option value="6">先頭から A 文字目の後ろに対角2文字(左上+右下)を挿入</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-anc-pos">挿入位置 A:</label>
+            <input type="number" id="rc-anc-pos" class="rc-input" value="4" min="0" max="63">
+            <span style="font-size:0.75rem; color:var(--text-sub);">文字目の後ろに挿入</span>
+          </div>
+        </div>
+
+        <!-- G8: 仕上げ変換 ＆ 自由な文字数指定 -->
+        <div class="field-group">
+          <div class="field-group-title"><span class="badge">8</span>仕上げ並び替え ＆ 出力文字数（自由数値入力）</div>
+          <div class="sub-row">
+            <label for="rc-post-mode">並び替え:</label>
+            <select id="rc-post-mode" class="rc-input">
+              <option value="0" selected>そのまま（なぞった順番通り）</option>
+              <option value="1">完成した文字列全体を逆順（リバース）</option>
+              <option value="2">前半と後半を入れ替える</option>
+              <option value="3">先頭と末尾を入れ替える</option>
+              <option value="4">2文字ずつペアで前後を入れ替える</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-len-mode">文字数制限:</label>
+            <select id="rc-len-mode" class="rc-input">
+              <option value="0" selected>制限なし（生成されたすべての文字を出力）</option>
+              <option value="1">先頭から L 文字に切り揃える</option>
+              <option value="2">末尾から L 文字に切り揃える</option>
+            </select>
+          </div>
+          <div class="sub-row">
+            <label for="rc-len-val">文字数 L:</label>
+            <input type="number" id="rc-len-val" class="rc-input" value="16" min="1" max="128">
+            <span style="font-size:0.75rem; color:var(--text-sub);">文字（4桁PINなら「4」を入力）</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIP39 24単語バックアップ＆復元 -->
+    <div class="section-card">
+      <div class="section-title">
+        <span>2. BIP39 24単語シードフレーズ バックアップ ＆ 復元</span>
+      </div>
+      <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
+        上のすべての設定（方向・入力した数字・ブラックリスト/ホワイトリスト記号文字列・カード配列シード番号）を、<strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語</strong>へ完全にエンコードします。
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;" class="no-print">
+        <label style="font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="chk-include-card-seed" checked style="width:17px; height:17px;">
+          カード配列シード番号 (seed) も24単語に含める
+        </label>
+        <button type="button" class="btn" id="btn-generate-seed">新しい24単語を生成（再ソルト）</button>
+        <button type="button" class="btn btn-secondary" id="btn-copy-seed">24単語をコピー</button>
+      </div>
+
+      <div class="cloud-warning">
+        <div class="cloud-warning-head">⚠️ 警告：24単語のシードフレーズは絶対にクラウドに保存するな！</div>
+        <div style="font-size:0.8rem; color:#e2e8f0;">
+          NEVER STORE YOUR 24-WORD SEED PHRASE IN THE CLOUD!<br>
+          クラウドメモ・メール・写真フォルダ（スクショ）への保存は厳禁です。必ず紙に控えてオフラインで保管してください。
+        </div>
+      </div>
+
+      <div class="seed-words-grid" id="seed-words-container"></div>
+
+      <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-color);" class="no-print">
+        <label for="input-restore-seed" style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">
+          🔄 24単語シードフレーズを入力してマイ・レシピを完全復元：
+        </label>
+        <textarea id="input-restore-seed" class="seed-textarea" placeholder="24個の英単語をスペース区切りで入力してください"></textarea>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn" id="btn-restore-seed">24単語を検証してレシピを復元</button>
+          <button type="button" class="btn btn-secondary" onclick="window.print()">このページを印刷</button>
+        </div>
+        <div id="restore-status" class="status-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="jquery.js"></script>
+  <script src="index.js"></script>
         <hr>
-        <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer">連絡はこちら</a>
+        <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer">Contact us</a>
     </div>
-    
 </body>
 </html>

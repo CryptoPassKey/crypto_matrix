@@ -142,7 +142,7 @@
     color: var(--text-main);
   }
 
-  /* ボタン：白〜薄いグレーで統一 */
+  /* ボタン */
 .btn {
   background: #f3f4f4;
   color: #26312b;
@@ -220,7 +220,7 @@
     box-shadow: none;
   }
 
-  /* 現在の手順・自動言語化ガイド */
+  /* 現在の手順・ガイド */
   .verbal-guide-card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -518,7 +518,7 @@
     gap: 12px;
   }
 
-  /* HTML内のインライン背景色・枠色も統一 */
+  /* HTML内のインライン背景色 */
   .field-group {
     background: #f8fbf9 !important;
     border: 1px solid var(--border-color);
@@ -546,7 +546,7 @@
     border-radius: 4px;
   }
 
-  /* インライン指定の青いバッジも上書き */
+  /* インライン指定の青いバッジ */
   .field-group .badge {
     background: var(--matrix-green) !important;
     color: #072411;
@@ -636,7 +636,7 @@
     resize: vertical;
   }
 
-  /* 警告表示：元の配色を維持 */
+  /* 警告表示 */
   .cloud-warning {
     background: var(--warn-bg);
     border: 2px solid var(--warn-border);
@@ -653,7 +653,7 @@
     margin-bottom: 4px;
   }
 
-  /* 成功・エラー表示：元の配色を維持 */
+  /* 成功・エラー表示 */
   .status-msg {
     margin-top: 8px;
     padding: 8px 12px;
@@ -705,7 +705,6 @@
     }
   }
 
-  /* 動きを減らす設定 */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -802,7 +801,7 @@
       <button type="button" class="btn btn-secondary" id="btn-random-matrix">ランダム生成</button>
     </div>
 
-    <!-- マトリックスの上に配置：現在のマイ・レシピ手順（自動言語化説明ボックス） -->
+    <!-- マトリックスの上に配置：現在のマイ・レシピ手順（説明ボックス） -->
     <div class="verbal-guide-card">
       <div class="verbal-guide-header">
         <span>📖 現在のパスワード作成手順（選択中のマイ・レシピ設定から）</span>
@@ -837,7 +836,7 @@
           </div>
           <div>
             <label for="sim-secret">テスト用合言葉</label>
-            <input type="text" id="sim-secret" value="taro" placeholder="例: taro">
+            <input type="text" id="sim-secret" value="Matrix" placeholder="例: Matrix">
           </div>
           <div>
             <label for="sim-speed">再生スピード（1文字あたり）</label>

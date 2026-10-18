@@ -51,8 +51,8 @@ function clearPending(){
  if($('bq-apply'))$('bq-apply').disabled=true;
 }
 
-function profileFor(cfg){return cfg.lenMode===5?'C2':(cfg.lenMode===3||cfg.lenMode===4)?'C1':'L2';}
-function profileLabel(p){return p==='C2'?'カード読み取りv2（記号あり）':p==='C1'?'カード読み取りv1':'従来の詳細設定';}
+function profileFor(cfg){return cfg.lenMode===5?'C2':cfg.lenMode===3?'C1_PIN':cfg.lenMode===4?'C1_ALNUM':'L2';}
+function profileLabel(p){return p==='C2'?'かんたん生成モード — パスワード（英大小・数字・記号）':p==='C1_PIN'?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':p==='C1_ALNUM'||p==='C1'?'かんたん生成モード（旧互換） — パスワード（英大小・数字）':'1. マイ・レシピ全組み合わせ設定';}
 function twoFaLabel(mode){
  if(mode===1||mode==='keyfile')return 'キーファイル2要素ロック（Password ＋ Keyfile SHA-512）';
  if(mode===2||mode==='passkey')return 'パスキー2要素ロック（Password ＋ WebAuthn PRF ハードウェア秘密）';

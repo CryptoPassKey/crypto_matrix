@@ -55,7 +55,7 @@ function profileFor(cfg){return cfg.lenMode===5?'C2':cfg.lenMode===3?'C1_PIN':cf
 function profileLabel(p){return p==='C2'?'かんたん生成モード — パスワード（英大小・数字・記号）':p==='C1_PIN'?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':p==='C1_ALNUM'||p==='C1'?'かんたん生成モード（旧互換） — パスワード（英大小・数字）':'1. マイ・レシピ全組み合わせ設定';}
 function twoFaLabel(mode){
  if(mode===1||mode==='keyfile')return 'キーファイル2要素ロック（Password ＋ Keyfile SHA-512）';
- if(mode===2||mode==='passkey')return 'パスキー2要素ロック（Password ＋ WebAuthn PRF ハードウェア秘密）';
+ if(mode===2||mode==='passkey')return 'パスキー2要素ロック（Password ＋ WebAuthn パスキー生体/デバイス認証）';
  return 'なし（パスワード単一要素）';
 }
 

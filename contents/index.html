@@ -785,13 +785,107 @@
       break-inside: avoid;
     }
   }
+
+/* BEGIN CARD QUICK AND MOBILE */
+#card-quick .cq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px}
+#card-quick .cq-panel{min-width:0;padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-sub)}
+#card-quick h3{margin:0 0 8px;font-size:.94rem}
+#card-quick p,#card-quick li,#backup-summary{font-size:.83rem;line-height:1.7}
+#card-quick .cq-row,.backup-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#card-quick select,#card-quick input{padding:7px 9px;border:1px solid #bdcec3;border-radius:5px;background:#fff;max-width:100%;min-width:0}
+#cq-status,#backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#087333}
+#cq-status[data-error="true"],#backup-summary[data-error="true"]{color:#b91c1c}
+#card-quick .cq-note{color:var(--text-sub)}
+#card-quick .cq-warning,.backup-warning{padding:10px;border:1px solid #dfc577;border-radius:6px;background:#fff9e8;color:#654c10;font-size:.82rem;line-height:1.7}
+.backup-block-title{grid-column:1/-1;font-size:.86rem;font-weight:700;margin-top:10px}
+@media screen and (max-width:800px){
+ .matrix-stage,.matrix-scroll{min-width:0;max-width:100%}
+ .matrix-scroll{overflow:visible;padding:2px 0 6px}
+ #div-encrypto-matrix-main{width:100%;min-width:0;max-width:760px;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(2px,.65vw,5px)}
+ #div-encrypto-matrix-main .square{min-width:0;aspect-ratio:1 / 1.2}
+ #div-encrypto-matrix-main .center-text{font-size:clamp(12px,4.2vw,22px);padding:0 1px}
+ #div-encrypto-matrix-main .corner-text{font-size:clamp(8.25px,2.35vw,13px);padding:0 1px}
+ #div-encrypto-matrix-main .top-left{top:1px;left:1px}
+ #div-encrypto-matrix-main .top-right{top:1px;right:1px}
+ #div-encrypto-matrix-main .bottom-left{bottom:1px;left:1px}
+ #div-encrypto-matrix-main .bottom-right{bottom:1px;right:1px}
+ .live-result-row>div{min-width:0!important;max-width:100%}
+ .section-title>div{flex-wrap:wrap}
+ .sub-row select{min-width:0;max-width:100%}
+ .backup-controls>*{max-width:100%}
+}
+/* END CARD QUICK AND MOBILE */
+/* QR backup */
+#backup-qr p,#backup-qr label {font-size:.84rem;line-height:1.7}
+#backup-qr [hidden] {display:none!important}
+#backup-qr .bq-row {display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+#backup-qr input[type=password],#backup-qr select {min-width:0;max-width:100%;padding:8px;border:1px solid var(--border-color);border-radius:5px;background:#fff}
+#backup-qr textarea {width:100%;min-height:85px;padding:9px;box-sizing:border-box;overflow-wrap:anywhere;resize:vertical;border:1px solid #bdcec3;border-radius:6px;background:#fff}
+#backup-qr .bq-warning {padding:10px;border:1px solid #d49c48;background:#fff8e7;color:#654512;border-radius:6px}
+#backup-qr .bq-status {white-space:pre-wrap;overflow-wrap:anywhere;font-size:.82rem;min-height:1.5em;color:#087333}
+#backup-qr .bq-status[data-error=true] {color:#b91c1c}
+#seed-qr-list,#bq-qr-list {display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:12px}
+#seed-qr-list figure,#bq-qr-list figure {margin:8px 0;padding:12px;border:1px solid #bbb;background:#fff;color:#000;max-width:100%;width:320px;break-inside:avoid;border-radius:6px}
+#seed-qr-list svg,#bq-qr-list svg {display:block;width:100%;height:auto;background:#fff}
+#seed-qr-list figcaption,#bq-qr-list figcaption {font-size:12px;text-align:center;overflow-wrap:anywhere;white-space:pre-wrap;margin-top:6px;line-height:1.45}
+#bq-video {display:block;width:100%;max-width:600px;max-height:55vh;background:#111}
+#bq-preview {white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border:1px solid var(--border-color)}
+/* ブラインド表示（覗き見防止モード：ルート再生中は自動的に解除して表示） */
+body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span {
+ position: relative;
+ color: transparent !important;
+ text-shadow: none !important;
+ user-select: none;
+}
+body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span::after {
+ content: "●";
+ position: absolute;
+ inset: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ color: #174c2a;
+ font-size: 0.92rem;
+}
+body.blind-mode #seed-words-container,
+body.blind-mode #seed-qr-list {
+ filter: blur(8px);
+ transition: filter 0.18s ease;
+}
+body.blind-mode #seed-words-container:hover,
+body.blind-mode #seed-qr-list:hover {
+ filter: none;
+}
+.btn-blind-active {
+ background: #17221b !important;
+ color: #00ff66 !important;
+ border-color: #00d957 !important;
+}
+@media print {
+ #backup-qr {break-inside:auto}
+ #backup-qr:not([data-ready=true]) {display:none!important}
+ #seed-qr-list,#bq-qr-list {display:block}
+ #seed-qr-list figure,#bq-qr-list figure {width:80mm;max-width:100%;padding:4mm;margin:5mm auto;break-inside:avoid;page-break-inside:avoid}
+ #seed-qr-list svg,#bq-qr-list svg {width:72mm;height:72mm;max-width:100%;background:#fff!important}
+ #seed-qr-list svg .qr-white,#bq-qr-list svg .qr-white {fill:#fff!important}
+ #seed-qr-list svg .qr-black,#bq-qr-list svg .qr-black {fill:#000!important}
+ #bq-print-summary {font-size:11pt;overflow-wrap:anywhere}
+}
 </style>
 
 </head>
 <body>
   <div class="container">
-    <h1>Crypto Matrix 暗号マトリックス ＆ マイ・レシピ管理</h1>
-    <p class="subtitle">物理カード配列の完全再現・手順・BIP39 24単語バックアップ</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div>
+        <h1>Crypto Matrix 暗号マトリックス ＆ マイ・レシピ管理</h1>
+        <p class="subtitle">物理カード配列の決定論的再現・パスワード算出・BIP39 24単語／高強度暗号化・秘密分散バックアップ</p>
+      </div>
+      <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" id="btn-blind-mode" aria-pressed="false" style="padding:6px 12px; font-size:0.78rem;" title="覗き見防止のため生成パスワード・合言葉・シード番号をマスクします（ルート再生中は自動的に表示されます）">🙈 ブラインド表示: OFF</button>
+        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します">🛡️ 緊急消去 (Zeroize)</button>
+      </div>
+    </div>
 
     <!-- カードシード番号バー -->
     <div class="seed-bar no-print">
@@ -857,7 +951,7 @@
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button type="button" class="btn" id="btn-play-trace">▶ マトリックス上で1文字ずつルート再生</button>
             <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;">⏹ 停止</button>
-            <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー</button>
+            <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー（30秒後自動消去）</button>
           </div>
         </div>
 
@@ -866,6 +960,54 @@
       </div>
     </div>
 
+
+<!-- BEGIN CARD QUICK -->
+<section class="section-card no-print" id="card-quick" aria-labelledby="cq-title">
+<h2 class="section-title" id="cq-title">かんたん生成 — カードの読み方を選ぶ</h2>
+<p class="cq-note">同一のカード・サイト名・合言葉・設定から常に同一のパスワードを決定論的に導出します。すべての出力文字は物理カードの角から直接読み取るため、ツールに依存せず紙のカード単体でも完全再現が可能です。</p>
+<div class="cq-grid">
+<section class="cq-panel"><h3>銀行などの暗証番号（数字のみ）</h3><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4">4桁</option>
+<option value="5">5桁</option>
+<option value="6" selected>6桁</option>
+<option value="7">7桁</option>
+<option value="8">8桁</option>
+<option value="9">9桁</option>
+<option value="10">10桁</option>
+<option value="11">11桁</option>
+<option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply">この読み方を使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
+<section class="cq-panel"><h3>パスワード（英大小・数字・記号）</h3><div class="cq-row"><label for="cq-symbol-length">文字数</label><select id="cq-symbol-length"><option value="16">16文字</option>
+<option value="17">17文字</option>
+<option value="18">18文字</option>
+<option value="19">19文字</option>
+<option value="20" selected>20文字</option>
+<option value="21">21文字</option>
+<option value="22">22文字</option>
+<option value="23">23文字</option>
+<option value="24">24文字</option>
+<option value="25">25文字</option>
+<option value="26">26文字</option>
+<option value="27">27文字</option>
+<option value="28">28文字</option>
+<option value="29">29文字</option>
+<option value="30">30文字</option>
+<option value="31">31文字</option>
+<option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">この読み方を使う</button></div>
+<p>本文は左下。末尾4文字は、カードから「英大文字・英小文字・数字・許可記号」の順に追加する。</p>
+<div class="cq-row"><label for="cq-symbol-mode">記号ルール</label><select id="cq-symbol-mode"><option value="0">すべて許可</option><option value="2" selected>ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
+<div class="cq-row" style="margin-top:8px"><label for="cq-symbol-list">対象記号</label><input type="text" id="cq-symbol-list" value="-_!#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cq-symbol-help"></div>
+<p class="cq-note" id="cq-symbol-help">記号を区切りなしで入力（例：-_!#）。英数字は常に許可。ルール変更時は生成値が変わるため、運用中の設定は変更しないでください。</p></section>
+</div>
+<details open><summary>紙のカードでも再現できる読み方</summary><ol>
+<li>英字A〜Zは小文字として中央のマスを探す。中央にない文字（ドット・空白・日本語など）は飛ばす。「-」「/」「^」「%」は中央にあるので使う。</li>
+<li>サイト名→合言葉の順に読む。数字用は左上、記号ありパスワードの本文は左下。</li>
+<li>禁止記号に当たったら、次のマスの左下へ進み、許可された文字まで飛ばす。次の入力文字は、その文字の中央マスから改めて探す。</li>
+<li>本文が足りなければ、最後に採用したマスの次から同じ角を読み足す。順序は左→右、行末は次の行の左端、右下の次は左上。</li>
+<li>記号ありでは、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
+</ol></details>
+<p id="cq-status" role="status" aria-live="polite">未適用です。読み方を選択してください。</p>
+<p class="cq-warning">ホワイトリストが空、または許可記号がカード上に存在しない場合はフォールバックを行わず安全のため生成を停止します。物理カード単体から合言葉や読み順は逆算できない設計です。合言葉・読み方・記号ルールはカードとは分離して管理してください。</p>
+</section>
+<!-- END CARD QUICK -->
     <!-- マイ・レシピ詳細設定セクション -->
     <div class="section-card">
       <div class="section-title">
@@ -1162,6 +1304,9 @@
               <option value="0" selected>制限なし（生成されたすべての文字を出力）</option>
               <option value="1">先頭から L 文字に切り揃える</option>
               <option value="2">末尾から L 文字に切り揃える</option>
+              <option value="3">カード用v1：L桁の数字（不足は左上を順読み）</option>
+              <option value="4">カード用v1：L文字の英数字（末尾は大・小・数字）</option>
+              <option value="5">カード用v2：L文字の記号あり（末尾は大・小・数字・記号）</option>
             </select>
           </div>
           <div class="sub-row">
@@ -1174,49 +1319,145 @@
     </div>
 
     <!-- BIP39 24単語バックアップ＆復元 -->
-    <div class="section-card">
+    <div class="section-card" id="section-bip39-plain">
       <div class="section-title">
-        <span>2. BIP39 24単語シードフレーズ バックアップ ＆ 復元</span>
+        <span>2. BIP39復元フレーズ — 24単語／拡張バックアップ（暗号化なし・自動作成）</span>
       </div>
       <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
-        上のすべての設定（方向・入力した数字・ブラックリスト/ホワイトリスト記号文字列・カード配列シード番号）を、<strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語</strong>へ完全にエンコードします。
+        現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は下の「3. 拡張バックアップ（暗号化）＆ 印刷QRからの復元」を使用してください。
       </p>
 
       <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;" class="no-print">
         <label style="font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;">
           <input type="checkbox" id="chk-include-card-seed" checked style="width:17px; height:17px;">
-          カード配列シード番号 (seed) も24単語に含める
+          カード配列シード番号 (seed) も復元フレーズに含める
         </label>
-        <button type="button" class="btn" id="btn-generate-seed">新しい24単語を生成（再ソルト）</button>
-        <button type="button" class="btn btn-secondary" id="btn-copy-seed">24単語をコピー</button>
+        <button type="button" class="btn" id="btn-generate-seed">復元フレーズとQRを再生成</button>
+        <button type="button" class="btn btn-secondary" id="btn-copy-seed">復元フレーズを全てコピー（30秒後自動消去）</button>
       </div>
 
       <div class="cloud-warning">
-        <div class="cloud-warning-head">⚠️ 警告：24単語のシードフレーズは絶対にクラウドに保存するな！</div>
+        <div class="cloud-warning-head">⚠️ 警告：暗号化なしの24単語シードフレーズ・QRコードは絶対にクラウドに保存ダメ、ゼッタイ！</div>
         <div style="font-size:0.8rem; color:#e2e8f0;">
-          NEVER STORE YOUR 24-WORD SEED PHRASE IN THE CLOUD!<br>
-          クラウドメモ・メール・写真フォルダ（スクショ）への保存は厳禁です。必ず紙に控えてオフラインで保管してください。
+          NEVER STORE YOUR UNENCRYPTED SEED PHRASE OR QR CODE IN THE CLOUD!<br>
+          クラウドメモ・メール・写真フォルダ（スクショ）への平文保存は情報流出の直接原因となります。必ず紙に控えてオフライン保管するか、下の「3」で暗号化バックアップを作成してください。
         </div>
       </div>
 
+<!-- BEGIN EXTENDED BIP39 BACKUP -->
+<div class="backup-controls no-print" style="margin:12px 0"><label for="backup-kind">保存形式</label><select id="backup-kind"><option value="settings">設定のみ：24単語（カードシード・マイレシピ設定のみ／サイト名・合言葉は別途必要）</option><option value="full">拡張バックアップ：24単語×必要ブロック数（カードシード・マイレシピ設定・サイト名・合言葉をすべて保存）</option></select></div>
+<p class="backup-warning no-print">この欄（2）は暗号化なしの自動表示です。複数ブロックになる拡張バックアップでも、すべてのブロック（24単語×必要ブロック数）を <strong>1枚の統合QRコード</strong> にまとめて表示します。</p>
+<div id="backup-summary" class="no-print" role="status" aria-live="polite"></div>
+<!-- END EXTENDED BIP39 BACKUP -->
       <div class="seed-words-grid" id="seed-words-container"></div>
+      <div id="seed-qr-list" aria-label="シードフレーズのQRコード自動表示"></div>
 
       <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-color);" class="no-print">
         <label for="input-restore-seed" style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">
-          🔄 24単語シードフレーズを入力してマイ・レシピを完全復元：
+          🔄 復元フレーズを入力（24単語 ／ 拡張バックアップ・暗号化バックアップの全ブロック）：
         </label>
-        <textarea id="input-restore-seed" class="seed-textarea" placeholder="24個の英単語をスペース区切りで入力してください"></textarea>
-        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn" id="btn-restore-seed">24単語を検証してレシピを復元</button>
+        <textarea id="input-restore-seed" class="seed-textarea" placeholder="24単語、または拡張バックアップ（24単語×必要ブロック数）の全ブロックを順に入力。改行・スペースで区切れます。"></textarea>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <label for="input-restore-password" style="font-size:0.84rem; font-weight:700;">復元用パスワード（暗号化バックアップの場合のみ）:</label>
+          <input type="password" id="input-restore-password" autocomplete="current-password" placeholder="暗号化なしの場合は空欄" style="padding:7px 10px; border:1px solid var(--border-color); border-radius:5px; min-width:220px;">
+          <button type="button" class="btn" id="btn-restore-seed">全ブロックを検証して復元</button>
           <button type="button" class="btn btn-secondary" onclick="window.print()">このページを印刷</button>
         </div>
         <div id="restore-status" class="status-msg"></div>
       </div>
     </div>
+
+<section class="section-card" id="backup-qr" data-ready="false">
+ <h2 class="section-title">3. 拡張バックアップ（暗号化・秘密分散・二段階ロック）＆ 印刷QRからの復元</h2>
+ <div class="no-print">
+  <p>暗号化なしの24単語・拡張バックアップとQRコードは上の「2」に自動表示されます。こちらは <strong>多層防御暗号化（PBKDF2-HMAC-SHA512 ＋ 256bit CSPRNGソルト ＋ HKDF-SHA512鍵分離 ＋ AES-256-GCM ＋ Key-Committing HMAC-SHA256）</strong> を施したうえで、<strong>BIP39 24単語×必要ブロック数</strong> とその <strong>統合QRコード（通常時は1枚、秘密分散時は1シェアにつき1枚）</strong> を生成します。</p>
+  <div class="bq-row">
+   <label for="bq-scope">保存形式</label>
+   <select id="bq-scope">
+    <option value="extended" selected>拡張バックアップ：24単語×必要ブロック数（カードシード・マイレシピ設定・サイト名・合言葉をすべて暗号化保存）</option>
+    <option value="basic">設定のみ：24単語×必要ブロック数（カードシード・マイレシピ設定のみ暗号化保存／サイト名・合言葉は別途必要）</option>
+   </select>
+  </div>
+  <div class="bq-row">
+   <label for="bq-kdf">暗号化プロファイル</label>
+   <select id="bq-kdf">
+    <option value="1" selected>高強度防衛（推奨 / Level 2 Hardened）：PBKDF2-HMAC-SHA512 2,100,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC（約2秒）</option>
+    <option value="2">最高度防衛（耐GPU解析特化 / Level 3 Maximum）：PBKDF2-HMAC-SHA512 5,000,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC（約4〜5秒）</option>
+    <option value="0">標準防衛（高速処理 / Level 1 Standard）：PBKDF2-HMAC-SHA512 600,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC（約0.6秒）</option>
+   </select>
+  </div>
+  <div class="bq-row">
+   <label for="bq-shamir">秘密分散（M-of-N）</label>
+   <select id="bq-shamir">
+    <option value="1-1" selected>分割なし（通常：全ブロックを統合したQR 1枚を作成）</option>
+    <option value="2-3">2-of-3 秘密分散（全3シェア＝QR 3枚に分割 ／ 任意の2枚で復元可能・1枚流出では解読不能）</option>
+    <option value="2-2">2-of-2 秘密分散（全2シェア＝QR 2枚に分割 ／ 両方のQRが揃うと復元可能）</option>
+    <option value="3-5">3-of-5 秘密分散（全5シェア＝QR 5枚に分割 ／ 任意の3枚で復元可能・2枚以下では解読不能）</option>
+   </select>
+  </div>
+  <div class="bq-row">
+   <label for="bq-2fa-mode">二段階ロック（任意）</label>
+   <select id="bq-2fa-mode">
+    <option value="none" selected>なし（復元用パスワードのみで暗号化）</option>
+    <option value="keyfile">キーファイル2要素ロック（パスワード ＋ 手元のファイル／専用.keyファイルをSHA-512で鍵合成・サーバー保存不要）</option>
+    <option value="passkey">パスキー（WebAuthn PRF）2要素ロック（パスワード ＋ 指紋/顔/YubiKeyのハードウェア秘密を合成・サーバー保存不要）</option>
+   </select>
+  </div>
+  <div class="bq-row" id="bq-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
+   <label for="bq-keyfile" style="font-weight:700;">🔑 2要素目キーファイル:</label>
+   <input type="file" id="bq-keyfile">
+   <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem;">🎲 高乱数キーファイル(.key)を生成・保存</button>
+   <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">任意のファイル（画像・PDF等）を選択するか、専用の高乱数.keyファイルを生成して別保管してください（外部送信は一切行われません）。</div>
+  </div>
+  <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
+   🔐 <strong>WebAuthn パスキー（PRF拡張）2要素ロック：</strong> GitHub Pages等の静的サイトでもサーバーへデータを一切保存せず、端末の生体認証／セキュリティキー（YubiKey・Windows Hello・Touch ID等）から決定論的な256bitハードウェア秘密鍵を導出して暗号化に合成します（HTTPS環境およびPRF拡張対応ブラウザ・認証器が必要です）。
+  </div>
+  <div class="bq-row" id="bq-password-row">
+   <label for="bq-password">復元用パスワード</label>
+   <input type="password" id="bq-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
+   <label for="bq-password-confirm">再入力</label>
+   <input type="password" id="bq-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
+  </div>
+  <div id="bq-pw-entropy" style="font-size:0.78rem; color:var(--text-sub); margin:2px 0 8px;">パスワード強度診断：未入力（12文字以上必須）</div>
+  <p class="bq-warning">復元用パスワード（および二段階ロック用キーファイル）はQRコードや24単語ブロックの中には一切記録されません。紛失すると復号は不可能なため、バックアップとは物理的に分離して管理してください。秘密分散（M-of-N）を選択した場合は、1シェアにつき1枚のQRコードが出力されるため、各シェアのQRを複数の異なる場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分散して保管してください。</p>
+  <div class="bq-row">
+   <button type="button" class="btn btn-outline" id="bq-create">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
+   <button type="button" class="btn btn-secondary" id="bq-copy" disabled>暗号化フレーズ（全ブロック）をコピー（30秒後自動消去）</button>
+   <button type="button" class="btn btn-secondary" id="bq-print" disabled>カードと暗号化QRを印刷</button>
+   <button type="button" class="btn btn-secondary" id="bq-clear">暗号化バックアップ表示を消去</button>
+  </div>
+  <div class="bq-status" id="bq-status" role="status" aria-live="polite"></div>
+  <div class="seed-words-grid" id="bq-words-container" style="margin-bottom:10px;"></div>
+  <label for="bq-output">暗号化復元フレーズ（BIP39 24単語×必要ブロック数 — QRが読めない環境でもこのフレーズから完全復元できます）</label>
+  <textarea id="bq-output" readonly autocomplete="off" spellcheck="false" placeholder="上のボタンを押すと、暗号化されたBIP39 24単語×必要ブロック数がここに生成されます。"></textarea>
+ </div>
+ <div id="bq-print-summary"></div><div id="bq-qr-list"></div>
+ <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
+  <h3>印刷したQRコード ／ 復元フレーズからの検証・復元</h3>
+  <p>「2」または「3」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
+  <label><input type="checkbox" id="bq-cdn"> 標準のQR読取APIがない場合、読取補助ライブラリjsQRのCDN読み込みを許可（画像・復元データは外部送信されません）</label>
+  <p>オフライン環境やiOS等で利用する場合は、ローカルに <code>vendor/jsQR.js</code> を配置することで完全オフライン読取が可能です。</p>
+  <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・写真から読む</label><input type="file" id="bq-image" accept="image/*" capture="environment"><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
+  <video id="bq-video" playsinline muted hidden></video>
+  <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
+  <label for="bq-import">復元フレーズ（24単語 ／ 拡張・暗号化バックアップの全ブロック ／ 秘密分散のMシェア分）または読み取ったQRデータ</label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="カメラや画像でQRを読み取るか、24単語×必要ブロック数（秘密分散の場合は必要Mシェア分）を入力してください。"></textarea>
+  <div class="bq-row">
+   <label for="bq-restore-password">復元用パスワード（暗号化時）</label>
+   <input type="password" id="bq-restore-password" autocomplete="current-password" placeholder="暗号化なしの場合は空欄">
+   <label for="bq-restore-keyfile">キーファイル（設定時のみ）</label>
+   <input type="file" id="bq-restore-keyfile">
+   <button type="button" class="btn btn-outline" id="bq-review">読み込み・検証して内容を確認</button>
+  </div>
+  <div id="bq-preview" hidden></div><button type="button" class="btn" id="bq-apply" disabled>確認した内容で復元を実行</button>
+  <p>復元処理は自動実行されず、全ブロックの整合性・暗号認証タグ・生成値ハッシュの検証が完了した後に適用されます。印刷後は必ず復元テストを実施してから元データを破棄してください。</p>
+ </div>
+</section>
   </div>
 
   <script src="jquery.js"></script>
+  <script src="qr-encoder.js"></script>
   <script src="index.js"></script>
+  <script src="backup-qr.js"></script>
         <hr>
         <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer">Contact us</a>
     </div>

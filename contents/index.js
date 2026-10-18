@@ -67,7 +67,13 @@ class Number1D {
 
 let currentMatrixData = [];
 let currentEvalSteps = [];
+let currentDisplayMode = 'recipe';
+  if (document.getElementById('gesture-design-bar')) document.getElementById('gesture-design-bar').style.display = 'none'; // 'recipe' | 'stroke'
 let traceTimer = null;
+let traceIsPaused = false;
+let traceCurrentIndex = 0;
+let traceStepRunner = null;
+let traceLastBannerText = '';
 let currentMnemonicWords = [];
 let bip39Wordlist = null;
 
@@ -86,6 +92,21 @@ function parseSeedValue(raw) {
     h = Math.imul(h, 16777619) >>> 0;
   }
   return h >>> 0;
+}
+
+function estimatePasswordEntropy(pw) {
+  const chars = Array.from(String(pw ?? ''));
+  if (!chars.length) return { bits: 0, pool: 0, unique: 0, length: 0 };
+  let pool = 0;
+  if (chars.some(c => /[0-9]/.test(c))) pool += 10;
+  if (chars.some(c => /[a-z]/.test(c))) pool += 26;
+  if (chars.some(c => /[A-Z]/.test(c))) pool += 26;
+  if (chars.some(c => /[^A-Za-z0-9\s]/.test(c))) pool += 32;
+  if (chars.some(c => /\s/.test(c))) pool += 1;
+  if (!pool) pool = 32;
+  const unique = new Set(chars).size;
+  const bits = Math.round(chars.length * Math.log2(pool) * 10) / 10;
+  return { bits, pool, unique, length: chars.length };
 }
 
 /**
@@ -447,7 +468,7 @@ function updateVerbalGuide(cfg) {
 }
 
 function evaluateRecipeSteps(siteRaw, secretRaw, cfg) {
-  const site = (siteRaw || 'amazon').trim() || 'a';
+  const site = (siteRaw || '1Password').trim() || '1';
   const secret = (secretRaw || 'taro').trim() || 't';
 
   let combined = '';
@@ -587,9 +608,13 @@ function evaluateRecipeSteps(siteRaw, secretRaw, cfg) {
 
 function updateSimulationUI() {
   stopMatrixTrace();
+  if (currentDisplayMode === 'stroke') {
+    updateStrokeGestureUI();
+    return;
+  }
   const cfg = getRecipeConfig();
-  const site = document.getElementById('sim-site')?.value || 'amazon';
-  const secret = document.getElementById('sim-secret')?.value || 'taro';
+  const site = document.getElementById('sim-site')?.value || '1Password';
+  const secret = document.getElementById('sim-secret')?.value || 'KeePass';
   currentEvalSteps = evaluateRecipeSteps(site, secret, cfg);
 
   const pwBox = document.getElementById('sim-output-pw');
@@ -615,10 +640,182 @@ function updateSimulationUI() {
   updateVerbalGuide(cfg);
 }
 
+let lastPlayTrigger = 'recipe'; // 'recipe' | 'stroke'
+
+function updateTraceButtonsUI(state) {
+  // state: 'idle' | 'playing' | 'paused'
+  const isPlaying = state === 'playing';
+  const isPaused = state === 'paused';
+  const isActive = isPlaying || isPaused;
+
+  const playBtn = document.getElementById('btn-play-trace');
+  const strokeBtn = document.getElementById('btn-play-stroke');
+  const pauseBtn = document.getElementById('btn-pause-trace');
+  const stopBtn = document.getElementById('btn-stop-trace');
+
+  const stickyPlay = document.getElementById('btn-sticky-play');
+  const stickyStroke = document.getElementById('btn-sticky-stroke');
+  const stickyPause = document.getElementById('btn-sticky-pause');
+  const stickyStop = document.getElementById('btn-sticky-stop');
+
+  if (isActive) {
+    // ユーザーが再生を押したまさにその場所（同一座標・同一スロット）に一時停止ボタンを表示！
+    const targetPlayBtn = (lastPlayTrigger === 'stroke') ? strokeBtn : playBtn;
+    if (pauseBtn && targetPlayBtn && targetPlayBtn.parentNode) {
+      targetPlayBtn.parentNode.insertBefore(pauseBtn, targetPlayBtn);
+      if (stopBtn) {
+        pauseBtn.parentNode.insertBefore(stopBtn, pauseBtn.nextSibling);
+      }
+    }
+    const targetStickyBtn = (lastPlayTrigger === 'stroke') ? stickyStroke : stickyPlay;
+    if (stickyPause && targetStickyBtn && targetStickyBtn.parentNode) {
+      targetStickyBtn.parentNode.insertBefore(stickyPause, targetStickyBtn);
+      if (stickyStop) {
+        stickyPause.parentNode.insertBefore(stickyStop, stickyPause.nextSibling);
+      }
+    }
+
+    if (playBtn) playBtn.style.display = 'none';
+    if (strokeBtn) strokeBtn.style.display = 'none';
+    if (stickyPlay) stickyPlay.style.display = 'none';
+    if (stickyStroke) stickyStroke.style.display = 'none';
+
+    if (pauseBtn) {
+      pauseBtn.style.display = 'inline-block';
+      pauseBtn.textContent = isPaused ? '▶ 再開' : '⏸ 一時停止';
+      pauseBtn.title = isPaused ? 'クリックして続きから再生を再開します' : 'クリックして再生を一時停止します（自分のペースで1文字ずつ確認できます）';
+    }
+    if (stopBtn) {
+      stopBtn.style.display = 'inline-block';
+    }
+
+    if (stickyPause) {
+      stickyPause.style.display = 'inline-block';
+      stickyPause.textContent = isPaused ? '▶ 再開' : '⏸ 一時停止';
+    }
+    if (stickyStop) {
+      stickyStop.style.display = 'inline-block';
+    }
+
+    document.body.classList.add('trace-playing');
+  } else {
+    // 停止時は元の配置順に綺麗に戻す
+    const mainBar = document.getElementById('trace-controls-bar');
+    if (mainBar && strokeBtn && pauseBtn && stopBtn) {
+      mainBar.insertBefore(pauseBtn, strokeBtn.nextSibling);
+      mainBar.insertBefore(stopBtn, pauseBtn.nextSibling);
+    }
+    const stickyBar = document.getElementById('sticky-controls-bar');
+    if (stickyBar && stickyStroke && stickyPause && stickyStop) {
+      stickyBar.insertBefore(stickyPause, stickyStroke.nextSibling);
+      stickyBar.insertBefore(stickyStop, stickyPause.nextSibling);
+    }
+
+    if (playBtn) playBtn.style.display = 'inline-block';
+    if (strokeBtn) strokeBtn.style.display = 'inline-block';
+    if (stickyPlay) stickyPlay.style.display = 'inline-block';
+    if (stickyStroke) stickyStroke.style.display = 'inline-block';
+
+    if (pauseBtn) {
+      pauseBtn.style.display = 'none';
+      pauseBtn.textContent = '⏸ 一時停止';
+    }
+    if (stopBtn) stopBtn.style.display = 'none';
+
+    if (stickyPause) {
+      stickyPause.style.display = 'none';
+      stickyPause.textContent = '⏸ 一時停止';
+    }
+    if (stickyStop) stickyStop.style.display = 'none';
+
+    document.body.classList.remove('trace-playing');
+  }
+}
+
+let strokePreviewTimer = null;
+let strokePreviewState = null;
+let strokeResumePreviewRunner = null;
+
+function hideStrokeHUD() {
+  const hud = document.getElementById('stroke-char-hud');
+  if (hud) {
+    hud.classList.remove('is-visible');
+    hud.style.display = 'none';
+  }
+}
+
+function togglePauseMatrixTrace() {
+  if (!traceTimer && !strokePreviewTimer && !traceIsPaused) return;
+
+  const banner = document.getElementById('sim-step-banner');
+
+  if (!traceIsPaused) {
+    if (traceTimer) {
+      clearInterval(traceTimer);
+      traceTimer = null;
+    }
+    if (strokePreviewTimer) {
+      clearTimeout(strokePreviewTimer);
+      strokePreviewTimer = null;
+      if (strokePreviewState) {
+        const elapsed = Date.now() - (strokePreviewState.startedAt || Date.now());
+        strokePreviewState.remainingMs = Math.max(250, (strokePreviewState.duration || 1000) - elapsed);
+      }
+    }
+    traceIsPaused = true;
+    updateTraceButtonsUI('paused');
+    if (banner) {
+      traceLastBannerText = banner.textContent;
+      banner.textContent = '⏸ 一時停止中（「▶ 再開」を押すと続きから再生します）';
+    }
+  } else {
+    traceIsPaused = false;
+    updateTraceButtonsUI('playing');
+    if (banner && traceLastBannerText) {
+      banner.textContent = traceLastBannerText;
+    }
+    const speed = Number(document.getElementById('sim-speed')?.value) || 500;
+    if (strokePreviewState && typeof strokeResumePreviewRunner === 'function') {
+      strokeResumePreviewRunner();
+    } else if (traceStepRunner) {
+      traceTimer = setInterval(() => {
+        const nextIdx = traceCurrentIndex + 1;
+        traceStepRunner(nextIdx);
+      }, speed);
+    }
+  }
+}
+
+function stopMatrixTrace() {
+  if (strokePreviewTimer) {
+    clearTimeout(strokePreviewTimer);
+    strokePreviewTimer = null;
+  }
+  strokePreviewState = null;
+  strokeResumePreviewRunner = null;
+  hideStrokeHUD();
+  if (traceTimer) {
+    clearInterval(traceTimer);
+    traceTimer = null;
+  }
+  traceIsPaused = false;
+  traceStepRunner = null;
+  traceCurrentIndex = 0;
+  clearHighlightsOnly();
+  updateTraceButtonsUI('idle');
+  if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
+}
+
 function playMatrixTrace() {
+  lastPlayTrigger = 'recipe';
+  const modeChanged = currentDisplayMode !== 'recipe';
+  currentDisplayMode = 'recipe';
   stopMatrixTrace();
+  if (modeChanged || !currentEvalSteps || currentEvalSteps.length === 0) {
+    updateSimulationUI();
+  }
   if (!currentEvalSteps || currentEvalSteps.length === 0) return;
-  document.body.classList.add('trace-playing');
+  updateTraceButtonsUI('playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
   const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
   if (stageEl) {
@@ -628,16 +825,11 @@ function playMatrixTrace() {
     }
   }
 
-  const speed = Number(document.getElementById('sim-speed')?.value) || 450;
+  const speed = Number(document.getElementById('sim-speed')?.value) || 500;
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
   const pwSpans = document.querySelectorAll('#sim-output-pw .pw-char-span');
   const logLines = document.querySelectorAll('#sim-trace-log .trace-line');
   const banner = document.getElementById('sim-step-banner');
-
-  document.getElementById('btn-play-trace').style.display = 'none';
-  document.getElementById('btn-stop-trace').style.display = 'inline-block';
-
-  let idx = 0;
 
   const showStep = (stepIndex) => {
     clearHighlightsOnly();
@@ -647,6 +839,7 @@ function playMatrixTrace() {
       return;
     }
 
+    traceCurrentIndex = stepIndex;
     const st = currentEvalSteps[stepIndex];
     const sq = squares[st.tileIdx];
     if (sq) {
@@ -669,25 +862,21 @@ function playMatrixTrace() {
     }
   };
 
+  traceStepRunner = (idx) => showStep(idx);
   showStep(0);
-  idx = 1;
+  traceCurrentIndex = 0;
   traceTimer = setInterval(() => {
-    if (idx >= currentEvalSteps.length) {
-      stopMatrixTrace();
-      if (banner) banner.textContent = '✅ 全文字のルート再生が完了しました。';
-      return;
-    }
-    showStep(idx);
-    idx++;
+    const nextIdx = traceCurrentIndex + 1;
+    traceStepRunner(nextIdx);
   }, speed);
 }
 
 function clearHighlightsOnly() {
   document.querySelectorAll('#div-encrypto-matrix-main .square').forEach(el => {
-    el.classList.remove('active-tile', 'fallback-tile');
+    el.classList.remove('active-tile', 'fallback-tile', 'stroke-active-tile', 'stroke-preview-tile', 'stroke-start-tile');
   });
-  document.querySelectorAll('#div-encrypto-matrix-main .active-char-spot').forEach(el => {
-    el.classList.remove('active-char-spot');
+  document.querySelectorAll('#div-encrypto-matrix-main .corner-text').forEach(el => {
+    el.classList.remove('active-char-spot', 'preview-char-spot', 'start-char-spot');
   });
   document.querySelectorAll('#sim-output-pw .pw-char-span.playing-now').forEach(el => {
     el.classList.remove('playing-now');
@@ -697,18 +886,848 @@ function clearHighlightsOnly() {
   });
 }
 
-function stopMatrixTrace() {
-  if (traceTimer) {
-    clearInterval(traceTimer);
-    traceTimer = null;
+/* =====================================================================
+ * パターンルート（5×8盤面・公式ルート描画）方式
+ * 物理カード上で「0, 1, 2, 5, 7」や「C, L, U, S, O」など直感的な形を
+ * Androidのパターンのように指でなぞるだけで、誰でも迷わずパスワードを復元できる公式パターン機能
+ * ===================================================================== */
+const GESTURE_DESIGNS = {
+  // === 数字のデザイン ===
+  '0': {
+    symbol: '0',
+    name: '外周一周',
+    desc: '左上から外周を時計回りに一周する完全上下・左右対称ルート',
+    category: '数字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 0; c < 8; c++) pts.push([0, c]);
+      for (let r = 1; r < 5; r++) pts.push([r, 7]);
+      for (let c = 6; c >= 0; c--) pts.push([4, c]);
+      for (let r = 3; r >= 1; r--) pts.push([r, 0]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  '1': {
+    symbol: '1',
+    name: '上から下へ直進',
+    desc: '中央列（第4列）を上から下へ垂直直進するルート',
+    category: '数字のデザイン',
+    getStrokes: (col = 3) => {
+      const c = Math.max(0, Math.min(7, col));
+      return [[[0, c], [1, c], [2, c], [3, c], [4, c]]];
+    },
+    getPts: function(col = 3) { return [].concat(...this.getStrokes(col)); }
+  },
+  '2': {
+    symbol: '2',
+    name: 'Z型スラッシュ',
+    desc: '上辺を右へ、中央を斜め左下に駆け下り、下辺を右へ抜ける完全点対称ルート',
+    category: '数字のデザイン',
+    aliasOf: 'Z',
+    getStrokes: () => GESTURE_DESIGNS['Z'].getStrokes(),
+    getPts: () => GESTURE_DESIGNS['Z'].getPts()
+  },
+  '5': {
+    symbol: '5',
+    name: 'ジグザグ',
+    desc: '右上から、左→下→右→下→左へ進みます',
+    category: '数字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 7; c >= 0; c--) pts.push([0, c]);
+      pts.push([1, 0]);
+      for (let c = 0; c < 8; c++) pts.push([2, c]);
+      pts.push([3, 7]);
+      for (let c = 7; c >= 0; c--) pts.push([4, c]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  '7': {
+    symbol: '7',
+    name: 'コーナー',
+    desc: '左上から右端まで進み、そのまま下へ進みます',
+    category: '数字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 0; c < 8; c++) pts.push([0, c]);
+      for (let r = 1; r < 5; r++) pts.push([r, 7]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+
+  // === 英字のデザイン ===
+  'C': {
+    symbol: 'C',
+    name: 'コの字（左壁）',
+    desc: '最上段を左へ進み、左端を下って最下段を右へ進む完全上下対称ルート',
+    category: '英字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 7; c >= 0; c--) pts.push([0, c]);
+      for (let r = 1; r < 5; r++) pts.push([r, 0]);
+      for (let c = 1; c < 8; c++) pts.push([4, c]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'L': {
+    symbol: 'L',
+    name: '下へ進み最下段を右へ',
+    desc: '左上から下へ進み、最下段を右へ進みます',
+    category: '英字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let r = 0; r < 5; r++) pts.push([r, 0]);
+      for (let c = 1; c < 8; c++) pts.push([4, c]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'U': {
+    symbol: 'U',
+    name: '下→右→上',
+    desc: '左上から下→右→上へ進む左右対称ルート（推奨16文字）',
+    category: '英字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let r = 0; r < 5; r++) pts.push([r, 0]);
+      for (let c = 1; c < 7; c++) pts.push([4, c]);
+      for (let r = 4; r >= 0; r--) pts.push([r, 7]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'S': {
+    symbol: 'S',
+    name: '5と共通',
+    desc: '右上から、左→下→右→下→左へ進みます（5と共通の形）',
+    category: '英字のデザイン',
+    aliasOf: '5',
+    getStrokes: () => GESTURE_DESIGNS['5'].getStrokes(),
+    getPts: () => GESTURE_DESIGNS['5'].getPts()
+  },
+  'O': {
+    symbol: 'O',
+    name: '0と共通',
+    desc: '左上から外周を一周します（0と共通の形）',
+    category: '英字のデザイン',
+    aliasOf: '0',
+    getStrokes: () => GESTURE_DESIGNS['0'].getStrokes(),
+    getPts: () => GESTURE_DESIGNS['0'].getPts()
+  },
+  'X': {
+    symbol: 'X',
+    name: '2画クロス',
+    desc: '書き順通り左上から右下、右上から左下へ2画で交差する完全対称クロス（推奨ジャスト16文字）',
+    category: '英字のデザイン',
+    getStrokes: () => [
+      // 1画目: 左上から右下へ
+      [[0, 0], [1, 1], [1, 2], [2, 3], [2, 4], [3, 5], [3, 6], [4, 7]],
+      // 2画目: 右上から左下へ
+      [[0, 7], [1, 6], [1, 5], [2, 4], [2, 3], [3, 2], [3, 1], [4, 0]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'Z': {
+    symbol: 'Z',
+    name: 'Zスラッシュ',
+    desc: '上辺を右へ、中央を斜め左下に駆け下り、下辺を右へ抜ける完全点対称ルート（180度回転対称）',
+    category: '英字のデザイン',
+    getStrokes: () => [
+      [
+        [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
+        [1, 6], [1, 5],
+        [2, 4], [2, 3],
+        [3, 2], [3, 1],
+        [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'N': {
+    symbol: 'N',
+    name: 'Nスラッシュ',
+    desc: '左端を駆け上がり、中央を斜めに下り、右端を天へ駆け上がる完全点対称ルート（推奨16文字）',
+    category: '英字のデザイン',
+    getStrokes: () => [
+      [
+        [4, 0], [3, 0], [2, 0], [1, 0], [0, 0],
+        [1, 1], [1, 2],
+        [2, 3], [2, 4],
+        [3, 5], [3, 6],
+        [4, 7], [3, 7], [2, 7], [1, 7], [0, 7]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+
+  // === 漢字・カナのデザイン ===
+  'ko': {
+    symbol: 'コ',
+    name: 'カタカナ「コ」',
+    desc: '最上段を右へ進み、右端を下って最下段を左へ戻る完全上下対称ルート',
+    category: 'カナのデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 0; c < 8; c++) pts.push([0, c]);
+      for (let r = 1; r < 5; r++) pts.push([r, 7]);
+      for (let c = 6; c >= 0; c--) pts.push([4, c]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'ichi': {
+    symbol: '一',
+    name: '漢字の「一」',
+    desc: '盤面中央（3行目）を水平に真一文字で横断する完全対称ルート',
+    category: '漢字のデザイン',
+    getStrokes: () => {
+      const pts = [];
+      for (let c = 0; c < 8; c++) pts.push([2, c]);
+      return [pts];
+    },
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'ni': {
+    symbol: '二',
+    name: '漢字の「二」',
+    desc: '書き順通り第2行・第4行を2画で引く、端正な二（推奨ジャスト16文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 上の横線 (全幅8マス)
+      [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]],
+      // 2画目: 下の横線 (全幅8マス)
+      [[3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'san': {
+    symbol: '三',
+    name: '漢字の「三」',
+    desc: '書き順通り1行目・3行目・5行目を3画でまっすぐ引く、端正な三（全24文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 1行目
+      [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7]],
+      // 2画目: 3行目
+      [[2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]],
+      // 3画目: 5行目
+      [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'ju': {
+    symbol: '十',
+    name: '漢字の「十」',
+    desc: '書き順通り横棒を引いてから中央の縦柱を貫く、完全上下対称十字（全13文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 横棒 (全幅8マス)
+      [[2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]],
+      // 2画目: 縦棒 (全高5マス)
+      [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'kawa': {
+    symbol: '川',
+    name: '漢字の「川」',
+    desc: '書き順通り左・中・右の3本の川を縦に3画で引く、純粋な川の字（全15文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 左川
+      [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]],
+      // 2画目: 中川
+      [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3]],
+      // 3画目: 右川
+      [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'yama': {
+    symbol: '山',
+    name: '漢字の「山」',
+    desc: '正しい書き順で中央主峰を立て、左から底辺を回って右峰を結ぶ純粋な山（全17文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 中央の主峰
+      [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3]],
+      // 2画目: 左の峰から底辺を通り右峰へ
+      [[2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [3, 7], [2, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'hi': {
+    symbol: '日',
+    name: '漢字の「日」',
+    desc: '正しい書き順で左縦→上横右縦→中横→底横と描く、端正な日（全28文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 左縦
+      [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]],
+      // 2画目: 上横〜右縦
+      [[0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]],
+      // 3画目: 中横
+      [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6]],
+      // 4画目: 底横
+      [[4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'ta': {
+    symbol: '田',
+    name: '漢字の「田」',
+    desc: '正しい書き順で外枠→中縦→中横→底横を描く、均整の取れた純粋な田（全31文字）',
+    category: '漢字のデザイン',
+    getStrokes: () => [
+      // 1画目: 左縦
+      [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]],
+      // 2画目: 上横〜右縦
+      [[0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]],
+      // 3画目: 中縦
+      [[1, 3], [2, 3], [3, 3]],
+      // 4画目: 中横
+      [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6]],
+      // 5画目: 底横
+      [[4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'e': {
+    symbol: 'エ',
+    name: 'カタカナ「エ」',
+    desc: '正しい書き順（上横→中柱→下横）で引く、端正なエ（全19文字）',
+    category: 'カナのデザイン',
+    getStrokes: () => [
+      // 1画目: 上横 (全幅8マス)
+      [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7]],
+      // 2画目: 中柱
+      [[1, 3], [2, 3], [3, 3]],
+      // 3画目: 下横 (全幅8マス)
+      [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'to': {
+    symbol: 'ト',
+    name: 'カタカナ「ト」',
+    desc: '正しい書き順（縦棒→斜め枝）で素直に描く、美しいト（全11文字）',
+    category: 'カナのデザイン',
+    getStrokes: () => [
+      // 1画目: 縦棒
+      [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]],
+      // 2画目: 斜め枝
+      [[2, 2], [2, 3], [3, 4], [3, 5], [4, 6], [4, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+
+  // === 記号・シンボル ===
+  'heart': {
+    symbol: '♡',
+    name: 'ハート型',
+    desc: '左右完全対称で愛らしいハートの輪郭を指でなぞるルート（推奨15文字）',
+    category: '記号のデザイン',
+    getStrokes: () => [
+      [
+        [4, 3], [3, 2], [2, 1], [1, 0],
+        [0, 1], [0, 2],
+        [1, 3], [1, 4],
+        [0, 5], [0, 6],
+        [1, 7], [2, 6], [3, 5],
+        [4, 4], [4, 3]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'star': {
+    symbol: '☆',
+    name: '星型（5芒星）',
+    desc: '左右完全対称で全幅8マスに腕を広げた星の輪郭をなぞるルート（推奨16文字★）',
+    category: '記号のデザイン',
+    getStrokes: () => [
+      [
+        [0, 3], [1, 2], [1, 1], [1, 0],
+        [2, 2], [3, 2], [4, 1],
+        [3, 3], [3, 4],
+        [4, 6], [3, 5], [2, 5],
+        [1, 7], [1, 6], [1, 5],
+        [0, 4]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'penta': {
+    symbol: '★',
+    name: '五芒星（パターン交差）',
+    desc: '左下から頂点、右下、左腕、右腕、左下と交差して描く伝統的な五芒星パターン（全23文字）',
+    category: '記号のデザイン',
+    getStrokes: () => [
+      [
+        [4, 1], [3, 2], [2, 2], [1, 3], [0, 3],
+        [0, 4], [1, 4], [2, 5], [3, 5], [4, 6],
+        [3, 4], [2, 2], [1, 0],
+        [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7],
+        [2, 5], [3, 3], [4, 1]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'dia': {
+    symbol: '◇',
+    name: 'ダイヤ型',
+    desc: '盤面4隅に向かって大きくひし形を描く完全上下・左右対称ジュエルルート',
+    category: '記号のデザイン',
+    getStrokes: () => [
+      [
+        [0, 3], [0, 4], [1, 5], [1, 6], [2, 7],
+        [3, 6], [3, 5], [4, 4], [4, 3],
+        [3, 2], [3, 1], [2, 0],
+        [1, 1], [1, 2], [0, 3]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'inf': {
+    symbol: '∞',
+    name: 'インフィニティ',
+    desc: '2つのループが交差する完全上下・左右対称エイトライン',
+    category: '記号のデザイン',
+    getStrokes: () => [
+      [
+        [2, 3], [1, 2], [0, 2], [0, 1], [1, 0], [2, 0], [3, 0], [4, 1], [4, 2], [3, 2], [2, 3],
+        [2, 4], [1, 5], [0, 5], [0, 6], [1, 7], [2, 7], [3, 7], [4, 6], [4, 5], [3, 5], [2, 4]
+      ]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'eq': {
+    symbol: '＝',
+    name: 'イコール',
+    desc: '書き順通り2本の平行ラインを引く、完全上下対称ルート（推奨ジャスト16文字）',
+    category: '記号のデザイン',
+    aliasOf: 'ni',
+    getStrokes: () => GESTURE_DESIGNS['ni'].getStrokes(),
+    getPts: () => GESTURE_DESIGNS['ni'].getPts()
+  },
+
+  // === 矢印のデザイン ===
+  'arrow_r': {
+    symbol: '→',
+    name: '右矢印',
+    desc: '中央軸を引いてから矢じりを描く、完全上下対称アロー（全13文字）',
+    category: '矢印のデザイン',
+    getStrokes: () => [
+      // 1画目: シャフト (全幅8マス)
+      [[2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]],
+      // 2画目: 矢じり
+      [[0, 5], [1, 6], [2, 7], [3, 6], [4, 5]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'arrow_l': {
+    symbol: '←',
+    name: '左矢印',
+    desc: '中央軸を引いてから矢じりを描く、完全上下対称アロー（全13文字）',
+    category: '矢印のデザイン',
+    getStrokes: () => [
+      // 1画目: シャフト (全幅8マス)
+      [[2, 7], [2, 6], [2, 5], [2, 4], [2, 3], [2, 2], [2, 1], [2, 0]],
+      // 2画目: 矢じり
+      [[0, 2], [1, 1], [2, 0], [3, 1], [4, 2]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'arrow_u': {
+    symbol: '↑',
+    name: '上矢印',
+    desc: '下から天へ垂直軸を突き上げ、両翼の矢じりを描く完全左右対称アロー（全13文字）',
+    category: '矢印のデザイン',
+    getStrokes: () => [
+      // 1画目: 垂直軸
+      [[4, 3], [3, 3], [2, 3], [1, 3], [0, 3]],
+      // 2画目: 矢じり
+      [[3, 0], [2, 1], [1, 2], [0, 3], [0, 4], [1, 5], [2, 6], [3, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
+  },
+  'arrow_d': {
+    symbol: '↓',
+    name: '下矢印',
+    desc: '天から地へ垂直軸を突き下ろし、両翼の矢じりを描く完全左右対称アロー（全13文字）',
+    category: '矢印のデザイン',
+    getStrokes: () => [
+      // 1画目: 垂直軸
+      [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3]],
+      // 2画目: 矢じり
+      [[1, 0], [2, 1], [3, 2], [4, 3], [4, 4], [3, 5], [2, 6], [1, 7]]
+    ],
+    getPts: function() { return [].concat(...this.getStrokes()); }
   }
-  document.body.classList.remove('trace-playing');
+};
+let currentSelectedGestureDesign = null; // null: サイト頭文字から自動検出、指定時は固定
+
+function getGestureDesignKey(site) {
+  if (currentSelectedGestureDesign && GESTURE_DESIGNS[currentSelectedGestureDesign]) {
+    return currentSelectedGestureDesign;
+  }
+  const clean = String(site || '').trim();
+  const c = clean ? clean[0].toUpperCase() : 'U';
+  if (GESTURE_DESIGNS[c]) return c;
+  // 漢字・記号・カナ直接マッチ
+  if (c === 'コ' || c === 'こ') return 'ko';
+  if (c === '一') return 'ichi';
+  if (c === '二') return 'ni';
+  if (c === '三') return 'san';
+  if (c === '十') return 'ju';
+  if (c === '川') return 'kawa';
+  if (c === '山') return 'yama';
+  if (c === '日') return 'hi';
+  if (c === '田') return 'ta';
+  if (c === 'エ' || c === 'え') return 'e';
+  if (c === 'ト' || c === 'と') return 'to';
+  if (c === '=' || c === '＝') return 'eq';
+  if (c === '♡' || c === '♥') return 'heart';
+  if (c === '★' || c === '五') return 'penta';
+  if (c === '☆' || c === '*' || c === '星') return 'star';
+  if (c === '◇' || c === '◆') return 'dia';
+  if (c === '∞') return 'inf';
+  if (c === '→') return 'arrow_r';
+  if (c === '←') return 'arrow_l';
+  if (c === '↑') return 'arrow_u';
+  if (c === '↓') return 'arrow_d';
+  // アルファベットからの連想マッピング
+  if (c === 'K') return 'ko';
+  if (c === 'H') return 'heart';
+  if (c === 'R') return 'arrow_r';
+  if (c === 'Y') return 'yama';
+  if (c === 'E') return 'e';
+  if (c === 'T') return 'to';
+  if (['B', 'D', 'P', 'Q'].includes(c)) return 'O';
+  if (['I', 'J'].includes(c)) return '1';
+  if (c === 'Z' || c === 'ｚ') return 'Z';
+  if (c === 'N' || c === 'ｎ') return 'N';
+  if (['G'].includes(c)) return 'C';
+  if (['M'].includes(c)) return 'L';
+  if (['A', 'V', 'W'].includes(c)) return 'U';
+  if (['F'].includes(c)) return '7';
+  if (['3', '8', '9'].includes(c)) return '0';
+  if (['4', '6'].includes(c)) return '5';
+  return 'U';
+}
+function getStrokeStepDirAndCorner(prevPt, currPt, isFirst = false, startCol = 0) {
+  if (isFirst) {
+    if (currPt.r === 0) return { dirTxt: '始点', corner: currPt.c >= 4 ? 'tr' : 'tl' };
+    if (currPt.r === 4) return { dirTxt: '始点', corner: currPt.c >= 4 ? 'br' : 'bl' };
+    return { dirTxt: '始点', corner: currPt.c >= 4 ? 'tr' : 'tl' };
+  }
+  const dr = currPt.r - prevPt.r;
+  const dc = currPt.c - prevPt.c;
+  if (dr === 0 && dc > 0) {
+    return { dirTxt: '→ 右へ', corner: currPt.r >= 3 ? 'br' : 'tr' };
+  }
+  if (dr === 0 && dc < 0) {
+    return { dirTxt: '← 左へ', corner: currPt.r >= 3 ? 'bl' : 'tl' };
+  }
+  if (dr > 0 && dc === 0) {
+    return { dirTxt: '↓ 下へ', corner: currPt.c >= 4 ? 'br' : 'bl' };
+  }
+  if (dr < 0 && dc === 0) {
+    return { dirTxt: '↑ 上へ', corner: currPt.c >= 4 ? 'tr' : 'tl' };
+  }
+  if (dr > 0 && dc > 0) return { dirTxt: '↘ 右下へ', corner: 'br' };
+  if (dr > 0 && dc < 0) return { dirTxt: '↙ 左下へ', corner: 'bl' };
+  if (dr < 0 && dc > 0) return { dirTxt: '↗ 右上へ', corner: 'tr' };
+  if (dr < 0 && dc < 0) return { dirTxt: '↖ 左上へ', corner: 'tl' };
+  return { dirTxt: '➔ なぞる', corner: currPt.r >= 3 ? 'br' : 'tr' };
+}
+function evaluateStrokeGestureSteps(site, secret, explicitDesignKey) {
+  const spotNames = { tl: '左上', tr: '右上', bl: '左下', br: '右下', center: '中央' };
+  const cleanSite = String(site || '').trim();
+  const cleanSecret = String(secret || '').trim();
+  const designKey = explicitDesignKey || getGestureDesignKey(cleanSite);
+  const design = GESTURE_DESIGNS[designKey] || GESTURE_DESIGNS['U'];
+
+  let colFor1 = 3;
+  if (designKey === '1' && cleanSite) {
+    const tileIdx = findTileIndex(cleanSite[0]);
+    if (tileIdx >= 0) colFor1 = tileIdx % 8;
+  }
+
+  const rawStrokes = design.getStrokes
+    ? (designKey === '1' ? design.getStrokes(colFor1) : design.getStrokes())
+    : [design.getPts ? (designKey === '1' ? design.getPts(colFor1) : design.getPts()) : []];
+
+  const steps = [];
+  rawStrokes.forEach((stroke, sIdx) => {
+    const tiles = stroke.map(p => ({ r: p[0], c: p[1], tileIdx: p[0] * 8 + p[1] }));
+    tiles.forEach((t, pIdx) => {
+      const tile = currentMatrixData[t.tileIdx] || currentMatrixData[0];
+      const isFirst = (pIdx === 0);
+      const { dirTxt, corner } = getStrokeStepDirAndCorner(
+        !isFirst ? tiles[pIdx - 1] : null,
+        t,
+        isFirst,
+        t.c
+      );
+      const ch = tile[corner] || tile.center;
+      const isPenUp = (sIdx > 0 && isFirst);
+      steps.push({
+        ch,
+        tileIdx: t.tileIdx,
+        corner,
+        isFallback: false,
+        isStroke: true,
+        strokeIndex: sIdx,
+        isStrokeStart: isFirst,
+        isPenUp,
+        designKey,
+        designSymbol: design.symbol,
+        designName: design.name,
+        log: isFirst
+          ? (sIdx === 0
+              ? `✍️ 【${design.category}「${design.symbol}」第1画の始点】マス [${tile.center}] (${t.r + 1}行・${t.c + 1}列) ➔ '${ch}' (${spotNames[corner]})`
+              : `✍️ ━━【第${sIdx + 1}画へジャンプして始点】マス [${tile.center}] (${t.r + 1}行・${t.c + 1}列) ➔ '${ch}' (${spotNames[corner]})`)
+          : `   ${dirTxt}なぞる ➔ マス [${tile.center}] (${t.r + 1}行・${t.c + 1}列) ➔ '${ch}' (${spotNames[corner]})`
+      });
+    });
+  });
+
+  return steps;
+}
+function updateStrokeGestureUI() {
+  const site = document.getElementById('sim-site')?.value || '1Password';
+  const secret = document.getElementById('sim-secret')?.value || 'KeePass';
+  const designKey = getGestureDesignKey(site);
+  const design = GESTURE_DESIGNS[designKey] || GESTURE_DESIGNS['U'];
+
+  const strokeSteps = evaluateStrokeGestureSteps(site, secret, designKey);
+  if (!strokeSteps || strokeSteps.length === 0) return;
+
+  currentEvalSteps = strokeSteps;
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
+
+  // デザイン一覧バーを表示し、該当デザインボタンをアクティブ化
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = 'block';
+
+  document.querySelectorAll('#gesture-design-bar .gesture-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.design === designKey);
+  });
+
+  const pwBox = document.getElementById('sim-output-pw');
+  if (pwBox) {
+    pwBox.innerHTML = strokeSteps.map((st, i) =>
+      `<span class="pw-char-span" data-step="${i}">${escapeHtml(st.ch)}</span>`
+    ).join('');
+  }
+
+  const pwVal = strokeSteps.map(s => s.ch).join('');
+  const ent = estimatePasswordEntropy(pwVal);
+  const cleanSite = (site || '1Password').trim();
+
+  const metaBox = document.getElementById('sim-output-meta');
+  if (metaBox) {
+    metaBox.innerHTML = `✍️ <strong>パターンルート</strong>（${design.category}「${escapeHtml(design.symbol)}: ${escapeHtml(design.name)}」）／ 総文字数: ${strokeSteps.length}文字 ／ 推定エントロピー: ${ent.bits} bits`;
+  }
+
+  const badge = document.getElementById('live-mode-badge');
+  if (badge) {
+    badge.textContent = `✍️ パターン「${design.symbol}」(${strokeSteps.length}字)`;
+    badge.classList.remove('inactive');
+  }
+
+  const verbalBadge = document.getElementById('verbal-mode-badge');
+  if (verbalBadge) {
+    verbalBadge.textContent = `✍️ パターン「${design.symbol}」(${strokeSteps.length}字)`;
+    verbalBadge.classList.remove('inactive');
+  }
+
+  const stickyPw = document.getElementById('sticky-output-pw');
+  if (stickyPw) stickyPw.textContent = pwVal;
+  const stickyMeta = document.getElementById('sticky-output-meta');
+  if (stickyMeta) stickyMeta.textContent = `✍️ パターン「${design.symbol}」／ ${strokeSteps.length}文字`;
+  const stickyBadge = document.getElementById('sticky-mode-badge');
+  if (stickyBadge) {
+    stickyBadge.textContent = `✍️ パターン「${design.symbol}」`;
+    stickyBadge.classList.remove('inactive');
+  }
+
+  const logBox = document.getElementById('sim-trace-log');
+  if (logBox) {
+    logBox.innerHTML = strokeSteps.map((st, i) =>
+      `<div class="trace-line" data-step="${i}">${escapeHtml(st.log)}</div>`
+    ).join('');
+  }
+
+  const banner = document.getElementById('sim-step-banner');
+  if (banner && (!traceTimer && !traceIsPaused)) {
+    banner.textContent = `✍️ パターンモード（${design.category}「${design.symbol}」）：カード上で${design.desc}（全${strokeSteps.length}文字）です。「✍️ パターンルート再生」を押すと動きを確認できます。`;
+  }
+
+  const cqSt = document.getElementById('cq-status');
+  if (cqSt) {
+    cqSt.textContent = `【現在使用中のモード】✍️ パターンルート方式\n・選択デザイン：${design.category}「${design.symbol}」(${design.name})\n・出力：英大小・数字・記号 ${strokeSteps.length}文字（推定エントロピー ${ent.bits} bits）\n・特徴：Androidのパターンロックのようにカード上で指を滑らせるだけで、誰でも直感的にパスワードを復元できます。`;
+  }
+
+  for (const id of ['btn-copy-pw', 'btn-play-trace', 'btn-play-stroke', 'btn-sticky-play', 'btn-sticky-stroke', 'btn-sticky-copy']) {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
+  }
+}
+
+function showStrokePreview(designKey, strokeSteps) {
   clearHighlightsOnly();
-  const playBtn = document.getElementById('btn-play-trace');
-  const stopBtn = document.getElementById('btn-stop-trace');
-  if (playBtn) playBtn.style.display = 'inline-block';
-  if (stopBtn) stopBtn.style.display = 'none';
+  const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
+  if (!squares || squares.length === 0) return;
+
+  const steps = strokeSteps || currentEvalSteps;
+  if (!steps || steps.length === 0) return;
+
+  const key = designKey || steps[0]?.designKey || 'U';
+  const design = GESTURE_DESIGNS[key] || GESTURE_DESIGNS['U'];
+
+  // 1. 各タイルの文字ルートプレビューハイライト
+  steps.forEach((st, i) => {
+    const sq = squares[st.tileIdx];
+    if (sq) {
+      if (i === 0) {
+        sq.classList.add('stroke-start-tile');
+      } else {
+        sq.classList.add('stroke-preview-tile');
+      }
+      const spotEl = sq.querySelector(`[data-spot="${st.corner}"]`);
+      if (spotEl) {
+        if (i === 0) {
+          spotEl.classList.add('start-char-spot');
+        } else {
+          spotEl.classList.add('preview-char-spot');
+        }
+      }
+    }
+  });
+
+  // 2. スタイリッシュなネオンHUDバッジのオーバーレイ表示
+  const hud = document.getElementById('stroke-char-hud');
+  const hudBadge = document.getElementById('stroke-hud-badge');
+  const hudTitle = document.getElementById('stroke-hud-title');
+  const hudSub = document.getElementById('stroke-hud-sub');
+  if (hud && hudBadge && hudTitle && hudSub) {
+    hudBadge.textContent = design.symbol;
+    hudTitle.textContent = `✍️ ${design.category}「${design.symbol}」${design.name}（${steps.length}文字）`;
+    hudSub.textContent = `${design.desc}。カード上で指を滑らせるだけで再現できます`;
+    hud.style.display = 'flex';
+    hud.classList.remove('is-visible');
+    void hud.offsetWidth; // リフローをトリガーしてポップアニメーションを実行
+    hud.classList.add('is-visible');
+  }
+
+  // 3. バナーメッセージの更新
+  const banner = document.getElementById('sim-step-banner');
+  if (banner) {
+    banner.textContent = `💡【軌跡予告】${design.category}「${design.symbol}」を描く全${steps.length}マスのルートです。まもなく指でなぞる再生が始まります...`;
+  }
+}
+
+function playStrokeGestureTrace() {
+  lastPlayTrigger = 'stroke';
+  currentDisplayMode = 'stroke';
+  stopMatrixTrace();
+  updateStrokeGestureUI();
+
+  const strokeSteps = currentEvalSteps;
+  if (!strokeSteps || strokeSteps.length === 0) return;
+
+  updateTraceButtonsUI('playing');
+  if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
+
+  const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
+  if (stageEl) {
+    const r = stageEl.getBoundingClientRect();
+    if (r.top < -10 || r.top > 110) {
+      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
+    }
+  }
+
+  const site = document.getElementById('sim-site')?.value || '1Password';
+  const designKey = getGestureDesignKey(site);
+  const design = GESTURE_DESIGNS[designKey] || GESTURE_DESIGNS['U'];
+
+  const speed = Number(document.getElementById('sim-speed')?.value) || 500;
+  const previewDuration = Math.max(700, Math.min(1400, Math.round(speed * 1.8)));
+  const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
+  const pwSpans = document.querySelectorAll('#sim-output-pw .pw-char-span');
+  const logLines = document.querySelectorAll('#sim-trace-log .trace-line');
+  const banner = document.getElementById('sim-step-banner');
+  const logBox = document.getElementById('sim-trace-log');
+
+  const showStep = (idx) => {
+    clearHighlightsOnly();
+    if (idx >= strokeSteps.length) {
+      stopMatrixTrace();
+      if (banner) {
+        banner.textContent = `✅ ${design.category}「${design.symbol}」パスワード完成！カード上のルートを指でなぞるだけでいつでも再現できます。`;
+      }
+      return;
+    }
+
+    traceCurrentIndex = idx;
+    const st = strokeSteps[idx];
+    const sq = squares[st.tileIdx];
+    if (sq) {
+      sq.classList.add('stroke-active-tile');
+      const spotEl = sq.querySelector(`[data-spot="${st.corner}"]`);
+      if (spotEl) spotEl.classList.add('active-char-spot');
+    }
+
+    if (pwSpans[idx]) pwSpans[idx].classList.add('playing-now');
+    if (logLines[idx]) {
+      logLines[idx].classList.add('active-trace-line');
+      if (logBox) {
+        const lineEl = logLines[idx];
+        logBox.scrollTop = Math.max(0, lineEl.offsetTop - logBox.offsetTop - (logBox.clientHeight / 2) + (lineEl.clientHeight / 2));
+      }
+    }
+    if (banner) {
+      banner.textContent = `✍️ [${idx + 1}/${strokeSteps.length}文字目] ${st.log}`;
+    }
+  };
+
+  const startTracing = () => {
+    strokePreviewTimer = null;
+    strokePreviewState = null;
+    strokeResumePreviewRunner = null;
+    hideStrokeHUD();
+    clearHighlightsOnly();
+    traceCurrentIndex = 0;
+    showStep(0);
+    traceTimer = setInterval(() => {
+      const nextIdx = traceCurrentIndex + 1;
+      traceStepRunner(nextIdx);
+    }, speed);
+  };
+
+  traceStepRunner = (idx) => {
+    showStep(idx);
+  };
+
+  // 軌跡プレビューを表示してからなぞり開始
+  showStrokePreview(designKey, strokeSteps);
+  strokePreviewState = {
+    duration: previewDuration,
+    startedAt: Date.now(),
+    remainingMs: previewDuration
+  };
+  strokeResumePreviewRunner = () => {
+    showStrokePreview(designKey, strokeSteps);
+    strokePreviewState.startedAt = Date.now();
+    const waitMs = strokePreviewState.remainingMs || previewDuration;
+    strokePreviewTimer = setTimeout(startTracing, waitMs);
+  };
+  strokePreviewTimer = setTimeout(startTracing, previewDuration);
 }
 
 /* =====================================================================
@@ -950,9 +1969,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const params = new URLSearchParams(window.location.search);
-  const kParam = params.get('k') || params.get('seed');
+  let kParam = params.get('k') || params.get('seed') || params.get('s');
+  if (!kParam && window.location.hash) {
+    const rawHash = window.location.hash.replace(/^#/, '');
+    const hp = new URLSearchParams(rawHash);
+    kParam = hp.get('k') || hp.get('seed') || hp.get('s') || (/^\d+$/.test(rawHash) ? rawHash : null);
+  }
   const seedInput = document.getElementById('input-seed-number');
   if (kParam !== null && seedInput) seedInput.value = kParam;
+
+  window.addEventListener('hashchange', () => {
+    const rawHash = window.location.hash.replace(/^#/, '');
+    const hp = new URLSearchParams(rawHash);
+    const newK = hp.get('k') || hp.get('seed') || hp.get('s') || (/^\d+$/.test(rawHash) ? rawHash : null);
+    if (newK !== null && seedInput) {
+      seedInput.value = newK;
+      updateMainMatrix(newK);
+      updateSimulationUI();
+      generateAndRenderSeedPhrase();
+    }
+  });
 
   updateMainMatrix(seedInput ? seedInput.value : '0');
   updateSimulationUI();
@@ -987,8 +2023,29 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sim-secret')?.addEventListener('input', updateSimulationUI);
   document.getElementById('chk-include-card-seed')?.addEventListener('change', generateAndRenderSeedPhrase);
 
-  document.getElementById('btn-play-trace')?.addEventListener('click', playMatrixTrace);
-  document.getElementById('btn-stop-trace')?.addEventListener('click', stopMatrixTrace);
+  document.getElementById('btn-play-trace')?.addEventListener('click', () => {
+    if (document.getElementById('gesture-design-bar')) document.getElementById('gesture-design-bar').style.display = 'none';
+    playMatrixTrace();
+  });
+  document.getElementById('btn-play-stroke')?.addEventListener('click', playStrokeGestureTrace);
+  document.getElementById('btn-pause-trace')?.addEventListener('click', togglePauseMatrixTrace);
+  document.getElementById('btn-stop-trace')?.addEventListener('click', () => {
+    stopMatrixTrace();
+    const banner = document.getElementById('sim-step-banner');
+    if (banner) banner.textContent = '⏹ 再生を停止しました。';
+  });
+
+  // パターン公式デザイン一覧ピルのクリックイベント
+  document.querySelectorAll('#gesture-design-bar .gesture-pill').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentSelectedGestureDesign = btn.dataset.design;
+      currentDisplayMode = 'stroke';
+      lastPlayTrigger = 'stroke';
+      updateStrokeGestureUI();
+      showStrokePreview(currentSelectedGestureDesign);
+    });
+  });
 
   document.getElementById('btn-copy-pw')?.addEventListener('click', () => {
     const pw = currentEvalSteps.map(s => s.ch).join('');
@@ -996,12 +2053,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-reset-recipe')?.addEventListener('click', () => {
+    currentDisplayMode = 'recipe';
     setRecipeConfig({});
     updateSimulationUI();
     generateAndRenderSeedPhrase();
   });
 
   document.getElementById('btn-random-recipe')?.addEventListener('click', () => {
+    currentDisplayMode = 'recipe';
     const rInt = max => Math.floor(Math.random() * max);
     setRecipeConfig({
       kwOrder: 1 + rInt(8),
@@ -1241,11 +2300,23 @@ document.addEventListener('DOMContentLoaded', () => {
  }
 
  updateSimulationUI=function(){
-  issue='';originalSimulation();const cfg=getRecipeConfig();
+  issue='';
+  if(currentDisplayMode==='stroke'){
+   stopMatrixTrace();
+   updateStrokeGestureUI();
+   return;
+  }
+  originalSimulation();const cfg=getRecipeConfig();
   syncActiveModeUI(cfg);
   if(cardMode(cfg))try{filtered($('sim-site').value,$('sim-secret').value);}catch(e){issue=e.message;currentEvalSteps=[];$('sim-output-pw').textContent='';$('sim-trace-log').textContent='';}
   $('btn-copy-pw').disabled=!!issue;$('btn-play-trace').disabled=!!issue;
+  if($('btn-play-stroke'))$('btn-play-stroke').disabled=false;
+  if($('btn-pause-trace'))$('btn-pause-trace').disabled=false;
+  if($('btn-stop-trace'))$('btn-stop-trace').disabled=false;
   if($('btn-sticky-play'))$('btn-sticky-play').disabled=!!issue;
+  if($('btn-sticky-stroke'))$('btn-sticky-stroke').disabled=false;
+  if($('btn-sticky-pause'))$('btn-sticky-pause').disabled=false;
+  if($('btn-sticky-stop'))$('btn-sticky-stop').disabled=false;
   if($('btn-sticky-copy'))$('btn-sticky-copy').disabled=!!issue;
   if(cardMode(cfg)&&!issue){
    const input=filtered($('sim-site').value,$('sim-secret').value);
@@ -1255,7 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
    $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 推定エントロピー: ${ent.bits} bits`;
    $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みカードシード：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（推定エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
+   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（推定エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
@@ -1380,14 +2451,131 @@ document.addEventListener('DOMContentLoaded', () => {
   return out;
  }
 
+ function zeroize(buf){
+  if(!buf)return;
+  if(buf instanceof Uint8Array||buf instanceof Uint32Array||buf instanceof Int32Array||ArrayBuffer.isView(buf)){
+   buf.fill(0);
+  }else if(buf instanceof ArrayBuffer){
+   new Uint8Array(buf).fill(0);
+  }
+ }
+ const ChaCha20Poly1305=(()=>{
+  function chacha20Block(key,counter,nonce){
+   const state=new Uint32Array(16);
+   state[0]=0x61707865;state[1]=0x3320646e;state[2]=0x79622d32;state[3]=0x6b206574;
+   const keyView=new DataView(key.buffer,key.byteOffset,32);
+   for(let i=0;i<8;i++)state[4+i]=keyView.getUint32(i*4,true);
+   state[12]=counter;
+   const nonceView=new DataView(nonce.buffer,nonce.byteOffset,12);
+   for(let i=0;i<3;i++)state[13+i]=nonceView.getUint32(i*4,true);
+   const x=new Uint32Array(state);
+   function qr(a,b,c,d){
+    x[a]=(x[a]+x[b])|0;x[d]^=x[a];x[d]=(x[d]<<16)|(x[d]>>>16);
+    x[c]=(x[c]+x[d])|0;x[b]^=x[c];x[b]=(x[b]<<12)|(x[b]>>>20);
+    x[a]=(x[a]+x[b])|0;x[d]^=x[a];x[d]=(x[d]<<8)|(x[d]>>>24);
+    x[c]=(x[c]+x[d])|0;x[b]^=x[c];x[b]=(x[b]<<7)|(x[b]>>>25);
+   }
+   for(let i=0;i<10;i++){
+    qr(0,4,8,12);qr(1,5,9,13);qr(2,6,10,14);qr(3,7,11,15);
+    qr(0,5,10,15);qr(1,6,11,12);qr(2,7,8,13);qr(3,4,9,14);
+   }
+   const out=new Uint8Array(64);
+   const outView=new DataView(out.buffer);
+   for(let i=0;i<16;i++){
+    outView.setUint32(i*4,(x[i]+state[i])|0,true);
+   }
+   zeroize(state);
+   zeroize(x);
+   return out;
+  }
+  function chacha20Xor(key,counter,nonce,data){
+   const out=new Uint8Array(data.length);
+   const blockCount=Math.ceil(data.length/64);
+   for(let b=0;b<blockCount;b++){
+    const keyStream=chacha20Block(key,counter+b,nonce);
+    const start=b*64,end=Math.min(data.length,start+64);
+    for(let i=start;i<end;i++)out[i]=data[i]^keyStream[i-start];
+    zeroize(keyStream);
+   }
+   return out;
+  }
+  function poly1305(key32,msg){
+   const P=(1n<<130n)-5n;
+   const rBytes=key32.slice(0,16);
+   rBytes[3]&=15;rBytes[7]&=15;rBytes[11]&=15;rBytes[15]&=15;
+   rBytes[4]&=252;rBytes[8]&=252;rBytes[12]&=252;
+   function bytesToBigIntLE(b){
+    let val=0n;
+    for(let i=b.length-1;i>=0;i--)val=(val<<8n)|BigInt(b[i]);
+    return val;
+   }
+   const r=bytesToBigIntLE(rBytes);
+   const s=bytesToBigIntLE(key32.slice(16,32));
+   let acc=0n;
+   for(let offset=0;offset<msg.length;offset+=16){
+    const chunk=msg.subarray(offset,Math.min(msg.length,offset+16));
+    const chunkWithOne=new Uint8Array(chunk.length+1);
+    chunkWithOne.set(chunk);
+    chunkWithOne[chunk.length]=0x01;
+    const n=bytesToBigIntLE(chunkWithOne);
+    acc=((acc+n)*r)%P;
+   }
+   acc=(acc+s)%(1n<<128n);
+   const tag=new Uint8Array(16);
+   for(let i=0;i<16;i++)tag[i]=Number((acc>>BigInt(i*8))&0xffn);
+   zeroize(rBytes);
+   return tag;
+  }
+  function pad16(bytes){
+   const rem=bytes.length%16;
+   if(rem===0)return bytes;
+   const out=new Uint8Array(bytes.length+(16-rem));
+   out.set(bytes);
+   return out;
+  }
+  function numTo64LE(num){
+   const buf=new Uint8Array(8);
+   const view=new DataView(buf.buffer);
+   view.setUint32(0,num&0xffffffff,true);
+   view.setUint32(4,Math.floor(num/0x100000000),true);
+   return buf;
+  }
+  return{
+   encrypt(key,nonce,plaintext,aad=new Uint8Array(0)){
+    const block0=chacha20Block(key,0,nonce);
+    const otk=block0.slice(0,32);
+    zeroize(block0);
+    const ciphertext=chacha20Xor(key,1,nonce,plaintext);
+    const macData=concat(pad16(aad),pad16(ciphertext),numTo64LE(aad.length),numTo64LE(ciphertext.length));
+    const tag=poly1305(otk,macData);
+    zeroize(otk);
+    return{ciphertext,tag};
+   },
+   decrypt(key,nonce,ciphertext,tag,aad=new Uint8Array(0)){
+    const block0=chacha20Block(key,0,nonce);
+    const otk=block0.slice(0,32);
+    zeroize(block0);
+    const macData=concat(pad16(aad),pad16(ciphertext),numTo64LE(aad.length),numTo64LE(ciphertext.length));
+    const computedTag=poly1305(otk,macData);
+    zeroize(otk);
+    let diff=0;
+    for(let i=0;i<16;i++)diff|=(tag[i]^computedTag[i]);
+    if(diff!==0)throw new Error('ChaCha20-Poly1305 MAC tag mismatch');
+    return chacha20Xor(key,1,nonce,ciphertext);
+   }
+  };
+ })();
+
  /* ===================================================================
-  * CME2 Multi-Layered Encryption + Optional Serverless 2FA (Keyfile / WebAuthn Passkey PRF)
+  * CME3 Dual-Cascade Encryption (AES-256-GCM + ChaCha20-Poly1305)
+  * + CME2 Legacy Backward Compatibility + Serverless 2FA
   * =================================================================== */
- const KDF_ITERATIONS={0:600000,1:2100000,2:5000000};
+ const KDF_ITERATIONS={0:600000,1:2100000,2:5000000,3:'argon2id'};
  const KDF_LABELS={
-  0:'Level 1 Standard（PBKDF2-HMAC-SHA512 600,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC）',
-  1:'Level 2 Hardened（PBKDF2-HMAC-SHA512 2,100,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC）',
-  2:'Level 3 Maximum（PBKDF2-HMAC-SHA512 5,000,000回 ＋ HKDF-SHA512 ＋ AES-256-GCM ＋ Key-Committing HMAC）'
+  0:'Level 1 Standard（PBKDF2-HMAC-SHA512 600,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  1:'Level 2 Hardened（PBKDF2-HMAC-SHA512 2,100,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  2:'Level 3 Maximum（PBKDF2-HMAC-SHA512 5,000,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  3:'Level 4 Argon2id（RFC 9106 メモリ64MB / WASM 高速並列 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）'
  };
  async function derivePasskeyPrf(salt32,credentialId=null){
   if(!window.PublicKeyCredential||!navigator.credentials){
@@ -1466,96 +2654,392 @@ document.addEventListener('DOMContentLoaded', () => {
   const extraFactor=await sha512(new Uint8Array(extRes.results.first));
   return{extraFactor,credentialId};
  }
- async function deriveKeysCME2(password,salt,kdfProfile,extraFactor=null){
-  const subt=cryptoAPI(),pwBytes=enc.encode(String(password??''));
-  if(!pwBytes.length)throw new Error('このバックアップは暗号化されています。復元用パスワードを入力してください。');
-  if(pwBytes.length>4096)throw new Error('復元用パスワードが長すぎます。');
+ async function deriveKeysCME2(password,salt,kdfProfile,extraFactor=null,hasPassword=true){
+  const subt=cryptoAPI();
   const iterations=KDF_ITERATIONS[kdfProfile];
   if(!iterations)throw new Error('未対応の暗号化プロファイルです。');
-  const keyMaterial=extraFactor&&extraFactor.length
-   ?concat(pwBytes,new Uint8Array([0x00,0xff,0x43,0x4d]),extraFactor)
-   :pwBytes;
-  const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
-  const masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
-  const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey']);
-  const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
-  const aesKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-AES256GCM-Key'),infoSuffix)},hkdfKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-  const hmacKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-KeyCommit-HMAC'),infoSuffix)},hkdfKey,{name:'HMAC',hash:'SHA-256',length:256},false,['sign']);
-  return{aesKey,hmacKey};
+  let keyMaterial,pwBytes=null;
+  try{
+   if(hasPassword){
+    pwBytes=enc.encode(String(password??''));
+    if(!pwBytes.length)throw new Error('このバックアップには「復元用パスワード」が設定されています。パスワードを入力してください。');
+    if(pwBytes.length>4096)throw new Error('復元用パスワードが長すぎます。');
+    keyMaterial=extraFactor&&extraFactor.length
+     ?concat(pwBytes,new Uint8Array([0x00,0xff,0x43,0x4d]),extraFactor)
+     :pwBytes.slice();
+   }else{
+    if(!extraFactor||!extraFactor.length)throw new Error('保護キー（キーファイルまたはパスキー）の導出に失敗しました。');
+    keyMaterial=concat(enc.encode('CM-NOPASS:'),extraFactor);
+   }
+   const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
+   zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
+   const masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
+   const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey']);
+   zeroize(new Uint8Array(masterBits));
+   const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
+   const aesKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-AES256GCM-Key'),infoSuffix)},hkdfKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+   const hmacKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-KeyCommit-HMAC'),infoSuffix)},hkdfKey,{name:'HMAC',hash:'SHA-256',length:256},false,['sign']);
+   return{aesKey,hmacKey};
+  }finally{
+   if(pwBytes)zeroize(pwBytes);if(keyMaterial)zeroize(keyMaterial);
+  }
  }
- async function encryptBodyCME2(plainBody,password,kdfProfile=1,twoFaOpts=null){
-  if(Array.from(String(password??'')).length<12)throw new Error('復元用パスワードは12文字以上で入力してください。');
-  const profile=Number(kdfProfile);if(!(profile in KDF_ITERATIONS))throw new Error('暗号化プロファイルの指定が不正です。');
-  const salt=crypto.getRandomValues(new Uint8Array(32)),iv=crypto.getRandomValues(new Uint8Array(12));
-  let twoFaMode=0,extraFactor=null,credHeader=new Uint8Array(0);
-  if(twoFaOpts?.mode==='keyfile'){
-   if(!twoFaOpts.keyfileBytes||!twoFaOpts.keyfileBytes.length)throw new Error('二段階ロック用のキーファイルを選択してください。');
-   twoFaMode=1;
-   extraFactor=await sha512(twoFaOpts.keyfileBytes);
-  }else if(twoFaOpts?.mode==='passkey'){
-   twoFaMode=2;
-   const prf=await derivePasskeyPrf(salt,null);
-   extraFactor=prf.extraFactor;
+ async function deriveKeysCME3(password,salt,kdfProfile,extraFactor=null,hasPassword=true){
+  const subt=cryptoAPI();
+  const iterations=KDF_ITERATIONS[kdfProfile];
+  if(iterations===undefined)throw new Error('未対応の暗号化プロファイルです。');
+  let keyMaterial,pwBytes=null;
+  try{
+   if(hasPassword){
+    pwBytes=enc.encode(String(password??''));
+    if(!pwBytes.length)throw new Error('このバックアップには「復元用パスワード」が設定されています。パスワードを入力してください。');
+    if(pwBytes.length>4096)throw new Error('復元用パスワードが長すぎます。');
+    keyMaterial=extraFactor&&extraFactor.length
+     ?concat(pwBytes,new Uint8Array([0x00,0xff,0x43,0x4d]),extraFactor)
+     :pwBytes.slice();
+   }else{
+    if(!extraFactor||!extraFactor.length)throw new Error('保護キー（キーファイルまたはパスキー）の導出に失敗しました。');
+    keyMaterial=concat(enc.encode('CM-NOPASS:'),extraFactor);
+   }
+   let masterBits;
+   if(kdfProfile===3){
+    if(typeof hashwasm==='undefined'||!hashwasm.argon2id){
+     throw new Error('Argon2id（WebAssembly）が読み込まれていないか利用できない環境です。');
+    }
+    const argonSalt=concat(salt,enc.encode(':ARGON2ID:'));
+    masterBits=await hashwasm.argon2id({
+     password:keyMaterial,
+     salt:argonSalt.subarray(0,32),
+     parallelism:1,
+     iterations:3,
+     memorySize:65536,
+     hashLength:64,
+     outputType:'binary'
+    });
+    zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
+   }else{
+    const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
+    zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
+    masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
+   }
+   const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey','deriveBits']);
+   zeroize(new Uint8Array(masterBits));
+   const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
+   const aesKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME3-AES256GCM-Key'),infoSuffix)},hkdfKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+   const chachaBits=await subt.deriveBits({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME3-ChaCha20Poly1305-Key'),infoSuffix)},hkdfKey,256);
+   const chachaKey=new Uint8Array(chachaBits);
+   const hmacKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME3-KeyCommit-HMAC'),infoSuffix)},hkdfKey,{name:'HMAC',hash:'SHA-256',length:256},false,['sign']);
+   return{aesKey,chachaKey,hmacKey};
+  }finally{
+   if(pwBytes)zeroize(pwBytes);if(keyMaterial)zeroize(keyMaterial);
+  }
+ }
+ async function encryptBodyCME3(plainBody,password,kdfProfile=1,factors={}){
+  const profile=Number(kdfProfile);
+  if(!(profile in KDF_ITERATIONS))throw new Error('暗号化プロファイルの指定が不正です。');
+  const usePass=factors?.usePassword!==undefined?!!factors.usePassword:true;
+  const useKeyfile=!!factors?.useKeyfile;
+  const usePasskey=!!factors?.usePasskey;
+  if(!usePass&&!useKeyfile&&!usePasskey){
+   throw new Error('保護・暗号化の方法（パスワード、キーファイル、パスキー）を少なくとも1つ選択してください。');
+  }
+  if(usePass){
+   if(Array.from(String(password??'')).length<12)throw new Error('復元用パスワードは12文字以上で入力してください。');
+  }
+  let combo=0;
+  if(usePass&&!useKeyfile&&!usePasskey)combo=0;
+  else if(usePass&&useKeyfile&&!usePasskey)combo=1;
+  else if(usePass&&!useKeyfile&&usePasskey)combo=2;
+  else if(usePass&&useKeyfile&&usePasskey)combo=3;
+  else if(!usePass&&useKeyfile&&!usePasskey)combo=4;
+  else if(!usePass&&!useKeyfile&&usePasskey)combo=5;
+  else if(!usePass&&useKeyfile&&usePasskey)combo=6;
+
+  const salt=crypto.getRandomValues(new Uint8Array(32));
+  const aesIv=crypto.getRandomValues(new Uint8Array(12));
+  const chachaNonce=crypto.getRandomValues(new Uint8Array(12));
+  let extraFactor=null,credHeader=new Uint8Array(0);
+
+  if(useKeyfile){
+   if(!factors.keyfileBytes||!factors.keyfileBytes.length)throw new Error('キーファイルを選択するか、「専用キーファイル(.key)を新規作成・保存」を押してください。');
+  }
+  let prf=null;
+  if(usePasskey){
+   prf=await derivePasskeyPrf(salt,null);
    if(prf.credentialId.length>512)throw new Error('パスキー識別子が長すぎます。');
    credHeader=new Uint8Array(2+prf.credentialId.length);
    new DataView(credHeader.buffer).setUint16(0,prf.credentialId.length,false);
    credHeader.set(prf.credentialId,2);
   }
-  const profileByte=(profile&0x0f)|((twoFaMode&0x03)<<4);
-  const header=concat(new Uint8Array([0x43,0x4d,0x45,2,profileByte]),salt,iv,credHeader);
-  const {aesKey,hmacKey}=await deriveKeysCME2(password,salt,profile,extraFactor);
-  const aad=concat(enc.encode('CME2:AEAD:v2:'),header);
-  const ciphertext=new Uint8Array(await cryptoAPI().encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},aesKey,plainBody));
-  const commitTag=new Uint8Array(await cryptoAPI().sign('HMAC',hmacKey,concat(header,ciphertext))).slice(0,16);
-  return concat(header,commitTag,ciphertext);
- }
- async function decryptBodyCME2(cmeBody,password,twoFaOpts=null){
-  if(cmeBody.length<49+16+38+16)throw new Error('暗号化バックアップのデータ長が不正です。');
-  const profileByte=cmeBody[4],profile=profileByte&0x0f,twoFaMode=(profileByte>>>4)&0x03;
-  const salt=cmeBody.slice(5,37),iv=cmeBody.slice(37,49);
-  let headerLen=49,extraFactor=null;
-  if(twoFaMode===1){
-   if(!twoFaOpts?.keyfileBytes||!twoFaOpts.keyfileBytes.length){
-    throw new Error('この暗号化バックアップには「キーファイル（2要素目）」が設定されています。復元欄のキーファイル選択で同じファイルを指定してください。');
-   }
-   extraFactor=await sha512(twoFaOpts.keyfileBytes);
-  }else if(twoFaMode===2){
-   if(cmeBody.length<51+16+38+16)throw new Error('パスキー2要素バックアップのヘッダ長が不正です。');
-   const credLen=new DataView(cmeBody.buffer,cmeBody.byteOffset+49,2).getUint16(0,false);
-   headerLen=51+credLen;
-   if(credLen<1||credLen>512||cmeBody.length<headerLen+16+38+16)throw new Error('パスキー識別子の長さが不正です。');
-   const credId=cmeBody.slice(51,headerLen);
-   const prf=await derivePasskeyPrf(salt,credId);
+
+  if(useKeyfile&&usePasskey){
+   extraFactor=await sha512(concat(enc.encode('CM-KEYFILE-PASSKEY:'),await sha512(factors.keyfileBytes),prf.extraFactor));
+  }else if(useKeyfile){
+   extraFactor=await sha512(factors.keyfileBytes);
+  }else if(usePasskey){
    extraFactor=prf.extraFactor;
   }
-  const header=cmeBody.slice(0,headerLen),commitTag=cmeBody.slice(headerLen,headerLen+16),ciphertext=cmeBody.slice(headerLen+16);
-  const {aesKey,hmacKey}=await deriveKeysCME2(password,salt,profile,extraFactor);
-  const expectedCommit=new Uint8Array(await cryptoAPI().sign('HMAC',hmacKey,concat(header,ciphertext))).slice(0,16);
-  if(!equal(expectedCommit,commitTag)){
-   throw new Error(twoFaMode===1?'復元用パスワードまたはキーファイルが違うか、暗号化データが破損しています。':'復元用パスワードが違うか、暗号化データが破損しています。');
-  }
+
+  const profileByte=(profile&0x0f)|((combo&0x0f)<<4);
+  const header=concat(new Uint8Array([0x43,0x4d,0x45,3,profileByte]),salt,aesIv,chachaNonce,credHeader);
+  const {aesKey,chachaKey,hmacKey}=await deriveKeysCME3(usePass?password:'',salt,profile,extraFactor,usePass);
+
+  let innerPayload=null;
   try{
-   const aad=concat(enc.encode('CME2:AEAD:v2:'),header);
-   const innerBody=new Uint8Array(await cryptoAPI().decrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},aesKey,ciphertext));
-   return{innerBody,kdfProfile:profile,twoFaMode};
-  }catch(_){throw new Error('復元用パスワードが違うか、暗号化データが破損しています。');}
+   // Inner Layer: ChaCha20-Poly1305
+   const aadChacha=concat(enc.encode('CME3:CHACHA:v3:'),chachaNonce);
+   const chachaRes=ChaCha20Poly1305.encrypt(chachaKey,chachaNonce,plainBody,aadChacha);
+   innerPayload=concat(chachaRes.ciphertext,chachaRes.tag);
+
+   // Outer Layer: AES-256-GCM
+   const aadAes=concat(enc.encode('CME3:AEAD:v3:'),header);
+   const outerCiphertext=new Uint8Array(await cryptoAPI().encrypt({name:'AES-GCM',iv:aesIv,additionalData:aadAes,tagLength:128},aesKey,innerPayload));
+
+   // Key-Commitment: HMAC-SHA256
+   const commitTag=new Uint8Array(await cryptoAPI().sign('HMAC',hmacKey,concat(header,outerCiphertext))).slice(0,16);
+   return concat(header,commitTag,outerCiphertext);
+  }finally{
+   zeroize(chachaKey);
+   if(innerPayload)zeroize(innerPayload);
+  }
  }
+ const encryptBodyCME2=(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors);
+
+ async function encryptDuressDualCME(realBody,realPassword,decoyBody,decoyPassword,kdfProfile=1,factors={}){
+  const cmeDecoy=await encryptBodyCME3(decoyBody,decoyPassword,kdfProfile,factors);
+  const cmeReal=await encryptBodyCME3(realBody,realPassword,kdfProfile,factors);
+  const lenDecoy=new Uint8Array(2);
+  new DataView(lenDecoy.buffer).setUint16(0,cmeDecoy.length,false);
+  const profile=Number(kdfProfile);
+  const containerHeader=new Uint8Array([0x43,0x4d,0x45,3,(profile&0x0f)|0x80]);
+  return concat(containerHeader,lenDecoy,cmeDecoy,cmeReal);
+ }
+
+ async function decryptBodyCME(cmeBody,password,twoFaOpts=null){
+  if(cmeBody.length<4)throw new Error('暗号化データの長さが不正です。');
+  if(cmeBody[0]!==0x43||cmeBody[1]!==0x4d||cmeBody[2]!==0x45){
+   throw new Error('未対応の暗号化フォーマットです。');
+  }
+
+  // Dual-Payload Duress Container (bit 7 of byte 4)
+  if(cmeBody.length>7&&(cmeBody[4]&0x80)!==0){
+   const lenSlot1=new DataView(cmeBody.buffer,cmeBody.byteOffset+5,2).getUint16(0,false);
+   const slot1=cmeBody.subarray(7,7+lenSlot1);
+   const slot2=cmeBody.subarray(7+lenSlot1);
+   try{
+    const resReal=await decryptBodyCME(slot2,password,twoFaOpts);
+    return{...resReal,isDuress:false};
+   }catch(_errReal){
+    try{
+     const resDecoy=await decryptBodyCME(slot1,password,twoFaOpts);
+     return{...resDecoy,isDuress:true};
+    }catch(_errDecoy){
+     throw new Error('復元用パスワードが違うか、保護キー（キーファイル／パスキー）が一致しません。');
+    }
+   }
+  }
+
+  const version=cmeBody[3];
+  if(version===2){
+   return decryptBodyCME2(cmeBody,password,twoFaOpts);
+  }
+  if(version!==3){
+   throw new Error(`未対応の暗号化バージョン（CME v${version}）です。`);
+  }
+
+  // CME3 Dual-Cascade Decryption
+  if(cmeBody.length<61+16+16+16)throw new Error('暗号化データの長さが不正です。');
+  const profileByte=cmeBody[4],profile=profileByte&0x0f,combo=(profileByte>>>4)&0x0f;
+  const needPass=(combo===0||combo===1||combo===2||combo===3);
+  const needKeyfile=(combo===1||combo===3||combo===4||combo===6);
+  const needPasskey=(combo===2||combo===3||combo===5||combo===6);
+
+  const salt=cmeBody.slice(5,37);
+  const aesIv=cmeBody.slice(37,49);
+  const chachaNonce=cmeBody.slice(49,61);
+
+  if(needPass){
+   if(!password||!String(password).length){
+    throw new Error('このバックアップには「復元用パスワード」が設定されています。パスワードを入力してください。');
+   }
+  }
+  if(needKeyfile){
+   if(!twoFaOpts?.keyfileBytes||!twoFaOpts.keyfileBytes.length){
+    throw new Error('このバックアップには「キーファイル」が設定されています。復元欄のキーファイル選択で同じファイルを指定してください。');
+   }
+  }
+
+  let headerLen=61,passkeyFactor=null;
+  if(needPasskey){
+   if(cmeBody.length<63+16+16+16)throw new Error('パスキー保護バックアップのヘッダ長が不正です。');
+   const credLen=new DataView(cmeBody.buffer,cmeBody.byteOffset+61,2).getUint16(0,false);
+   headerLen=63+credLen;
+   if(credLen<1||credLen>512||cmeBody.length<headerLen+16+16+16)throw new Error('パスキー識別子の長さが不正です。');
+   const credId=cmeBody.slice(63,headerLen);
+   const prf=await derivePasskeyPrf(salt,credId);
+   passkeyFactor=prf.extraFactor;
+  }
+
+  let extraFactor=null;
+  if(needKeyfile&&needPasskey){
+   extraFactor=await sha512(concat(enc.encode('CM-KEYFILE-PASSKEY:'),await sha512(twoFaOpts.keyfileBytes),passkeyFactor));
+  }else if(needKeyfile){
+   extraFactor=await sha512(twoFaOpts.keyfileBytes);
+  }else if(needPasskey){
+   extraFactor=passkeyFactor;
+  }
+
+  const header=cmeBody.slice(0,headerLen);
+  const commitTag=cmeBody.slice(headerLen,headerLen+16);
+  const outerCiphertext=cmeBody.slice(headerLen+16);
+
+  const {aesKey,chachaKey,hmacKey}=await deriveKeysCME3(needPass?password:'',salt,profile,extraFactor,needPass);
+  try{
+   const expectedCommit=new Uint8Array(await cryptoAPI().sign('HMAC',hmacKey,concat(header,outerCiphertext))).slice(0,16);
+   if(!equal(expectedCommit,commitTag)){
+    const failMsg=needPass&&(needKeyfile||needPasskey)
+     ?'復元用パスワードまたは保護キー（キーファイル／パスキー）が違うか、暗号化データが破損しています。'
+     :needPass
+     ?'復元用パスワードが違うか、暗号化データが破損しています。'
+     :'指定された保護キー（キーファイルまたはパスキー）が違うか、暗号化データが破損しています。';
+    throw new Error(failMsg);
+   }
+
+   let innerPayload;
+   try{
+    const aadAes=concat(enc.encode('CME3:AEAD:v3:'),header);
+    innerPayload=new Uint8Array(await cryptoAPI().decrypt({name:'AES-GCM',iv:aesIv,additionalData:aadAes,tagLength:128},aesKey,outerCiphertext));
+   }catch(_){
+    throw new Error('復号に失敗しました。パスワードまたは保護キー（キーファイル／パスキー）を確認してください。');
+   }
+
+   if(innerPayload.length<16){
+    zeroize(innerPayload);
+    throw new Error('カスケード暗号の内層データ長が不正です。');
+   }
+   const chachaCiphertext=innerPayload.subarray(0,innerPayload.length-16);
+   const chachaTag=innerPayload.subarray(innerPayload.length-16);
+   const aadChacha=concat(enc.encode('CME3:CHACHA:v3:'),chachaNonce);
+
+   let innerBody;
+   try{
+    innerBody=ChaCha20Poly1305.decrypt(chachaKey,chachaNonce,chachaCiphertext,chachaTag,aadChacha);
+   }catch(e){
+    throw new Error('内層ChaCha20-Poly1305復号に失敗しました。認証タグ不一致または改ざんを検出しました。');
+   }finally{
+    zeroize(innerPayload);
+   }
+
+   return{innerBody,kdfProfile:profile,combo,needPass,needKeyfile,needPasskey,version:3};
+  }finally{
+   zeroize(chachaKey);
+  }
+ }
+ const decryptBodyCME2=(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts);
  function hexTag(b){return[...b].map(v=>v.toString(16).padStart(2,'0')).join('');}
- function renderWords(groups){
+ let activeSec2Format='armored';
+ let sec2ArmoredText='';
+
+ function armorBlocks(blocks,tag='BACKUP'){
+  const bytes=concat(...blocks);
+  let s='';const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  const b64=btoa(s);
+  const wrapped=b64.match(/.{1,64}/g)?.join('\n')||b64;
+  return `-----BEGIN CRYPTOMATRIX ${tag}-----\n${wrapped}\n-----END CRYPTOMATRIX ${tag}-----`;
+ }
+
+ function dearmorBlocks(str){
+  const regex=/-----BEGIN CRYPTOMATRIX[^-]*-----([\s\S]*?)-----END CRYPTOMATRIX[^-]*-----/g;
+  let match;const blocks=[];
+  while((match=regex.exec(str))!==null){
+   const b64Str=match[1].replace(/[\r\n\s]/g,'');
+   if(b64Str){
+    try{
+     const bin=atob(b64Str);
+     const bytes=new Uint8Array(bin.length);
+     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+     for(let i=0;i<bytes.length;i+=32){
+      if(i+32<=bytes.length)blocks.push(bytes.slice(i,i+32));
+     }
+    }catch(_){}
+   }
+  }
+  return blocks;
+ }
+ function renderWords(groups,blocks=null){
   currentMnemonicWords=groups.flat();
-  $('seed-words-container').innerHTML=groups.map((group,g)=>(groups.length>1?`<div class="backup-block-title">ブロック ${g+1} / ${groups.length}（この24単語も必須）</div>`:'')+group.map((w,i)=>`<div class="seed-chip"><span class="seed-num">#${String(g*24+i+1).padStart(2,'0')}</span><span class="seed-txt">${escapeHtml(w)}</span></div>`).join('')).join('');
+  const box=$('seed-words-container'),qrBox=$('seed-qr-list');
+  if(!box)return;
+
+  if(groups.length===1){
+   activeSec2Format='words';
+   sec2ArmoredText='';
+   box.innerHTML=`<div class="seed-words-grid">${groups[0].map((w,i)=>`<div class="seed-chip"><span class="seed-num">#${String(i+1).padStart(2,'0')}</span><span class="seed-txt">${escapeHtml(w)}</span></div>`).join('')}</div>`;
+   $('btn-copy-seed').disabled=false;
+   if(qrBox&&window.MatrixQRCode){
+    const wordsText=groups[0].join(' ');
+    const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(wordsText);
+    if(svg)fig.appendChild(svg);
+    cap.textContent='BIP39 24単語シードフレーズ（設定のみ・暗号化なし）\n24単語（QR 1枚）';
+    fig.appendChild(cap);
+    qrBox.replaceChildren(fig);
+   }
+   return;
+  }
+
+  activeSec2Format='armored';
+  sec2ArmoredText=blocks?armorBlocks(blocks,'BACKUP'):'';
+  const allWordsText=groups.map(g=>g.join(' ')).join('\n');
+
+  const chipsHtml=groups.map((group,g)=>
+   `<div class="backup-block-title" style="width:100%; margin-top:8px;">ブロック ${g+1} / ${groups.length}（24単語）</div>`+
+   `<div class="seed-words-grid" style="margin:6px 0 12px 0;">`+
+   group.map((w,i)=>`<div class="seed-chip"><span class="seed-num">#${String(g*24+i+1).padStart(2,'0')}</span><span class="seed-txt">${escapeHtml(w)}</span></div>`).join('')+
+   `</div>`
+  ).join('');
+
+  box.innerHTML=`
+   <div class="bv-no-print" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; background:#f1f5f9; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1;">
+     <div style="font-size:0.82rem; font-weight:700; color:#334155;">
+       📜 出力形式（現在: <span id="seed-active-format-label">PGPアーマード形式</span>）
+     </div>
+     <button type="button" class="btn btn-outline" id="btn-toggle-seed-format" style="font-size:0.78rem; padding:4px 10px;">
+       🔄 表示切替：BIP39 24単語ブロック形式 ⇄ PGPアーマード形式
+     </button>
+   </div>
+   <div id="seed-armored-wrap" style="width:100%;">
+     <textarea id="seed-armored-text" class="seed-textarea" readonly style="min-height:140px; font-family:monospace; font-size:0.8rem; width:100%;"></textarea>
+   </div>
+   <div id="seed-words-chips-wrap" hidden style="width:100%;">
+     ${chipsHtml}
+   </div>
+  `;
+
+  if($('seed-armored-text'))$('seed-armored-text').value=sec2ArmoredText;
   $('btn-copy-seed').disabled=false;
-  const qrBox=$('seed-qr-list');
-  if(qrBox&&window.MatrixQRCode){
-   const allWordsText=groups.map(g=>g.join(' ')).join('\n');
-   const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(allWordsText);
+
+  function updateSec2QR(format){
+   if(!qrBox||!window.MatrixQRCode)return;
+   const qrText=(format==='armored'?sec2ArmoredText:allWordsText);
+   const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(qrText);
    if(svg)fig.appendChild(svg);
-   cap.textContent=groups.length===1
-    ?'BIP39 24単語シードフレーズ（設定のみ・暗号化なし）\n24単語（QR 1枚）'
-    :`BIP39 拡張バックアップ（暗号化なし）\n全${groups.length}ブロック・${groups.length*24}単語を1枚のQRに統合`;
+   cap.textContent=(format==='armored'
+    ?`PGPアーマード 拡張バックアップ（暗号化なし）\n全${groups.length}ブロック統合QR（1枚）`
+    :`BIP39 拡張バックアップ（暗号化なし）\n全${groups.length}ブロック・${groups.length*24}単語を1枚のQRに統合`);
    fig.appendChild(cap);
    qrBox.replaceChildren(fig);
   }
+
+  updateSec2QR('armored');
+
+  $('btn-toggle-seed-format')?.addEventListener('click',()=>{
+   activeSec2Format=(activeSec2Format==='armored'?'words':'armored');
+   if($('seed-armored-wrap'))$('seed-armored-wrap').hidden=(activeSec2Format!=='armored');
+   if($('seed-words-chips-wrap'))$('seed-words-chips-wrap').hidden=(activeSec2Format!=='words');
+   if($('seed-active-format-label'))$('seed-active-format-label').textContent=(activeSec2Format==='armored'?'PGPアーマード形式':'BIP39 24単語ブロック形式');
+   updateSec2QR(activeSec2Format);
+  });
  }
  generateAndRenderSeedPhrase=async function(){
   const request=++backupRequest;currentMnemonicWords=[];$('btn-copy-seed').disabled=true;
@@ -1564,12 +3048,13 @@ document.addEventListener('DOMContentLoaded', () => {
    const blocks=s.full?await fullBlocks(s,core):[core],groups=[];
    for(const b of blocks)groups.push(await entropyToBip39Words(b));
    if(request!==backupRequest)return;
-   renderWords(groups);
-   setStatus('backup-summary',s.full?`拡張バックアップ（暗号化なし）：全${groups.length}ブロック（${groups.length*24}単語）＋ 統合QR 1枚を自動作成しました。サイト名・合言葉・記号リスト・マイレシピ設定を保存。カードシード${s.includeSeed?'も保存':'は未保存（同じカードを別途用意）'}。`:`設定のみ（暗号化なし）：24単語 ＋ QR 1枚を自動作成しました。サイト名・合言葉は含みません。カードシード${s.includeSeed?'を保存':'は未保存'}。`);
+   renderWords(groups,blocks);
+   setStatus('backup-summary',s.full?`拡張バックアップ（暗号化なし）：全${groups.length}ブロック ＋ 統合QR 1枚（PGPアーマード形式）を自動作成しました。サイト名・合言葉・記号リスト・マイレシピ設定を保存。シードフレーズ${s.includeSeed?'も保存':'は未保存（同じカードを別途用意）'}。`:`設定のみ（暗号化なし）：24単語 ＋ QR 1枚を自動作成しました。サイト名・合言葉は含みません。シードフレーズ${s.includeSeed?'を保存':'は未保存'}。`);
   }catch(e){if(request!==backupRequest)return;currentMnemonicWords=[];$('seed-words-container').textContent='バックアップ未作成：'+e.message;if($('seed-qr-list'))$('seed-qr-list').replaceChildren();setStatus('backup-summary',e.message,true);}
  };
+
  function isFrame(b){return b[0]===0x43&&b[1]===0x58&&b[2]===0x42&&b[3]===2;}
- function parsePlainBody(innerBody,encrypted=false,kdfProfile=null,tagHex='',twoFaMode=0,shamir=null){
+ function parsePlainBody(innerBody,encrypted=false,kdfProfile=null,tagHex='',twoFaMode=0,shamir=null,combo=null){
   if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x58&&innerBody[3]===2){
    if(innerBody.length<74)throw new Error('拡張データの長さが不正です。');
    const cfgData=unpack256BitToRecipe(innerBody.slice(4,36)),v=new DataView(innerBody.buffer,innerBody.byteOffset,innerBody.byteLength);
@@ -1578,7 +3063,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const decoder=new TextDecoder('utf-8',{fatal:true});let pos=42;
    const site=decoder.decode(innerBody.slice(pos,pos+=a)),secret=decoder.decode(innerBody.slice(pos,pos+=b)),symList=decoder.decode(innerBody.slice(pos,pos+=c));
    cfgData.cfg.symList=symList;
-   return{...cfgData,site,secret,expected:innerBody.slice(pos,pos+32),full:true,encrypted,kdfProfile,tagHex,twoFaMode,shamir};
+   return{...cfgData,site,secret,expected:innerBody.slice(pos,pos+32),full:true,encrypted,kdfProfile,tagHex,twoFaMode,shamir,combo};
   }
   if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x53&&innerBody[3]===2){
    if(innerBody.length<38)throw new Error('設定データの長さが不正です。');
@@ -1587,7 +3072,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(c>1024||38+c!==innerBody.length)throw new Error('記号設定の長さが不正です。');
    const decoder=new TextDecoder('utf-8',{fatal:true});
    cfgData.cfg.symList=decoder.decode(innerBody.slice(38,38+c));
-   return{...cfgData,full:false,encrypted,kdfProfile,tagHex,twoFaMode,shamir};
+   return{...cfgData,full:false,encrypted,kdfProfile,tagHex,twoFaMode,shamir,combo};
   }
   throw new Error('未対応の拡張バックアップ形式です。');
  }
@@ -1638,11 +3123,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const m=body[4],n=body[5],k=body[6];
     throw new Error(`秘密分散バックアップ（${m}-of-${n} 分散）のシェア #${k} を確認しました。復元には任意の ${m} シェアが必要です（あと ${m-1} シェア分の24単語ブロックを改行して追加するか、QRを読み取ってください）。`);
    }
-   if(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&body[3]===2){
-    const {innerBody,kdfProfile,twoFaMode}=await decryptBodyCME2(body,password,twoFaOpts);
-    return parsePlainBody(innerBody,true,kdfProfile,tagHex,twoFaMode,null);
+   if(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3)){
+    const {innerBody,kdfProfile,combo}=await decryptBodyCME2(body,password,twoFaOpts);
+    return parsePlainBody(innerBody,true,kdfProfile,tagHex,combo,null,combo);
    }
-   return parsePlainBody(body,false,null,tagHex,0,null);
+   return parsePlainBody(body,false,null,tagHex,0,null,null);
   }
   // Multiple tag groups -> check for Shamir M-of-N shares
   const shareMap=new Map();
@@ -1669,31 +3154,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmeBody=shamirCombine(selected);
   const cmeHash=await sha(cmeBody);
   if(!equal(cmeHash.slice(0,8),refSetId))throw new Error('秘密分散シェアの合成検証（SHA-256）に失敗しました。');
-  if(cmeBody[0]===0x43&&cmeBody[1]===0x4d&&cmeBody[2]===0x45&&cmeBody[3]===2){
-   const {innerBody,kdfProfile,twoFaMode}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
-   return parsePlainBody(innerBody,true,kdfProfile,hexTag(refSetId.slice(0,4)),twoFaMode,{m:refM,n:refN,usedShares:selected.map(s=>s.index)});
+  if(cmeBody[0]===0x43&&cmeBody[1]===0x4d&&cmeBody[2]===0x45&&(cmeBody[3]===2||cmeBody[3]===3)){
+   const {innerBody,kdfProfile,combo}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
+   return parsePlainBody(innerBody,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
   }
-  return parsePlainBody(cmeBody,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)});
+  return parsePlainBody(cmeBody,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
  }
  function saveUI(){return{cfg:getRecipeConfig(),site:$('sim-site').value,secret:$('sim-secret').value,seed:appliedSeed,seedInput:$('input-seed-number').value,inc:$('chk-include-card-seed').checked,kind:$('backup-kind').value,words:currentMnemonicWords.slice(),box:$('seed-words-container').innerHTML,summary:$('backup-summary').textContent,cqPinLen:$('cq-pin-length')?.value,cqSymLen:$('cq-symbol-length')?.value,cqSymMode:$('cq-symbol-mode')?.value,cqSymList:$('cq-symbol-list')?.value};}
- function restoreUI(s){setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix(s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
+ function restoreUI(s){currentDisplayMode='recipe';setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix(s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
  restoreRecipeFromSeedInput=async function(){
   const request=++restoreRequest,statusEl=$('restore-status');$('btn-restore-seed').disabled=true;statusEl.className='status-msg';statusEl.textContent='全ブロックを検証しています…';
   let previous=null;
   try{
    const rawTrimmed=$('input-restore-seed').value.trim();
-   const password=$('input-restore-password')?$('input-restore-password').value:'';
-   let keyfileBytes=null;
-   const kfFile=$('input-restore-keyfile')?.files?.[0]||$('bq-restore-keyfile')?.files?.[0];
-   if(kfFile)keyfileBytes=new Uint8Array(await kfFile.arrayBuffer());
-   if(rawTrimmed.startsWith('MCBK1:')||rawTrimmed.startsWith('MCQR1:'))throw new Error('旧MCBK1/MCQR1形式のデータは、下の「3. 拡張バックアップ（暗号化）＆ 印刷QRからの復元」の復元欄に入力してください。');
-   const words=rawTrimmed.toLowerCase().split(/\s+/).filter(Boolean);
-   if(words.length<24||words.length%24!==0||words.length>512*24)throw new Error('24単語単位で全ブロックを順番に入力してください。');
-   const blocks=[];for(let i=0;i<words.length;i+=24)blocks.push(await bip39WordsToEntropy(words.slice(i,i+24).join(' ')));
+   if(rawTrimmed.startsWith('MCBK1:')||rawTrimmed.startsWith('MCQR1:'))throw new Error('旧MCBK1/MCQR1形式のデータは、下の「3. 拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元」の復元欄に入力してください。');
+   let blocks=[];
+   if(rawTrimmed.includes('-----BEGIN CRYPTOMATRIX')||rawTrimmed.includes('-----BEGIN ')){
+    blocks=dearmorBlocks(rawTrimmed);
+    if(!blocks.length)throw new Error('PGPアーマードテキストの解析に失敗しました。');
+   }else{
+    const words=rawTrimmed.toLowerCase().split(/\s+/).filter(Boolean);
+    if(words.length<24||words.length%24!==0||words.length>512*24)throw new Error('24単語単位（またはPGPアーマードテキスト）で入力してください。');
+    for(let i=0;i<words.length;i+=24)blocks.push(await bip39WordsToEntropy(words.slice(i,i+24).join(' ')));
+   }
    let data;
    if(isFrame(blocks[0])){
     if(blocks.length===1)throw new Error('これは複数ブロックバックアップの一部です。他のブロックが欠落しています。');
-    data=await decodeFull(blocks,password,false,keyfileBytes?{keyfileBytes}:null);
+    const {body}=await reassembleStreamGroup(blocks,false);
+    if(isShamirBody(body)||(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3))){
+     throw new Error('このフレーズは暗号化または秘密分散されています。下の「3. 拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元」の復元欄に入力してください。');
+    }
+    data=await decodeFull(blocks,'',false,null);
+    if(data.encrypted||data.shamir){
+     throw new Error('このフレーズは暗号化または秘密分散されています。下の「3. 拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元」の復元欄に入力してください。');
+    }
    }else{
     if(blocks.length!==1)throw new Error('この形式の拡張フレーズには対応していません。以前のハッシュ補強版は生成時の旧版で復元してください。');
     data={...unpack256BitToRecipe(blocks[0]),full:false,encrypted:false};
@@ -1714,7 +3208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(issue)throw new Error(issue);
     const actual=await sha(enc.encode(candidate));
     if(request!==restoreRequest)throw new Error('別の復元要求が開始されました。');
-    if(!equal(actual,data.expected))throw new Error(data.includeCardSeed?'生成値の照合に失敗しました。対応バージョン・設定を確認してください。':'カードシードが未保存で、現在のカードでは生成値が一致しません。生成時と同じカードを適用して再度復元してください。');
+    if(!equal(actual,data.expected))throw new Error(data.includeCardSeed?'生成値の照合に失敗しました。対応バージョン・設定を確認してください。':'シードフレーズが未保存で、現在のカードでは生成値が一致しません。生成時と同じカードを適用して再度復元してください。');
    }
    updateSimulationUI();
    await generateAndRenderSeedPhrase();
@@ -1731,6 +3225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }finally{restoring=false;if(request===restoreRequest)$('btn-restore-seed').disabled=false;}
  };
  function apply(mode){
+  currentDisplayMode='recipe';
   let previous=null;
   try{
    const L=Number($(`cq-${mode}-length`).value);
@@ -1745,6 +3240,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }catch(e){if(previous){restoring=true;try{restoreUI(previous);}finally{restoring=false;}}setStatus('cq-status',e.message,true);}
  }
  document.addEventListener('DOMContentLoaded',()=>{
+  const btnRest=$('btn-restore-seed');
+  if(btnRest){
+   btnRest.addEventListener('click',(e)=>{e.stopImmediatePropagation();void restoreRecipeFromSeedInput();},true);
+  }
   $('btn-blind-mode')?.addEventListener('click',()=>setBlindMode(!blindMode));
   $('cq-pin-apply').addEventListener('click',()=>apply('pin'));
   $('cq-symbol-apply').addEventListener('click',()=>apply('symbol'));
@@ -1759,6 +3258,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(recSec){recSec.classList.toggle('is-collapsed');syncCollapseButtons();}
   });
   $('btn-use-recipe')?.addEventListener('click',()=>{
+   currentDisplayMode='recipe';
    const cfg=getRecipeConfig();
    if(cardMode(cfg)){
     if($('rc-len-mode'))$('rc-len-mode').value='0';
@@ -1773,6 +3273,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   for(const rid of['btn-reset-recipe','btn-random-recipe']){
    $(rid)?.addEventListener('click',()=>{
+    currentDisplayMode='recipe';
     if($('section-recipe-detail'))$('section-recipe-detail').classList.remove('is-collapsed');
     if($('card-quick'))$('card-quick').classList.add('is-collapsed');
     syncCollapseButtons();
@@ -1780,6 +3281,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.querySelectorAll('#section-recipe-detail .rc-input').forEach(el=>{
    const onManualRecipeEdit=()=>{
+    currentDisplayMode='recipe';
     const cfg=getRecipeConfig();
     if(el.id!=='rc-len-mode'&&el.id!=='rc-len-val'&&cardMode(cfg)){
      if($('rc-len-mode'))$('rc-len-mode').value='0';
@@ -1790,17 +3292,35 @@ document.addEventListener('DOMContentLoaded', () => {
    el.addEventListener('change',onManualRecipeEdit,true);
   });
   $('btn-sticky-play')?.addEventListener('click',()=>playMatrixTrace());
+  $('btn-sticky-stroke')?.addEventListener('click',()=>playStrokeGestureTrace());
+  $('btn-sticky-pause')?.addEventListener('click',()=>togglePauseMatrixTrace());
+  $('btn-sticky-stop')?.addEventListener('click',()=>{
+    stopMatrixTrace();
+    const banner = document.getElementById('sim-step-banner');
+    if (banner) banner.textContent = '⏹ 再生を停止しました。';
+  });
   $('btn-sticky-copy')?.addEventListener('click',()=>$('btn-copy-pw')?.click());
   $('btn-sticky-top')?.addEventListener('click',()=>{
    const stageEl=$('matrix-stage-box')||$('div-encrypto-matrix-main');
    if(stageEl)window.scrollTo({top:Math.max(0,window.scrollY+stageEl.getBoundingClientRect().top-8),behavior:'smooth'});
   });
-  const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar');
+  const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar'),pageFooter=$('page-footer');
   if(liveRow&&stickyBar){
    const updateStickyVisibility=()=>{
     const r=liveRow.getBoundingClientRect();
     const outOfView=r.bottom<0||r.top>window.innerHeight;
     stickyBar.classList.toggle('visible',outOfView);
+    if(outOfView&&pageFooter){
+     const fr=pageFooter.getBoundingClientRect();
+     const overlap=window.innerHeight-fr.top;
+     if(overlap>0){
+      stickyBar.style.transform=`translateY(-${overlap+10}px)`;
+     }else{
+      stickyBar.style.transform='';
+     }
+    }else{
+     stickyBar.style.transform='';
+    }
    };
    window.addEventListener('scroll',updateStickyVisibility,{passive:true});
    window.addEventListener('resize',updateStickyVisibility,{passive:true});
@@ -1826,6 +3346,13 @@ document.addEventListener('DOMContentLoaded', () => {
    try{
     await copyWithAutoClear(pw,()=>{if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
     if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
+    const btn=$('btn-copy-pw');
+    if(btn){
+     const origText=btn.dataset.origText||btn.textContent;
+     btn.dataset.origText=origText;
+     btn.textContent='✅ コピー済';
+     setTimeout(()=>{btn.textContent=origText;},1800);
+    }
     const sb=$('btn-sticky-copy');
     if(sb){const orig=sb.textContent;sb.textContent='✅ コピー済';setTimeout(()=>{sb.textContent=orig;},1800);}
    }catch(_){}
@@ -1835,9 +3362,9 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!currentMnemonicWords.length)return;
    try{
     const words=currentMnemonicWords.slice();
-    const text=Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
-    await copyWithAutoClear(text,()=>setStatus('backup-summary','🛡️ クリップボードの復元フレーズを自動消去しました。'));
-    setStatus('backup-summary',`${words.length/24}ブロック・${words.length}単語をコピーしました（30秒後にクリップボードから自動消去されます）。`);
+    const text=(activeSec2Format==='armored'&&sec2ArmoredText)?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
+    await copyWithAutoClear(text,()=>setStatus('backup-summary','🛡️ クリップボードの復元データを自動消去しました。'));
+    setStatus('backup-summary',activeSec2Format==='armored'?'PGPアーマード形式の拡張バックアップをコピーしました（30秒後にクリップボードから自動消去されます）。':`${words.length/24}ブロック・${words.length}単語をコピーしました（30秒後にクリップボードから自動消去されます）。`);
    }catch(_){setStatus('backup-summary','コピーできませんでした。画面の全ブロックを順番どおり控えてください。',true);}
   },true);
   $('btn-zeroize')?.addEventListener('click',async()=>{
@@ -1853,9 +3380,25 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('cq-symbol-list'))$('cq-symbol-list').value='-_!#';
    if($('chk-include-card-seed'))$('chk-include-card-seed').checked=true;
    if($('backup-kind'))$('backup-kind').value='settings';
-   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile']){
-    if($(id))$(id).value='';
+   if($('bq-opt-password'))$('bq-opt-password').checked=true;
+   if($('bq-opt-keyfile'))$('bq-opt-keyfile').checked=false;
+   if($('bq-opt-passkey'))$('bq-opt-passkey').checked=false;
+   if($('bq-shamir'))$('bq-shamir').value='1-1';
+   function scrubDOM(el){
+    if(!el)return;
+    const len=el.value?el.value.length:0;
+    if(len>0){try{el.value='0'.repeat(len);el.value='\u0000'.repeat(len);}catch(_){}}
+    el.value='';
    }
+   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-import','bv-keyfile','bv-restore-keyfile']){
+    scrubDOM($(id));
+   }
+   if(Array.isArray(currentMnemonicWords)){currentMnemonicWords.fill('');currentMnemonicWords.length=0;}
+   sec2ArmoredText='';
+   if($('seed-words-container'))$('seed-words-container').textContent='';
+   if($('seed-armored-text'))scrubDOM($('seed-armored-text'));
+   if(Array.isArray(currentMatrixData)){for(let i=0;i<currentMatrixData.length;i++)currentMatrixData[i]='';}
+   try{window.gc?.();}catch(_){}
    if($('restore-status')){$('restore-status').className='status-msg';$('restore-status').textContent='';}
    $('bq-clear')?.click();
    $('bq-reset-parts')?.click();
@@ -1881,12 +3424,48 @@ document.addEventListener('DOMContentLoaded', () => {
    if(parseSeedValue($('input-seed-number').value)!==appliedSeed){updateMainMatrix($('input-seed-number').value);updateSimulationUI();}
    const s=snapshotBackup(extended,true),core=packRecipeTo256Bit(s.cfg,true,s.seed);
    const plainBody=await buildPlainBody(s,core);
-   const twoFaOpts=options?.twoFaMode&&options.twoFaMode!=='none'?{mode:options.twoFaMode,keyfileBytes:options.keyfileBytes}:null;
-   const cmeBody=await encryptBodyCME2(plainBody,password,kdfProfile,twoFaOpts);
    const shamirM=Number(options?.shamirM||1),shamirN=Number(options?.shamirN||1);
+   const usePass=options?.usePassword!==undefined?!!options.usePassword:!!password;
+   const useKeyfile=!!options?.useKeyfile;
+   const usePasskey=!!options?.usePasskey;
+   if(!usePass&&!useKeyfile&&!usePasskey&&shamirN<=1){
+    throw new Error('保護方法（パスワード、キーファイル、パスキー、または2分割以上の秘密分散）を少なくとも1つ選択してください。');
+   }
+   let bodyToFrame,combo=0;
+   if(usePass||useKeyfile||usePasskey){
+    const factors={usePassword:usePass,useKeyfile,usePasskey,keyfileBytes:options?.keyfileBytes};
+    if(options?.duress?.enabled){
+      const dSeed=parseSeedValue(options.duress.seed||'11223344');
+      const dSite=options.duress.site||'shopping.example.com';
+      const dSecret=options.duress.secret||'shopping-safe-pass';
+      let dVal='';
+      try{
+       originalMatrix(dSeed);
+       dVal=evaluateRecipeSteps(dSite,dSecret,s.cfg).map(x=>x.ch).join('');
+      }finally{
+       originalMatrix(s.seed);
+      }
+      const dSnap={full:extended,includeSeed:true,seed:dSeed,site:dSite,secret:dSecret,cfg:s.cfg,value:dVal};
+      const dCore=packRecipeTo256Bit(s.cfg,true,dSeed);
+      const decoyPlainBody=await buildPlainBody(dSnap,dCore);
+      bodyToFrame=await encryptDuressDualCME(plainBody,password,decoyPlainBody,options.duress.password,kdfProfile,factors);
+     }else{
+     bodyToFrame=await encryptBodyCME2(plainBody,password,kdfProfile,factors);
+    }
+    if(usePass&&!useKeyfile&&!usePasskey)combo=0;
+    else if(usePass&&useKeyfile&&!usePasskey)combo=1;
+    else if(usePass&&!useKeyfile&&usePasskey)combo=2;
+    else if(usePass&&useKeyfile&&usePasskey)combo=3;
+    else if(!usePass&&useKeyfile&&!usePasskey)combo=4;
+    else if(!usePass&&!useKeyfile&&usePasskey)combo=5;
+    else if(!usePass&&useKeyfile&&usePasskey)combo=6;
+   }else{
+    bodyToFrame=plainBody;
+    combo=null;
+   }
    if(shamirN>1){
-    const setId=(await sha(cmeBody)).slice(0,8);
-    const rawShares=shamirSplit(cmeBody,shamirM,shamirN);
+    const setId=(await sha(bodyToFrame)).slice(0,8);
+    const rawShares=shamirSplit(bodyToFrame,shamirM,shamirN);
     const shares=[],allGroups=[];
     for(let k=1;k<=shamirN;k++){
      const shareBody=concat(new Uint8Array([0x43,0x4d,0x53,3,shamirM,shamirN,k,0]),setId,rawShares[k-1]);
@@ -1895,12 +3474,12 @@ document.addEventListener('DOMContentLoaded', () => {
      shares.push({index:k,m:shamirM,n:shamirN,groups:sGroups,blocks:sBlocks});
      allGroups.push(...sGroups);
     }
-    return{groups:allGroups,shares,blocks:shares.flatMap(x=>x.blocks),tagHex:hexTag(setId.slice(0,4)),kdfProfile:Number(kdfProfile),extended:!!extended,shamirM,shamirN,twoFaMode:options?.twoFaMode||'none'};
+    return{groups:allGroups,shares,blocks:shares.flatMap(x=>x.blocks),tagHex:hexTag(setId.slice(0,4)),kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM,shamirN,combo,usePassword:usePass,useKeyfile,usePasskey};
    }
-   const blocks=await frameBodyToBlocks(cmeBody),groups=[];
+   const blocks=await frameBodyToBlocks(bodyToFrame),groups=[];
    for(const b of blocks)groups.push(await entropyToBip39Words(b));
    const tagHex=hexTag(blocks[0].slice(8,12));
-   return{groups,shares:null,blocks,tagHex,kdfProfile:Number(kdfProfile),extended:!!extended,shamirM:1,shamirN:1,twoFaMode:options?.twoFaMode||'none'};
+   return{groups,shares:null,blocks,tagHex,kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM:1,shamirN:1,combo,usePassword:usePass,useKeyfile,usePasskey};
   },
   decodeBip39Blocks:async(words,password='',allowOutOfOrder=true,twoFaOpts=null)=>{
    const blocks=[];for(let i=0;i<words.length;i+=24)blocks.push(await bip39WordsToEntropy(words.slice(i,i+24).join(' ')));
@@ -1917,7 +3496,22 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!isFrame(blocks[0]))return null;
    if(blocks.length===1)throw new Error('これは拡張バックアップの一部です。他のブロックが欠落しています。');
    return decodeFull(blocks,password,true,twoFaOpts);
-  }
+  },
+  zeroize:b=>zeroize(b),
+  ChaCha20Poly1305,
+  encryptBodyCME2:(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors),
+  encryptBodyCME3:(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors),
+  encryptDuressDualCME:(realBody,realPassword,decoyBody,decoyPassword,kdfProfile=1,factors={})=>encryptDuressDualCME(realBody,realPassword,decoyBody,decoyPassword,kdfProfile,factors),
+  decryptBodyCME2:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts),
+  decryptBodyCME:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts),
+  shamirSplit:(secretBytes,m,n)=>shamirSplit(secretBytes,m,n),
+  shamirCombine:shareItems=>shamirCombine(shareItems),
+  sha:b=>sha(b),
+  sha512:b=>sha512(b),
+  concat:(...arrs)=>concat(...arrs),
+  frameBodyToBlocks:body=>frameBodyToBlocks(body),
+  entropyToBip39Words:b=>entropyToBip39Words(b),
+  bip39WordsToEntropy:w=>bip39WordsToEntropy(w)
  });
 })();
 /* END CARD READING v2 + EXTENDED BIP39 BACKUP v2 */

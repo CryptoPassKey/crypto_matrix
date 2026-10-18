@@ -54,9 +54,9 @@ function clearPending(){
 function profileFor(cfg){return cfg.lenMode===5?'C2':cfg.lenMode===3?'C1_PIN':cfg.lenMode===4?'C1_ALNUM':'L2';}
 function profileLabel(p){return p==='C2'?'かんたん生成モード — パスワード（英大小・数字・記号）':p==='C1_PIN'?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':p==='C1_ALNUM'||p==='C1'?'かんたん生成モード（旧互換） — パスワード（英大小・数字）':'1. マイ・レシピ全組み合わせ設定';}
 function twoFaLabel(mode){
- if(mode===1||mode==='keyfile')return 'キーファイル2要素ロック（Password ＋ Keyfile SHA-512）';
- if(mode===2||mode==='passkey')return 'パスキー2要素ロック（Password ＋ WebAuthn パスキー生体/デバイス認証）';
- return 'なし（パスワード単一要素）';
+ if(mode===1||mode==='keyfile')return 'キーファイル2要素ロック（復元用パスワード ＋ キーファイル）';
+ if(mode===2||mode==='passkey')return 'パスキー2要素ロック（復元用パスワード ＋ パスキー認証）';
+ return 'なし（復元用パスワードのみ）';
 }
 
 function validateConfig(cfg){
@@ -71,7 +71,7 @@ function validateConfig(cfg){
 
 function qrSVG(text){
  if(MatrixCardPreset.qrSVG){const s=MatrixCardPreset.qrSVG(text);if(s)return s;}
- if(!window.MatrixQRCode)throw Error('qr-encoder.jsが読み込めません。ZIP内の全ファイルを配置してください。');
+ if(!window.MatrixQRCode)throw Error('QRコード生成プログラムの読み込みに失敗しました。ページを再読み込みしてください。');
  const matrix=MatrixQRCode.matrix(text),n=matrix.length+8,ns='http://www.w3.org/2000/svg';
  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${n} ${n}`);svg.setAttribute('role','img');svg.setAttribute('aria-label','復元用QR');svg.setAttribute('shape-rendering','crispEdges');
  const bg=document.createElementNS(ns,'rect');bg.setAttribute('width',String(n));bg.setAttribute('height',String(n));bg.setAttribute('fill','#fff');bg.setAttribute('class','qr-white');svg.appendChild(bg);
@@ -148,7 +148,7 @@ async function createBackup(){
   let keyfileBytes=null;
   if(twoFaMode==='keyfile'){
    keyfileBytes=await getCreationKeyfileBytes();
-   if(!keyfileBytes||!keyfileBytes.length)throw Error('二段階ロック用のキーファイルを選択するか、「高乱数キーファイル(.key)を生成・保存」を押してください。');
+   if(!keyfileBytes||!keyfileBytes.length)throw Error('二段階ロック用のキーファイルを選択するか、「専用キーファイル(.key)を新規作成・保存」を押してください。');
   }
   const signature=settingsSignature();
   const res=await MatrixCardPreset.createEncryptedBip39Backup(extended,password,kdfProfile,{shamirM,shamirN,twoFaMode,keyfileBytes});
@@ -318,7 +318,7 @@ function script(src){return new Promise((resolve,reject)=>{const s=document.crea
 async function getDecoder(){
  if(window.BarcodeDetector){try{if(!BarcodeDetector.getSupportedFormats||(await BarcodeDetector.getSupportedFormats()).includes('qr_code')){const detector=new BarcodeDetector({formats:['qr_code']});return async canvas=>(await detector.detect(canvas)).map(r=>r.rawValue);}}catch(_){}}
  if(!window.jsQR){
-  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(async()=>{if(!$('bq-cdn').checked)throw Error('このブラウザは標準QR読取に対応していません。読取補助のCDN利用を許可するか、vendor/jsQR.jsを配置してください。');await script('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');}).catch(e=>{decoderPromise=null;throw e;});
+  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(async()=>{if(!$('bq-cdn').checked)throw Error('お使いのブラウザでQRコードを読み取るには、上の「標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る」にチェックを入れてください。');await script('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');}).catch(e=>{decoderPromise=null;throw e;});
   await decoderPromise;
  }
  if(typeof window.jsQR!=='function')throw Error('QR読取ライブラリが利用できません。');
@@ -496,7 +496,7 @@ function generateAndDownloadKeyfile(){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
  }catch(_){}
- if($('bq-keyfile-status'))$('bq-keyfile-status').textContent=`✅ 256bit超の高乱数キーファイル（${generatedKeyfileName}）を生成・セットしました（ダウンロード済み）。紛失しないよう別保管してください。`;
+ if($('bq-keyfile-status'))$('bq-keyfile-status').textContent=`✅ 専用キーファイル（${generatedKeyfileName}）を作成・セットしました（ダウンロード済み）。復元時に必要なため、バックアップとは別の場所に保管してください。`;
 }
 
 document.addEventListener('DOMContentLoaded',()=>{

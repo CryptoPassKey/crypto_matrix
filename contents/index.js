@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(cfg.lenMode===3)return`かんたん生成モード — 銀行などの暗証番号（数字のみ・${cfg.lenVal}桁）`;
   if(cfg.lenMode===5)return`かんたん生成モード — パスワード（英大小・数字・記号・${cfg.lenVal}文字）`;
   if(cfg.lenMode===4)return`かんたん生成モード — パスワード（英大小・数字・${cfg.lenVal}文字）`;
-  return'1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）';
+  return'1. マイ・レシピ全組み合わせ設定';
  }
  let lastActiveModeKind=null;
  function syncCollapseButtons(){
@@ -1393,51 +1393,78 @@ document.addEventListener('DOMContentLoaded', () => {
   if(!window.PublicKeyCredential||!navigator.credentials){
    throw new Error('このブラウザ・接続環境はWebAuthnパスキーに対応していません（HTTPSまたはlocalhostが必要です）。');
   }
-  const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
-  const challenge=crypto.getRandomValues(new Uint8Array(32));
-  let credIdBytes=credentialId;
-  let prfBytes=null;
-  if(!credIdBytes){
-   const userId=crypto.getRandomValues(new Uint8Array(16));
+  const rpId=location.hostname||'localhost';
+  if(!credentialId){
+   const userSecret=crypto.getRandomValues(new Uint8Array(32));
+   const challenge=crypto.getRandomValues(new Uint8Array(32));
    const created=await navigator.credentials.create({
     publicKey:{
      challenge,
-     rp:{name:'Crypto Matrix Backup',id:location.hostname||'localhost'},
-     user:{id:userId,name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
-     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+     rp:{name:'Crypto Matrix Backup',id:rpId},
+     user:{id:userSecret,name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
+     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257},{type:'public-key',alg:-8}],
      authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
-     timeout:60000,
-     extensions:{prf:{eval:{first:prfInput}}}
+     timeout:60000
     }
    });
    if(!created)throw new Error('パスキーの作成がキャンセルされました。');
-   credIdBytes=new Uint8Array(created.rawId);
-   const extRes=created.getClientExtensionResults?.()?.prf;
-   if(extRes?.results?.first){
-    prfBytes=new Uint8Array(extRes.results.first);
-   }
+   const rawCredId=new Uint8Array(created.rawId);
+   if(!rawCredId.length||rawCredId.length>470)throw new Error('パスキー識別子の長さが不正です。');
+   const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
+   const maskedSecret=new Uint8Array(32);
+   for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
+   const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
+   const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
+   return{extraFactor,credentialId:packedCred};
   }
-  if(!prfBytes){
+  if(credentialId.length>35&&credentialId[0]===0x50&&credentialId[1]===0x4b&&credentialId[2]===0x02){
+   const maskedSecret=credentialId.slice(3,35);
+   const rawCredId=credentialId.slice(35);
    const assertion=await navigator.credentials.get({
     publicKey:{
      challenge:crypto.getRandomValues(new Uint8Array(32)),
-     rpId:location.hostname||'localhost',
-     allowCredentials:credIdBytes?[{type:'public-key',id:credIdBytes}]:undefined,
+     rpId,
+     allowCredentials:[{type:'public-key',id:rawCredId}],
      userVerification:'required',
-     timeout:60000,
-     extensions:{prf:{eval:{first:prfInput}}}
+     timeout:60000
     }
    });
    if(!assertion)throw new Error('パスキーの認証がキャンセルされました。');
-   const extRes=assertion.getClientExtensionResults?.()?.prf;
-   if(!extRes?.results?.first){
-    throw new Error('お使いの認証器・OSはWebAuthn PRF（ハードウェア鍵導出拡張）に対応していません。サーバー不要の二段階ロックには「キーファイル2要素ロック」をご利用ください。');
+   const verifiedCredId=new Uint8Array(assertion.rawId);
+   if(!equal(verifiedCredId,rawCredId))throw new Error('指定されたパスキーと異なる認証器が応答しました。');
+   const authData=assertion.response?.authenticatorData?new Uint8Array(assertion.response.authenticatorData):new Uint8Array(0);
+   const sig=assertion.response?.signature?new Uint8Array(assertion.response.signature):new Uint8Array(0);
+   if(authData.length<37||(authData[32]&0x01)===0||sig.length===0){
+    throw new Error('パスキーのハードウェア署名検証に失敗しました。');
    }
-   prfBytes=new Uint8Array(extRes.results.first);
-   if(!credIdBytes)credIdBytes=new Uint8Array(assertion.rawId);
+   const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,verifiedCredId))).slice(0,32);
+   const userSecret=new Uint8Array(32);
+   for(let i=0;i<32;i++)userSecret[i]=maskedSecret[i]^maskKey[i];
+   if(assertion.response?.userHandle){
+    const uh=new Uint8Array(assertion.response.userHandle);
+    if(uh.length===32&&!equal(uh,userSecret))throw new Error('パスキー内のユーザーハンドル検証が一致しません。');
+   }
+   const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,verifiedCredId,userSecret));
+   return{extraFactor,credentialId};
   }
-  const extraFactor=await sha512(prfBytes);
-  return{extraFactor,credentialId:credIdBytes};
+  const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
+  const assertion=await navigator.credentials.get({
+   publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    rpId,
+    allowCredentials:[{type:'public-key',id:credentialId}],
+    userVerification:'required',
+    timeout:60000,
+    extensions:{prf:{eval:{first:prfInput}}}
+   }
+  });
+  if(!assertion)throw new Error('パスキーの認証がキャンセルされました。');
+  const extRes=assertion.getClientExtensionResults?.()?.prf;
+  if(!extRes?.results?.first){
+   throw new Error('この旧形式パスキーバックアップの復号にはWebAuthn PRF拡張対応環境が必要です。');
+  }
+  const extraFactor=await sha512(new Uint8Array(extRes.results.first));
+  return{extraFactor,credentialId};
  }
  async function deriveKeysCME2(password,salt,kdfProfile,extraFactor=null){
   const subt=cryptoAPI(),pwBytes=enc.encode(String(password??''));

@@ -946,11 +946,11 @@ body.blind-mode #seed-qr-list:hover {
       <div class="live-player-bar no-print">
         <div class="live-inputs-row">
           <div>
-            <label for="sim-site">テスト用サイト名</label>
+            <label for="sim-site">用サイト</label>
             <input type="text" id="sim-site" value="amazon" placeholder="例: amazon">
           </div>
           <div>
-            <label for="sim-secret">テスト用合言葉</label>
+            <label for="sim-secret">合言葉</label>
             <input type="text" id="sim-secret" value="Matrix" placeholder="例: Matrix">
           </div>
           <div>
@@ -999,7 +999,7 @@ body.blind-mode #seed-qr-list:hover {
   </div>
 </h2>
 <div id="cq-collapsible-body" class="mode-section-body">
-<p class="cq-note">すべての出力文字を物理カードの角から直接読み取るため、ツールに依存せず紙や金属のカード単体でも手作業で同じパスワードを完全再現できるモードです。以下の2種類から選んで「このモードを使う」を押してください。</p>
+<p class="cq-note">すべての出力文字を物理カードの角から直接読み取るため、ツールに依存せずカード単体でも手作業で同じパスワードを完全再現できるモードです。以下の2種類から選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
 <section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>銀行などの暗証番号（数字のみ）</h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4">4桁</option>
 <option value="5">5桁</option>
@@ -1457,7 +1457,7 @@ body.blind-mode #seed-qr-list:hover {
   </div>
   <div class="bq-row" id="bq-password-row">
    <label for="bq-password">復元用パスワード</label>
-   <input type="password" id="bq-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
+   <input type="password" id="bq-password" autocomplete="new-password" placeholder="12文字以上（16文字以上推奨）">
    <label for="bq-password-confirm">再入力</label>
    <input type="password" id="bq-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
   </div>

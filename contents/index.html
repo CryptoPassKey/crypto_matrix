@@ -1040,7 +1040,7 @@ body.blind-mode #seed-qr-list:hover {
 <li>「パスワード（英大小・数字・記号）」では、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
 </ol></details>
 <p id="cq-status" role="status" aria-live="polite" data-mode="recipe">【現在使用中のモード】1. マイ・レシピ全組み合わせ設定</p>
-<p class="cq-warning">ホワイトリストが空、または許可記号がカード上に存在しない場合はフォールバックを行わず安全のため生成を停止します。物理カード単体から合言葉や読み順は逆算できない設計です。合言葉・モード設定・記号ルールはカードとは分離して管理してください。</p>
+<p class="cq-warning">ホワイトリストが空の場合や、指定した記号がカード上に1つも存在しない場合は、意図しない文字への置き換えを防ぎ安全のため生成を停止します。合言葉や設定はカードとは別の場所で管理してください。</p>
 </div>
 </section>
 <!-- END CARD QUICK -->
@@ -1442,18 +1442,18 @@ body.blind-mode #seed-qr-list:hover {
    <label for="bq-2fa-mode">二段階ロック（任意）</label>
    <select id="bq-2fa-mode">
     <option value="none" selected>なし（復元用パスワードのみで暗号化）</option>
-    <option value="keyfile">キーファイル2要素ロック（パスワード ＋ 手元のファイル／専用.keyファイルをSHA-512で鍵合成・サーバー保存不要）</option>
-    <option value="passkey">パスキー（WebAuthn）2要素ロック（パスワード ＋ iPhone/Android生体認証・Windows Hello・Touch ID・YubiKey等を合成・サーバー保存不要）</option>
+    <option value="keyfile">キーファイル2要素ロック（復元用パスワード ＋ キーファイルの2つが揃わないと復号不可）</option>
+    <option value="passkey">パスキー2要素ロック（復元用パスワード ＋ パスキー認証の2つが揃わないと復号不可）</option>
    </select>
   </div>
   <div class="bq-row" id="bq-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
    <label for="bq-keyfile" style="font-weight:700;">🔑 2要素目キーファイル:</label>
    <input type="file" id="bq-keyfile">
-   <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem;">🎲 高乱数キーファイル(.key)を生成・保存</button>
-   <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">任意のファイル（画像・PDF等）を選択するか、専用の高乱数.keyファイルを生成して別保管してください（外部送信は一切行われません）。</div>
+   <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem;">🎲 専用キーファイル(.key)を新規作成・保存</button>
+   <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「専用キーファイル(.key)を新規作成・保存」で作成したファイルをバックアップとは別の場所に保管してください。復元時には「復元用パスワード」と「同じキーファイル」の両方が必要です。</div>
   </div>
   <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
-   🔐 <strong>WebAuthn パスキー2要素ロック（全標準パスキー対応）：</strong> GitHub Pages等の静的サイトでもサーバーへデータを一切保存せず、お使いの端末のパスキー生体認証／セキュリティキー（iPhone Face ID/Touch ID・Android生体認証・Windows Hello・Mac Touch ID・YubiKey等）と暗号学的にバインドして256bit鍵を導出します（PRF拡張非対応のOS・ブラウザでも動作します）。
+   🔐 <strong>パスキー2要素ロック：</strong> 復元用パスワードに加え、お使いのパスキー（Bitwarden等のパスワードマネージャー・iPhone/MacのFace ID/Touch ID・Android生体認証・Windows Hello・YubiKey等）による認証を通過しない限り復号できなくなります。<br>※復元時にも<strong>作成時と同じパスキー</strong>が必要です。機種変更や別端末での復元に備え、同期対応のパスキー（Bitwarden・iCloud・Google等）またはセキュリティキー（YubiKey等）のご利用を推奨します。
   </div>
   <div class="bq-row" id="bq-password-row">
    <label for="bq-password">復元用パスワード</label>
@@ -1462,7 +1462,7 @@ body.blind-mode #seed-qr-list:hover {
    <input type="password" id="bq-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
   </div>
   <div id="bq-pw-entropy" style="font-size:0.78rem; color:var(--text-sub); margin:2px 0 8px;">パスワード強度診断：未入力（12文字以上必須）</div>
-  <p class="bq-warning">復元用パスワード（および二段階ロック用キーファイル）はQRコードや24単語ブロックの中には一切記録されません。紛失すると復号は不可能なため、バックアップとは物理的に分離して管理してください。秘密分散（M-of-N）を選択した場合は、1シェアにつき1枚のQRコードが出力されるため、各シェアのQRを複数の異なる場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分散して保管してください。</p>
+  <p class="bq-warning">復元用パスワード（および二段階ロックで使用したキーファイル・パスキー）は、QRコードや24単語ブロックの中には記録されません。紛失・削除すると復元できなくなるため、バックアップとは別の場所で大切に管理してください。秘密分散（M-of-N）を選択した場合は、分割された各QRコード（またはフレーズ）を別々の保管場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分けて保管してください。</p>
   <div class="bq-row">
    <button type="button" class="btn btn-outline" id="bq-create">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
    <button type="button" class="btn btn-secondary" id="bq-copy" disabled>暗号化フレーズ（全ブロック）をコピー（30秒後自動消去）</button>
@@ -1478,8 +1478,7 @@ body.blind-mode #seed-qr-list:hover {
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
   <h3>印刷したQRコード ／ 復元フレーズからの検証・復元</h3>
   <p>「2」または「3」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
-  <label><input type="checkbox" id="bq-cdn"> 標準のQR読取APIがない場合、読取補助ライブラリjsQRのCDN読み込みを許可（画像・復元データは外部送信されません）</label>
-  <p>オフライン環境やiOS等で利用する場合は、ローカルに <code>vendor/jsQR.js</code> を配置することで完全オフライン読取が可能です。</p>
+  <label><input type="checkbox" id="bq-cdn" checked> 標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る（読み取った画像やデータが外部に送信されることはありません）</label>
   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・写真から読む</label><input type="file" id="bq-image" accept="image/*" capture="environment"><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>

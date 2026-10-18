@@ -1,7 +1,16 @@
 {
   "settings": {
     "theme": "dark",
-    "locale": "ja"
+    "locale": "ja",
+    "canOpen": true,
+    "canCreate": true,
+    "canOpenDemo": false,
+    "canOpenSettings": true,
+    "canOpenGenerator": true,
+    "dropbox": false,
+    "gdrive": false,
+    "onedrive": false,
+    "webdav": false
   },
   "plugins": [
     {

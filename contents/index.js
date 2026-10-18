@@ -620,6 +620,13 @@ function playMatrixTrace() {
   if (!currentEvalSteps || currentEvalSteps.length === 0) return;
   document.body.classList.add('trace-playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
+  const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
+  if (stageEl) {
+    const r = stageEl.getBoundingClientRect();
+    if (r.top < -10 || r.top > 110) {
+      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
+    }
+  }
 
   const speed = Number(document.getElementById('sim-speed')?.value) || 450;
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
@@ -651,7 +658,11 @@ function playMatrixTrace() {
     if (pwSpans[stepIndex]) pwSpans[stepIndex].classList.add('playing-now');
     if (logLines[stepIndex]) {
       logLines[stepIndex].classList.add('active-trace-line');
-      logLines[stepIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      const logBox = document.getElementById('sim-trace-log');
+      if (logBox) {
+        const lineEl = logLines[stepIndex];
+        logBox.scrollTop = Math.max(0, lineEl.offsetTop - logBox.offsetTop - (logBox.clientHeight / 2) + (lineEl.clientHeight / 2));
+      }
     }
     if (banner) {
       banner.textContent = `▶ [${stepIndex + 1}/${currentEvalSteps.length}文字目] ${st.log}`;
@@ -1110,7 +1121,8 @@ document.addEventListener('DOMContentLoaded', () => {
  updateVerbalGuide=function(cfg){
   if(!cardMode(cfg))return originalGuide(cfg);
   originalGuide({...cfg,lenMode:0});
-  const notes=['カード用：英字A〜Zは小文字として中央を探す。中央にない文字（ドット・空白など）は飛ばす。','順読みは左→右。行末は次の行の左端、右下の次は左上。',cfg.lenMode===3?`${cfg.lenVal}桁まで左上を読む。不足分は最後に読んだマスの次から左上を読み足す。`:cfg.lenMode===4?`本文は${cfg.lenVal-3}文字。右上を読み、不足時は順読み。その次から右上の大文字→さらに次から右上の小文字を探し、次のマスの左上数字を採用。`:`本文は${cfg.lenVal-4}文字。左下の禁止記号は次のマスへ飛ばす。不足分も左下を順読み。最後は次から右上の大文字→次から右上の小文字→次の左上数字→次から左下の許可記号を探して採用。`,'すべての出力文字はカードの実在する角から直接読む。パスワード生成にハッシュや追加乱数は使わない。'];
+  const modeTitle=cfg.lenMode===3?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':cfg.lenMode===5?'かんたん生成モード — パスワード（英大小・数字・記号）':'かんたん生成モード（旧互換） — パスワード（英大小・数字）';
+  const notes=[`${modeTitle}：英字A〜Zは小文字として中央を探す。中央にない文字（ドット・空白など）は飛ばす。`,'順読みは左→右。行末は次の行の左端、右下の次は左上。',cfg.lenMode===3?`${cfg.lenVal}桁まで左上を読む。不足分は最後に読んだマスの次から左上を読み足す。`:cfg.lenMode===4?`本文は${cfg.lenVal-3}文字。右上を読み、不足時は順読み。その次から右上の大文字→さらに次から右上の小文字を探し、次のマスの左上数字を採用。`:`本文は${cfg.lenVal-4}文字。左下の禁止記号は次のマスへ飛ばす。不足分も左下を順読み。最後は次から右上の大文字→次から右上の小文字→次の左上数字→次から左下の許可記号を探して採用。`,'すべての出力文字は物理カードの実在する角から直接読み取る。パスワード生成にハッシュや追加乱数は使わない。'];
   for(const text of notes){const li=document.createElement('li');li.textContent=text;$('verbal-recipe-steps')?.appendChild(li);}
  };
  function qrSVG(text){
@@ -1167,28 +1179,95 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.toggle('blind-mode',blindMode);
   syncBlindInputs();
  }
+ function getActiveModeLabel(cfg){
+  if(cfg.lenMode===3)return`かんたん生成モード — 銀行などの暗証番号（数字のみ・${cfg.lenVal}桁）`;
+  if(cfg.lenMode===5)return`かんたん生成モード — パスワード（英大小・数字・記号・${cfg.lenVal}文字）`;
+  if(cfg.lenMode===4)return`かんたん生成モード — パスワード（英大小・数字・${cfg.lenVal}文字）`;
+  return'1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）';
+ }
+ let lastActiveModeKind=null;
+ function syncCollapseButtons(){
+  const cqSec=$('card-quick'),cqBtn=$('btn-toggle-cq');
+  if(cqSec&&cqBtn){
+   const col=cqSec.classList.contains('is-collapsed');
+   cqBtn.textContent=col?'▼ かんたん生成モードを開く':'▲ 折りたたむ';
+  }
+  const recSec=$('section-recipe-detail'),recBtn=$('btn-toggle-recipe');
+  if(recSec&&recBtn){
+   const col=recSec.classList.contains('is-collapsed');
+   recBtn.textContent=col?'▼ マイ・レシピ設定を開く':'▲ 折りたたむ';
+  }
+ }
+ function syncActiveModeUI(cfg){
+  const isPin=cfg.lenMode===3,isAlnum=cfg.lenMode===4,isSymbol=cfg.lenMode===5;
+  const isCard=isPin||isAlnum||isSymbol,isRecipe=!isCard;
+  const modeLabel=getActiveModeLabel(cfg);
+  const currentKind=isPin?'pin':isSymbol?'symbol':isAlnum?'alnum':'recipe';
+  const cqSec=$('card-quick'),recSec=$('section-recipe-detail');
+  if(lastActiveModeKind!==currentKind){
+   lastActiveModeKind=currentKind;
+   if(cqSec)cqSec.classList.toggle('is-collapsed',!isCard);
+   if(recSec)recSec.classList.toggle('is-collapsed',!isRecipe);
+  }
+  syncCollapseButtons();
+  for(const id of['verbal-mode-badge','live-mode-badge','sticky-mode-badge']){
+   const b=$(id);if(b){b.textContent=`✅ 現在使用中：${modeLabel}`;b.classList.remove('inactive');}
+  }
+  const cqBadge=$('cq-section-badge');
+  if(cqSec)cqSec.classList.toggle('active-mode-section',isCard);
+  if(cqBadge){
+   cqBadge.classList.toggle('inactive',!isCard);
+   cqBadge.textContent=isCard
+    ?`✅ 現在使用中：${isPin?'銀行などの暗証番号（数字のみ）':isSymbol?'パスワード（英大小・数字・記号）':'パスワード（英大小・数字）'}`
+    :'未選択（下の「1. マイ・レシピ全組み合わせ設定」を使用中）';
+  }
+  const qPinBtn=$('btn-quick-switch-pin'),qSymBtn=$('btn-quick-switch-symbol');
+  if(qPinBtn){qPinBtn.classList.toggle('btn-mode-active',isPin);qPinBtn.classList.toggle('btn-outline',!isPin);qPinBtn.textContent=isPin?'✅ 暗証番号（数字のみ）を使用中':'🔢 暗証番号（数字のみ）を使う';}
+  if(qSymBtn){qSymBtn.classList.toggle('btn-mode-active',isSymbol);qSymBtn.classList.toggle('btn-outline',!isSymbol);qSymBtn.textContent=isSymbol?'✅ パスワード（記号あり）を使用中':'🔐 パスワード（英大小・数字・記号）を使う';}
+  const pinPanel=$('cq-panel-pin'),pinBadge=$('cq-pin-badge'),pinBtn=$('cq-pin-apply');
+  if(pinPanel)pinPanel.classList.toggle('active-mode-panel',isPin);
+  if(pinBadge){pinBadge.classList.toggle('inactive',!isPin);pinBadge.textContent=isPin?'✅ 現在使用中':'未選択';}
+  if(pinBtn){pinBtn.classList.toggle('btn-mode-active',isPin);pinBtn.classList.toggle('btn-outline',!isPin);pinBtn.textContent=isPin?'✅ 現在このモードを使用中':'このモードを使う';}
+  const symPanel=$('cq-panel-symbol'),symBadge=$('cq-symbol-badge'),symBtn=$('cq-symbol-apply');
+  if(symPanel)symPanel.classList.toggle('active-mode-panel',isSymbol);
+  if(symBadge){symBadge.classList.toggle('inactive',!isSymbol);symBadge.textContent=isSymbol?'✅ 現在使用中':'未選択';}
+  if(symBtn){symBtn.classList.toggle('btn-mode-active',isSymbol);symBtn.classList.toggle('btn-outline',!isSymbol);symBtn.textContent=isSymbol?'✅ 現在このモードを使用中':'このモードを使う';}
+  const recBadge=$('recipe-section-badge'),recBtn=$('btn-use-recipe');
+  if(recSec)recSec.classList.toggle('active-mode-section',isRecipe);
+  if(recBadge){recBadge.classList.toggle('inactive',!isRecipe);recBadge.textContent=isRecipe?'✅ 現在使用中':'未選択（上の「かんたん生成モード」を使用中）';}
+  if(recBtn){recBtn.classList.toggle('btn-mode-active',isRecipe);recBtn.classList.toggle('btn-outline',!isRecipe);recBtn.textContent=isRecipe?'✅ 現在このモードを使用中':'このモードを使う';}
+  const cqSt=$('cq-status');
+  if(cqSt)cqSt.dataset.mode=isCard?'card':'recipe';
+ }
 
  updateSimulationUI=function(){
   issue='';originalSimulation();const cfg=getRecipeConfig();
+  syncActiveModeUI(cfg);
   if(cardMode(cfg))try{filtered($('sim-site').value,$('sim-secret').value);}catch(e){issue=e.message;currentEvalSteps=[];$('sim-output-pw').textContent='';$('sim-trace-log').textContent='';}
   $('btn-copy-pw').disabled=!!issue;$('btn-play-trace').disabled=!!issue;
+  if($('btn-sticky-play'))$('btn-sticky-play').disabled=!!issue;
+  if($('btn-sticky-copy'))$('btn-sticky-copy').disabled=!!issue;
   if(cardMode(cfg)&&!issue){
    const input=filtered($('sim-site').value,$('sim-secret').value);
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   $('sim-output-meta').textContent=`カード読み取り / ${currentEvalSteps.length}文字 / ${cfg.lenMode===5?'英大小・数字・許可記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} / 推定探索空間: ${ent.bits} bits`;
+   const subMode=cfg.lenMode===5?'パスワード（英大小・数字・記号）':cfg.lenMode===4?'パスワード（英大小・数字）':'銀行などの暗証番号（数字のみ）';
+   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 推定エントロピー: ${ent.bits} bits`;
    $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`適用済みカードシード：${appliedSeed}\nカードで探す入力：${input.site} ＋ ${input.secret}\n長さ：${cfg.lenVal}文字（推定エントロピー ${ent.bits} bits）${cfg.lenMode===5?'／使える左下記号：'+syms:''}\n同一のカード・入力・設定から常に同一の値が導出されます。`);
+   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みカードシード：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（推定エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
   else{
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent+=` / 推定探索空間: ${ent.bits} bits`;
-   setStatus('cq-status','詳細設定を使用中です。簡易欄は読み方のプリセットで、選択すると詳細設定へ反映されます。');
+   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 推定エントロピー: ${ent.bits} bits`;
+   setStatus('cq-status','【現在使用中のモード】1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）\n上の「銀行などの暗証番号（数字のみ）」または「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと、かんたん生成モードに切り替わります。');
   }
+  const stickyPw=$('sticky-output-pw'),stickyMeta=$('sticky-output-meta');
+  if(stickyPw&&$('sim-output-pw'))stickyPw.innerHTML=$('sim-output-pw').innerHTML;
+  if(stickyMeta&&$('sim-output-meta'))stickyMeta.textContent=$('sim-output-meta').textContent;
   syncBlindInputs();
   if(!restoring&&$('backup-kind')){invalidateBackup();void generateAndRenderSeedPhrase();}
  };
@@ -1642,10 +1721,75 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-blind-mode')?.addEventListener('click',()=>setBlindMode(!blindMode));
   $('cq-pin-apply').addEventListener('click',()=>apply('pin'));
   $('cq-symbol-apply').addEventListener('click',()=>apply('symbol'));
-  for(const mode of['pin','symbol'])$(`cq-${mode}-length`).addEventListener('change',()=>setStatus('cq-status','長さは未適用です。「この読み方を使う」を押すと反映します。'));
+  $('btn-quick-switch-pin')?.addEventListener('click',()=>apply('pin'));
+  $('btn-quick-switch-symbol')?.addEventListener('click',()=>apply('symbol'));
+  $('btn-toggle-cq')?.addEventListener('click',()=>{
+   const cqSec=$('card-quick');
+   if(cqSec){cqSec.classList.toggle('is-collapsed');syncCollapseButtons();}
+  });
+  $('btn-toggle-recipe')?.addEventListener('click',()=>{
+   const recSec=$('section-recipe-detail');
+   if(recSec){recSec.classList.toggle('is-collapsed');syncCollapseButtons();}
+  });
+  $('btn-use-recipe')?.addEventListener('click',()=>{
+   const cfg=getRecipeConfig();
+   if(cardMode(cfg)){
+    if($('rc-len-mode'))$('rc-len-mode').value='0';
+    if(cfg.lenMode===3&&$('rc-sym-mode'))$('rc-sym-mode').value='0';
+   }
+   if($('section-recipe-detail'))$('section-recipe-detail').classList.remove('is-collapsed');
+   if($('card-quick'))$('card-quick').classList.add('is-collapsed');
+   syncCollapseButtons();
+   updateSimulationUI();
+   void generateAndRenderSeedPhrase();
+   document.dispatchEvent(new Event('matrix-card-settings-changed'));
+  });
+  for(const rid of['btn-reset-recipe','btn-random-recipe']){
+   $(rid)?.addEventListener('click',()=>{
+    if($('section-recipe-detail'))$('section-recipe-detail').classList.remove('is-collapsed');
+    if($('card-quick'))$('card-quick').classList.add('is-collapsed');
+    syncCollapseButtons();
+   });
+  }
+  document.querySelectorAll('#section-recipe-detail .rc-input').forEach(el=>{
+   const onManualRecipeEdit=()=>{
+    const cfg=getRecipeConfig();
+    if(el.id!=='rc-len-mode'&&el.id!=='rc-len-val'&&cardMode(cfg)){
+     if($('rc-len-mode'))$('rc-len-mode').value='0';
+     if(cfg.lenMode===3&&$('rc-sym-mode'))$('rc-sym-mode').value='0';
+    }
+   };
+   el.addEventListener('input',onManualRecipeEdit,true);
+   el.addEventListener('change',onManualRecipeEdit,true);
+  });
+  $('btn-sticky-play')?.addEventListener('click',()=>playMatrixTrace());
+  $('btn-sticky-copy')?.addEventListener('click',()=>$('btn-copy-pw')?.click());
+  $('btn-sticky-top')?.addEventListener('click',()=>{
+   const stageEl=$('matrix-stage-box')||$('div-encrypto-matrix-main');
+   if(stageEl)window.scrollTo({top:Math.max(0,window.scrollY+stageEl.getBoundingClientRect().top-8),behavior:'smooth'});
+  });
+  const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar');
+  if(liveRow&&stickyBar){
+   const updateStickyVisibility=()=>{
+    const r=liveRow.getBoundingClientRect();
+    const outOfView=r.bottom<0||r.top>window.innerHeight;
+    stickyBar.classList.toggle('visible',outOfView);
+   };
+   window.addEventListener('scroll',updateStickyVisibility,{passive:true});
+   window.addEventListener('resize',updateStickyVisibility,{passive:true});
+   updateStickyVisibility();
+  }
+  $('cq-pin-length').addEventListener('change',()=>{
+   if(getRecipeConfig().lenMode===3)apply('pin');
+   else setStatus('cq-status','「銀行などの暗証番号（数字のみ）」の桁数を変更しました。「このモードを使う」を押すと反映されます。');
+  });
+  $('cq-symbol-length').addEventListener('change',()=>{
+   if(getRecipeConfig().lenMode===5)apply('symbol');
+   else setStatus('cq-status','「パスワード（英大小・数字・記号）」の文字数を変更しました。「このモードを使う」を押すと反映されます。');
+  });
   for(const id of['cq-symbol-mode','cq-symbol-list'])$(id).addEventListener(id==='cq-symbol-list'?'input':'change',()=>{
    if(getRecipeConfig().lenMode===5){$('rc-sym-mode').value=$('cq-symbol-mode').value;$('rc-sym-list').value=$('cq-symbol-list').value;updateSimulationUI();document.dispatchEvent(new Event('matrix-card-settings-changed'));}
-   else setStatus('cq-status','記号ルールを変更しました。「この読み方を使う」で適用します。');
+   else setStatus('cq-status','記号ルールを変更しました。「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと反映されます。');
   });
   $('backup-kind').addEventListener('change',()=>{invalidateBackup();void generateAndRenderSeedPhrase();});
   $('btn-copy-pw')?.addEventListener('click',async e=>{
@@ -1655,6 +1799,8 @@ document.addEventListener('DOMContentLoaded', () => {
    try{
     await copyWithAutoClear(pw,()=>{if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
     if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
+    const sb=$('btn-sticky-copy');
+    if(sb){const orig=sb.textContent;sb.textContent='✅ コピー済';setTimeout(()=>{sb.textContent=orig;},1800);}
    }catch(_){}
   },true);
   $('btn-copy-seed').addEventListener('click',async e=>{

@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "theme": "dark",
+    "locale": "ja"
+  },
+  "plugins": [
+    {
+      "url": "plugins/translations/ja/"
+    }
+  ]
+}

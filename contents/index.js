@@ -1391,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', () => {
  };
  async function derivePasskeyPrf(salt32,credentialId=null){
   if(!window.PublicKeyCredential||!navigator.credentials){
-   throw new Error('このブラウザ・接続環境はWebAuthnパスキーに対応していません（HTTPSまたはlocalhostが必要です）。');
+   throw new Error('お使いのブラウザ環境ではパスキーが利用できません。対応ブラウザで開いてください。');
   }
   const rpId=location.hostname||'localhost';
   if(!credentialId){
@@ -1431,18 +1431,18 @@ document.addEventListener('DOMContentLoaded', () => {
    });
    if(!assertion)throw new Error('パスキーの認証がキャンセルされました。');
    const verifiedCredId=new Uint8Array(assertion.rawId);
-   if(!equal(verifiedCredId,rawCredId))throw new Error('指定されたパスキーと異なる認証器が応答しました。');
+   if(!equal(verifiedCredId,rawCredId))throw new Error('作成時に使用したパスキーと異なるパスキーが選択されました。作成時と同じパスキーで認証してください。');
    const authData=assertion.response?.authenticatorData?new Uint8Array(assertion.response.authenticatorData):new Uint8Array(0);
    const sig=assertion.response?.signature?new Uint8Array(assertion.response.signature):new Uint8Array(0);
    if(authData.length<37||(authData[32]&0x01)===0||sig.length===0){
-    throw new Error('パスキーのハードウェア署名検証に失敗しました。');
+    throw new Error('パスキーの認証結果を確認できませんでした。');
    }
    const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,verifiedCredId))).slice(0,32);
    const userSecret=new Uint8Array(32);
    for(let i=0;i<32;i++)userSecret[i]=maskedSecret[i]^maskKey[i];
    if(assertion.response?.userHandle){
     const uh=new Uint8Array(assertion.response.userHandle);
-    if(uh.length===32&&!equal(uh,userSecret))throw new Error('パスキー内のユーザーハンドル検証が一致しません。');
+    if(uh.length===32&&!equal(uh,userSecret))throw new Error('作成時に使用したパスキーと一致しません。');
    }
    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,verifiedCredId,userSecret));
    return{extraFactor,credentialId};

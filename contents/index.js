@@ -1826,6 +1826,13 @@ document.addEventListener('DOMContentLoaded', () => {
    try{
     await copyWithAutoClear(pw,()=>{if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
     if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
+    const btn=$('btn-copy-pw');
+    if(btn){
+     const origText=btn.dataset.origText||btn.textContent;
+     btn.dataset.origText=origText;
+     btn.textContent='✅ コピー済';
+     setTimeout(()=>{btn.textContent=origText;},1800);
+    }
     const sb=$('btn-sticky-copy');
     if(sb){const orig=sb.textContent;sb.textContent='✅ コピー済';setTimeout(()=>{sb.textContent=orig;},1800);}
    }catch(_){}

@@ -788,13 +788,25 @@
 
 /* BEGIN CARD QUICK AND MOBILE */
 #card-quick .cq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px}
-#card-quick .cq-panel{min-width:0;padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-sub)}
-#card-quick h3{margin:0 0 8px;font-size:.94rem}
+#card-quick .cq-panel{min-width:0;padding:14px;border:2px solid var(--border-color);border-radius:8px;background:var(--surface-sub);transition:border-color .15s,background-color .15s,box-shadow .15s}
+#card-quick .cq-panel.active-mode-panel{border:2px solid #00c950!important;background:#edfff4!important;box-shadow:0 0 0 3px rgba(0,201,80,.14)}
+#card-quick .cq-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#card-quick h3{margin:0;font-size:.95rem}
 #card-quick p,#card-quick li,#backup-summary{font-size:.83rem;line-height:1.7}
 #card-quick .cq-row,.backup-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #card-quick select,#card-quick input{padding:7px 9px;border:1px solid #bdcec3;border-radius:5px;background:#fff;max-width:100%;min-width:0}
-#cq-status,#backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#087333}
-#cq-status[data-error="true"],#backup-summary[data-error="true"]{color:#b91c1c}
+.mode-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:.76rem;font-weight:700;background:#dcfce7;color:#065f28;border:1px solid #4ade80}
+.mode-pill.inactive{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;font-weight:600}
+.btn-mode-active{background:#008a37!important;color:#fff!important;border-color:#00702c!important;box-shadow:0 1px 4px rgba(0,138,55,.25)}
+.section-card.active-mode-section{border:2px solid #00c950;box-shadow:0 0 0 3px rgba(0,201,80,.1)}
+.section-card.is-collapsed .mode-section-body{display:none}
+.section-card.is-collapsed .section-title{margin-bottom:0;padding-bottom:0;border-bottom:none}
+#sticky-pw-bar{position:fixed;left:8px;right:8px;bottom:8px;max-width:1000px;margin:0 auto;z-index:90;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);border:2px solid #00c950;border-radius:10px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,40,15,.18);display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#sticky-pw-bar.visible{display:flex}
+#cq-status{white-space:pre-wrap;overflow-wrap:anywhere;color:#075323;background:#f0fdf4;border:1px solid #86efac;border-left:4px solid #00a843;border-radius:6px;padding:10px 12px;margin:10px 0;font-weight:600}
+#cq-status[data-mode="recipe"]{background:#f8fafc;border-color:#cbd5e1;border-left-color:#008a37;color:#1e293b}
+#backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#087333}
+#cq-status[data-error="true"],#backup-summary[data-error="true"]{background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;color:#b91c1c}
 #card-quick .cq-note{color:var(--text-sub)}
 #card-quick .cq-warning,.backup-warning{padding:10px;border:1px solid #dfc577;border-radius:6px;background:#fff9e8;color:#654c10;font-size:.82rem;line-height:1.7}
 .backup-block-title{grid-column:1/-1;font-size:.86rem;font-weight:700;margin-top:10px}
@@ -813,6 +825,8 @@
  .section-title>div{flex-wrap:wrap}
  .sub-row select{min-width:0;max-width:100%}
  .backup-controls>*{max-width:100%}
+ body.trace-playing .live-inputs-row{display:none}
+ body.trace-playing .trace-log-box{max-height:68px}
 }
 /* END CARD QUICK AND MOBILE */
 /* QR backup */
@@ -831,13 +845,15 @@
 #bq-video {display:block;width:100%;max-width:600px;max-height:55vh;background:#111}
 #bq-preview {white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border:1px solid var(--border-color)}
 /* ブラインド表示（覗き見防止モード：ルート再生中は自動的に解除して表示） */
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span {
+body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span,
+body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span {
  position: relative;
  color: transparent !important;
  text-shadow: none !important;
  user-select: none;
 }
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span::after {
+body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span::after,
+body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span::after {
  content: "●";
  position: absolute;
  inset: 0;
@@ -895,17 +911,20 @@ body.blind-mode #seed-qr-list:hover {
       <button type="button" class="btn btn-secondary" id="btn-random-matrix">ランダム生成</button>
     </div>
 
-    <!-- マトリックスの上に配置：現在のマイ・レシピ手順（説明ボックス） -->
+    <!-- マトリックスの上に配置：現在のパスワード作成手順（説明ボックス） -->
     <div class="verbal-guide-card">
       <div class="verbal-guide-header">
-        <span>📖 現在のパスワード作成手順（選択中のマイ・レシピ設定から）</span>
-        <span style="font-size:0.76rem; color:var(--text-sub); font-weight:400;">※下のプルダウンを変更すると説明文も自動で書き換わります</span>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span>📖 現在のパスワード作成手順</span>
+          <span class="mode-pill" id="verbal-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
+        </div>
+        <span style="font-size:0.76rem; color:var(--text-sub); font-weight:400;">※設定を切り替えると説明文も自動で書き換わります</span>
       </div>
       <ol class="verbal-guide-list" id="verbal-recipe-steps"></ol>
     </div>
 
     <!-- マトリックス表示 ＋ 直下ルート再生バー -->
-    <div class="matrix-stage">
+    <div class="matrix-stage" id="matrix-stage-box">
       <div class="matrix-scroll">
         <div id="div-encrypto-matrix-main"></div>
       </div>
@@ -942,11 +961,14 @@ body.blind-mode #seed-qr-list:hover {
           </div>
         </div>
 
-        <div class="live-result-row">
+        <div class="live-result-row" id="live-result-row">
           <div style="flex:1; min-width:220px;">
-            <div style="font-size:0.74rem; color:#94a3b8;">生成パスワード：</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：</span>
+              <span class="mode-pill" id="live-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
+            </div>
             <div class="pw-chars-box" id="sim-output-pw"></div>
-            <div style="font-size:0.76rem; color:#cbd5e1; margin-top:3px;" id="sim-output-meta"></div>
+            <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;" id="sim-output-meta"></div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button type="button" class="btn" id="btn-play-trace">▶ マトリックス上で1文字ずつルート再生</button>
@@ -962,11 +984,22 @@ body.blind-mode #seed-qr-list:hover {
 
 
 <!-- BEGIN CARD QUICK -->
-<section class="section-card no-print" id="card-quick" aria-labelledby="cq-title">
-<h2 class="section-title" id="cq-title">かんたん生成 — カードの読み方を選ぶ</h2>
-<p class="cq-note">同一のカード・サイト名・合言葉・設定から常に同一のパスワードを決定論的に導出します。すべての出力文字は物理カードの角から直接読み取るため、ツールに依存せず紙のカード単体でも完全再現が可能です。</p>
+<section class="section-card no-print is-collapsed" id="card-quick" aria-labelledby="cq-title">
+<h2 class="section-title" id="cq-title">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+    <span>かんたん生成モード</span>
+    <span class="mode-pill inactive" id="cq-section-badge">未選択（1. マイ・レシピ全組み合わせ設定を使用中）</span>
+  </div>
+  <div style="display:flex; gap:6px; flex-wrap:wrap;" class="no-print">
+    <button type="button" class="btn btn-outline" id="btn-quick-switch-pin" style="padding:4px 10px; font-size:0.78rem;">🔢 暗証番号（数字のみ）を使う</button>
+    <button type="button" class="btn btn-outline" id="btn-quick-switch-symbol" style="padding:4px 10px; font-size:0.78rem;">🔐 パスワード（英大小・数字・記号）を使う</button>
+    <button type="button" class="btn btn-secondary" id="btn-toggle-cq" style="padding:4px 10px; font-size:0.78rem;">▼ かんたん生成モードを開く</button>
+  </div>
+</h2>
+<div id="cq-collapsible-body" class="mode-section-body">
+<p class="cq-note">すべての出力文字を物理カードの角から直接読み取るため、ツールに依存せず紙や金属のカード単体でも手作業で同じパスワードを完全再現できるモードです。以下の2種類から選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
-<section class="cq-panel"><h3>銀行などの暗証番号（数字のみ）</h3><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4">4桁</option>
+<section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>銀行などの暗証番号（数字のみ）</h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4">4桁</option>
 <option value="5">5桁</option>
 <option value="6" selected>6桁</option>
 <option value="7">7桁</option>
@@ -974,8 +1007,8 @@ body.blind-mode #seed-qr-list:hover {
 <option value="9">9桁</option>
 <option value="10">10桁</option>
 <option value="11">11桁</option>
-<option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply">この読み方を使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
-<section class="cq-panel"><h3>パスワード（英大小・数字・記号）</h3><div class="cq-row"><label for="cq-symbol-length">文字数</label><select id="cq-symbol-length"><option value="16">16文字</option>
+<option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply">このモードを使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
+<section class="cq-panel" id="cq-panel-symbol"><div class="cq-panel-head"><h3>パスワード（英大小・数字・記号）</h3><span class="mode-pill inactive" id="cq-symbol-badge">未選択</span></div><div class="cq-row"><label for="cq-symbol-length">文字数</label><select id="cq-symbol-length"><option value="16">16文字</option>
 <option value="17">17文字</option>
 <option value="18">18文字</option>
 <option value="19">19文字</option>
@@ -991,33 +1024,40 @@ body.blind-mode #seed-qr-list:hover {
 <option value="29">29文字</option>
 <option value="30">30文字</option>
 <option value="31">31文字</option>
-<option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">この読み方を使う</button></div>
+<option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">このモードを使う</button></div>
 <p>本文は左下。末尾4文字は、カードから「英大文字・英小文字・数字・許可記号」の順に追加する。</p>
 <div class="cq-row"><label for="cq-symbol-mode">記号ルール</label><select id="cq-symbol-mode"><option value="0">すべて許可</option><option value="2" selected>ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
 <div class="cq-row" style="margin-top:8px"><label for="cq-symbol-list">対象記号</label><input type="text" id="cq-symbol-list" value="-_!#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cq-symbol-help"></div>
 <p class="cq-note" id="cq-symbol-help">記号を区切りなしで入力（例：-_!#）。英数字は常に許可。ルール変更時は生成値が変わるため、運用中の設定は変更しないでください。</p></section>
 </div>
-<details open><summary>紙のカードでも再現できる読み方</summary><ol>
+<details><summary>かんたん生成モード：物理カードだけで再現する手順（タップして開く）</summary><ol>
 <li>英字A〜Zは小文字として中央のマスを探す。中央にない文字（ドット・空白・日本語など）は飛ばす。「-」「/」「^」「%」は中央にあるので使う。</li>
-<li>サイト名→合言葉の順に読む。数字用は左上、記号ありパスワードの本文は左下。</li>
+<li>サイト名→合言葉の順に読む。「銀行などの暗証番号（数字のみ）」は左上、「パスワード（英大小・数字・記号）」の本文は左下。</li>
 <li>禁止記号に当たったら、次のマスの左下へ進み、許可された文字まで飛ばす。次の入力文字は、その文字の中央マスから改めて探す。</li>
 <li>本文が足りなければ、最後に採用したマスの次から同じ角を読み足す。順序は左→右、行末は次の行の左端、右下の次は左上。</li>
-<li>記号ありでは、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
+<li>「パスワード（英大小・数字・記号）」では、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
 </ol></details>
-<p id="cq-status" role="status" aria-live="polite">未適用です。読み方を選択してください。</p>
-<p class="cq-warning">ホワイトリストが空、または許可記号がカード上に存在しない場合はフォールバックを行わず安全のため生成を停止します。物理カード単体から合言葉や読み順は逆算できない設計です。合言葉・読み方・記号ルールはカードとは分離して管理してください。</p>
+<p id="cq-status" role="status" aria-live="polite" data-mode="recipe">【現在使用中のモード】1. マイ・レシピ全組み合わせ設定</p>
+<p class="cq-warning">ホワイトリストが空、または許可記号がカード上に存在しない場合はフォールバックを行わず安全のため生成を停止します。物理カード単体から合言葉や読み順は逆算できない設計です。合言葉・モード設定・記号ルールはカードとは分離して管理してください。</p>
+</div>
 </section>
 <!-- END CARD QUICK -->
-    <!-- マイ・レシピ詳細設定セクション -->
-    <div class="section-card">
+    <!-- マイ・レシピ全組み合わせ設定セクション -->
+    <div class="section-card active-mode-section" id="section-recipe-detail">
       <div class="section-title">
-        <span>1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）</span>
-        <div style="display:flex; gap:6px;" class="no-print">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span>1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）</span>
+          <span class="mode-pill" id="recipe-section-badge">✅ 現在使用中</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;" class="no-print">
+          <button type="button" class="btn btn-mode-active" id="btn-use-recipe" style="padding:4px 10px; font-size:0.78rem;">✅ 現在このモードを使用中</button>
           <button type="button" class="btn btn-outline" id="btn-reset-recipe" style="padding:4px 10px; font-size:0.78rem;">標準に戻す</button>
           <button type="button" class="btn btn-outline" id="btn-random-recipe" style="padding:4px 10px; font-size:0.78rem;">高強度ランダム生成</button>
+          <button type="button" class="btn btn-secondary" id="btn-toggle-recipe" style="padding:4px 10px; font-size:0.78rem;">▲ 折りたたむ</button>
         </div>
       </div>
 
+      <div id="recipe-collapsible-body" class="mode-section-body">
       <div class="recipe-grid">
         <!-- G1: キーワード結合＆文字数抽出 -->
         <div class="field-group">
@@ -1304,9 +1344,9 @@ body.blind-mode #seed-qr-list:hover {
               <option value="0" selected>制限なし（生成されたすべての文字を出力）</option>
               <option value="1">先頭から L 文字に切り揃える</option>
               <option value="2">末尾から L 文字に切り揃える</option>
-              <option value="3">カード用v1：L桁の数字（不足は左上を順読み）</option>
-              <option value="4">カード用v1：L文字の英数字（末尾は大・小・数字）</option>
-              <option value="5">カード用v2：L文字の記号あり（末尾は大・小・数字・記号）</option>
+              <option value="3">かんたん生成モード：銀行などの暗証番号（数字のみ・L桁）</option>
+              <option value="4">かんたん生成モード（旧互換）：パスワード（英大小・数字・L文字）</option>
+              <option value="5">かんたん生成モード：パスワード（英大小・数字・記号・L文字）</option>
             </select>
           </div>
           <div class="sub-row">
@@ -1315,6 +1355,7 @@ body.blind-mode #seed-qr-list:hover {
             <span style="font-size:0.75rem; color:var(--text-sub);">文字（4桁PINなら「4」を入力）</span>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1452,6 +1493,23 @@ body.blind-mode #seed-qr-list:hover {
   <p>復元処理は自動実行されず、全ブロックの整合性・暗号認証タグ・生成値ハッシュの検証が完了した後に適用されます。印刷後は必ず復元テストを実施してから元データを破棄してください。</p>
  </div>
 </section>
+  </div>
+
+  <!-- スクロール追従（フローティング）：設定変更中にリアルタイムで生成パスワードを確認できるバー -->
+  <div id="sticky-pw-bar" class="no-print" role="region" aria-label="リアルタイム生成パスワード確認バー">
+    <div style="flex:1; min-width:180px;">
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:2px;">
+        <span style="font-size:0.74rem; font-weight:700; color:var(--text-sub);">生成パスワード：</span>
+        <span class="mode-pill" id="sticky-mode-badge" style="font-size:0.7rem; padding:1px 8px;">✅ 1. マイ・レシピ全組み合わせ設定</span>
+      </div>
+      <div class="pw-chars-box" id="sticky-output-pw" style="font-size:1.1rem;"></div>
+      <div style="font-size:0.72rem; color:var(--text-sub);" id="sticky-output-meta"></div>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+      <button type="button" class="btn" id="btn-sticky-play" style="padding:5px 10px; font-size:0.78rem;">▶ ルート再生</button>
+      <button type="button" class="btn btn-secondary" id="btn-sticky-copy" style="padding:5px 10px; font-size:0.78rem;">コピー</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-top" style="padding:5px 10px; font-size:0.78rem;">▲ マトリックスへ</button>
+    </div>
   </div>
 
   <script src="jquery.js"></script>

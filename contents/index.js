@@ -2100,6 +2100,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   document.getElementById('btn-restore-seed')?.addEventListener('click', restoreRecipeFromSeedInput);
+
+  // キーボードショートカット（Escでダイアログ・ヘルプ閉じ、Spaceで再生/一時停止）
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const duressModal = document.getElementById('duress-modal');
+      if (duressModal && !duressModal.hidden) {
+        document.getElementById('btn-duress-close')?.click();
+      }
+    } else if (e.key === ' ' || e.code === 'Space') {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.tagName === 'SELECT' ||
+        activeEl.tagName === 'BUTTON' ||
+        activeEl.isContentEditable
+      );
+      if (!isInput) {
+        e.preventDefault();
+        togglePauseMatrixTrace();
+      }
+    }
+  });
 });
 
 /* CARD READING v2 + EXTENDED BIP39 BACKUP v2 + CME2 ENCRYPTION + SHAMIR SECRET SHARING (CMS3) + BLIND MODE

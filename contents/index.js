@@ -2084,9 +2084,13 @@ document.addEventListener('DOMContentLoaded', () => {
     _activeKeeWebWindow = win;
     return win;
   }
-  function openKeeWeb() {
-    const win = window.open('keeweb/index.html', 'keeweb_app');
-    return trackKeeWebWindow(win);
+  function openKeeWeb(transferId = '') {
+    // A changing query string also refreshes an already-open KeeWeb tab, so it
+    // rechecks the newly-created short-lived transfer without user intervention.
+    const suffix = transferId ? `?cmTransfer=${encodeURIComponent(transferId)}` : '';
+    const win = trackKeeWebWindow(window.open(`keeweb/index.html${suffix}`, 'keeweb_app'));
+    try { win?.focus(); } catch (_) {}
+    return win;
   }
   window.trackKeeWebWindow = trackKeeWebWindow;
   window.openKeeWeb = openKeeWeb;
@@ -2500,7 +2504,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStateToStorage();
   });
 
-  document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', () => {
+  function transferGeneratedPasswordToKeeWeb(sourceButton) {
     saveStateToStorage();
     const pw = (document.getElementById('sim-output-pw')?.textContent || '').trim();
     if (!pw) {
@@ -2512,11 +2516,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const seed = document.getElementById('input-seed-number')?.value || '0';
     localStorage.setItem('cm_active_seed', seed);
     // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
-
-    // Also copy to clipboard for convenience
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(pw).catch(() => {});
-    }
 
     if (isMaster) {
       setPendingKeeWebTransfer('cm_pending_master_pass', pw);
@@ -2531,23 +2530,34 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const btn = document.getElementById('btn-transfer-to-keeweb');
-    if (btn) {
+    const buttons = [
+      document.getElementById('btn-transfer-to-keeweb'),
+      document.getElementById('btn-sticky-transfer')
+    ].filter(Boolean);
+    if (buttons.length) {
       if (transferFeedbackTimer) clearTimeout(transferFeedbackTimer);
-      btn.innerHTML = isMaster ? '✅ マスターPW転送完了！KeeWebを開く…' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeeWebへ転送完了！`;
-      btn.style.background = '#dcfce7';
-      btn.style.borderColor = '#86efac';
-      btn.style.color = '#15803d';
+      buttons.forEach((btn) => {
+        btn.innerHTML = isMaster ? '✅ マスターPWをKeeWebへ転送' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeeWebへ転送`;
+        btn.style.background = '#dcfce7';
+        btn.style.borderColor = '#86efac';
+        btn.style.color = '#15803d';
+      });
       transferFeedbackTimer = setTimeout(() => {
         transferFeedbackTimer = null;
         updateTransferButtonsUI();
       }, 2500);
     }
     if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+  }
+
+  document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', (event) => {
+    transferGeneratedPasswordToKeeWeb(event.currentTarget);
   });
 
-  document.getElementById('btn-sticky-transfer')?.addEventListener('click', () => {
-    document.getElementById('btn-transfer-to-keeweb')?.click();
+  document.getElementById('btn-sticky-transfer')?.addEventListener('click', (event) => {
+    // Call directly from this trusted click. Re-dispatching a synthetic click can
+    // make browsers block the KeeWeb window as a popup.
+    transferGeneratedPasswordToKeeWeb(event.currentTarget);
   });
 
   document.getElementById('btn-play-trace')?.addEventListener('click', () => {
@@ -4437,6 +4447,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }catch(e){if(previous){restoring=true;try{restoreUI(previous);}finally{restoring=false;}}setStatus('cq-status',e.message,true);}
  }
  document.addEventListener('DOMContentLoaded',()=>{
+  // This handler intentionally lives in the later, independent initializer.
+  // The generated-password controls must continue to work even if an optional
+  // UI setup step in the earlier initializer fails.
+  const transferVisiblePasswordToKeeWeb = (event) => {
+   event.preventDefault();
+   event.stopImmediatePropagation();
+   const pw = ($('sim-output-pw')?.textContent || '').trim();
+   if (!pw) { alert('転送するパスワードがありません。先にパスワードを生成してください。'); return; }
+   const site = ($('sim-site')?.value || '').trim();
+   const seed = ($('input-seed-number')?.value || '0').trim();
+   const baseAppUrl = window.location.href.split(/[?#]/)[0];
+   try {
+    localStorage.setItem('cm_active_seed', seed);
+    const transferId = window.setPendingKeeWebTransfer('cm_pending_entry', {
+     site: site || 'CryptoMatrix 生成パスワード',
+     password: pw,
+     username: 'CryptoMatrix',
+     url: `${baseAppUrl}#seed=${encodeURIComponent(seed)}${site ? '&site=' + encodeURIComponent(site) : ''}`,
+     notes: 'CryptoMatrixで生成したパスワードです。',
+     timestamp: Date.now()
+    });
+    const btns = [$('btn-transfer-to-keeweb'), $('btn-sticky-transfer')].filter(Boolean);
+    btns.forEach((btn) => { btn.textContent = '✅ KeeWebを開いて追加'; btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d'; });
+    setTimeout(() => updateTransferButtonsUI(), 2500);
+    if (!window.openKeeWeb(transferId)) throw new Error('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+   } catch (error) {
+    alert(`KeePassへの転送を開始できませんでした。${error?.message || 'もう一度お試しください。'}`);
+   }
+  };
+  ['btn-transfer-to-keeweb', 'btn-sticky-transfer'].forEach((id) => {
+   $(id)?.addEventListener('click', transferVisiblePasswordToKeeWeb, true);
+  });
   const initialDesignBar = document.getElementById('gesture-design-bar');
   if (initialDesignBar) initialDesignBar.style.display = 'none';
   const btnRest=$('btn-restore-seed');

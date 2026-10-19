@@ -67,6 +67,13 @@ class Number1D {
 
 let currentMatrixData = [];
 let currentEvalSteps = [];
+try {
+  Object.defineProperty(window, 'currentEvalSteps', {
+    get: () => currentEvalSteps,
+    set: (v) => { currentEvalSteps = v; },
+    configurable: true
+  });
+} catch (_) {}
 let currentDisplayMode = 'recipe';
   if (document.getElementById('gesture-design-bar')) document.getElementById('gesture-design-bar').style.display = 'none'; // 'recipe' | 'stroke'
 let traceTimer = null;
@@ -606,12 +613,52 @@ function evaluateRecipeSteps(siteRaw, secretRaw, cfg) {
   return steps;
 }
 
+let transferFeedbackTimer = null;
+
+function updateTransferButtonsUI() {
+  if (transferFeedbackTimer) {
+    clearTimeout(transferFeedbackTimer);
+    transferFeedbackTimer = null;
+  }
+  const siteInput = document.getElementById('sim-site');
+  const siteVal = (siteInput?.value || '').trim();
+  const isMaster = siteVal.toLowerCase().includes('master');
+
+  const mainBtn = document.getElementById('btn-transfer-to-keeweb');
+  if (mainBtn) {
+    if (isMaster) {
+      mainBtn.innerHTML = '🔑 KeeWebマスターパスワードに転送';
+      mainBtn.title = '算出したパスワードをKeeWebのマスターパスワード入力欄に転送して自動設定します';
+    } else {
+      mainBtn.innerHTML = siteVal ? `📥 KeePassエントリーに追加 「${escapeHtml(siteVal)}」` : '📥 KeePassエントリーに追加';
+      mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeeWebのエントリーに転送・追加します` : '算出したパスワードをKeeWebのエントリーに転送・追加します';
+    }
+    mainBtn.style.background = '';
+    mainBtn.style.borderColor = '';
+    mainBtn.style.color = '';
+  }
+
+  const stickyBtn = document.getElementById('btn-sticky-transfer');
+  if (stickyBtn) {
+    if (isMaster) {
+      stickyBtn.innerHTML = '🔑 マスターPW転送';
+      stickyBtn.title = 'KeeWebマスターパスワードに転送';
+    } else {
+      stickyBtn.innerHTML = '📥 KeePass追加';
+      stickyBtn.title = siteVal ? `「${siteVal}」をKeePassエントリーに追加` : 'KeePassエントリーに追加';
+    }
+  }
+}
+
 function updateSimulationUI() {
   stopMatrixTrace();
+  updateTransferButtonsUI();
   if (currentDisplayMode === 'stroke') {
     updateStrokeGestureUI();
     return;
   }
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = 'none';
   const cfg = getRecipeConfig();
   const site = document.getElementById('sim-site')?.value || '1Password';
   const secret = document.getElementById('sim-secret')?.value || 'KeePass';
@@ -810,6 +857,8 @@ function playMatrixTrace() {
   lastPlayTrigger = 'recipe';
   const modeChanged = currentDisplayMode !== 'recipe';
   currentDisplayMode = 'recipe';
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = 'none';
   stopMatrixTrace();
   if (modeChanged || !currentEvalSteps || currentEvalSteps.length === 0) {
     updateSimulationUI();
@@ -1370,6 +1419,18 @@ const GESTURE_DESIGNS = {
 };
 let currentSelectedGestureDesign = null; // null: サイト頭文字から自動検出、指定時は固定
 
+// Stroke Mode is a visual recipe suggestion. It can be opened from a URL, but
+// it never replaces the normal recipe value saved in backups.
+function setStrokePattern(designKey) {
+  const key = String(designKey || '').trim();
+  if (!GESTURE_DESIGNS[key]) return false;
+  currentSelectedGestureDesign = key;
+  currentDisplayMode = 'stroke';
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = '';
+  return true;
+}
+
 function getGestureDesignKey(site) {
   if (currentSelectedGestureDesign && GESTURE_DESIGNS[currentSelectedGestureDesign]) {
     return currentSelectedGestureDesign;
@@ -1579,7 +1640,7 @@ function updateStrokeGestureUI() {
   }
 }
 
-function showStrokePreview(designKey, strokeSteps) {
+function showStrokePreview(designKey, strokeSteps, previewDurationMs) {
   clearHighlightsOnly();
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
   if (!squares || squares.length === 0) return;
@@ -1628,7 +1689,8 @@ function showStrokePreview(designKey, strokeSteps) {
   // 3. バナーメッセージの更新
   const banner = document.getElementById('sim-step-banner');
   if (banner) {
-    banner.textContent = `💡【軌跡予告】${design.category}「${design.symbol}」を描く全${steps.length}マスのルートです。まもなく指でなぞる再生が始まります...`;
+    const waitSec = Math.round((previewDurationMs || 3800) / 1000);
+    banner.textContent = `💡【パターン軌跡予告】${design.category}「${design.symbol}」${design.name}（全${steps.length}マス）。指でなぞるルートをご確認ください（約${waitSec}秒後に再生開始）`;
   }
 }
 
@@ -1657,7 +1719,7 @@ function playStrokeGestureTrace() {
   const design = GESTURE_DESIGNS[designKey] || GESTURE_DESIGNS['U'];
 
   const speed = Number(document.getElementById('sim-speed')?.value) || 500;
-  const previewDuration = Math.max(700, Math.min(1400, Math.round(speed * 1.8)));
+  const previewDuration = Math.max(3800, Math.min(5500, Math.round(speed * 7.5)));
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
   const pwSpans = document.querySelectorAll('#sim-output-pw .pw-char-span');
   const logLines = document.querySelectorAll('#sim-trace-log .trace-line');
@@ -1715,14 +1777,14 @@ function playStrokeGestureTrace() {
   };
 
   // 軌跡プレビューを表示してからなぞり開始
-  showStrokePreview(designKey, strokeSteps);
+  showStrokePreview(designKey, strokeSteps, previewDuration);
   strokePreviewState = {
     duration: previewDuration,
     startedAt: Date.now(),
     remainingMs: previewDuration
   };
   strokeResumePreviewRunner = () => {
-    showStrokePreview(designKey, strokeSteps);
+    showStrokePreview(designKey, strokeSteps, strokePreviewState.remainingMs);
     strokePreviewState.startedAt = Date.now();
     const waitMs = strokePreviewState.remainingMs || previewDuration;
     strokePreviewTimer = setTimeout(startTracing, waitMs);
@@ -1968,36 +2030,428 @@ document.addEventListener('DOMContentLoaded', () => {
     ).join('');
   }
 
-  const params = new URLSearchParams(window.location.search);
-  let kParam = params.get('k') || params.get('seed') || params.get('s');
-  if (!kParam && window.location.hash) {
-    const rawHash = window.location.hash.replace(/^#/, '');
-    const hp = new URLSearchParams(rawHash);
-    kParam = hp.get('k') || hp.get('seed') || hp.get('s') || (/^\d+$/.test(rawHash) ? rawHash : null);
-  }
   const seedInput = document.getElementById('input-seed-number');
-  if (kParam !== null && seedInput) seedInput.value = kParam;
 
-  window.addEventListener('hashchange', () => {
-    const rawHash = window.location.hash.replace(/^#/, '');
-    const hp = new URLSearchParams(rawHash);
-    const newK = hp.get('k') || hp.get('seed') || hp.get('s') || (/^\d+$/.test(rawHash) ? rawHash : null);
-    if (newK !== null && seedInput) {
-      seedInput.value = newK;
-      updateMainMatrix(newK);
+  function saveStateToStorage() {
+    try {
+      const seed = document.getElementById('input-seed-number')?.value;
+      if (seed !== undefined && seed !== null && seed !== '') {
+        localStorage.setItem('cm_active_seed', seed);
+      }
+      const site = document.getElementById('sim-site')?.value;
+      if (site !== undefined && site !== null) {
+        localStorage.setItem('cm_active_site', site);
+      }
+      // Security Hardening (A04): Do not persist plain-text secrets or generated passwords to localStorage by default
+      if (typeof window !== 'undefined' && window.__ALLOW_SECRET_STORAGE__ === true) {
+        const secret = document.getElementById('sim-secret')?.value;
+        if (secret !== undefined && secret !== null) {
+          localStorage.setItem('cm_active_secret', secret);
+        }
+        const pw = (document.getElementById('sim-output-pw')?.textContent || '').trim();
+        if (pw) {
+          localStorage.setItem('cm_last_generated_pw', pw);
+        }
+      } else {
+        localStorage.removeItem('cm_active_secret');
+        localStorage.removeItem('cm_last_generated_pw');
+      }
+      const cfg = getRecipeConfig();
+      const extra = {
+        cfg,
+        cqPinLen: document.getElementById('cq-pin-length')?.value,
+        cqSymLen: document.getElementById('cq-symbol-length')?.value,
+        cqSymMode: document.getElementById('cq-symbol-mode')?.value,
+        cqSymList: document.getElementById('cq-symbol-list')?.value
+      };
+      localStorage.setItem('cm_active_recipe', JSON.stringify(extra));
+    } catch (_) {}
+  }
+
+  // Security Hardening (A04): Unified KeeWeb Transfer Storage with auto-expiry TTL (default 60s) & transfer ID tracking
+  const _transferTimers = {};
+  let _activeKeeWebWindow = null;
+  const ALLOWED_TRANSFER_KEYS = new Set([
+    'cm_pending_master_pass',
+    'cm_pending_keyfile',
+    'cm_pending_entry',
+    'cm_pending_generated_password'
+  ]);
+
+  function trackKeeWebWindow(win) {
+    if (!win || (typeof win !== 'object' && typeof win !== 'function')) return null;
+    try { if (win.window !== win || win.closed) return null; } catch (_) { return null; }
+    _activeKeeWebWindow = win;
+    return win;
+  }
+  function openKeeWeb() {
+    const win = window.open('keeweb/index.html', 'keeweb_app');
+    return trackKeeWebWindow(win);
+  }
+  window.trackKeeWebWindow = trackKeeWebWindow;
+  window.openKeeWeb = openKeeWeb;
+  window.MatrixCardPreset = window.MatrixCardPreset || {};
+  if (!Object.isFrozen(window.MatrixCardPreset)) {
+    window.MatrixCardPreset.trackKeeWebWindow = trackKeeWebWindow;
+    window.MatrixCardPreset.openKeeWeb = openKeeWeb;
+  }
+  const _transferIds = Object.create(null);
+  function setPendingKeeWebTransfer(key, data, ttlMs = 60000) {
+    if (!ALLOWED_TRANSFER_KEYS.has(key)) throw new Error('許可されていない転送キーです。');
+    if (!Number.isFinite(ttlMs) || ttlMs <= 0 || ttlMs > 60000) throw new Error('転送有効期間は0秒超・60秒以内で指定してください。');
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    const transferId = 'xfer_' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    const metadata = { _transferId: transferId, _expiresAt: Date.now() + ttlMs };
+    const payload = data && typeof data === 'object' && !Array.isArray(data)
+      ? Object.assign({}, data, metadata) : Object.assign({data}, metadata);
+    localStorage.setItem(key, JSON.stringify(payload));
+    if (_transferTimers[key]) clearTimeout(_transferTimers[key]);
+    _transferIds[key] = transferId;
+    const timer = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(key);
+        const cur = raw ? JSON.parse(raw) : null;
+        if (cur && cur._transferId === transferId) localStorage.removeItem(key);
+      } catch (_) {
+        // Never delete a record whose owner cannot be verified.
+      } finally {
+        if (_transferTimers[key] === timer) delete _transferTimers[key];
+        if (_transferIds[key] === transferId) delete _transferIds[key];
+      }
+    }, ttlMs);
+    _transferTimers[key] = timer;
+    return transferId;
+  }
+  window.setPendingKeeWebTransfer = setPendingKeeWebTransfer;
+  if (!Object.isFrozen(window.MatrixCardPreset)) window.MatrixCardPreset.setPendingKeeWebTransfer = setPendingKeeWebTransfer;
+  window.addEventListener('message', (e) => {
+    const data = e.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data) || data.type !== 'KEEWEB_IMPORT_COMPLETE') return;
+    const {key, transferId} = data;
+    if (typeof key !== 'string' || !ALLOWED_TRANSFER_KEYS.has(key)) return;
+    if (typeof transferId !== 'string' || !transferId || _transferIds[key] !== transferId) return;
+    if (e.origin !== window.location.origin) return;
+    if (!e.source || (e.source !== _activeKeeWebWindow && e.source !== window)) return;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const cur = JSON.parse(raw);
+        if (!cur || cur._transferId !== transferId) return;
+        localStorage.removeItem(key);
+      }
+      // The receiver may already have removed this transfer before its ACK arrives.
+      if (_transferTimers[key]) clearTimeout(_transferTimers[key]);
+      delete _transferTimers[key];
+      delete _transferIds[key];
+    } catch (_) {}
+  });
+
+  function restoreStateFromStorage(hasUrlSeed, hasUrlSite, hasUrlSecret) {
+    try {
+      if (!hasUrlSeed && seedInput) {
+        const savedSeed = localStorage.getItem('cm_active_seed');
+        if (savedSeed !== null && savedSeed !== '') {
+          seedInput.value = savedSeed;
+        }
+      }
+      const siteInput = document.getElementById('sim-site');
+      if (!hasUrlSite && siteInput) {
+        const savedSite = localStorage.getItem('cm_active_site');
+        if (savedSite !== null && savedSite !== '') {
+          siteInput.value = savedSite;
+        }
+      }
+      const secretInput = document.getElementById('sim-secret');
+      if (!hasUrlSecret && secretInput) {
+        const savedSecret = localStorage.getItem('cm_active_secret');
+        if (savedSecret !== null && savedSecret !== '') {
+          secretInput.value = savedSecret;
+        }
+      }
+      const savedRecipe = localStorage.getItem('cm_active_recipe');
+      if (savedRecipe) {
+        try {
+          const parsed = JSON.parse(savedRecipe);
+          if (parsed.cfg) {
+            setRecipeConfig(parsed.cfg);
+            if (parsed.cqPinLen && document.getElementById('cq-pin-length')) document.getElementById('cq-pin-length').value = parsed.cqPinLen;
+            if (parsed.cqSymLen && document.getElementById('cq-symbol-length')) document.getElementById('cq-symbol-length').value = parsed.cqSymLen;
+            if (parsed.cqSymMode && document.getElementById('cq-symbol-mode')) document.getElementById('cq-symbol-mode').value = parsed.cqSymMode;
+            if (parsed.cqSymList && document.getElementById('cq-symbol-list')) document.getElementById('cq-symbol-list').value = parsed.cqSymList;
+          } else {
+            setRecipeConfig(parsed);
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  function parseAndApplyUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    let kParam = params.get('k') || params.get('seed') || params.get('s');
+    let siteParam = params.get('site') || params.get('title') || params.get('name');
+    let secretParam = params.get('secret');
+    let designParam = params.get('pattern') || params.get('design');
+
+    let actionParam = params.get('action');
+
+    if (window.location.hash) {
+      const rawHash = window.location.hash.replace(/^#/, '');
+      const hp = new URLSearchParams(rawHash);
+      if (!kParam) kParam = hp.get('k') || hp.get('seed') || hp.get('s') || (/^\d+$/.test(rawHash) ? rawHash : null);
+      if (!siteParam) siteParam = hp.get('site') || hp.get('title') || hp.get('name');
+      if (!secretParam) secretParam = hp.get('secret');
+      if (!designParam) designParam = hp.get('pattern') || hp.get('design');
+      if (!actionParam) actionParam = hp.get('action');
+      if (rawHash === 'keyfile' || rawHash === 'keyfile-modal') actionParam = 'keyfile';
+    }
+
+    restoreStateFromStorage(kParam !== null, siteParam !== null, secretParam !== null);
+
+    let changed = false;
+    if (kParam !== null && seedInput && seedInput.value !== kParam) {
+      seedInput.value = kParam;
+      changed = true;
+    }
+    const siteInput = document.getElementById('sim-site');
+    if (siteParam !== null && siteInput && siteInput.value !== siteParam) {
+      siteInput.value = siteParam;
+      changed = true;
+    }
+    const secretInput = document.getElementById('sim-secret');
+    if (secretParam !== null && secretInput && secretInput.value !== secretParam) {
+      secretInput.value = secretParam;
+      changed = true;
+    }
+    if (designParam !== null && typeof setStrokePattern === 'function') {
+      setStrokePattern(designParam);
+      changed = true;
+    }
+
+    if (changed || kParam !== null || siteParam !== null) {
+      updateMainMatrix(seedInput ? seedInput.value : '0');
       updateSimulationUI();
       generateAndRenderSeedPhrase();
+      saveStateToStorage();
+      if (siteParam) {
+        setTimeout(() => {
+          const simTarget = document.getElementById('sim-site') || document.getElementById('sim-output-pw');
+          if (simTarget) {
+            simTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            simTarget.classList.add('seed-prompt-highlight');
+            setTimeout(() => simTarget.classList.remove('seed-prompt-highlight'), 1800);
+          }
+        }, 300);
+      }
     }
+
+    if (actionParam === 'keyfile' || actionParam === 'keyfile-modal') {
+      setTimeout(() => {
+        const rawSeed = (seedInput && seedInput.value) ? seedInput.value : (kParam || localStorage.getItem('cm_active_seed') || '0');
+        const seedNum = (typeof parseSeedValue === 'function') ? parseSeedValue(rawSeed) : (parseInt(rawSeed, 10) || 0);
+
+        const currentPw = document.getElementById('sim-output-pw')?.textContent || '';
+        const isValidSimPw = currentPw && !currentPw.includes('未入力') && !currentPw.includes('...') && currentPw.length >= 8;
+        const secretVal = document.getElementById('sim-secret')?.value || '';
+        const defaultPassword = isValidSimPw ? currentPw : (secretVal || (typeof window !== 'undefined' && window.__ALLOW_SECRET_STORAGE__ ? localStorage.getItem('cm_active_secret') : '') || '');
+
+        const hasPasskey = !!localStorage.getItem('cm_passkey_cred_' + seedNum);
+        const showModal = (typeof showKeyfileModal === 'function') ? showKeyfileModal : window.MatrixCardPreset?.showKeyfileModal;
+        const exportKeyfile = (typeof exportKeePassXmlKeyfile === 'function') ? exportKeePassXmlKeyfile : window.MatrixCardPreset?.exportKeePassXmlKeyfile;
+
+        if (showModal) {
+          showModal({
+            seedNum,
+            defaultPassword,
+            defaultPasskey: hasPasskey,
+            context: 'keeweb'
+          }, async (opts) => {
+            try {
+              const filename = `matrix-card-${opts.seedNum}.key`;
+              if (exportKeyfile) {
+                const res = await exportKeyfile({
+                  seedNum: opts.seedNum,
+                  password: opts.password,
+                  passkeyFactor: opts.passkeyFactor,
+                  passkeyCred: opts.passkeyCred,
+                  filename
+                });
+                try {
+                  setPendingKeeWebTransfer('cm_pending_keyfile', {
+                    seedNum: opts.seedNum,
+                    filename: filename,
+                    xml: res.keyData.xml,
+                    factorSummary: opts.factorSummary,
+                    timestamp: Date.now()
+                  });
+                } catch (_) {}
+                try {
+                  if (window.opener && !window.opener.closed) {
+                    const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : window.location.href;
+                    window.opener.postMessage({
+                      type: 'cm_keyfile_created',
+                      seedNum: opts.seedNum,
+                      filename: filename,
+                      xml: res.keyData.xml
+                    }, targetOrigin);
+                  }
+                } catch (_) {}
+              }
+            } catch (err) {
+              alert('キーファイルの作成に失敗しました: ' + err.message);
+            }
+          });
+        }
+      }, 350);
+    }
+  }
+
+  parseAndApplyUrlParams();
+
+  window.addEventListener('hashchange', () => {
+    parseAndApplyUrlParams();
+  });
+
+  function applyGeneratedPasswordFromKeeWeb() {
+    const key = 'cm_pending_generated_password';
+    let raw = '';
+    try {
+      raw = localStorage.getItem(key) || '';
+      const data = JSON.parse(raw);
+      const validTargets = new Set(['bq', 'bv', 'km']);
+      if (!data || typeof data !== 'object' || Array.isArray(data) ||
+          !validTargets.has(data.target) || typeof data.password !== 'string' || !data.password ||
+          !Number.isFinite(data._expiresAt) || data._expiresAt <= Date.now() ||
+          typeof data._transferId !== 'string' || !data._transferId) {
+        if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
+        return false;
+      }
+      const inputIds = data.target === 'bq'
+        ? ['bq-password', 'bq-password-confirm']
+        : data.target === 'bv'
+          ? ['bv-password', 'bv-password-confirm']
+          : ['km-password'];
+      const inputs = inputIds.map(id => document.getElementById(id)).filter(Boolean);
+      if (!inputs.length) return false;
+      inputs.forEach(input => {
+        input.value = data.password;
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        input.dispatchEvent(new Event('change', {bubbles:true}));
+      });
+      if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
+      const labels = {bq:'バックアップ用の復元パスワード', bv:'保管庫用の復元パスワード', km:'キーファイル用の復元パスワード'};
+      const statusId = data.target === 'bq' ? 'bq-status' : data.target === 'bv' ? 'bv-encrypt-status' : 'km-generated-password-status';
+      const status = document.getElementById(statusId);
+      if (status) {
+        if (statusId === 'km-generated-password-status') status.style.display = 'block';
+        status.textContent = '✅ KeeWebで生成したパスワードを' + labels[data.target] + 'に反映しました。';
+      }
+      return true;
+    } catch (_) {
+      try { if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key); } catch (__) {}
+      return false;
+    }
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'cm_active_secret' && e.newValue) {
+      const secretInput = document.getElementById('sim-secret');
+      if (secretInput && secretInput.value !== e.newValue) {
+        secretInput.value = e.newValue;
+        updateSimulationUI();
+      }
+    }
+    if (e.key === 'cm_pending_generated_password' && e.newValue) applyGeneratedPasswordFromKeeWeb();
+  });
+
+  window.addEventListener('focus', () => {
+    applyGeneratedPasswordFromKeeWeb();
+    const savedSecret = localStorage.getItem('cm_active_secret');
+    const secretInput = document.getElementById('sim-secret');
+    if (savedSecret && secretInput && secretInput.value !== savedSecret) {
+      secretInput.value = savedSecret;
+      updateSimulationUI();
+    }
+  });
+
+  // A single drop target for restore files. The format is inspected locally and
+  // then handed to the appropriate Section 3 or Section 4 reader.
+  let dropDepth = 0;
+  function ensureDropHint() {
+    let hint = document.getElementById('cm-global-drop-hint');
+    if (hint) return hint;
+    hint = document.createElement('div');
+    hint.id = 'cm-global-drop-hint';
+    hint.setAttribute('aria-live', 'polite');
+    hint.style.cssText = 'display:none;position:fixed;inset:18px;z-index:100000;border:3px dashed #0284c7;border-radius:14px;background:rgba(240,249,255,.94);color:#075985;align-items:center;justify-content:center;text-align:center;font-size:1.1rem;font-weight:800;pointer-events:none;';
+    hint.textContent = '📥 復元ファイルをドロップ — バックアップ／保管庫を自動判別します';
+    document.body.appendChild(hint);
+    return hint;
+  }
+  function showDropHint(show) { ensureDropHint().style.display = show ? 'flex' : 'none'; }
+  async function routeDroppedFiles(fileList) {
+    const backupFiles = [], vaultFiles = [];
+    for (const file of Array.from(fileList || [])) {
+      const lower = (file.name || '').toLowerCase();
+      if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/i.test(lower)) { backupFiles.push(file); continue; }
+      let isBackup = /\.(txt|asc)$/i.test(lower);
+      try {
+        const head = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
+        const text = new TextDecoder().decode(head);
+        if (/CRYPTOMATRIX\s+VAULT\b/i.test(text)) isBackup = false;
+        else if (/CRYPTOMATRIX\s+BACKUP\b/i.test(text)) isBackup = true;
+        else if (head.length >= 3) {
+          const magic = String.fromCharCode(head[0], head[1], head[2]);
+          if (magic === 'CXB' || magic === 'CMS') isBackup = true;
+          if (magic === 'CME' || magic === 'CMV') isBackup = false;
+        }
+      } catch (_) {}
+      (isBackup ? backupFiles : vaultFiles).push(file);
+    }
+    if (backupFiles.length) document.dispatchEvent(new CustomEvent('cm-route-backup-files', {detail:{files:backupFiles}}));
+    if (vaultFiles.length) document.dispatchEvent(new CustomEvent('cm-route-vault-files', {detail:{files:vaultFiles}}));
+  }
+  document.addEventListener('dragenter', event => {
+    if (!event.dataTransfer?.types?.includes('Files')) return;
+    event.preventDefault();
+    dropDepth++;
+    showDropHint(true);
+  });
+  document.addEventListener('dragover', event => {
+    if (!event.dataTransfer?.types?.includes('Files')) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  });
+  document.addEventListener('dragleave', event => {
+    if (!event.dataTransfer?.types?.includes('Files')) return;
+    dropDepth = Math.max(0, dropDepth - 1);
+    if (!dropDepth) showDropHint(false);
+  });
+  document.addEventListener('drop', event => {
+    if (!event.dataTransfer?.files?.length) return;
+    event.preventDefault();
+    dropDepth = 0;
+    showDropHint(false);
+    void routeDroppedFiles(event.dataTransfer.files);
   });
 
   updateMainMatrix(seedInput ? seedInput.value : '0');
   updateSimulationUI();
   generateAndRenderSeedPhrase();
+  saveStateToStorage();
+
+  seedInput?.addEventListener('input', () => {
+    saveStateToStorage();
+  });
+  seedInput?.addEventListener('change', () => {
+    saveStateToStorage();
+  });
 
   document.getElementById('btn-update-matrix')?.addEventListener('click', () => {
     updateMainMatrix(seedInput.value);
     updateSimulationUI();
     generateAndRenderSeedPhrase();
+    saveStateToStorage();
   });
 
   document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
@@ -2006,22 +2460,95 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMainMatrix(rnd);
     updateSimulationUI();
     generateAndRenderSeedPhrase();
+    saveStateToStorage();
   });
 
   document.querySelectorAll('.rc-input').forEach(el => {
     el.addEventListener('input', () => {
       updateSimulationUI();
       generateAndRenderSeedPhrase();
+      saveStateToStorage();
     });
     el.addEventListener('change', () => {
       updateSimulationUI();
       generateAndRenderSeedPhrase();
+      saveStateToStorage();
     });
   });
 
-  document.getElementById('sim-site')?.addEventListener('input', updateSimulationUI);
-  document.getElementById('sim-secret')?.addEventListener('input', updateSimulationUI);
-  document.getElementById('chk-include-card-seed')?.addEventListener('change', generateAndRenderSeedPhrase);
+  document.querySelectorAll('.cq-input').forEach(el => {
+    el.addEventListener('input', () => {
+      updateSimulationUI();
+      saveStateToStorage();
+    });
+    el.addEventListener('change', () => {
+      updateSimulationUI();
+      saveStateToStorage();
+    });
+  });
+
+  document.getElementById('sim-site')?.addEventListener('input', () => {
+    updateSimulationUI();
+    saveStateToStorage();
+  });
+  document.getElementById('sim-secret')?.addEventListener('input', () => {
+    updateSimulationUI();
+    saveStateToStorage();
+  });
+  document.getElementById('chk-include-card-seed')?.addEventListener('change', () => {
+    generateAndRenderSeedPhrase();
+    saveStateToStorage();
+  });
+
+  document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', () => {
+    saveStateToStorage();
+    const pw = (document.getElementById('sim-output-pw')?.textContent || '').trim();
+    if (!pw) {
+      alert('転送するパスワードがありません。先にカードまたは合言葉を入力してください。');
+      return;
+    }
+    const siteVal = (document.getElementById('sim-site')?.value || '').trim();
+    const isMaster = siteVal.toLowerCase().includes('master');
+    const seed = document.getElementById('input-seed-number')?.value || '0';
+    localStorage.setItem('cm_active_seed', seed);
+    // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
+
+    // Also copy to clipboard for convenience
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(pw).catch(() => {});
+    }
+
+    if (isMaster) {
+      setPendingKeeWebTransfer('cm_pending_master_pass', pw);
+    } else {
+      const baseAppUrl = window.location.href.split(/[?#]/)[0];
+      const curSeed = $('input-seed-number')?.value || '0';
+      setPendingKeeWebTransfer('cm_pending_entry', {
+        site: siteVal || '新規エントリー',
+        password: pw,
+        url: `${baseAppUrl}#seed=${curSeed}${siteVal ? '&site=' + encodeURIComponent(siteVal) : ''}`,
+        timestamp: Date.now()
+      });
+    }
+
+    const btn = document.getElementById('btn-transfer-to-keeweb');
+    if (btn) {
+      if (transferFeedbackTimer) clearTimeout(transferFeedbackTimer);
+      btn.innerHTML = isMaster ? '✅ マスターPW転送完了！KeeWebを開く…' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeeWebへ転送完了！`;
+      btn.style.background = '#dcfce7';
+      btn.style.borderColor = '#86efac';
+      btn.style.color = '#15803d';
+      transferFeedbackTimer = setTimeout(() => {
+        transferFeedbackTimer = null;
+        updateTransferButtonsUI();
+      }, 2500);
+    }
+    if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+  });
+
+  document.getElementById('btn-sticky-transfer')?.addEventListener('click', () => {
+    document.getElementById('btn-transfer-to-keeweb')?.click();
+  });
 
   document.getElementById('btn-play-trace')?.addEventListener('click', () => {
     if (document.getElementById('gesture-design-bar')) document.getElementById('gesture-design-bar').style.display = 'none';
@@ -2035,15 +2562,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (banner) banner.textContent = '⏹ 再生を停止しました。';
   });
 
+  document.getElementById('btn-close-gesture-bar')?.addEventListener('click', () => {
+    const designBar = document.getElementById('gesture-design-bar');
+    if (designBar) designBar.style.display = 'none';
+  });
+
   // パターン公式デザイン一覧ピルのクリックイベント
   document.querySelectorAll('#gesture-design-bar .gesture-pill').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
+      const wasPlaying = !!(traceTimer || strokePreviewTimer || traceIsPaused);
+      stopMatrixTrace();
       currentSelectedGestureDesign = btn.dataset.design;
       currentDisplayMode = 'stroke';
       lastPlayTrigger = 'stroke';
       updateStrokeGestureUI();
-      showStrokePreview(currentSelectedGestureDesign);
+      if (wasPlaying) {
+        playStrokeGestureTrace();
+      } else {
+        showStrokePreview(currentSelectedGestureDesign);
+      }
     });
   });
 
@@ -2054,6 +2592,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-reset-recipe')?.addEventListener('click', () => {
     currentDisplayMode = 'recipe';
+    const designBar = document.getElementById('gesture-design-bar');
+    if (designBar) designBar.style.display = 'none';
     setRecipeConfig({});
     updateSimulationUI();
     generateAndRenderSeedPhrase();
@@ -2061,6 +2601,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-random-recipe')?.addEventListener('click', () => {
     currentDisplayMode = 'recipe';
+    const designBar = document.getElementById('gesture-design-bar');
+    if (designBar) designBar.style.display = 'none';
     const rInt = max => Math.floor(Math.random() * max);
     setRecipeConfig({
       kwOrder: 1 + rInt(8),
@@ -2145,7 +2687,7 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  function cardStep(i,corner,label,fallback=false){const t=currentMatrixData[i];return{ch:t[corner],tileIdx:i,corner,isFallback:fallback,log:`${label}: ${Math.floor(i/8)+1}行${i%8+1}列 マス[${t.center}]の${corner==='tl'?'左上':corner==='bl'?'左下':'右上'} → '${t[corner]}'`};}
  function search(start,corner,test,label,includeStart=false){let i=start;for(let hop=0;hop<currentMatrixData.length;hop++){if(!includeStart||hop>0)i=next(i);if(test(currentMatrixData[i][corner]))return cardStep(i,corner,`${label}（${includeStart?hop:hop+1}マス先）`,hop>0||!includeStart);}throw new Error(`${label}に使える文字が見つかりません。`);}
- function preset(mode,L){return{kwOrder:1,kwFilter:0,kwNum:4,shiftDir:0,shiftN:1,shiftM:1,baseCorner:mode==='pin'?3:0,pickPattern:0,symMode:mode==='pin'?3:Number($('cq-symbol-mode').value),symList:mode==='pin'?'':$('cq-symbol-list').value,symFbDir:3,symFbDist:1,symFbCorner:0,preTarget:0,prePattern:0,preOffset:0,sufTarget:0,sufPattern:0,sufOffset:0,ancTile:0,ancMode:0,ancPos:4,postMode:0,lenMode:mode==='pin'?3:5,lenVal:L};}
+ function preset(mode,L){return{kwOrder:3,kwFilter:0,kwNum:4,shiftDir:0,shiftN:1,shiftM:1,baseCorner:mode==='pin'?3:0,pickPattern:0,symMode:mode==='pin'?3:Number($('cq-symbol-mode').value),symList:mode==='pin'?'':$('cq-symbol-list').value,symFbDir:3,symFbDist:1,symFbCorner:0,preTarget:0,prePattern:0,preOffset:0,sufTarget:0,sufPattern:0,sufOffset:0,ancTile:0,ancMode:0,ancPos:4,postMode:0,lenMode:mode==='pin'?3:5,lenVal:L};}
  updateMainMatrix=function(seed){originalMatrix(seed);appliedSeed=parseSeedValue(seed);};
  evaluateRecipeSteps=function(siteRaw,secretRaw,cfg){
   if(!cardMode(cfg))return originalEvaluate(siteRaw,secretRaw,cfg);
@@ -2156,7 +2698,8 @@ document.addEventListener('DOMContentLoaded', () => {
    const tail=cfg.lenMode===5?4:cfg.lenMode===4?3:0;
    if(!Number.isInteger(L)||L<tail+1||L>128)throw new Error('指定した文字数では本文と末尾を作れません。');
    if(cfg.lenMode===5)validateSymbols(cfg);
-   const raw=originalEvaluate(input.site,input.secret,{...cfg,lenMode:0,...(cfg.lenMode===5?{symMode:0}:{})});
+   const effCfg={...cfg,lenMode:0,...(cfg.lenMode===5?{symMode:0}:{})};
+   const raw=originalEvaluate(input.site,input.secret,effCfg);
    if(!raw.length)throw new Error('読み取り対象がありません。');
    const bodyLength=L-tail,steps=[];
    for(const source of raw.slice(0,bodyLength)){
@@ -2180,8 +2723,23 @@ document.addEventListener('DOMContentLoaded', () => {
  updateVerbalGuide=function(cfg){
   if(!cardMode(cfg))return originalGuide(cfg);
   originalGuide({...cfg,lenMode:0});
+  const orderTexts = [
+   "サイト名のみを使用する", "サイト名 ＋ 合言葉 を連結する", "合言葉 ＋ サイト名 を連結する",
+   "サイト名と合言葉を1文字ずつ交互に配置する", "合言葉とサイト名を1文字ずつ交互に配置する",
+   "サイト名前半 ＋ 合言葉 ＋ サイト名後半を挟み込む", "合言葉前半 ＋ サイト名 ＋ 合言葉後半を挟み込む",
+   "サイト名を逆順にしてから合言葉を連結する", "サイト名に合言葉を逆順で連結する", "全体（サイト名＋合言葉）を逆順にする"
+  ];
+  let orderNote = '';
+  if (cfg.kwOrder === 1) {
+   orderNote = '【旧世代方式】結合方式：連結（サイト名＋合言葉）。以前のパスワードを正確に再現しています。';
+  } else if (cfg.kwOrder === 3) {
+   orderNote = '【最新世代方式】結合方式：交互配置（サイト名・合言葉を交互に配置）。';
+  } else {
+   const name = orderTexts[cfg.kwOrder] || `結合方式 #${cfg.kwOrder}`;
+   orderNote = `【カスタム設定】結合方式：${name}。`;
+  }
   const modeTitle=cfg.lenMode===3?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':cfg.lenMode===5?'かんたん生成モード — パスワード（英大小・数字・記号）':'かんたん生成モード（旧互換） — パスワード（英大小・数字）';
-  const notes=[`${modeTitle}：英字A〜Zは小文字として中央を探す。中央にない文字（ドット・空白など）は飛ばす。`,'順読みは左→右。行末は次の行の左端、右下の次は左上。',cfg.lenMode===3?`${cfg.lenVal}桁まで左上を読む。不足分は最後に読んだマスの次から左上を読み足す。`:cfg.lenMode===4?`本文は${cfg.lenVal-3}文字。右上を読み、不足時は順読み。その次から右上の大文字→さらに次から右上の小文字を探し、次のマスの左上数字を採用。`:`本文は${cfg.lenVal-4}文字。左下の禁止記号は次のマスへ飛ばす。不足分も左下を順読み。最後は次から右上の大文字→次から右上の小文字→次の左上数字→次から左下の許可記号を探して採用。`,'すべての出力文字は物理カードの実在する角から直接読み取る。パスワード生成にハッシュや追加乱数は使わない。'];
+  const notes=[orderNote,`${modeTitle}：英字A〜Zは小文字として中央を探す。中央にない文字（ドット・空白など）は飛ばす。`,'順読みは左→右。行末は次の行の左端、右下の次は左上。',cfg.lenMode===3?`${cfg.lenVal}桁まで左上を読む。不足分は最後に読んだマスの次から左上を読み足す。`:cfg.lenMode===4?`本文は${cfg.lenVal-3}文字。右上を読み、不足時は順読み。その次から右上の大文字→さらに次から右上の小文字を探し、次のマスの左上数字を採用。`:`本文は${cfg.lenVal-4}文字。左下の禁止記号は次のマスへ飛ばす。不足分も左下を順読み。最後は次から右上の大文字→次から右上の小文字→次の左上数字→次から左下の許可記号を探して採用。`,'すべての出力文字は物理カードの実在する角から直接読み取る。パスワード生成にハッシュや追加乱数は使わない。'];
   for(const text of notes){const li=document.createElement('li');li.textContent=text;$('verbal-recipe-steps')?.appendChild(li);}
  };
  function qrSVG(text){
@@ -2194,9 +2752,500 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  function invalidateBackup(message='入力・設定が変わりました。復元フレーズとQRを更新しています…'){
   backupRequest++;currentMnemonicWords=[];if($('btn-copy-seed'))$('btn-copy-seed').disabled=true;
+  if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=true;
+  if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=true;
+  if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=true;
   if($('seed-words-container'))$('seed-words-container').textContent=message;
   if($('seed-qr-list'))$('seed-qr-list').replaceChildren();
  }
+ function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+ }
+ function saveSvgAsPng(svgEl,filename){
+  if(!svgEl)return;
+  const clone=svgEl.cloneNode(true);
+  const xml=new XMLSerializer().serializeToString(clone);
+  const svgBlob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(svgBlob);
+  const img=new Image();
+  img.onload=()=>{
+   const canvas=document.createElement('canvas');
+   const size=640;
+   canvas.width=size;canvas.height=size;
+   const ctx=canvas.getContext('2d');
+   ctx.fillStyle='#ffffff';
+   ctx.fillRect(0,0,size,size);
+   const pad=24;
+   ctx.drawImage(img,pad,pad,size-pad*2,size-pad*2);
+   URL.revokeObjectURL(url);
+   canvas.toBlob(blob=>{
+    if(blob)downloadBlob(blob,filename);
+   },'image/png');
+  };
+  img.src=url;
+ }
+ function svgToPngBase64(svgEl,size=640){
+  return new Promise(resolve=>{
+   if(!svgEl)return resolve('');
+   const clone=svgEl.cloneNode(true);
+   if(!clone.getAttribute('xmlns'))clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+   if(!clone.getAttribute('width'))clone.setAttribute('width',String(size));
+   if(!clone.getAttribute('height'))clone.setAttribute('height',String(size));
+   const xml=new XMLSerializer().serializeToString(clone);
+   const svgBlob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'});
+   const url=URL.createObjectURL(svgBlob);
+   const img=new Image();
+   img.onload=()=>{
+    try{
+     const canvas=document.createElement('canvas');
+     canvas.width=size;canvas.height=size;
+     const ctx=canvas.getContext('2d');
+     ctx.fillStyle='#ffffff';
+     ctx.fillRect(0,0,size,size);
+     const pad=24;
+     ctx.drawImage(img,pad,pad,size-pad*2,size-pad*2);
+     URL.revokeObjectURL(url);
+     const dataUrl=canvas.toDataURL('image/png');
+     resolve(dataUrl.split(',')[1]||'');
+    }catch(_){URL.revokeObjectURL(url);resolve('');}
+   };
+   img.onerror=()=>{URL.revokeObjectURL(url);resolve('');};
+   img.src=url;
+  });
+ }
+ function stringToBase64(str){
+  const bytes=new TextEncoder().encode(String(str??''));
+  let bin='';const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  return btoa(bin);
+ }
+ function generateUuidBase64(){
+  const b=crypto.getRandomValues(new Uint8Array(16));
+  let bin='';for(let i=0;i<16;i++)bin+=String.fromCharCode(b[i]);
+  return btoa(bin);
+ }
+ function escapeXml(str){
+  return String(str??'').replace(/[<>&'"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]));
+ }
+ async function exportKeePassXmlWithAttachments({title,username,password,notes,qrSvg,backupText,seedNum=null}){
+  const qrBase64=await svgToPngBase64(qrSvg,640);
+  const textBase64=stringToBase64(backupText||'');
+  const entryUuid=generateUuidBase64();
+  const groupUuid=generateUuidBase64();
+  const sNum = seedNum || (document.getElementById('input-seed-number')?.value || '');
+  const entryUrl = `../index.html#site=${encodeURIComponent(title)}${sNum && sNum !== '0' ? `&seed=${sNum}` : ''}`;
+  const xml=`<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<KeePassFile>
+	<Meta>
+		<Generator>Crypto Matrix</Generator>
+		<DatabaseName>Crypto Matrix Export</DatabaseName>
+		<MemoryProtection>
+			<ProtectPassword>True</ProtectPassword>
+		</MemoryProtection>
+		<Binaries>
+			<Binary ID="0" Compressed="False">${qrBase64}</Binary>
+			<Binary ID="1" Compressed="False">${textBase64}</Binary>
+		</Binaries>
+	</Meta>
+	<Root>
+		<Group>
+			<UUID>${groupUuid}</UUID>
+			<Name>Crypto Matrix</Name>
+			<Entry>
+				<UUID>${entryUuid}</UUID>
+				<String>
+					<Key>Title</Key>
+					<Value>${escapeXml(title)}</Value>
+				</String>
+				<String>
+					<Key>UserName</Key>
+					<Value>${escapeXml(username)}</Value>
+				</String>
+				<String>
+					<Key>Password</Key>
+					<Value ProtectInMemory="True">${escapeXml(password)}</Value>
+				</String>
+				<String>
+					<Key>URL</Key>
+					<Value>${escapeXml(entryUrl)}</Value>
+				</String>
+				<String>
+					<Key>Notes</Key>
+					<Value>${escapeXml(notes)}</Value>
+				</String>
+				<Binary>
+					<Key>matrix-qr.png</Key>
+					<Value Ref="0" />
+				</Binary>
+				<Binary>
+					<Key>matrix-backup.txt</Key>
+					<Value Ref="1" />
+				</Binary>
+			</Entry>
+		</Group>
+	</Root>
+</KeePassFile>`;
+  const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const cleanName=title.replace(/[^a-zA-Z0-9_\-\u3000-\u30fe\u4e00-\u9fa5]/g,'_');
+  const filename=`${cleanName||'cryptomatrix'}-keepass.xml`;
+  downloadBlob(blob,filename);
+  return filename;
+ }
+
+ function getValidSeedOrPrompt(statusElId=null){
+  const seedInput=$('input-seed-number');
+  const raw=seedInput?seedInput.value.trim():'';
+  if(!raw){
+   const msg='⚠️ カードの配列シード番号が未入力です。画面上部の「カード配列シード番号 (seed)」を入力してください。';
+   if(statusElId&&$(statusElId)){
+    if(typeof message==='function')message(statusElId,msg,true);
+    else if(typeof setStatus==='function')setStatus(statusElId,msg,true);
+    else $(statusElId).textContent=msg;
+   }
+   if($('sim-step-banner'))$('sim-step-banner').textContent=msg;
+   if(seedInput){
+    seedInput.scrollIntoView({behavior:'smooth',block:'center'});
+    seedInput.classList.remove('seed-prompt-highlight');
+    void seedInput.offsetWidth;
+    seedInput.classList.add('seed-prompt-highlight');
+    seedInput.focus();
+    setTimeout(()=>seedInput.classList.remove('seed-prompt-highlight'),4000);
+   }
+   return null;
+  }
+  const num=parseSeedValue(raw);
+  if(num===0){
+   const skipZeroConfirm=(window.__SKIP_SEED_ZERO_CONFIRM__===true)||(localStorage.getItem('cm_allow_seed_zero')==='true');
+   if(!skipZeroConfirm){
+    const ok=confirm('カード配列シード番号が初期値の「0」のままです。このままカード番号0で作成しますか？\n（お手持ちのカードに別の番号がある場合は「キャンセル」を押して番号を入力してください）');
+    if(!ok){
+     const msg='⚠️ カードのシード番号を入力してください。';
+     if(statusElId&&$(statusElId)){
+      if(typeof message==='function')message(statusElId,msg,true);
+      else if(typeof setStatus==='function')setStatus(statusElId,msg,true);
+      else $(statusElId).textContent=msg;
+     }
+     if(seedInput){
+      seedInput.scrollIntoView({behavior:'smooth',block:'center'});
+      seedInput.focus();
+     }
+     return null;
+    }
+   }
+   return 0;
+  }
+  return num;
+ }
+
+ async function generateKeePassXmlKeyfile({seedNum,password='',passkeyFactor=null,passkeyCred=null}){
+  const enc=new TextEncoder();
+  const ikm=enc.encode(`CRYPTOMATRIX-CARD-SEED-V3:${seedNum}`);
+  let mixed=ikm;
+  if(password&&password.trim().length>0){
+   const passBytes=enc.encode(password);
+   const salt=new Uint8Array(await crypto.subtle.digest('SHA-256',ikm));
+   const passKey=await crypto.subtle.importKey(
+    'raw',passBytes,{name:'PBKDF2'},false,['deriveBits']
+   );
+   const derived=new Uint8Array(await crypto.subtle.deriveBits(
+    {name:'PBKDF2',salt,iterations:600000,hash:'SHA-256'},
+    passKey,256
+   ));
+   const nextMixed=new Uint8Array(mixed.length+32);
+   nextMixed.set(mixed,0);
+   nextMixed.set(derived,mixed.length);
+   mixed=nextMixed;
+  }
+  if(passkeyFactor&&passkeyFactor.length>0){
+   const pfHash=new Uint8Array(await crypto.subtle.digest('SHA-256',passkeyFactor));
+   const nextMixed=new Uint8Array(mixed.length+32);
+   nextMixed.set(mixed,0);
+   nextMixed.set(pfHash,mixed.length);
+   mixed=nextMixed;
+  }
+  const combinedKey=new Uint8Array(await crypto.subtle.digest('SHA-256',mixed));
+  const hexFull=Array.from(combinedKey).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const hashBytes=new Uint8Array(await crypto.subtle.digest('SHA-256',combinedKey));
+  const hashHex=Array.from(hashBytes.slice(0,4)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const line1=[hexFull.slice(0,8),hexFull.slice(8,16),hexFull.slice(16,24),hexFull.slice(24,32)].join(' ');
+  const line2=[hexFull.slice(32,40),hexFull.slice(40,48),hexFull.slice(48,56),hexFull.slice(56,64)].join(' ');
+
+  let credComment='';
+  if(passkeyCred&&passkeyCred.length>0){
+   const credB64=btoa(String.fromCharCode(...passkeyCred));
+   credComment=`\n    <!-- CryptoMatrix Passkey Credential: ${credB64} -->`;
+  }
+
+  const xml=
+`<?xml version="1.0" encoding="utf-8"?>
+<KeyFile>
+    <Meta>
+        <Version>2.0</Version>
+        <!-- CryptoMatrix KDF: PBKDF2-SHA256 / 600000 iterations / Card Seed V3 -->${credComment}
+    </Meta>
+    <Key>
+        <Data Hash="${hashHex}">
+            ${line1}
+            ${line2}
+        </Data>
+    </Key>
+</KeyFile>\n`;
+  return{xml,rawBytes:combinedKey,hashHex,hexFull};
+ }
+
+ async function exportKeePassXmlKeyfile({seedNum,password='',passkeyFactor=null,passkeyCred=null,filename=null}){
+  const keyData=await generateKeePassXmlKeyfile({seedNum,password,passkeyFactor,passkeyCred});
+  const finalName=filename||`matrix-card-${seedNum}.key`;
+  const blob=new Blob([keyData.xml],{type:'text/xml;charset=utf-8'});
+  downloadBlob(blob,finalName);
+  return{filename:finalName,keyData};
+ }
+ let activeKeyfileContext = null;
+ let activeKeyfileCallback = null;
+
+ function updateKeyfileModalUI() {
+  const radioSeed = document.getElementById('km-factor-seed');
+  const radioDual = document.getElementById('km-factor-dual');
+  const radioPasskey = document.getElementById('km-factor-passkey');
+  const radioMulti = document.getElementById('km-factor-multi');
+
+  const lblSeed = document.getElementById('lbl-km-factor-seed');
+  const lblDual = document.getElementById('lbl-km-factor-dual');
+  const lblPasskey = document.getElementById('lbl-km-factor-passkey');
+  const lblMulti = document.getElementById('lbl-km-factor-multi');
+
+  const passWrap = document.getElementById('km-pass-wrap');
+  const passkeyWrap = document.getElementById('km-passkey-wrap');
+
+  const isSeed = !!radioSeed?.checked;
+  const isDual = !!radioDual?.checked;
+  const isPasskey = !!radioPasskey?.checked;
+  const isMulti = !!radioMulti?.checked;
+
+  if (lblSeed) {
+   lblSeed.style.border = isSeed ? '1.5px solid #0284c7' : '1px solid #cbd5e1';
+   lblSeed.style.background = isSeed ? '#f0f9ff' : '#f8fafc';
+  }
+  if (lblDual) {
+   lblDual.style.border = isDual ? '1.5px solid #0284c7' : '1px solid #cbd5e1';
+   lblDual.style.background = isDual ? '#f0f9ff' : '#f8fafc';
+  }
+  if (lblPasskey) {
+   lblPasskey.style.border = isPasskey ? '1.5px solid #0f766e' : '1px solid #cbd5e1';
+   lblPasskey.style.background = isPasskey ? '#f0fdfa' : '#f8fafc';
+  }
+  if (lblMulti) {
+   lblMulti.style.border = isMulti ? '1.5px solid #7c3aed' : '1px solid #cbd5e1';
+   lblMulti.style.background = isMulti ? '#f5f3ff' : '#f8fafc';
+  }
+
+  if (passWrap) passWrap.style.display = (isDual || isMulti) ? 'block' : 'none';
+  if (passkeyWrap) passkeyWrap.style.display = (isPasskey || isMulti) ? 'block' : 'none';
+ }
+
+ function showKeyfileModal({ seedNum, defaultPassword = '', defaultPasskey = false, context = 'sec2' }, onConfirm) {
+  activeKeyfileContext = context;
+  activeKeyfileCallback = onConfirm;
+  const modal = document.getElementById('keyfile-modal');
+  if (!modal) {
+   if (onConfirm) onConfirm({ seedNum, password: defaultPassword, passkeyFactor: null, passkeyCred: null, factorSummary: '', context });
+   return;
+  }
+
+  const seedInput = document.getElementById('keyfile-modal-seed');
+  if (seedInput) seedInput.value = (seedNum !== undefined && seedNum !== null) ? seedNum : '';
+
+  const passInput = document.getElementById('km-password');
+  if (passInput) passInput.value = defaultPassword || '';
+
+  const errEl = document.getElementById('keyfile-modal-error');
+  if (errEl) errEl.style.display = 'none';
+
+  const radioSeed = document.getElementById('km-factor-seed');
+  const radioDual = document.getElementById('km-factor-dual');
+  const radioPasskey = document.getElementById('km-factor-passkey');
+  const radioMulti = document.getElementById('km-factor-multi');
+
+  const hasPw = defaultPassword && defaultPassword.length >= 12;
+  const hasPk = !!defaultPasskey;
+
+  if (hasPw && hasPk) {
+   if (radioMulti) radioMulti.checked = true;
+  } else if (hasPk) {
+   if (radioPasskey) radioPasskey.checked = true;
+  } else if (hasPw) {
+   if (radioDual) radioDual.checked = true;
+  } else {
+   if (radioSeed) radioSeed.checked = true;
+  }
+
+  const existingNotice = document.getElementById('km-passkey-existing-notice');
+  if (existingNotice) {
+   const credB64 = localStorage.getItem('cm_passkey_cred_' + seedNum);
+   existingNotice.style.display = credB64 ? 'block' : 'none';
+  }
+
+  updateKeyfileModalUI();
+  modal.hidden = false;
+ }
+
+ function closeKeyfileModal() {
+  const modal = document.getElementById('keyfile-modal');
+  if (modal) modal.hidden = true;
+  activeKeyfileCallback = null;
+  activeKeyfileContext = null;
+ }
+
+ function initKeyfileModalEvents() {
+  document.getElementById('btn-keyfile-modal-close')?.addEventListener('click', closeKeyfileModal);
+  document.getElementById('btn-km-cancel')?.addEventListener('click', closeKeyfileModal);
+
+  for (const id of ['km-factor-seed', 'km-factor-dual', 'km-factor-passkey', 'km-factor-multi']) {
+   document.getElementById(id)?.addEventListener('change', updateKeyfileModalUI);
+  }
+
+  document.getElementById('btn-km-confirm')?.addEventListener('click', async () => {
+   const errEl = document.getElementById('keyfile-modal-error');
+   const showErr = msg => { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; } };
+
+   const rawSeed = document.getElementById('keyfile-modal-seed')?.value.trim();
+   if (!rawSeed) {
+    return showErr('⚠️ カードのシード番号を入力してください。');
+   }
+   const seedNum = parseSeedValue(rawSeed);
+   if (seedNum === 0) {
+    const skipZeroConfirm = (window.__SKIP_SEED_ZERO_CONFIRM__ === true) || (localStorage.getItem('cm_allow_seed_zero') === 'true');
+    if (!skipZeroConfirm) {
+     const ok = confirm('カード配列シード番号が初期値の「0」のままです。このままシード番号0でキーファイルを作成しますか？');
+     if (!ok) return;
+    }
+   }
+
+   const isSeed = document.getElementById('km-factor-seed')?.checked;
+   const isDual = document.getElementById('km-factor-dual')?.checked;
+   const isPasskey = document.getElementById('km-factor-passkey')?.checked;
+   const isMulti = document.getElementById('km-factor-multi')?.checked;
+
+   const passVal = document.getElementById('km-password')?.value || '';
+   const needsPw = isDual || isMulti;
+   const needsPk = isPasskey || isMulti;
+
+   if (needsPw && (!passVal || passVal.trim().length === 0)) {
+    return showErr('復元用パスワードを入力するか、他の生成方式を選択してください。');
+   }
+
+   let passkeyFactor = null;
+   let passkeyCred = null;
+   let factorSummary = '';
+
+   if (needsPk) {
+    const btn = document.getElementById('btn-km-confirm');
+    const origText = btn ? btn.textContent : '';
+    try {
+     if (btn) { btn.disabled = true; btn.textContent = '👤 パスキー認証中...'; }
+     const enc = new TextEncoder();
+     const ikm = enc.encode(`CRYPTOMATRIX-CARD-SEED-V2:${seedNum}`);
+     const salt32 = new Uint8Array(await crypto.subtle.digest('SHA-256', ikm));
+
+     const storedCredB64 = localStorage.getItem('cm_passkey_cred_' + seedNum);
+     let credToUse = null;
+     if (storedCredB64) {
+      try {
+       credToUse = Uint8Array.from(atob(storedCredB64), c => c.charCodeAt(0));
+      } catch (_) { credToUse = null; }
+     }
+
+     let prfRes;
+     try {
+      prfRes = await derivePasskeyPrf(salt32, credToUse);
+     } catch (firstErr) {
+      if (credToUse) {
+       prfRes = await derivePasskeyPrf(salt32, null);
+      } else {
+       throw firstErr;
+      }
+     }
+
+     passkeyFactor = prfRes.extraFactor;
+     passkeyCred = prfRes.credentialId;
+     if (passkeyCred && passkeyCred.length > 0) {
+      const b64 = btoa(String.fromCharCode(...passkeyCred));
+      localStorage.setItem('cm_passkey_cred_' + seedNum, b64);
+     }
+    } catch (pkErr) {
+     if (btn) { btn.disabled = false; btn.textContent = origText; }
+     return showErr('パスキー認証に失敗またはキャンセルされました: ' + pkErr.message);
+    } finally {
+     if (btn) { btn.disabled = false; btn.textContent = origText; }
+    }
+   }
+
+   if (isMulti) factorSummary = '（シード ＋ パスワード ＋ パスキー）';
+   else if (isPasskey) factorSummary = '（シード ＋ パスキー）';
+   else if (isDual) factorSummary = '（シード ＋ パスワード）';
+   else factorSummary = '（シード単体）';
+
+   const cb = activeKeyfileCallback;
+   const ctx = activeKeyfileContext;
+   closeKeyfileModal();
+
+   if (cb) {
+    cb({
+     seedNum,
+     password: needsPw ? passVal : '',
+     passkeyFactor,
+     passkeyCred,
+     factorSummary,
+     context: ctx
+    });
+   }
+  });
+ }
+
+ window.MatrixCardPreset=window.MatrixCardPreset||{};
+ window.MatrixCardPreset.downloadBlob=downloadBlob;
+ window.MatrixCardPreset.saveSvgAsPng=saveSvgAsPng;
+ window.MatrixCardPreset.svgToPngBase64=svgToPngBase64;
+ window.MatrixCardPreset.exportKeePassXmlWithAttachments=exportKeePassXmlWithAttachments;
+ window.MatrixCardPreset.showKeyfileModal=showKeyfileModal;
+ window.MatrixCardPreset.closeKeyfileModal=closeKeyfileModal;
+ window.MatrixCardPreset.generateKeePassXmlKeyfile=generateKeePassXmlKeyfile;
+ window.MatrixCardPreset.exportKeePassXmlKeyfile=exportKeePassXmlKeyfile;
+
+ window.promptLegacyPK2Consent = function() {
+  if (typeof window !== 'undefined' && window.__PROMPT_PK2_RESPONSE__ !== undefined) {
+   return Promise.resolve(!!window.__PROMPT_PK2_RESPONSE__);
+  }
+  return new Promise((resolve) => {
+   const modal = document.getElementById('legacy-pk2-modal');
+   const btnAccept = document.getElementById('btn-legacy-pk2-accept');
+   const btnCancel = document.getElementById('btn-legacy-pk2-cancel');
+   const btnClose = document.getElementById('btn-legacy-pk2-close');
+   if (!modal || !btnAccept) {
+    resolve(false);
+    return;
+   }
+   modal.hidden = false;
+   function cleanup(res) {
+    modal.hidden = true;
+    btnAccept.onclick = null;
+    if (btnCancel) btnCancel.onclick = null;
+    if (btnClose) btnClose.onclick = null;
+    if (res) {
+     window.__ALLOW_LEGACY_PK2__ = true;
+    }
+    resolve(res);
+   }
+   btnAccept.onclick = () => cleanup(true);
+   if (btnCancel) btnCancel.onclick = () => cleanup(false);
+   if (btnClose) btnClose.onclick = () => cleanup(false);
+  });
+ };
+ window.MatrixCardPreset.promptLegacyPK2Consent = window.promptLegacyPK2Consent;
  let clipTimer=null;
  async function copyWithAutoClear(text,onCleared=null){
   await navigator.clipboard.writeText(text);
@@ -2301,11 +3350,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
  updateSimulationUI=function(){
   issue='';
+  updateTransferButtonsUI();
   if(currentDisplayMode==='stroke'){
    stopMatrixTrace();
    updateStrokeGestureUI();
    return;
   }
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = 'none';
   originalSimulation();const cfg=getRecipeConfig();
   syncActiveModeUI(cfg);
   if(cardMode(cfg))try{filtered($('sim-site').value,$('sim-secret').value);}catch(e){issue=e.message;currentEvalSteps=[];$('sim-output-pw').textContent='';$('sim-trace-log').textContent='';}
@@ -2323,17 +3375,17 @@ document.addEventListener('DOMContentLoaded', () => {
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
    const subMode=cfg.lenMode===5?'パスワード（英大小・数字・記号）':cfg.lenMode===4?'パスワード（英大小・数字）':'銀行などの暗証番号（数字のみ）';
-   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 推定エントロピー: ${ent.bits} bits`;
+   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 推定エントロピー: ${ent.bits} bits（※文字種・長さに基づく参考値。決定論的カード生成ではカードシード空間が上限）`;
    $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（推定エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
+   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さ参考エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
   else{
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 推定エントロピー: ${ent.bits} bits`;
+   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 推定エントロピー: ${ent.bits} bits（※文字種・長さに基づく参考値。決定論的カード生成ではカードシード空間が上限）`;
    setStatus('cq-status','【現在使用中のモード】1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）\n上の「銀行などの暗証番号（数字のみ）」または「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと、かんたん生成モードに切り替わります。');
   }
   const stickyPw=$('sticky-output-pw'),stickyMeta=$('sticky-output-meta');
@@ -2383,6 +3435,9 @@ document.addEventListener('DOMContentLoaded', () => {
  async function frameBodyToBlocks(body){
   const hash=await sha(body),len=new Uint8Array(4);new DataView(len.buffer).setUint32(0,body.length,false);
   const stream=concat(len,body,hash),count=Math.ceil(stream.length/20),blocks=[];
+  if(count>512){
+   throw new Error(`データサイズが大きすぎるためBIP39単語形式（上限512ブロック＝約10KB）に変換できません（現在 ${count} ブロック）。「暗号化ファイル(.cmenc)保存」または「PGPアーマード保存」をご利用ください。`);
+  }
   for(let i=0;i<count;i++){
    const b=new Uint8Array(32);b.set([0x43,0x58,0x42,2]);const h=new DataView(b.buffer);
    h.setUint16(4,i+1,false);h.setUint16(6,count,false);b.set(hash.slice(0,4),8);b.set(stream.slice(i*20,(i+1)*20),12);blocks.push(b);
@@ -2423,15 +3478,43 @@ document.addEventListener('DOMContentLoaded', () => {
     shares[k-1][i]=y;
    }
   }
+  zeroize(rnd);
+  zeroize(coeffs);
   return shares;
  }
  function shamirCombine(shareItems){
+  if(!Array.isArray(shareItems)||shareItems.length<2){
+   throw new Error('秘密分散の復元に十分なシェアがありません。');
+  }
   const m=shareItems.length;
-  if(m<2)throw new Error('秘密分散の復元に十分なシェアがありません。');
-  const len=shareItems[0].data.length;
+  const first=shareItems[0];
+  if(!first?.data||!(first.data instanceof Uint8Array)||first.data.length===0){
+   throw new Error('シェアデータが空または不正です。');
+  }
+  if(first.m!==undefined&&(first.m<2||m<first.m)){
+   throw new Error(`復元には最低 ${first.m} 個のシェアが必要です（現在 ${m} 個）。`);
+  }
+  const len=first.data.length;
   const L=new Uint8Array(m);
   for(let j=0;j<m;j++){
-   const xj=shareItems[j].index;
+   const item=shareItems[j];
+   const xj=item?.index;
+   if(!Number.isInteger(xj)||xj<1||xj>255){
+    throw new Error(`シェア番号が不正です（index=${xj}）。1〜255の範囲である必要があります。`);
+   }
+   if(first.n!==undefined&&xj>first.n){
+    throw new Error(`シェア番号（#${xj}）が分割数（${first.n}）を超えています。`);
+   }
+   if(!item.data||!(item.data instanceof Uint8Array)||item.data.length!==len){
+    throw new Error('シェア間でデータ長が一致しません。異なるバックアップデータが混在しています。');
+   }
+   if((first.m!==undefined&&item.m!==undefined&&item.m!==first.m)||(first.n!==undefined&&item.n!==undefined&&item.n!==first.n)){
+    throw new Error('異なる秘密分散設定（M-of-N）のシェアが混在しています。');
+   }
+   if(first.setId!==undefined&&item.setId!==undefined){
+    const sameSet=(first.setId instanceof Uint8Array&&item.setId instanceof Uint8Array)?equal(first.setId,item.setId):(item.setId===first.setId);
+    if(!sameSet)throw new Error('異なるセットIDのシェアが混在しています。');
+   }
    let prod=1;
    for(let q=0;q<m;q++){
     if(q!==j){
@@ -2572,70 +3655,68 @@ document.addEventListener('DOMContentLoaded', () => {
   * =================================================================== */
  const KDF_ITERATIONS={0:600000,1:2100000,2:5000000,3:'argon2id'};
  const KDF_LABELS={
-  0:'Level 1 Standard（PBKDF2-HMAC-SHA512 600,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
-  1:'Level 2 Hardened（PBKDF2-HMAC-SHA512 2,100,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
-  2:'Level 3 Maximum（PBKDF2-HMAC-SHA512 5,000,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
-  3:'Level 4 Argon2id（RFC 9106 メモリ64MB / WASM 高速並列 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）'
+  0:'Level 1 PBKDF2（600,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  1:'Level 2 PBKDF2（2,100,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  2:'Level 3 PBKDF2（5,000,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
+  3:'Level 4 Argon2id（RFC 9106 メモリ64MB / WASM 並列 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）'
  };
  async function derivePasskeyPrf(salt32,credentialId=null){
   if(!window.PublicKeyCredential||!navigator.credentials){
    throw new Error('お使いのブラウザ環境ではパスキーが利用できません。対応ブラウザで開いてください。');
   }
   const rpId=location.hostname||'localhost';
+  const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
   if(!credentialId){
-   const userSecret=crypto.getRandomValues(new Uint8Array(32));
-   const challenge=crypto.getRandomValues(new Uint8Array(32));
    const created=await navigator.credentials.create({
     publicKey:{
-     challenge,
+     challenge:crypto.getRandomValues(new Uint8Array(32)),
      rp:{name:'Crypto Matrix Backup',id:rpId},
-     user:{id:userSecret,name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
+     user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257},{type:'public-key',alg:-8}],
      authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
-     timeout:60000
+     timeout:60000,
+     extensions:{prf:{eval:{first:prfInput}}}
     }
    });
    if(!created)throw new Error('パスキーの作成がキャンセルされました。');
    const rawCredId=new Uint8Array(created.rawId);
-   if(!rawCredId.length||rawCredId.length>470)throw new Error('パスキー識別子の長さが不正です。');
-   const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
-   const maskedSecret=new Uint8Array(32);
-   for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
-   const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
-   const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
-   return{extraFactor,credentialId:packedCred};
-  }
-  if(credentialId.length>35&&credentialId[0]===0x50&&credentialId[1]===0x4b&&credentialId[2]===0x02){
-   const maskedSecret=credentialId.slice(3,35);
-   const rawCredId=credentialId.slice(35);
+   if(!rawCredId.length||rawCredId.length>512)throw new Error('パスキー識別子の長さが不正です。');
+   const extRes=created.getClientExtensionResults?.()?.prf;
+   if(extRes?.results?.first){
+    return{extraFactor:await sha512(new Uint8Array(extRes.results.first)),credentialId:rawCredId};
+   }
    const assertion=await navigator.credentials.get({
     publicKey:{
      challenge:crypto.getRandomValues(new Uint8Array(32)),
      rpId,
      allowCredentials:[{type:'public-key',id:rawCredId}],
      userVerification:'required',
-     timeout:60000
+     timeout:60000,
+     extensions:{prf:{eval:{first:prfInput}}}
     }
    });
-   if(!assertion)throw new Error('パスキーの認証がキャンセルされました。');
-   const verifiedCredId=new Uint8Array(assertion.rawId);
-   if(!equal(verifiedCredId,rawCredId))throw new Error('作成時に使用したパスキーと異なるパスキーが選択されました。作成時と同じパスキーで認証してください。');
-   const authData=assertion.response?.authenticatorData?new Uint8Array(assertion.response.authenticatorData):new Uint8Array(0);
-   const sig=assertion.response?.signature?new Uint8Array(assertion.response.signature):new Uint8Array(0);
-   if(authData.length<37||(authData[32]&0x01)===0||sig.length===0){
-    throw new Error('パスキーの認証結果を確認できませんでした。');
+   const getPrf=assertion?.getClientExtensionResults?.()?.prf;
+   if(!getPrf?.results?.first){
+    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
    }
-   const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,verifiedCredId))).slice(0,32);
+   return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
+  }
+  if(credentialId.length>35&&credentialId[0]===0x50&&credentialId[1]===0x4b&&credentialId[2]===0x02){
+   let allowMigrate = (typeof window !== 'undefined' && (window.__ALLOW_LEGACY_PK2__ === true || window.__ALLOW_LEGACY_MIGRATION__ === true));
+   if(!allowMigrate && window.__ALLOW_LEGACY_PK2__ !== false && typeof window !== 'undefined' && typeof window.promptLegacyPK2Consent === 'function'){
+    allowMigrate = await window.promptLegacyPK2Consent();
+   }
+   if(!allowMigrate){
+    throw new Error('旧PKv2形式のパスキー保護データはセキュリティ上の理由（PRF非対応フォールバック廃止）により救出が許可されていません。救出・移行を許可して再試行してください。');
+   }
+   const maskedSecret=credentialId.slice(3,35);
+   const rawCredId=credentialId.slice(35);
+   const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
    const userSecret=new Uint8Array(32);
    for(let i=0;i<32;i++)userSecret[i]=maskedSecret[i]^maskKey[i];
-   if(assertion.response?.userHandle){
-    const uh=new Uint8Array(assertion.response.userHandle);
-    if(uh.length===32&&!equal(uh,userSecret))throw new Error('作成時に使用したパスキーと一致しません。');
-   }
-   const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,verifiedCredId,userSecret));
-   return{extraFactor,credentialId};
+   const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
+   return{extraFactor,credentialId:rawCredId,isLegacyPK2Migrated:true};
   }
-  const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
   const assertion=await navigator.credentials.get({
    publicKey:{
     challenge:crypto.getRandomValues(new Uint8Array(32)),
@@ -2649,7 +3730,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(!assertion)throw new Error('パスキーの認証がキャンセルされました。');
   const extRes=assertion.getClientExtensionResults?.()?.prf;
   if(!extRes?.results?.first){
-   throw new Error('この旧形式パスキーバックアップの復号にはWebAuthn PRF拡張対応環境が必要です。');
+   throw new Error('このパスキーバックアップの復号にはWebAuthn PRF拡張対応環境が必要です。');
   }
   const extraFactor=await sha512(new Uint8Array(extRes.results.first));
   return{extraFactor,credentialId};
@@ -2675,7 +3756,7 @@ document.addEventListener('DOMContentLoaded', () => {
    zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
    const masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
    const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey']);
-   zeroize(new Uint8Array(masterBits));
+   zeroize(masterBits);
    const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
    const aesKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-AES256GCM-Key'),infoSuffix)},hkdfKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
    const hmacKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME2-KeyCommit-HMAC'),infoSuffix)},hkdfKey,{name:'HMAC',hash:'SHA-256',length:256},false,['sign']);
@@ -2723,7 +3804,7 @@ document.addEventListener('DOMContentLoaded', () => {
     masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
    }
    const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey','deriveBits']);
-   zeroize(new Uint8Array(masterBits));
+   zeroize(masterBits);
    const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
    const aesKey=await subt.deriveKey({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME3-AES256GCM-Key'),infoSuffix)},hkdfKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
    const chachaBits=await subt.deriveBits({name:'HKDF',hash:'SHA-512',salt,info:concat(enc.encode('CryptoMatrix-CME3-ChaCha20Poly1305-Key'),infoSuffix)},hkdfKey,256);
@@ -2758,14 +3839,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const salt=crypto.getRandomValues(new Uint8Array(32));
   const aesIv=crypto.getRandomValues(new Uint8Array(12));
   const chachaNonce=crypto.getRandomValues(new Uint8Array(12));
-  let extraFactor=null,credHeader=new Uint8Array(0);
+  let extraFactor=null,credHeader=new Uint8Array(0),passkeySalt=salt,formatVersion=3;
 
   if(useKeyfile){
    if(!factors.keyfileBytes||!factors.keyfileBytes.length)throw new Error('キーファイルを選択するか、「専用キーファイル(.key)を新規作成・保存」を押してください。');
   }
   let prf=null;
   if(usePasskey){
-   prf=await derivePasskeyPrf(salt,null);
+   if(factors.passkeyContext){
+    prf=factors.passkeyContext;
+    passkeySalt=prf.salt;
+    formatVersion=4;
+   }else prf=await derivePasskeyPrf(salt,null);
    if(prf.credentialId.length>512)throw new Error('パスキー識別子が長すぎます。');
    credHeader=new Uint8Array(2+prf.credentialId.length);
    new DataView(credHeader.buffer).setUint16(0,prf.credentialId.length,false);
@@ -2781,7 +3866,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const profileByte=(profile&0x0f)|((combo&0x0f)<<4);
-  const header=concat(new Uint8Array([0x43,0x4d,0x45,3,profileByte]),salt,aesIv,chachaNonce,credHeader);
+  const header=concat(new Uint8Array([0x43,0x4d,0x45,formatVersion,profileByte]),salt,aesIv,chachaNonce,formatVersion===4?passkeySalt:new Uint8Array(0),credHeader);
   const {aesKey,chachaKey,hmacKey}=await deriveKeysCME3(usePass?password:'',salt,profile,extraFactor,usePass);
 
   let innerPayload=null;
@@ -2806,13 +3891,28 @@ document.addEventListener('DOMContentLoaded', () => {
  const encryptBodyCME2=(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors);
 
  async function encryptDuressDualCME(realBody,realPassword,decoyBody,decoyPassword,kdfProfile=1,factors={}){
-  const cmeDecoy=await encryptBodyCME3(decoyBody,decoyPassword,kdfProfile,factors);
-  const cmeReal=await encryptBodyCME3(realBody,realPassword,kdfProfile,factors);
-  const lenDecoy=new Uint8Array(2);
-  new DataView(lenDecoy.buffer).setUint16(0,cmeDecoy.length,false);
-  const profile=Number(kdfProfile);
-  const containerHeader=new Uint8Array([0x43,0x4d,0x45,3,(profile&0x0f)|0x80]);
-  return concat(containerHeader,lenDecoy,cmeDecoy,cmeReal);
+  let dualFactors=factors,sharedContext=null;
+  if(factors.usePasskey){
+   const sharedSalt=crypto.getRandomValues(new Uint8Array(32));
+   sharedContext=await derivePasskeyPrf(sharedSalt,null);
+   sharedContext.salt=sharedSalt;
+   dualFactors={...factors,passkeyContext:sharedContext};
+  }
+  try{
+   const cmeDecoy=await encryptBodyCME3(decoyBody,decoyPassword,kdfProfile,dualFactors);
+   if(cmeDecoy.length>65535){
+    throw new Error('おとりデータのサイズが大きすぎます（上限約64KB）。おとりテキストを短くしてください。');
+   }
+   const cmeReal=await encryptBodyCME3(realBody,realPassword,kdfProfile,dualFactors);
+   const lenDecoy=new Uint8Array(2);
+   new DataView(lenDecoy.buffer).setUint16(0,cmeDecoy.length,false);
+   const profile=Number(kdfProfile);
+   const containerHeader=new Uint8Array([0x43,0x4d,0x45,3,(profile&0x0f)|0x80]);
+   return concat(containerHeader,lenDecoy,cmeDecoy,cmeReal);
+  }finally{
+   if(sharedContext?.extraFactor)zeroize(sharedContext.extraFactor);
+   if(sharedContext?.salt)zeroize(sharedContext.salt);
+  }
  }
 
  async function decryptBodyCME(cmeBody,password,twoFaOpts=null){
@@ -2824,26 +3924,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dual-Payload Duress Container (bit 7 of byte 4)
   if(cmeBody.length>7&&(cmeBody[4]&0x80)!==0){
    const lenSlot1=new DataView(cmeBody.buffer,cmeBody.byteOffset+5,2).getUint16(0,false);
+   if(lenSlot1<1||7+lenSlot1>=cmeBody.length){
+    throw new Error('デュアルスロット暗号化コンテナのヘッダ長が不正です。');
+   }
    const slot1=cmeBody.subarray(7,7+lenSlot1);
    const slot2=cmeBody.subarray(7+lenSlot1);
-   try{
-    const resReal=await decryptBodyCME(slot2,password,twoFaOpts);
-    return{...resReal,isDuress:false};
-   }catch(_errReal){
-    try{
-     const resDecoy=await decryptBodyCME(slot1,password,twoFaOpts);
-     return{...resDecoy,isDuress:true};
-    }catch(_errDecoy){
-     throw new Error('復元用パスワードが違うか、保護キー（キーファイル／パスキー）が一致しません。');
-    }
-   }
+   // Always evaluate both slots. This makes the password path take the same
+   // KDF work for the real and duress records. CME4 shares one cached WebAuthn
+   // PRF result, so new dual backups ask for biometric authentication once.
+   const sharedOpts=Object.assign({},twoFaOpts||{}, {__cmPasskeyCache:new Map()});
+   let realResult,decoyResult,realError,decoyError;
+   try{realResult=await decryptBodyCME(slot2,password,sharedOpts);}catch(e){realError=e;}
+   try{decoyResult=await decryptBodyCME(slot1,password,sharedOpts);}catch(e){decoyError=e;}
+   for(const prf of sharedOpts.__cmPasskeyCache.values())if(prf?.extraFactor)zeroize(prf.extraFactor);
+   if(realResult)return{...realResult,isDuress:false};
+   if(decoyResult)return{...decoyResult,isDuress:true};
+   throw new Error('復元用パスワードが違うか、保護キー（キーファイル／パスキー）が一致しません。');
   }
 
   const version=cmeBody[3];
   if(version===2){
    return decryptBodyCME2(cmeBody,password,twoFaOpts);
   }
-  if(version!==3){
+  if(version!==3&&version!==4){
    throw new Error(`未対応の暗号化バージョン（CME v${version}）です。`);
   }
 
@@ -2869,15 +3972,23 @@ document.addEventListener('DOMContentLoaded', () => {
    }
   }
 
-  let headerLen=61,passkeyFactor=null;
+  let headerLen=61,passkeyFactor=null,isLegacyPK2Migrated=false;
   if(needPasskey){
-   if(cmeBody.length<63+16+16+16)throw new Error('パスキー保護バックアップのヘッダ長が不正です。');
-   const credLen=new DataView(cmeBody.buffer,cmeBody.byteOffset+61,2).getUint16(0,false);
-   headerLen=63+credLen;
+   const prfOffset=version===4?93:61;
+   if(cmeBody.length<prfOffset+2+16+16+16)throw new Error('パスキー保護バックアップのヘッダ長が不正です。');
+   const credLen=new DataView(cmeBody.buffer,cmeBody.byteOffset+prfOffset,2).getUint16(0,false);
+   headerLen=prfOffset+2+credLen;
    if(credLen<1||credLen>512||cmeBody.length<headerLen+16+16+16)throw new Error('パスキー識別子の長さが不正です。');
-   const credId=cmeBody.slice(63,headerLen);
-   const prf=await derivePasskeyPrf(salt,credId);
+   const credId=cmeBody.slice(prfOffset+2,headerLen);
+   const prfSalt=version===4?cmeBody.slice(61,93):salt;
+   const cacheKey=Array.from(prfSalt).join(',')+'|'+Array.from(credId).join(',');
+   let prf=twoFaOpts?.__cmPasskeyCache?.get(cacheKey);
+   if(!prf){
+    prf=await derivePasskeyPrf(prfSalt,credId);
+    twoFaOpts?.__cmPasskeyCache?.set(cacheKey,prf);
+   }
    passkeyFactor=prf.extraFactor;
+   if(prf.isLegacyPK2Migrated)isLegacyPK2Migrated=true;
   }
 
   let extraFactor=null;
@@ -2930,12 +4041,76 @@ document.addEventListener('DOMContentLoaded', () => {
     zeroize(innerPayload);
    }
 
-   return{innerBody,kdfProfile:profile,combo,needPass,needKeyfile,needPasskey,version:3};
+   return{innerBody,kdfProfile:profile,combo,needPass,needKeyfile,needPasskey,version:3,isLegacyPK2Migrated};
   }finally{
    zeroize(chachaKey);
   }
  }
- const decryptBodyCME2=(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts);
+ async function decryptBodyCME2(cmeBody,password,twoFaOpts=null){
+  if(!cmeBody||cmeBody.length<4)throw new Error('暗号化データの長さが不正です。');
+  if(cmeBody[0]!==0x43||cmeBody[1]!==0x4d||cmeBody[2]!==0x45){
+   throw new Error('未対応の暗号化フォーマットです。');
+  }
+  if((cmeBody.length>7&&(cmeBody[4]&0x80)!==0)||cmeBody[3]!==2){
+   return decryptBodyCME(cmeBody,password,twoFaOpts);
+  }
+  if(cmeBody.length<63)throw new Error('CME v2暗号化データの長さが不正です。');
+  const profileByte=cmeBody[4],kdfProfile=profileByte&0x0f,combo=(profileByte>>>4)&0x07;
+  const needPass=(combo===0||combo===1||combo===2||combo===3);
+  const needKeyfile=(combo===1||combo===3||combo===4||combo===6);
+  const needPasskey=(combo===2||combo===3||combo===5||combo===6);
+  if(needPass&&(!password||!String(password).length)){
+   throw new Error('このバックアップには「復元用パスワード」が設定されています。パスワードを入力してください。');
+  }
+  if(needKeyfile&&(!twoFaOpts?.keyfileBytes||!twoFaOpts.keyfileBytes.length)){
+   throw new Error('このバックアップには「キーファイル」が設定されています。復元欄のキーファイル選択で同じファイルを指定してください。');
+  }
+  const salt=cmeBody.slice(5,37);
+  const iv=cmeBody.slice(37,49);
+  let headerLen=49,passkeyFactor=null,isLegacyPK2Migrated=false;
+  if(needPasskey){
+   if(cmeBody.length<51+16+16)throw new Error('CME v2パスキー保護バックアップのヘッダ長が不正です。');
+   const credLen=new DataView(cmeBody.buffer,cmeBody.byteOffset+49,2).getUint16(0,false);
+   headerLen=51+credLen;
+   if(credLen<1||credLen>512||cmeBody.length<headerLen+16+16)throw new Error('パスキー識別子の長さが不正です。');
+   const credId=cmeBody.slice(51,headerLen);
+   const prf=await derivePasskeyPrf(salt,credId);
+   passkeyFactor=prf.extraFactor;
+   if(prf.isLegacyPK2Migrated)isLegacyPK2Migrated=true;
+  }
+  let extraFactor=null;
+  if(needKeyfile&&needPasskey){
+   extraFactor=await sha512(concat(enc.encode('CM-KEYFILE-PASSKEY:'),await sha512(twoFaOpts.keyfileBytes),passkeyFactor));
+  }else if(needKeyfile){
+   extraFactor=await sha512(twoFaOpts.keyfileBytes);
+  }else if(needPasskey){
+   extraFactor=passkeyFactor;
+  }
+  const {aesKey,hmacKey}=await deriveKeysCME2(needPass?password:'',salt,kdfProfile,extraFactor,needPass);
+  const subt=cryptoAPI();
+  const header=cmeBody.slice(0,headerLen);
+  const commitTag16=cmeBody.slice(headerLen,headerLen+16);
+  const ciphertext16=cmeBody.slice(headerLen+16);
+  const expectedCommit16=new Uint8Array(await subt.sign('HMAC',hmacKey,concat(header,ciphertext16))).slice(0,16);
+  if(equal(expectedCommit16,commitTag16)){
+   let innerPlain;
+   try{
+    const aad=concat(enc.encode('CME2:AEAD:v2:'),header);
+    innerPlain=await subt.decrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},aesKey,ciphertext16);
+   }catch(_){
+    innerPlain=await subt.decrypt({name:'AES-GCM',iv,additionalData:header,tagLength:128},aesKey,ciphertext16);
+   }
+   return{innerBody:new Uint8Array(innerPlain),kdfProfile,combo,needPass,needKeyfile,needPasskey,version:2,isLegacyPK2Migrated};
+  }
+  const storedTag14=cmeBody.slice(49,63);
+  const ciphertext14=cmeBody.slice(63);
+  const expectedCommit14=new Uint8Array(await subt.sign('HMAC',hmacKey,concat(salt,iv,ciphertext14))).slice(0,14);
+  if(equal(expectedCommit14,storedTag14)){
+   const innerPlain=await subt.decrypt({name:'AES-GCM',iv,additionalData:cmeBody.slice(0,63),tagLength:128},aesKey,ciphertext14);
+   return{innerBody:new Uint8Array(innerPlain),kdfProfile,combo,needPass,needKeyfile,needPasskey,version:2,isLegacyPK2Migrated};
+  }
+  throw new Error('復元用パスワードが違うか、保護キーが一致しません。');
+ }
  function hexTag(b){return[...b].map(v=>v.toString(16).padStart(2,'0')).join('');}
  let activeSec2Format='armored';
  let sec2ArmoredText='';
@@ -2977,6 +4152,9 @@ document.addEventListener('DOMContentLoaded', () => {
    sec2ArmoredText='';
    box.innerHTML=`<div class="seed-words-grid">${groups[0].map((w,i)=>`<div class="seed-chip"><span class="seed-num">#${String(i+1).padStart(2,'0')}</span><span class="seed-txt">${escapeHtml(w)}</span></div>`).join('')}</div>`;
    $('btn-copy-seed').disabled=false;
+   if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=false;
+   if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=false;
+   if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=false;
    if(qrBox&&window.MatrixQRCode){
     const wordsText=groups[0].join(' ');
     const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(wordsText);
@@ -3018,12 +4196,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if($('seed-armored-text'))$('seed-armored-text').value=sec2ArmoredText;
   $('btn-copy-seed').disabled=false;
+  if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=false;
+  if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=false;
+  if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=false;
 
   function updateSec2QR(format){
    if(!qrBox||!window.MatrixQRCode)return;
    const qrText=(format==='armored'?sec2ArmoredText:allWordsText);
-   const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(qrText);
-   if(svg)fig.appendChild(svg);
+   const fig=document.createElement('figure'),cap=document.createElement('figcaption');
+   try{
+    if(qrText.length>2200)throw new Error('capacity');
+    const svg=qrSVG(qrText);
+    if(svg)fig.appendChild(svg);
+   }catch(_){
+    const notice=document.createElement('div');
+    notice.className='bv-no-print';
+    notice.style.cssText='font-size:0.78rem;color:#92400e;background:#fffbeb;border:1px solid #fef3c7;border-radius:6px;padding:8px;margin-bottom:6px;';
+    notice.textContent='⚠️ データ量がQRコードの上限を超えたため、統合QRは表示しません。PGPアーマード形式またはファイル保存をご利用ください。';
+    fig.appendChild(notice);
+   }
    cap.textContent=(format==='armored'
     ?`PGPアーマード 拡張バックアップ（暗号化なし）\n全${groups.length}ブロック統合QR（1枚）`
     :`BIP39 拡張バックアップ（暗号化なし）\n全${groups.length}ブロック・${groups.length*24}単語を1枚のQRに統合`);
@@ -3124,8 +4315,10 @@ document.addEventListener('DOMContentLoaded', () => {
     throw new Error(`秘密分散バックアップ（${m}-of-${n} 分散）のシェア #${k} を確認しました。復元には任意の ${m} シェアが必要です（あと ${m-1} シェア分の24単語ブロックを改行して追加するか、QRを読み取ってください）。`);
    }
    if(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3)){
-    const {innerBody,kdfProfile,combo}=await decryptBodyCME2(body,password,twoFaOpts);
-    return parsePlainBody(innerBody,true,kdfProfile,tagHex,combo,null,combo);
+    const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(body,password,twoFaOpts);
+    const res=parsePlainBody(innerBody,true,kdfProfile,tagHex,combo,null,combo);
+    if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
+    return res;
    }
    return parsePlainBody(body,false,null,tagHex,0,null,null);
   }
@@ -3155,8 +4348,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmeHash=await sha(cmeBody);
   if(!equal(cmeHash.slice(0,8),refSetId))throw new Error('秘密分散シェアの合成検証（SHA-256）に失敗しました。');
   if(cmeBody[0]===0x43&&cmeBody[1]===0x4d&&cmeBody[2]===0x45&&(cmeBody[3]===2||cmeBody[3]===3)){
-   const {innerBody,kdfProfile,combo}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
-   return parsePlainBody(innerBody,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
+   const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
+   const res=parsePlainBody(innerBody,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
+   if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
+   return res;
   }
   return parsePlainBody(cmeBody,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
  }
@@ -3226,6 +4421,8 @@ document.addEventListener('DOMContentLoaded', () => {
  };
  function apply(mode){
   currentDisplayMode='recipe';
+  const designBar = document.getElementById('gesture-design-bar');
+  if (designBar) designBar.style.display = 'none';
   let previous=null;
   try{
    const L=Number($(`cq-${mode}-length`).value);
@@ -3240,6 +4437,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }catch(e){if(previous){restoring=true;try{restoreUI(previous);}finally{restoring=false;}}setStatus('cq-status',e.message,true);}
  }
  document.addEventListener('DOMContentLoaded',()=>{
+  const initialDesignBar = document.getElementById('gesture-design-bar');
+  if (initialDesignBar) initialDesignBar.style.display = 'none';
   const btnRest=$('btn-restore-seed');
   if(btnRest){
    btnRest.addEventListener('click',(e)=>{e.stopImmediatePropagation();void restoreRecipeFromSeedInput();},true);
@@ -3259,6 +4458,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('btn-use-recipe')?.addEventListener('click',()=>{
    currentDisplayMode='recipe';
+   const designBar = document.getElementById('gesture-design-bar');
+   if (designBar) designBar.style.display = 'none';
    const cfg=getRecipeConfig();
    if(cardMode(cfg)){
     if($('rc-len-mode'))$('rc-len-mode').value='0';
@@ -3274,6 +4475,8 @@ document.addEventListener('DOMContentLoaded', () => {
   for(const rid of['btn-reset-recipe','btn-random-recipe']){
    $(rid)?.addEventListener('click',()=>{
     currentDisplayMode='recipe';
+    const designBar = document.getElementById('gesture-design-bar');
+    if (designBar) designBar.style.display = 'none';
     if($('section-recipe-detail'))$('section-recipe-detail').classList.remove('is-collapsed');
     if($('card-quick'))$('card-quick').classList.add('is-collapsed');
     syncCollapseButtons();
@@ -3282,6 +4485,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#section-recipe-detail .rc-input').forEach(el=>{
    const onManualRecipeEdit=()=>{
     currentDisplayMode='recipe';
+    const designBar = document.getElementById('gesture-design-bar');
+    if (designBar) designBar.style.display = 'none';
     const cfg=getRecipeConfig();
     if(el.id!=='rc-len-mode'&&el.id!=='rc-len-val'&&cardMode(cfg)){
      if($('rc-len-mode'))$('rc-len-mode').value='0';
@@ -3305,21 +4510,28 @@ document.addEventListener('DOMContentLoaded', () => {
    if(stageEl)window.scrollTo({top:Math.max(0,window.scrollY+stageEl.getBoundingClientRect().top-8),behavior:'smooth'});
   });
   const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar'),pageFooter=$('page-footer');
+  const btnStickyToggle=$('btn-sticky-toggle'),btnStickyMinPill=$('btn-sticky-min-pill');
+  if(btnStickyToggle&&btnStickyMinPill&&stickyBar){
+   btnStickyToggle.addEventListener('click',()=>{
+    stickyBar.classList.add('is-minimized');
+    btnStickyMinPill.style.display='inline-flex';
+   });
+   btnStickyMinPill.addEventListener('click',()=>{
+    stickyBar.classList.remove('is-minimized');
+    btnStickyMinPill.style.display='none';
+   });
+  }
   if(liveRow&&stickyBar){
    const updateStickyVisibility=()=>{
     const r=liveRow.getBoundingClientRect();
     const outOfView=r.bottom<0||r.top>window.innerHeight;
     stickyBar.classList.toggle('visible',outOfView);
-    if(outOfView&&pageFooter){
-     const fr=pageFooter.getBoundingClientRect();
-     const overlap=window.innerHeight-fr.top;
-     if(overlap>0){
-      stickyBar.style.transform=`translateY(-${overlap+10}px)`;
-     }else{
-      stickyBar.style.transform='';
+    if(btnStickyMinPill){
+     if(outOfView&&stickyBar.classList.contains('is-minimized')){
+      btnStickyMinPill.style.display='inline-flex';
+     }else if(!outOfView){
+      btnStickyMinPill.style.display='none';
      }
-    }else{
-     stickyBar.style.transform='';
     }
    };
    window.addEventListener('scroll',updateStickyVisibility,{passive:true});
@@ -3367,6 +4579,113 @@ document.addEventListener('DOMContentLoaded', () => {
     setStatus('backup-summary',activeSec2Format==='armored'?'PGPアーマード形式の拡張バックアップをコピーしました（30秒後にクリップボードから自動消去されます）。':`${words.length/24}ブロック・${words.length}単語をコピーしました（30秒後にクリップボードから自動消去されます）。`);
    }catch(_){setStatus('backup-summary','コピーできませんでした。画面の全ブロックを順番どおり控えてください。',true);}
   },true);
+  $('btn-save-seed-txt')?.addEventListener('click',()=>{
+   if(!currentMnemonicWords.length)return;
+   const words=currentMnemonicWords.slice();
+   const isArmored=(activeSec2Format==='armored'&&sec2ArmoredText);
+   const text=isArmored?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
+   const filename=isArmored?'cryptomatrix-backup-pgp.txt':'cryptomatrix-backup-seed.txt';
+   downloadBlob(new Blob([text],{type:'text/plain;charset=utf-8'}),filename);
+   setStatus('backup-summary',`💾 復元テキスト（${filename}）を保存しました。`);
+  });
+  $('btn-save-seed-qr')?.addEventListener('click',()=>{
+   const qrSvg=$('seed-qr-list')?.querySelector('svg');
+   if(!qrSvg){
+    setStatus('backup-summary','保存可能なQRコードがありません。',true);
+    return;
+   }
+   const isArmored=(activeSec2Format==='armored');
+   const filename=isArmored?'cryptomatrix-backup-pgp-qr.png':'cryptomatrix-backup-seed-qr.png';
+   saveSvgAsPng(qrSvg,filename);
+   setStatus('backup-summary',`🖼️ QRコード画像（${filename}）を保存しました。`);
+  });
+  $('btn-sec2-transfer-keeweb')?.addEventListener('click',async()=>{
+   if(!currentMnemonicWords.length){
+    alert('転送する復元データがありません。先にシード番号を入力してフレーズを生成してください。');
+    return;
+   }
+   const words=currentMnemonicWords.slice();
+   const isArmored=(activeSec2Format==='armored'&&sec2ArmoredText);
+   const text=isArmored?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
+   const seedNum=$('input-seed-number')?.value||'0';
+   const siteVal=($('sim-site')?.value||'').trim();
+   const pw=($('sim-output-pw')?.textContent||'').trim();
+
+   const attachments=[];
+   const qrSvg=$('seed-qr-list')?.querySelector('svg');
+   if(qrSvg){
+    try{
+     const qrBase64=await svgToPngBase64(qrSvg,640);
+     if(qrBase64){
+      attachments.push({
+       filename:isArmored?'cryptomatrix-backup-pgp-qr.png':'cryptomatrix-backup-seed-qr.png',
+       base64:qrBase64,
+       mime:'image/png'
+      });
+     }
+    }catch(_){}
+   }
+
+   try{
+    const keyData=await generateKeePassXmlKeyfile({seedNum:parseSeedValue(seedNum),password:pw});
+    if(keyData&&keyData.xml){
+     attachments.push({
+      filename:`matrix-card-${seedNum}.key`,
+      text:keyData.xml,
+      mime:'application/x-kdbx-keyfile'
+     });
+    }
+   }catch(_){}
+
+   const title=siteVal?`${siteVal} (CryptoMatrix設定)`:'CryptoMatrix 復元設定・キー';
+   const notes=[
+    '【CryptoMatrix 復元・バックアップ情報】',
+    `■ カード配列シード番号 (seed): ${seedNum}`,
+    `■ 復元形式: ${isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式'}`,
+    ...(siteVal?[`■ 対象サイト/サービス: ${siteVal}`]:[]),
+    '',
+    '【復元データ】',
+    text,
+    '',
+    '【添付ファイルのご案内（両方添付・安心保管）】',
+    '1. QRコード画像 (.png): 読み取るだけで一発復元できます。',
+    `2. KeePassキーファイル (.key): matrix-card-${seedNum}.key （データベースの鍵ファイルとしても活用可能）`,
+    '',
+    '【復元方法】',
+    'CryptoMatrixの「復元」欄に上記テキストを貼り付けるか、添付のQRコード画像を読み取らせるだけで、カード配列・合言葉・レシピ設定を100%復元できます。'
+   ].join('\n');
+
+   const baseAppUrl = window.location.href.split(/[?#]/)[0];
+   localStorage.setItem('cm_active_seed',seedNum);
+   // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
+   setPendingKeeWebTransfer('cm_pending_entry', {
+    site:title,
+    password:pw,
+    username:`CryptoMatrix-Seed#${seedNum}`,
+    url:`${baseAppUrl}#seed=${seedNum}${siteVal?'&site='+encodeURIComponent(siteVal):''}`,
+    notes:notes,
+    attachments:attachments,
+    timestamp:Date.now()
+   });
+
+   const btn=$('btn-sec2-transfer-keeweb');
+   if(btn){
+    const origText=btn.innerHTML;
+    btn.innerHTML='✅ KeeWebへ転送完了！KeeWebを開く…';
+    btn.style.background='#dcfce7';
+    btn.style.borderColor='#86efac';
+    btn.style.color='#15803d';
+    setTimeout(()=>{
+     btn.innerHTML=origText;
+     btn.style.background='#f0f9ff';
+     btn.style.borderColor='#0284c7';
+     btn.style.color='#0369a1';
+    },2500);
+   }
+   if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+  });
+  initKeyfileModalEvents();
+
   $('btn-zeroize')?.addEventListener('click',async()=>{
    stopMatrixTrace();
    if(clipTimer){clearTimeout(clipTimer);clipTimer=null;}
@@ -3374,7 +4693,8 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('input-seed-number'))$('input-seed-number').value='0';
    updateMainMatrix(0);
    setRecipeConfig({});
-   if($('cq-pin-length'))$('cq-pin-length').value='6';
+   Object.keys(localStorage).filter(k=>k.startsWith('cm_')).forEach(k=>{try{localStorage.removeItem(k);}catch(_){}});
+   if($('cq-pin-length'))$('cq-pin-length').value='4';
    if($('cq-symbol-length'))$('cq-symbol-length').value='20';
    if($('cq-symbol-mode'))$('cq-symbol-mode').value='2';
    if($('cq-symbol-list'))$('cq-symbol-list').value='-_!#';
@@ -3390,9 +4710,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if(len>0){try{el.value='0'.repeat(len);el.value='\u0000'.repeat(len);}catch(_){}}
     el.value='';
    }
-   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-import','bv-keyfile','bv-restore-keyfile']){
+   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-restore-text','bv-keyfile','bv-restore-keyfile','duress-modal-pw','duress-modal-pw-conf','duress-modal-seed','duress-modal-site','duress-modal-secret','duress-vault-pw','duress-vault-pw-conf','duress-vault-text','km-password','km-password-confirm','keyfile-modal-seed']){
     scrubDOM($(id));
    }
+   if($('bv-decrypted-content'))$('bv-decrypted-content').textContent='';
+   if($('bv-decrypt-result'))$('bv-decrypt-result').style.display='none';
+   if($('bv-encrypt-result'))$('bv-encrypt-result').style.display='none';
+   if($('duress-modal')){delete $('duress-modal').dataset.realPassword;$('duress-modal').hidden=true;}
+   if($('keyfile-modal'))$('keyfile-modal').hidden=true;
    if(Array.isArray(currentMnemonicWords)){currentMnemonicWords.fill('');currentMnemonicWords.length=0;}
    sec2ArmoredText='';
    if($('seed-words-container'))$('seed-words-container').textContent='';
@@ -3502,7 +4827,7 @@ document.addEventListener('DOMContentLoaded', () => {
   encryptBodyCME2:(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors),
   encryptBodyCME3:(plainBody,password,kdfProfile=1,factors={})=>encryptBodyCME3(plainBody,password,kdfProfile,factors),
   encryptDuressDualCME:(realBody,realPassword,decoyBody,decoyPassword,kdfProfile=1,factors={})=>encryptDuressDualCME(realBody,realPassword,decoyBody,decoyPassword,kdfProfile,factors),
-  decryptBodyCME2:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts),
+  decryptBodyCME2:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME2(cmeBody,password,twoFaOpts),
   decryptBodyCME:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts),
   shamirSplit:(secretBytes,m,n)=>shamirSplit(secretBytes,m,n),
   shamirCombine:shareItems=>shamirCombine(shareItems),
@@ -3511,7 +4836,20 @@ document.addEventListener('DOMContentLoaded', () => {
   concat:(...arrs)=>concat(...arrs),
   frameBodyToBlocks:body=>frameBodyToBlocks(body),
   entropyToBip39Words:b=>entropyToBip39Words(b),
-  bip39WordsToEntropy:w=>bip39WordsToEntropy(w)
+  bip39WordsToEntropy:w=>bip39WordsToEntropy(w),
+  downloadBlob:(blob,filename)=>downloadBlob(blob,filename),
+  saveSvgAsPng:(svgEl,filename)=>saveSvgAsPng(svgEl,filename),
+  svgToPngBase64:svgEl=>svgToPngBase64(svgEl),
+  exportKeePassXmlWithAttachments:opts=>exportKeePassXmlWithAttachments(opts),
+  getValidSeedOrPrompt:statusElId=>getValidSeedOrPrompt(statusElId),
+  generateKeePassXmlKeyfile:opts=>generateKeePassXmlKeyfile(opts),
+  exportKeePassXmlKeyfile:opts=>exportKeePassXmlKeyfile(opts),
+  showKeyfileModal:(opts,cb)=>showKeyfileModal(opts,cb),
+  closeKeyfileModal:()=>closeKeyfileModal(),
+  derivePasskeyPrf:(salt32,credId)=>derivePasskeyPrf(salt32,credId),
+  setPendingKeeWebTransfer:(key,data,ttlMs=60000)=>setPendingKeeWebTransfer(key,data,ttlMs),
+  openKeeWeb:()=>window.openKeeWeb(),
+  promptLegacyPK2Consent:()=>window.promptLegacyPK2Consent()
  });
 })();
 /* END CARD READING v2 + EXTENDED BIP39 BACKUP v2 */

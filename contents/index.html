@@ -1018,6 +1018,11 @@
 .section-card.is-collapsed .section-title{margin-bottom:0;padding-bottom:0;border-bottom:none}
 #sticky-pw-bar{position:fixed;left:8px;right:8px;bottom:8px;max-width:1000px;margin:0 auto;z-index:90;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);border:2px solid #00c950;border-radius:10px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,40,15,.18);display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;transition:transform .12s cubic-bezier(0,0,.2,1)}
 #sticky-pw-bar.visible{display:flex}
+#sticky-pw-bar.is-minimized{display:none!important}
+#btn-sticky-toggle{background:#f1f5f9;border-color:#cbd5e1;color:#475569;cursor:pointer;transition:all .15s ease}
+#btn-sticky-toggle:hover{background:#e2e8f0;color:#1e293b}
+#btn-sticky-min-pill{cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease,box-shadow .15s ease}
+#btn-sticky-min-pill:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,201,80,.55)}
 #cq-status{white-space:pre-wrap;overflow-wrap:anywhere;color:#075323;background:#f0fdf4;border:1px solid #86efac;border-left:4px solid #00a843;border-radius:6px;padding:10px 12px;margin:10px 0;font-weight:600}
 #cq-status[data-mode="recipe"]{background:#f8fafc;border-color:#cbd5e1;border-left-color:#008a37;color:#1e293b}
 #backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#087333}
@@ -1026,24 +1031,101 @@
 #card-quick .cq-warning,.backup-warning{padding:10px;border:1px solid #dfc577;border-radius:6px;background:#fff9e8;color:#654c10;font-size:.82rem;line-height:1.7}
 .backup-block-title{grid-column:1/-1;font-size:.86rem;font-weight:700;margin-top:10px}
 @media screen and (max-width:800px){
- .matrix-stage,.matrix-scroll{min-width:0;max-width:100%}
- .matrix-scroll{overflow:visible;padding:2px 0 6px}
- #div-encrypto-matrix-main{width:100%;min-width:0;max-width:760px;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(3px,1vw,6px)}
- #div-encrypto-matrix-main .square{min-width:0;aspect-ratio:1 / 1.1;border-radius:5px}
- #div-encrypto-matrix-main .center-text{font-size:clamp(15px,5vw,25px);padding:0 2px}
- #div-encrypto-matrix-main .corner-text{font-size:clamp(9.5px,2.9vw,14px);padding:0 1px}
- #div-encrypto-matrix-main .top-left{top:2px;left:2px}
- #div-encrypto-matrix-main .top-right{top:2px;right:2px}
- #div-encrypto-matrix-main .bottom-left{bottom:2px;left:2px}
- #div-encrypto-matrix-main .bottom-right{bottom:2px;right:2px}
- .live-result-row{flex-direction:column!important;align-items:stretch!important}
+ body{padding:10px 8px 110px}
+ .container{width:100%;padding:0;box-sizing:border-box}
+ .matrix-stage{min-width:0;max-width:100%;padding:8px 6px;border-radius:8px;margin-bottom:14px}
+ .matrix-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 6px}
+ #div-encrypto-matrix-main{width:100%;min-width:0;max-width:760px;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(2px,.9vw,5px)}
+ #div-encrypto-matrix-main .square{min-width:0;aspect-ratio:1 / 1.05;border-radius:4px}
+ #div-encrypto-matrix-main .center-text{font-size:clamp(12px,3.8vw,22px);padding:0 1px}
+ #div-encrypto-matrix-main .corner-text{font-size:clamp(7.5px,2.2vw,13px);padding:0}
+ #div-encrypto-matrix-main .top-left{top:1px;left:2px}
+ #div-encrypto-matrix-main .top-right{top:1px;right:2px}
+ #div-encrypto-matrix-main .bottom-left{bottom:1px;left:2px}
+ #div-encrypto-matrix-main .bottom-right{bottom:1px;right:2px}
+
+ /* パターン告知HUDオーバーレイのスマホレスポンシブ */
+ .stroke-char-hud{
+   max-width:calc(100% - 16px)!important;
+   box-sizing:border-box!important;
+   border-radius:12px!important;
+   padding:8px 10px!important;
+   gap:8px!important;
+ }
+ .stroke-char-badge{
+   min-width:32px!important;
+   height:32px!important;
+   font-size:1.25rem!important;
+   border-radius:8px!important;
+ }
+ .stroke-char-title{
+   font-size:0.82rem!important;
+   line-height:1.25!important;
+ }
+ .stroke-char-sub{
+   font-size:0.7rem!important;
+   line-height:1.3!important;
+   white-space:normal!important;
+ }
+
+ .live-result-row{flex-direction:column!important;align-items:stretch!important;padding:8px 10px!important}
  .live-result-row>div{width:100%!important;min-width:0!important;max-width:100%}
+
+ /* スティッキーバーのスマホ最適化（画面を圧迫しないスリム化） */
+ #sticky-pw-bar{
+   left:4px;
+   right:4px;
+   bottom:4px;
+   padding:6px 8px;
+   border-radius:8px;
+   gap:4px;
+ }
  #sticky-pw-bar>div:first-child{flex:1 1 100%;width:100%;min-width:0}
+ #sticky-output-meta{display:none!important}
+ #sticky-output-pw{font-size:1.05rem!important;padding:2px 0!important;line-height:1.25!important}
+ #sticky-controls-bar{
+   width:100%;
+   display:grid!important;
+   grid-template-columns:repeat(4,1fr)!important;
+   gap:4px!important;
+ }
+ #sticky-controls-bar button{
+   padding:6px 2px!important;
+   font-size:0.72rem!important;
+   text-align:center;
+   min-width:0!important;
+ }
  .section-title>div{flex-wrap:wrap}
  .sub-row select{min-width:0;max-width:100%}
  .backup-controls>*{max-width:100%}
  body.trace-playing .live-inputs-row{display:none}
  body.trace-playing .trace-log-box{max-height:68px}
+}
+
+@media screen and (max-width:520px){
+ h1{font-size:1.12rem!important;line-height:1.3}
+ .subtitle{font-size:0.75rem!important;line-height:1.4}
+ .seed-bar{padding:8px 10px;gap:6px}
+ .seed-bar label{width:100%;text-align:center}
+ .seed-bar input{width:100%!important;text-align:center;font-size:1rem!important}
+ .seed-bar button{flex:1 1 calc(50% - 4px);min-width:0;padding:7px 4px;font-size:0.78rem}
+ .verbal-guide-card{padding:8px 10px}
+ .verbal-guide-header{flex-direction:column;align-items:flex-start;gap:4px}
+ .section-card{padding:10px 8px;border-radius:8px;margin-bottom:14px}
+ .field-group{padding:8px 8px}
+ /* BIP39 24単語の2列レスポンシブグリッド */
+ #seed-words-container{
+   display:grid!important;
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   gap:5px!important;
+ }
+ .seed-chip{padding:5px 8px!important;font-size:0.78rem!important}
+ /* QRコード表示のスマホ中央揃え */
+ #seed-qr-list figure,#bq-qr-list figure{
+   width:100%!important;
+   max-width:280px!important;
+   margin:8px auto!important;
+ }
 }
 /* END CARD QUICK AND MOBILE */
 /* QR backup & Bonus Vault */
@@ -1135,7 +1217,7 @@ body.blind-mode #seed-qr-list:hover {
 .help-popover {
   position: absolute;
   z-index: 99999;
-  max-width: 320px;
+  max-width: 440px;
   background: #0f172a;
   color: #f8fafc;
   border: 1px solid #334155;
@@ -1170,6 +1252,9 @@ body.blind-mode #seed-qr-list:hover {
   padding: 10px 12px 12px;
   color: #e2e8f0;
   word-break: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 0.8rem;
 }
 .help-popover-close {
   background: transparent;
@@ -1317,6 +1402,17 @@ body.blind-mode #seed-qr-list:hover {
   box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2);
 }
 
+@keyframes seedPromptPulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); border-color: #dc2626; }
+  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.25); border-color: #dc2626; }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+.seed-prompt-highlight {
+  animation: seedPromptPulse 1.2s ease-in-out 3 !important;
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
 </style>
 
 </head>
@@ -1390,7 +1486,7 @@ body.blind-mode #seed-qr-list:hover {
             <label for="sim-secret">合言葉<button type="button" class="help-btn" aria-label="説明を表示" data-help="あなただけが知っている秘密の言葉（マスターキー）です。サイト名と合言葉の組み合わせによって、サイトごとに推測不可能な全く異なる強力なパスワードがカードから作られます。">?</button></label>
             <input type="text" id="sim-secret" value="KeePass" placeholder="例: KeePass">
             <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px; line-height:1.4;">
-              💡 合言葉作りに困ったら？ <a href="keeweb/index.html" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline;" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能・秘密保管庫を別タブで開きます">KeePassの生成機能を使う</a>
+              💡 合言葉作りに困ったら？ <a href="keeweb/index.html#generator" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline;" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能を開きます">KeePassの生成機能を使う</a>
             </div>
           </div>
           <div>
@@ -1418,14 +1514,18 @@ body.blind-mode #seed-qr-list:hover {
             <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）">⏸ 一時停止</button>
             <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します">⏹ 停止</button>
             <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー（30秒後自動消去）</button>
+            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送します">📥 KeePassエントリーに追加</button>
           </div>
         </div>
 
         <!-- パターン公式デザイン一覧バー -->
-        <div class="gesture-design-bar" id="gesture-design-bar">
+        <div class="gesture-design-bar" id="gesture-design-bar" style="display:none;">
           <div style="font-size:0.80rem; font-weight:700; color:#166534; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px;">
             <span>✍️ パターンデザイン一覧（自然な書き順）：</span>
-            <span style="font-size:0.72rem; color:#15803d; font-weight:normal;">クリックで即座に切り替え</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.72rem; color:#15803d; font-weight:normal;">クリックで即座に切り替え</span>
+              <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem; border-color:#86efac; color:#166534; background:#fff;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
+            </div>
           </div>
 
           <!-- 🔢 数字 -->
@@ -1505,9 +1605,9 @@ body.blind-mode #seed-qr-list:hover {
 <div id="cq-collapsible-body" class="mode-section-body">
 <p class="cq-note">すべての出力文字を物理カードの角から直接読み取るため、ツールに依存せず紙や金属のカード単体でも手作業で同じパスワードを完全再現できるモードです。以下の2種類から選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
-<section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>銀行などの暗証番号（数字のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMやクレジットカード、携帯電話の画面ロックなどで使われる4〜12桁の数字のみのパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4">4桁</option>
+<section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>銀行などの暗証番号（数字のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMやクレジットカード、携帯電話の画面ロックなどで使われる4〜12桁の数字のみのパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数</label><select id="cq-pin-length"><option value="4" selected>4桁</option>
 <option value="5">5桁</option>
-<option value="6" selected>6桁</option>
+<option value="6">6桁</option>
 <option value="7">7桁</option>
 <option value="8">8桁</option>
 <option value="9">9桁</option>
@@ -1875,6 +1975,14 @@ body.blind-mode #seed-qr-list:hover {
         現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は下の「3. 拡張バックアップ（暗号化）＆ 印刷QRからの復元」を使用してください。
       </p>
 
+      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span>💡</span>
+          <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+        </div>
+        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+      </div>
+
       <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;" class="no-print">
         <label style="font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;">
           <input type="checkbox" id="chk-include-card-seed" checked style="width:17px; height:17px;">
@@ -1882,6 +1990,9 @@ body.blind-mode #seed-qr-list:hover {
         </label>
         <button type="button" class="btn" id="btn-generate-seed">復元フレーズとQRを再生成</button>
         <button type="button" class="btn btn-secondary" id="btn-copy-seed">復元フレーズを全てコピー（30秒後自動消去）</button>
+        <button type="button" class="btn btn-outline" id="btn-save-seed-txt" style="padding:6px 10px; font-size:0.8rem;">💾 テキスト保存 (.txt)</button>
+        <button type="button" class="btn btn-outline" id="btn-save-seed-qr" style="padding:6px 10px; font-size:0.8rem;">🖼️ QR画像保存 (PNG)</button>
+        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
       </div>
 
       <div class="cloud-warning">
@@ -1957,8 +2068,7 @@ body.blind-mode #seed-qr-list:hover {
      <option value="2-2">2-of-2 秘密分散（全2シェア両方で復元）</option>
      <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3枚で復元）</option>
     </select>
-    <div id="bq-shamir-desc" class="bq-select-desc"></div>
-    <div id="bq-shamir-desc" class="bq-select-desc"></div>
+     <div id="bq-shamir-desc" class="bq-select-desc"></div>
    </div>
    <div id="bq-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#dcfce7; color:#065f46; border:1px solid #86efac;">
     現在の保護方式：復元用パスワード単独
@@ -1966,18 +2076,21 @@ body.blind-mode #seed-qr-list:hover {
   </div>
 
   <div class="bq-row" id="bq-kdf-row">
-   <label for="bq-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを何百万回も複雑に暗号計算（ストレッチング）してハッカーの超高速コンピューター解析に耐えられるようにする強度の設定です。推奨設定（高強度防衛）のままで十分強力です。">?</button></label>
+   <label for="bq-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを何百万回も複雑に暗号計算（ストレッチング）してコンピューターの総当たり解析に耐えられるようにする強度の設定です。推奨設定（PBKDF2 210万回）のままで十分強力です。">?</button></label>
    <select id="bq-kdf">
-     <option value="3">次世代極限防衛（Level 4 Argon2id / メモリハード）</option>
-     <option value="1" selected>高強度防衛（Level 2 Hardened / 推奨）</option>
-     <option value="2">最高度防衛（Level 3 Maximum / 耐GPU特化）</option>
-     <option value="0">標準防衛（Level 1 Standard / 高速）</option>
+     <option value="3">Argon2id（メモリ64MB / 耐GPU・現代標準）</option>
+     <option value="1" selected>PBKDF2（210万回 / 推奨・高強度）</option>
+     <option value="2">PBKDF2（500万回 / 超高回数・高強度）</option>
+     <option value="0">PBKDF2（60万回 / 高速・標準）</option>
     </select>
     <div id="bq-kdf-desc" class="bq-select-desc"></div>
   </div>
 
   <div class="bq-row" id="bq-password-row">
    <label for="bq-password">復元用パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップデータを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button></label>
+   <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
+     💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bq" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+   </div>
    <input type="password" id="bq-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
    <label for="bq-password-confirm">再入力</label>
    <input type="password" id="bq-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
@@ -1987,8 +2100,8 @@ body.blind-mode #seed-qr-list:hover {
   <div class="bq-row" id="bq-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
    <label for="bq-keyfile" style="font-weight:700;">🔑 キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="お手元の任意のファイル（画像・PDF等）や専用の.keyファイルです。ファイルの中身が1ビットでも変化すると復元できなくなるため、絶対に編集・上書き・画像圧縮しないで保管してください。">?</button></label>
    <input type="file" id="bq-keyfile">
-   <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem;">🎲 専用キーファイル(.key)を新規作成・保存</button>
-   <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「専用キーファイル(.key)を新規作成・保存」で作成したファイルをバックアップとは別の場所に保管してください。復元時にはこのファイルが必要です。</div>
+    <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
+    <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
   <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
@@ -1998,9 +2111,20 @@ body.blind-mode #seed-qr-list:hover {
   
 
   <p class="bq-warning">復元用パスワードや保護キー（キーファイル・パスキー）は、QRコードや24単語ブロックの中には記録されません。紛失・削除すると復元できなくなるため、バックアップとは別の場所で大切に管理してください。秘密分散（M-of-N）を選択した場合は、分割された各QRコード（またはフレーズ）を別々の保管場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分けて保管してください。</p>
+  <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <span>💡</span>
+      <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+    </div>
+    <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+  </div>
   <div class="bq-row">
    <button type="button" class="btn btn-outline" id="bq-create">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
    <button type="button" class="btn btn-secondary" id="bq-copy" disabled>暗号化フレーズ（全ブロック）をコピー（30秒後自動消去）</button>
+   <button type="button" class="btn btn-outline" id="bq-save-txt" style="padding:6px 10px; font-size:0.8rem;" disabled>💾 テキスト保存 (.txt)</button>
+   <button type="button" class="btn btn-outline" id="bq-save-qr" style="padding:6px 10px; font-size:0.8rem;" disabled>🖼️ QR画像保存 (PNG)</button>
+   <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled>📁 暗号化ファイル保存 (.cmenc)</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
    <button type="button" class="btn btn-secondary" id="bq-print" disabled>カードと暗号化QRを印刷</button>
    <button type="button" class="btn btn-secondary" id="bq-clear">暗号化バックアップ表示を消去</button>
   </div>
@@ -2014,7 +2138,7 @@ body.blind-mode #seed-qr-list:hover {
   <h3>印刷したQRコード ／ 復元フレーズからの検証・復元</h3>
   <p>「2」または「3」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
   <label><input type="checkbox" id="bq-cdn" checked> 標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る（読み取った画像やデータが外部に送信されることはありません）</label>
-  <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・写真から読む</label><input type="file" id="bq-image" accept="image/*" capture="environment"><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
+   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
   <label for="bq-import">復元フレーズ（24単語 ／ 拡張・暗号化バックアップの全ブロック ／ 秘密分散のMシェア分）または読み取ったQRデータ</label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="カメラや画像でQRを読み取るか、24単語×必要ブロック数（秘密分散の場合は必要Mシェア分）を入力してください。"></textarea>
@@ -2106,8 +2230,7 @@ body.blind-mode #seed-qr-list:hover {
           <option value="2-2">2-of-2 秘密分散（全2シェア両方で復元）</option>
           <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3個で復元）</option>
         </select>
-        <div id="bv-shamir-desc" class="bq-select-desc"></div>
-        <div id="bv-shamir-desc" class="bq-select-desc"></div>
+         <div id="bv-shamir-desc" class="bq-select-desc"></div>
       </div>
 
       <div id="bv-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#dcfce7; color:#065f46; border:1px solid #86efac;">
@@ -2117,20 +2240,22 @@ body.blind-mode #seed-qr-list:hover {
 
     <!-- KDF強度 -->
     <div class="bq-row" id="bv-kdf-row">
-      <label for="bv-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="ストレッチング計算回数の設定です。推奨の「高強度防衛」で十分強力です。">?</button></label>
+      <label for="bv-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="ストレッチング計算回数の設定です。推奨設定（PBKDF2 210万回）で十分強力です。">?</button></label>
       <select id="bv-kdf">
-        <option value="3">次世代極限防衛（Level 4 Argon2id / メモリハード）</option>
-        <option value="1" selected>高強度防衛（Level 2 Hardened / 推奨）</option>
-        <option value="2">最高度防衛（Level 3 Maximum / 耐GPU特化）</option>
-        <option value="0">標準防衛（Level 1 Standard / 高速）</option>
+        <option value="3">Argon2id（メモリ64MB / 耐GPU・現代標準）</option>
+        <option value="1" selected>PBKDF2（210万回 / 推奨・高強度）</option>
+        <option value="2">PBKDF2（500万回 / 超高回数・高強度）</option>
+        <option value="0">PBKDF2（60万回 / 高速・標準）</option>
       </select>
-      <div id="bv-kdf-desc" class="bq-select-desc"></div>
       <div id="bv-kdf-desc" class="bq-select-desc"></div>
     </div>
 
     <!-- パスワード入力行 -->
     <div class="bq-row" id="bv-password-row">
       <label for="bv-password">復元用パスワード（12文字以上・16文字以上推奨）</label>
+      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
+        💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bv" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+      </div>
       <input type="password" id="bv-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
       <label for="bv-password-confirm">再入力</label>
       <input type="password" id="bv-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
@@ -2141,8 +2266,8 @@ body.blind-mode #seed-qr-list:hover {
     <div class="bq-row" id="bv-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
       <label for="bv-keyfile" style="font-weight:700;">🔑 キーファイル:</label>
       <input type="file" id="bv-keyfile">
-      <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem;">🎲 専用キーファイル(.key)を新規作成・保存</button>
-      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元のファイルまたは「専用キーファイル」を指定してください。</div>
+      <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
+      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
     </div>
 
     <!-- パスキー説明行 -->
@@ -2152,7 +2277,7 @@ body.blind-mode #seed-qr-list:hover {
 
     
 
-    <div style="margin:14px 0 8px;">
+    <div style="margin:14px 0 8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
       <button type="button" class="btn" id="bv-btn-encrypt" style="padding:8px 18px; font-size:0.9rem;">🔒 暗号化 ＆ 秘密分散データを作成</button>
     </div>
 
@@ -2163,6 +2288,13 @@ body.blind-mode #seed-qr-list:hover {
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
         <span style="font-weight:700; font-size:0.88rem; color:var(--accent);">✅ 暗号化・秘密分散の生成完了</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" id="bv-result-actions"></div>
+      </div>
+      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span>💡</span>
+          <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+        </div>
+        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
       <div id="bv-result-shares-container"></div>
     </div>
@@ -2222,7 +2354,7 @@ body.blind-mode #seed-qr-list:hover {
 <!-- END BONUS VAULT -->
 
     <!-- フッター -->
-    <footer id="page-footer" style="margin-top:28px; padding:16px 0 28px; text-align:center;">
+    <footer id="page-footer" style="margin-top:28px; padding:16px 0 110px; text-align:center;">
       <hr style="margin-bottom:14px; border:0; border-top:1px solid var(--border-color, #cbd5e1);">
       <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" style="color:#007a32; font-weight:600; text-decoration:underline;">Contact us</a>
     </footer>
@@ -2231,9 +2363,12 @@ body.blind-mode #seed-qr-list:hover {
   <!-- スクロール追従（フローティング）：設定変更中にリアルタイムで生成パスワードを確認できるバー -->
   <div id="sticky-pw-bar" class="no-print" role="region" aria-label="リアルタイム生成パスワード確認バー">
     <div style="flex:1; min-width:180px;">
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:2px;">
-        <span style="font-size:0.74rem; font-weight:700; color:var(--text-sub);">生成パスワード：</span>
-        <span class="mode-pill" id="sticky-mode-badge" style="font-size:0.7rem; padding:1px 8px;">✅ 1. マイ・レシピ全組み合わせ設定</span>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:2px;">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span style="font-size:0.74rem; font-weight:700; color:var(--text-sub);">生成パスワード：</span>
+          <span class="mode-pill" id="sticky-mode-badge" style="font-size:0.7rem; padding:1px 8px;">✅ 1. マイ・レシピ全組み合わせ設定</span>
+        </div>
+        <button type="button" class="btn btn-outline" id="btn-sticky-toggle" style="padding:2px 8px; font-size:0.7rem; border-radius:12px; margin-left:auto;" title="バーを最小化/展開">▾ 最小化</button>
       </div>
       <div class="pw-chars-box" id="sticky-output-pw" style="font-size:1.1rem;"></div>
       <div style="font-size:0.72rem; color:var(--text-sub);" id="sticky-output-meta"></div>
@@ -2244,7 +2379,40 @@ body.blind-mode #seed-qr-list:hover {
       <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="一時停止／再開">⏸ 一時停止</button>
       <button type="button" class="btn btn-danger" id="btn-sticky-stop" style="padding:5px 10px; font-size:0.78rem; display:none;" title="停止">⏹ 停止</button>
       <button type="button" class="btn btn-secondary" id="btn-sticky-copy" style="padding:5px 10px; font-size:0.78rem;">コピー</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送">📥 KeePass追加</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-top" style="padding:5px 10px; font-size:0.78rem;">▲ マトリックスへ</button>
+    </div>
+  </div>
+  <button type="button" class="btn btn-primary no-print" id="btn-sticky-min-pill" style="display:none; position:fixed; bottom:10px; right:10px; z-index:91; padding:6px 14px; font-size:0.78rem; font-weight:700; border-radius:9999px; box-shadow:0 4px 16px rgba(0,201,80,0.45); border:1.5px solid #00a843; background:#00c950; color:#fff;" title="パスワード確認バーを展開">🔑 パスワード表示 ▲</button>
+
+  <!-- 旧PKv2救出・移行 同意モーダル -->
+  <div id="legacy-pk2-modal" class="duress-modal-backdrop no-print" hidden>
+    <div class="duress-modal-dialog" style="max-width:540px;">
+      <div class="duress-modal-header" style="background:#fef2f2; border-bottom:1px solid #fecaca;">
+        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#991b1b;">
+          ⚠️ 旧世代パスキー保護（PKv2）の救出・移行
+        </h3>
+        <button type="button" class="duress-modal-close" id="btn-legacy-pk2-close" aria-label="閉じる">✕</button>
+      </div>
+      <div class="duress-modal-body">
+        <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:14px;">
+          読み込まれたバックアップデータは、<strong>旧世代のパスキー保護形式（PKv2）</strong>です。<br>
+          <div style="margin-top:8px; color:#991b1b; background:#fff1f2; padding:10px 12px; border-radius:6px; border:1px solid #fecdd3; font-size:0.82rem; line-height:1.5;">
+            ⚠️ <strong>セキュリティ上のご注意：</strong><br>
+            旧PKv2形式はWebAuthn PRF拡張非対応の古い環境向けに実装されていたため、最新のハードウェア暗号鍵導出（WebAuthn PRF）に比べ安全性が劣ります。<br>
+            データ救出のために復号を許可しますか？（※許可すると、ページを閉じる・再読み込みするまでの間、このセッション内で旧PKv2の救出復号が有効になります）<br>
+            <strong>※復元完了後、安全のため速やかにセクション3にて最新のバックアップ（PRFまたはパスワード保護）を再作成してください。</strong>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+          <button type="button" class="btn btn-primary" id="btn-legacy-pk2-accept" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; background:#dc2626; border-color:#b91c1c;">
+            🔓 救出・移行を許可して復号する（このページ内で許可）
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-legacy-pk2-cancel" style="padding:10px 14px; font-weight:700;">
+            キャンセル
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2261,8 +2429,8 @@ body.blind-mode #seed-qr-list:hover {
         <div id="duress-modal-intro" style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:14px;">
           通常は<strong>「🔒 このまま本命のみで作成（通常）」</strong>を押せば安全に作成完了します。<br>
           <div style="margin-top:8px; color:#92400e; background:#fffbeb; padding:10px 12px; border-radius:6px; border:1px solid #fde68a; font-size:0.82rem; line-height:1.5;">
-            🛡️ <strong>二重金庫・おとり偽装（Duress Mode / 脅迫・強要対策）：</strong><br>
-            万が一、強盗や脅迫者にパスワード開示を迫られた時、無害な日常情報（実在ショッピングサイト等）を復元させて安全にやり過ごす<strong>【おとりパスワード（Duress）】</strong>を、同じ1枚のシート／ファイルに同時に組み込む二重暗号化機能です。
+            🛡️ <strong>二重暗号・別パスワード表示（Duress Mode / 強要対策）：</strong><br>
+            強盗や脅迫・強要時に、本命とは異なるパスワードを入力することで無害な日常情報（ダミーデータ）を表示させる<strong>【別パスワード表示機能（Duress/おとりスロット）】</strong>です。（※暗号化構造上、2スロット形式であることはファイル解析により判別可能です。身体的安全や存在の完全な秘匿を保証するものではありません）
           </div>
         </div>
 
@@ -2371,13 +2539,111 @@ body.blind-mode #seed-qr-list:hover {
             <input type="checkbox" id="chk-duress-remember-skip">
             次回からこの確認を表示せず本命のみで即作成する
           </label>
-          <span style="font-size:0.72rem; color:#64748b;">※シート面やQRには「おとり」の痕跡は一切残りません</span>
+          <span style="font-size:0.72rem; color:#64748b;">※緊急時に別のパスワードでダミーデータを表示できるデュアルスロット暗号化機能です</span>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="jquery.js"></script>
+  <!-- KeePass キーファイル作成・復元オプション ポップアップモーダル -->
+  <div id="keyfile-modal" class="duress-modal-backdrop no-print" hidden>
+    <div class="duress-modal-dialog">
+      <div class="duress-modal-header" style="background:#f0f9ff; border-bottom:1px solid #bae6fd;">
+        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#0369a1;">
+          🔑 KeePassキーファイル (.key) 作成・復元オプション
+        </h3>
+        <button type="button" class="duress-modal-close" id="btn-keyfile-modal-close" aria-label="閉じる">✕</button>
+      </div>
+      <div class="duress-modal-body">
+        <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:12px;">
+          カードの配列シードから、KeePass 2.x / KeePassXC / KeeWeb で使える暗号キーファイル（.key）を書き出します。<br>
+          万が一の紛失や再発行時に、<strong>どのようにキーファイルを復元（再生成）するか</strong>を選択してください。
+        </div>
+
+        <div id="keyfile-modal-error" style="display:none; color:#dc2626; background:#fee2e2; border:1px solid #fca5a5; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
+
+        <!-- シード番号表示・確認 -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:0.82rem; color:#0f172a; font-weight:700;">
+            💳 対象カードシード番号:
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <input type="text" id="keyfile-modal-seed" style="font-family:monospace; font-weight:700; font-size:0.95rem; width:130px; padding:4px 8px; border:1.5px solid #0284c7; border-radius:4px; text-align:center; color:#0369a1; background:#fff;" />
+          </div>
+        </div>
+
+        <!-- 復元ファクターの選択（ラジオボタン） -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:0.84rem; font-weight:700; color:#1e293b; margin-bottom:8px;">
+            🛡️ キーファイルの復元ポリシー（生成方式）：
+          </div>
+
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-seed">
+            <input type="radio" name="km-factor" id="km-factor-seed" value="seed" style="margin-top:3px;">
+            <div style="font-size:0.82rem; line-height:1.4;">
+              <strong>【カード単体】シード番号のみで復元（※カード空間依存）</strong><br>
+              <span style="color:#d97706;">⚠️ 注意：カードシード空間（最大約32ビット）から決定論的に導出されるため、独立した256ビット真性乱数キーファイルの暗号強度はありません。カード紛失時の安全性を高めるため、下記の【二要素認証】（パスワードまたはパスキー併用）を推奨します。</span>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #0284c7; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f0f9ff;" id="lbl-km-factor-dual">
+            <input type="radio" name="km-factor" id="km-factor-dual" value="dual" checked style="margin-top:3px;">
+            <div style="font-size:0.82rem; line-height:1.4;">
+              <strong style="color:#0369a1;">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
+              <span style="color:#0369a1;">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-passkey">
+            <input type="radio" name="km-factor" id="km-factor-passkey" value="passkey" style="margin-top:3px;">
+            <div style="font-size:0.82rem; line-height:1.4;">
+              <strong style="color:#0f766e;">【二要素認証】シード番号 ＋ パスキー（生体認証／セキュリティキー）で復元</strong><br>
+              <span style="color:#64748b;">お使いの端末（Touch ID / Face ID / Windows Hello / YubiKey等）のパスキー生体認証を通過しないと復元できません。パスワード記憶は不要です。</span>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-multi">
+            <input type="radio" name="km-factor" id="km-factor-multi" value="multi" style="margin-top:3px;">
+            <div style="font-size:0.82rem; line-height:1.4;">
+              <strong style="color:#7c3aed;">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
+              <span style="color:#64748b;">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
+            </div>
+          </label>
+
+          <!-- パスワード入力エリア -->
+          <div id="km-pass-wrap" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:10px 12px; margin-top:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label for="km-password" style="font-size:0.8rem; font-weight:700; color:#334155;">復元用パスワード（合言葉）:</label>
+              <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#0284c7; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
+            </div>
+            <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #cbd5e1; border-radius:4px; background:#fff;">
+            <div style="font-size:0.75rem; color:#475569; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#0284c7; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
+            <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#065f46; margin-top:6px; padding:5px 7px; background:#dcfce7; border:1px solid #86efac; border-radius:4px;"></div>
+            <div style="font-size:0.74rem; color:#64748b; margin-top:4px;">※各セクションのパスワード欄に入力済みの場合は初期値として自動連携されます。</div>
+          </div>
+
+          <!-- パスキー説明エリア -->
+          <div id="km-passkey-wrap" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; color:#1e3a8a; line-height:1.5;">
+            <div>👤 <strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
+            <div id="km-passkey-existing-notice" style="display:none; margin-top:6px; padding:4px 8px; background:#dcfce7; border:1px solid #86efac; border-radius:4px; color:#065f46; font-size:0.75rem;">
+              ✨ この端末にこのカード用パスキー認証情報が登録されています。確認を押すと登録済みパスキーで認証・復元されます。
+            </div>
+          </div>
+        </div>
+
+        <!-- 決定ボタン -->
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="button" class="btn btn-primary" id="btn-km-confirm" style="flex:1; padding:10px; font-weight:700; background:#0284c7; border-color:#0369a1; color:#fff;">
+            🔑 この設定でキーファイル (.key) を作成
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-km-cancel" style="padding:10px 16px;">
+            キャンセル
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="qr-encoder.js"></script>
   <script src="argon2.umd.min.js"></script>
   <script src="index.js"></script>

@@ -636,7 +636,6 @@ body.kw-generator-focus-mode .gen {
       <button type="button" id="kw-cm-apply-secret-btn" style="width:100% !important; box-sizing:border-box !important; white-space:normal !important; word-break:break-word !important; padding:15px 18px !important; font-size:1rem !important; font-weight:800 !important; color:#fff !important; background:linear-gradient(135deg, #0369a1, #0284c7) !important; border:2px solid #075985 !important; border-radius:9px !important; cursor:pointer !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:7px !important; box-shadow:0 4px 12px rgba(2,132,199,0.32) !important;" title="この生成パスワードをCryptoMatrixへ反映します">
         ⚡ このパスワードをCryptoMatrixの${cmTarget ? targetLabels[cmTarget] : '合言葉'}に反映
       </button>
-      <button type="button" id="kw-cm-copy-stay-btn" style="margin-top:9px; padding:6px 12px; font-size:0.76rem; color:var(--text-color); background:transparent; border:1px solid var(--light-border-color); border-radius:6px; cursor:pointer;">📋 コピー（この画面は閉じません）</button>
       <div id="kw-cm-secret-status" style="display:none; font-size:0.78rem; color:#059669; font-weight:600; margin-top:8px; padding:6px 10px; background:rgba(16,185,129,0.12); border-radius:6px;"></div>
     `;
     genBox.appendChild(btnRow);
@@ -655,7 +654,7 @@ body.kw-generator-focus-mode .gen {
         if (!value) return;
         navigator.clipboard?.writeText(value).then(function() {
           var status = document.getElementById('kw-cm-secret-status');
-          if (status) { status.style.display = 'block'; status.textContent = '✅ コピーしました。生成画面はそのまま開いています。'; }
+          if (status) { status.style.display = 'block'; status.textContent = '✅ コピーしました。'; }
         }).catch(function() {});
       }, true);
     }
@@ -684,16 +683,6 @@ body.kw-generator-focus-mode .gen {
           st.textContent = '✅ CryptoMatrixの' + (cmTarget ? targetLabels[cmTarget] : '合言葉') + 'に「' + masked + '」を反映しました！タブを戻ると反映されています。';
         }
       }
-    });
-    document.getElementById('kw-cm-copy-stay-btn')?.addEventListener('click', function(e) {
-      e.preventDefault();
-      var resEl = genBox.querySelector('.gen__result');
-      var pwVal = resEl ? resEl.innerText.trim() : '';
-      if (!pwVal) return;
-      navigator.clipboard?.writeText(pwVal).then(function() {
-        var st = document.getElementById('kw-cm-secret-status');
-        if (st) { st.style.display = 'block'; st.textContent = '✅ コピーしました。生成画面はそのまま開いています。'; }
-      }).catch(function() {});
     });
   }
 
@@ -759,6 +748,9 @@ body.kw-generator-focus-mode .gen {
         <button type="button" id="kw-btn-copy-entry-pw" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#334155; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" title="${pw ? 'パスワードをクリップボードにコピー' : 'メモ（バックアップ情報）をクリップボードにコピー'}">
           📋 ${pw ? 'PWコピー' : 'メモをコピー'}
         </button>
+        <button type="button" id="kw-btn-save-entry-now" style="padding:6px 12px; font-size:0.80rem; font-weight:700; color:#fff; background:#16a34a; border:1px solid #15803d; border-radius:6px; cursor:pointer;" title="KeeWebの保存処理を実行します">
+          💾 保存する
+        </button>
         <button type="button" id="kw-btn-close-entry-notif" style="padding:4px 8px; font-size:0.9rem; color:#94a3b8; background:transparent; border:none; cursor:pointer;" title="閉じる">✕</button>
       </div>
       <div id="kw-cm-entry-msg" style="display:none; width:100%; font-size:0.75rem; font-weight:600; padding:6px 10px; border-radius:4px; margin-top:4px;"></div>
@@ -783,6 +775,35 @@ body.kw-generator-focus-mode .gen {
       input.blur();
       if (window.$) {
         try { window.$(input).trigger('blur'); } catch(_) {}
+      }
+    }
+
+    // KeeWeb saves all open databases with its standard Ctrl+S shortcut. The
+    // transfer changes fields programmatically, so explicitly request that save
+    // after every import instead of waiting for a later lock operation.
+    function saveImportedEntry() {
+      try {
+        var saveEvent = new KeyboardEvent('keydown', {
+          key: 's', code: 'KeyS', ctrlKey: true, bubbles: true, cancelable: true
+        });
+        try { Object.defineProperty(saveEvent, 'keyCode', { value: 83 }); } catch (_) {}
+        try { Object.defineProperty(saveEvent, 'which', { value: 83 }); } catch (_) {}
+        document.dispatchEvent(saveEvent);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function showSaveRequested(message) {
+      var requested = saveImportedEntry();
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.background = requested ? '#dcfce7' : '#fff7ed';
+        msgEl.style.color = requested ? '#065f46' : '#9a3412';
+        msgEl.textContent = message + (requested
+          ? ' 保存を実行しました。'
+          : ' 保存できなかった場合は「💾 保存する」を押してください。');
       }
     }
 
@@ -913,6 +934,18 @@ body.kw-generator-focus-mode .gen {
       }
     });
 
+    document.getElementById('kw-btn-save-entry-now')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#dcfce7';
+        msgEl.style.color = '#065f46';
+        msgEl.textContent = saveImportedEntry()
+          ? '💾 保存を実行しました。完了後に閉じてください。'
+          : '⚠️ 保存を実行できませんでした。KeeWebの保存操作を使ってください。';
+      }
+    });
+
     document.getElementById('kw-btn-apply-selected-entry')?.addEventListener('click', function(e) {
       e.preventDefault();
       if (!isPendingTransferCurrent('cm_pending_entry', data)) { bar.remove(); return; }
@@ -930,14 +963,12 @@ body.kw-generator-focus-mode .gen {
         if (error) { if (msgEl) { msgEl.style.display='block'; msgEl.textContent=error.message; } return; }
         completePendingTransfer('cm_pending_entry', data);
         if (msgEl) {
-          msgEl.style.display = 'block';
-          msgEl.style.background = '#dcfce7';
-          msgEl.style.color = '#065f46';
-          msgEl.textContent = isBackup
+          var savedMessage = isBackup
             ? '✅ 現在のエントリーに「' + data.site + '」のバックアップ情報・添付ファイルを適用しました！'
             : '✅ 現在のエントリーにタイトル「' + data.site + '」とパスワードを適用しました！';
+          showSaveRequested(savedMessage);
         }
-        setTimeout(function() { bar.remove(); }, 2200);
+        setTimeout(function() { bar.remove(); }, 4200);
       });
     });
 
@@ -967,14 +998,12 @@ body.kw-generator-focus-mode .gen {
         if (error) { if (msgEl) { msgEl.style.display='block'; msgEl.textContent=error.message; } return; }
               completePendingTransfer('cm_pending_entry', data);
               if (msgEl) {
-                msgEl.style.display = 'block';
-                msgEl.style.background = '#dcfce7';
-                msgEl.style.color = '#065f46';
-                msgEl.textContent = isBackup
+                var savedMessage = isBackup
                   ? '✅ 「' + data.site + '」の新規エントリーを作成・登録しました（メモ・添付ファイル反映完了）！'
                   : '✅ 「' + data.site + '」の新規エントリーを作成・登録しました！';
+                showSaveRequested(savedMessage);
               }
-              setTimeout(function() { bar.remove(); }, 2500);
+              setTimeout(function() { bar.remove(); }, 4200);
             });
           }
         }

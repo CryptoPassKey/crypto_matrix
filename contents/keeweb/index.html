@@ -708,12 +708,65 @@ body.kw-generator-focus-mode .gen {
       .replace(/'/g, '&#039;');
   }
 
+  window.__cm_dismissed_transfers = window.__cm_dismissed_transfers || new Set();
+
+  function ensureDismissedPill(data) {
+    if (document.getElementById('kw-cm-minimized-pill')) return;
+    var pill = document.createElement('div');
+    pill.id = 'kw-cm-minimized-pill';
+    pill.style.cssText = 'position:fixed; bottom:max(12px, env(safe-area-inset-bottom, 12px)); right:12px; z-index:99990; background:#0284c7; color:#fff; font-size:0.75rem; font-weight:700; padding:8px 14px; border-radius:20px; box-shadow:0 4px 12px rgba(2,132,199,0.4); cursor:pointer; touch-action:manipulation; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif; display:flex; align-items:center; gap:6px;';
+    pill.innerHTML = `<span>📥 転送待機中:「${escapeHtml(data.site || 'エントリー')}」</span><span style="font-size:0.7rem; opacity:0.85;">(タップで表示)</span>`;
+    pill.addEventListener('click', function() {
+      pill.remove();
+      if (window.__cm_dismissed_transfers) {
+        window.__cm_dismissed_transfers.delete(data._transferId);
+      }
+      checkPendingEntry();
+    });
+    document.body.appendChild(pill);
+  }
+
   function checkPendingEntry() {
     var data = readPendingTransfer('cm_pending_entry');
     if (!data) return;
     if (!data.password && !data.notes && !data.site && (!data.attachments || !data.attachments.length)) return;
+
+    if (window.__cm_dismissed_transfers.has(data._transferId)) {
+      ensureDismissedPill(data);
+      return;
+    }
+
+    var isDbOpen = !!(document.querySelector('.list__search-btn-new') || document.querySelector('.details'));
+
+    // Auto-apply if user clicked "create db and entry" and database has just opened
+    if (isDbOpen && window.__autoApplyPendingOnDbOpen === data._transferId) {
+      delete window.__autoApplyPendingOnDbOpen;
+      var newBtn = document.querySelector('.list__search-btn-new');
+      if (newBtn) {
+        newBtn.dispatchEvent(new MouseEvent('click', { shiftKey: true, bubbles: true }));
+        var attempts = 0;
+        var checkDetails = setInterval(function() {
+          attempts++;
+          var detailsEl = document.querySelector('.details');
+          if (detailsEl || attempts > 20) {
+            clearInterval(checkDetails);
+            if (detailsEl) {
+              applyToEntry(detailsEl, data, function(error) {
+                if (!error) {
+                  completePendingTransfer('cm_pending_entry', data);
+                  var prevBar = document.getElementById('kw-cm-entry-notification');
+                  if (prevBar) prevBar.remove();
+                  showSaveRequested('✅ 新規データベースに「' + data.site + '」を登録しました！');
+                }
+              });
+            }
+          }
+        }, 80);
+      }
+    }
+
     var previous = document.getElementById('kw-cm-entry-notification');
-    if (previous && previous.dataset.transferId === data._transferId) return;
+    if (previous && previous.dataset.transferId === data._transferId && previous.dataset.isDbOpen === String(isDbOpen)) return;
     if (previous) previous.remove();
 
     var pw = data.password || '';
@@ -728,27 +781,41 @@ body.kw-generator-focus-mode .gen {
     var bar = document.createElement('div');
     bar.id = 'kw-cm-entry-notification';
     bar.dataset.transferId = data._transferId;
-    bar.style.cssText = 'position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:999999; max-width:92vw; background:#ffffff; border:2px solid #0284c7; border-radius:10px; padding:10px 16px; box-shadow:0 8px 24px rgba(2,132,199,0.3); font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif; color:#0f172a; display:flex; align-items:center; gap:12px; flex-wrap:wrap;';
+    bar.dataset.isDbOpen = String(isDbOpen);
+    bar.style.cssText = 'position:fixed; top:max(8px, env(safe-area-inset-top, 8px)); left:50%; transform:translateX(-50%); z-index:999999; width:calc(100% - 20px); max-width:680px; box-sizing:border-box; background:#ffffff; border:2px solid #0284c7; border-radius:10px; padding:10px 14px; box-shadow:0 8px 24px rgba(2,132,199,0.3); font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif; color:#0f172a; display:flex; align-items:center; gap:10px; flex-wrap:wrap; touch-action:manipulation;';
 
-    bar.innerHTML = `
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:1.2rem;">📥</span>
-        <span style="font-size:0.84rem; font-weight:700; color:#0369a1;">
-          CryptoMatrix ${isBackup ? 'バックアップ転送' : '転送'}：<span style="color:#0284c7;">「${escapeHtml(data.site)}」</span>
-          <span style="font-weight:normal; font-size:0.73rem; color:#64748b; margin-left:4px;">${escapeHtml(infoDetail)}</span>
-        </span>
-      </div>
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <button type="button" id="kw-btn-create-entry-now" style="padding:6px 14px; font-size:0.80rem; font-weight:700; color:#fff; background:linear-gradient(135deg,#0284c7,#0369a1); border:none; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(2,132,199,0.25);">
+    var actionButtonsHtml = isDbOpen
+      ? `
+        <button type="button" id="kw-btn-create-entry-now" style="padding:6px 14px; font-size:0.80rem; font-weight:700; color:#fff; background:linear-gradient(135deg,#0284c7,#0369a1); border:none; border-radius:6px; cursor:pointer; min-height:36px; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(2,132,199,0.25); touch-action:manipulation;">
           ➕ 新規エントリー作成
         </button>
-        <button type="button" id="kw-btn-apply-selected-entry" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#065f46; background:#dcfce7; border:1px solid #86efac; border-radius:6px; cursor:pointer;" title="現在開いているエントリーに「${escapeHtml(data.site)}」の情報を適用">
+        <button type="button" id="kw-btn-apply-selected-entry" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#065f46; background:#dcfce7; border:1px solid #86efac; border-radius:6px; cursor:pointer; min-height:36px; touch-action:manipulation;" title="現在開いているエントリーに「${escapeHtml(data.site)}」の情報を適用">
           ⚡ 現在のエントリーに適用
         </button>
-        <button type="button" id="kw-btn-copy-entry-pw" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#334155; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" title="${pw ? 'パスワードをクリップボードにコピー' : 'メモ（バックアップ情報）をクリップボードにコピー'}">
-          📋 ${pw ? 'PWコピー' : 'メモをコピー'}
+      `
+      : `
+        <button type="button" id="kw-btn-create-db-and-entry" style="padding:6px 14px; font-size:0.82rem; font-weight:700; color:#fff; background:linear-gradient(135deg,#16a34a,#15803d); border:none; border-radius:6px; cursor:pointer; min-height:36px; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(22,163,74,0.3); touch-action:manipulation;" title="KeeWebの新しいデータベースを作成して、このエントリーを保存します">
+          🆕 データベース新規作成して登録
         </button>
-        <button type="button" id="kw-btn-close-entry-notif" style="padding:4px 8px; font-size:0.9rem; color:#94a3b8; background:transparent; border:none; cursor:pointer;" title="閉じる">✕</button>
+        <button type="button" id="kw-btn-open-existing-db" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#0369a1; background:#f0f9ff; border:1px solid #7dd3fc; border-radius:6px; cursor:pointer; min-height:36px; touch-action:manipulation;" title="既存のKeePassファイルを開きます">
+          📂 既存ファイルを開く
+        </button>
+      `;
+
+    bar.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; flex:1 1 200px; min-width:0;">
+        <span style="font-size:1.2rem; flex-shrink:0;">📥</span>
+        <div style="font-size:0.84rem; font-weight:700; color:#0369a1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          CryptoMatrix ${isBackup ? 'バックアップ転送' : '転送'}：<span style="color:#0284c7;">「${escapeHtml(data.site)}」</span>
+          <span style="font-weight:normal; font-size:0.73rem; color:#64748b; margin-left:4px;">${escapeHtml(infoDetail)}</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+        ${actionButtonsHtml}
+        <button type="button" id="kw-btn-copy-entry-pw" style="padding:6px 10px; font-size:0.78rem; font-weight:600; color:#334155; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; min-height:36px; touch-action:manipulation;" title="${pw ? 'パスワードをクリップボードにコピー' : 'メモ（バックアップ情報）をクリップボードにコピー'}">
+          📋 ${pw ? 'PWコピー' : 'メモコピー'}
+        </button>
+        <button type="button" id="kw-btn-close-entry-notif" style="padding:6px 10px; font-size:0.85rem; font-weight:700; color:#64748b; background:transparent; border:none; cursor:pointer; min-height:36px; touch-action:manipulation;" title="通知を閉じる（後で再表示できます）">✕</button>
       </div>
       <div id="kw-cm-entry-msg" style="display:none; width:100%; font-size:0.75rem; font-weight:600; padding:6px 10px; border-radius:4px; margin-top:4px;"></div>
     `;
@@ -775,9 +842,6 @@ body.kw-generator-focus-mode .gen {
       }
     }
 
-    // KeeWeb saves all open databases with its standard Ctrl+S shortcut. The
-    // transfer changes fields programmatically, so explicitly request that save
-    // after every import instead of waiting for a later lock operation.
     function saveImportedEntry() {
       try {
         var saveEvent = new KeyboardEvent('keydown', {
@@ -848,21 +912,66 @@ body.kw-generator-focus-mode .gen {
           }
           if (target) break;
         }
-        if (target) {
-          var valEl = target.querySelector('.details__field-value');
-          if (valEl) valEl.click();
-          setTimeout(function() {
-            if (!isPendingTransferCurrent('cm_pending_entry', data)) { applyError = new Error('転送の有効期限切れ、または新しい転送へ更新されました。'); if (done) done(); return; }
-            var inp = target.querySelector(isMultiline ? 'textarea' : 'input') ||
-                      target.querySelector('input') || target.querySelector('textarea');
-            if (inp) commitValue(inp, val);
-            else applyError = new Error('適用先の入力欄が見つかりません。転送データは保持します。');
-            if (done) done();
-          }, 80);
-        } else {
+        if (!target) {
           applyError = new Error('適用先のフィールドが見つかりません。転送データは保持します。');
           if (done) done();
+          return;
         }
+
+        // 1. Check if input/textarea is already mounted and active
+        var existingInp = target.querySelector(isMultiline ? 'textarea' : 'input') ||
+                          target.querySelector('input') || target.querySelector('textarea');
+        if (existingInp) {
+          commitValue(existingInp, val);
+          if (done) done();
+          return;
+        }
+
+        // 2. Trigger edit mode: on desktop fieldValueClick calls this.edit().
+        // On mobile (c.Features.isMobile === true), fieldValueClick calls this.showMobileActions()
+        // which renders .details__field-mobile-actions containing pencil icon (fa-pencil-alt).
+        var valEl = target.querySelector('.details__field-value');
+        if (valEl) valEl.click();
+
+        var attempts = 0;
+        var timer = setInterval(function() {
+          attempts++;
+          try {
+            if (!isPendingTransferCurrent('cm_pending_entry', data)) {
+              clearInterval(timer);
+              applyError = new Error('転送の有効期限切れ、または新しい転送へ更新されました。');
+              if (done) done();
+              return;
+            }
+
+            // Mobile compatibility: If mobile action sheet is showing with pencil icon, click it!
+            var pencil = target.querySelector('.details__field-mobile-action.fa-pencil-alt, .details__field-mobile-action[class*="pencil"]') ||
+                         detailsEl.querySelector('.details__field-mobile-action.fa-pencil-alt, .details__field-mobile-action[class*="pencil"]');
+            if (pencil) {
+              pencil.click();
+            }
+
+            var inp = target.querySelector(isMultiline ? 'textarea' : 'input') ||
+                      target.querySelector('input') || target.querySelector('textarea');
+            if (inp) {
+              clearInterval(timer);
+              commitValue(inp, val);
+              if (done) done();
+              return;
+            }
+          } catch (_) {}
+
+          if (attempts >= 25) { // 1.25 seconds total polling
+            clearInterval(timer);
+            var fallbackInp = target.querySelector('input, textarea');
+            if (fallbackInp) {
+              commitValue(fallbackInp, val);
+            } else {
+              applyError = new Error('適用先の入力欄が見つかりません。転送データは保持します。');
+            }
+            if (done) done();
+          }
+        }, 50);
       }
 
       function attachFiles(atts, done) {
@@ -911,39 +1020,48 @@ body.kw-generator-focus-mode .gen {
 
         // protectAndWrite: clicks field value to enter edit mode, toggles the
         // lock (ProtectInMemory) on, sets the passphrase, and commits.
-        // Completely fail-safe — never sets applyError.
         function protectAndWrite(field) {
           if (!field) { if (done) done(); return; }
           try { var valueEl = field.querySelector('.details__field-value'); if (valueEl) valueEl.click(); } catch (_) {}
-          setTimeout(function() {
+          
+          var pAttempts = 0;
+          var pTimer = setInterval(function() {
+            pAttempts++;
             try {
+              // Mobile pencil support
+              var pencil = field.querySelector('.details__field-mobile-action.fa-pencil-alt, .details__field-mobile-action[class*="pencil"]') ||
+                           detailsEl.querySelector('.details__field-mobile-action.fa-pencil-alt, .details__field-mobile-action[class*="pencil"]');
+              if (pencil) pencil.click();
+
               if (!field.classList.contains('details__field--protected')) {
                 var lockButton = field.querySelector('.details__field-value-btn-protect');
                 if (lockButton) lockButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
               }
+
+              var input = field.querySelector('.details__field-value input, .details__field-value textarea');
+              if (input) {
+                clearInterval(pTimer);
+                commitValue(input, value);
+                if (done) done();
+                return;
+              }
             } catch (_) {}
-            setTimeout(function() {
+
+            if (pAttempts >= 25) {
+              clearInterval(pTimer);
               try {
-                var input = field.querySelector('.details__field-value input, .details__field-value textarea');
-                if (input) commitValue(input, value);
+                var fallbackInput = field.querySelector('input, textarea');
+                if (fallbackInput) commitValue(fallbackInput, value);
               } catch (_) {}
               if (done) done();
-            }, 80);
-          }, 60);
+            }
+          }, 50);
         }
 
         // If the field already exists, just protect-and-write into it.
         if (target) { protectAndWrite(target); return; }
 
         // --- Create a new custom field ---
-        // KeeWeb's DetailsAddFieldView emits "add-field" when .details__field-value
-        // is clicked, which calls DetailsView.addNewField(). This creates a new
-        // FieldViewCustom, calls render() then startEdit().
-        //
-        // KEY INSIGHT: startEdit() only opens the VALUE input and creates the
-        // protect button. The LABEL remains plain text. The label <input> is
-        // created only when the user clicks .details__field-label, which triggers
-        // fieldLabelClick → startEditTitle(true).
         var existingFields = Array.from(detailsEl.querySelectorAll('.details__field'));
         var addLabel = detailsEl.querySelector('.details__field-value-add-label');
         var addField = addLabel?.closest('.details__field-value') || detailsEl.querySelector('.details__field--no-select .details__field-value');
@@ -965,11 +1083,6 @@ body.kw-generator-focus-mode .gen {
             clearInterval(phase1);
 
             // Phase 2: Click .details__field-label to trigger startEditTitle(true).
-            // For new fields (model.newField is truthy), fieldLabelClick calls
-            // startEditTitle(true) which creates the label <input> with empty value.
-            // fieldLabelClick also calls e.stopImmediatePropagation() which prevents
-            // the global click handler from firing fieldValueBlur, so the value
-            // editing state is preserved.
             var labelEl = created.querySelector('.details__field-label');
             if (!labelEl) { protectAndWrite(created); return; }
             labelEl.click();
@@ -983,7 +1096,6 @@ body.kw-generator-focus-mode .gen {
                 if (!labelInput) {
                   if (p3 >= 15) {
                     clearInterval(phase3);
-                    // Could not rename — still try to protect and write with default name.
                     protectAndWrite(created);
                   }
                   return;
@@ -991,7 +1103,6 @@ body.kw-generator-focus-mode .gen {
                 clearInterval(phase3);
 
                 // Phase 4: Set the label to "合言葉" and commit via Enter key.
-                // fieldLabelKeyup handles Enter (keyCode 13) → endEditTitle(value).
                 labelInput.value = title;
                 labelInput.dispatchEvent(new Event('input', { bubbles: true }));
                 var enter = new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true });
@@ -999,8 +1110,6 @@ body.kw-generator-focus-mode .gen {
                 labelInput.dispatchEvent(enter);
 
                 // Phase 5: After title is committed, protect and write the value.
-                // endEditTitle sets model.title and model.titleChanged, then focuses
-                // the value input. The field element stays connected.
                 setTimeout(function() {
                   try {
                     var finalField = created.isConnected ? created :
@@ -1014,7 +1123,9 @@ body.kw-generator-focus-mode .gen {
             }, 50);
           } catch (_) { clearInterval(phase1); if (done) done(); }
         }, 50);
-        } catch (_) { if (done) done(); }
+        } catch (_) {
+          if (done) done();
+        }
       }
 
       setTimeout(function() {
@@ -1050,6 +1161,36 @@ body.kw-generator-focus-mode .gen {
               : '✅ 「' + data.site + '」のバックアップメモをクリップボードにコピーしました！';
           }
         });
+      }
+    });
+
+    document.getElementById('kw-btn-create-db-and-entry')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.__autoApplyPendingOnDbOpen = data._transferId;
+      autoDismissSecWarning();
+      var newIcon = document.querySelector('.open__icon-new') || document.getElementById('open__icon-new');
+      if (newIcon) {
+        newIcon.click();
+      }
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#dcfce7';
+        msgEl.style.color = '#065f46';
+        msgEl.textContent = '🔑 マスターパスワードを設定してデータベースを作成すると、「' + data.site + '」が自動登録されます。';
+      }
+    });
+
+    document.getElementById('kw-btn-open-existing-db')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.__autoApplyPendingOnDbOpen = data._transferId;
+      autoDismissSecWarning();
+      var openIcon = document.querySelector('.open__icon-open');
+      if (openIcon) openIcon.click();
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#f0f9ff';
+        msgEl.style.color = '#0369a1';
+        msgEl.textContent = '📂 KeePassファイルを開くと、「' + data.site + '」が自動登録されます。';
       }
     });
 
@@ -1102,7 +1243,7 @@ body.kw-generator-focus-mode .gen {
           clearInterval(checkDetails);
           if (detailsEl) {
             applyToEntry(detailsEl, data, function(error) {
-        if (error) { if (msgEl) { msgEl.style.display='block'; msgEl.textContent=error.message; } return; }
+              if (error) { if (msgEl) { msgEl.style.display='block'; msgEl.textContent=error.message; } return; }
               completePendingTransfer('cm_pending_entry', data);
               if (msgEl) {
                 var savedMessage = isBackup
@@ -1119,8 +1260,9 @@ body.kw-generator-focus-mode .gen {
 
     document.getElementById('kw-btn-close-entry-notif')?.addEventListener('click', function(e) {
       e.preventDefault();
-      removePendingTransfer('cm_pending_entry', data._transferId);
+      window.__cm_dismissed_transfers.add(data._transferId);
       bar.remove();
+      ensureDismissedPill(data);
     });
   }
 

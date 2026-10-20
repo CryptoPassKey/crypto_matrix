@@ -2525,6 +2525,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setPendingKeeWebTransfer('cm_pending_entry', {
         site: siteVal || '新規エントリー',
         password: pw,
+        passphrase: (document.getElementById('sim-secret')?.value || '').trim(),
         url: `${baseAppUrl}#seed=${curSeed}${siteVal ? '&site=' + encodeURIComponent(siteVal) : ''}`,
         timestamp: Date.now()
       });
@@ -4458,18 +4459,28 @@ document.addEventListener('DOMContentLoaded', () => {
    const site = ($('sim-site')?.value || '').trim();
    const seed = ($('input-seed-number')?.value || '0').trim();
    const baseAppUrl = window.location.href.split(/[?#]/)[0];
+   const isMaster = site.toLowerCase().includes('master');
    try {
     localStorage.setItem('cm_active_seed', seed);
-    const transferId = window.setPendingKeeWebTransfer('cm_pending_entry', {
-     site: site || 'CryptoMatrix 生成パスワード',
-     password: pw,
-     username: 'CryptoMatrix',
-     url: `${baseAppUrl}#seed=${encodeURIComponent(seed)}${site ? '&site=' + encodeURIComponent(site) : ''}`,
-     notes: 'CryptoMatrixで生成したパスワードです。',
-     timestamp: Date.now()
-    });
+    let transferId = '';
+    if (isMaster) {
+     transferId = window.setPendingKeeWebTransfer('cm_pending_master_pass', pw);
+    } else {
+     transferId = window.setPendingKeeWebTransfer('cm_pending_entry', {
+      site: site || 'CryptoMatrix 生成パスワード',
+      password: pw,
+      passphrase: ($('sim-secret')?.value || '').trim(),
+      username: 'CryptoMatrix',
+      url: `${baseAppUrl}#seed=${encodeURIComponent(seed)}${site ? '&site=' + encodeURIComponent(site) : ''}`,
+      notes: 'CryptoMatrixで生成したパスワードです。',
+      timestamp: Date.now()
+     });
+    }
     const btns = [$('btn-transfer-to-keeweb'), $('btn-sticky-transfer')].filter(Boolean);
-    btns.forEach((btn) => { btn.textContent = '✅ KeeWebを開いて追加'; btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d'; });
+    btns.forEach((btn) => {
+      btn.textContent = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebを開いて追加';
+      btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d';
+    });
     setTimeout(() => updateTransferButtonsUI(), 2500);
     if (!window.openKeeWeb(transferId)) throw new Error('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
    } catch (error) {
@@ -4703,6 +4714,7 @@ document.addEventListener('DOMContentLoaded', () => {
    setPendingKeeWebTransfer('cm_pending_entry', {
     site:title,
     password:pw,
+    passphrase:($('sim-secret')?.value||'').trim(),
     username:`CryptoMatrix-Seed#${seedNum}`,
     url:`${baseAppUrl}#seed=${seedNum}${siteVal?'&site='+encodeURIComponent(siteVal):''}`,
     notes:notes,

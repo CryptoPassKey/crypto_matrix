@@ -7,9 +7,11 @@
 'use strict';
 const $=id=>document.getElementById(id), enc=new TextEncoder(), ITER_LEGACY=310000, MAX=40000, CHUNK=420, MAXPARTS=48;
 function openKeeWeb() {
- const win = window.openKeeWeb?.();
- if (!win) throw new Error('KeeWebを開けませんでした。ポップアップの許可とindex.jsの読み込みを確認してください。');
- return win;
+ try {
+  return window.openKeeWeb ? window.openKeeWeb() : null;
+ } catch (_) {
+  return null;
+ }
 }
 const AAD_LEGACY='MCBK1:E:PBKDF2-SHA256:310000:AES-256-GCM';
 let artifact=null,createToken=0,reviewToken=0,pending=null,parts=null;

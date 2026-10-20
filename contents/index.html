@@ -2115,7 +2115,8 @@ body.blind-mode #seed-qr-list:hover {
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
      ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
      ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
-     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ Windows Hello、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
+     ・⭕ <strong>Windows Hello</strong>Windows 11<br>
+     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
    </div>
   </div>
 
@@ -2230,7 +2231,7 @@ body.blind-mode #seed-qr-list:hover {
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-passkey" style="width:17px; height:17px;">
-          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・YubiKey 5系）でのみ復元できます。Bitwarden・Windows Hello等のPRF非対応パスキーでは復元できません。">?</button>
+          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系）でのみ復元できます。PRF非対応パスキーでは復元できません。">?</button>
         </label>
       </div>
 

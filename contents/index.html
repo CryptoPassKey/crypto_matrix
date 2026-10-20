@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -2078,12 +2078,15 @@ body.blind-mode #seed-qr-list:hover {
   <div class="bq-row" id="bq-kdf-row">
    <label for="bq-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを何百万回も複雑に暗号計算（ストレッチング）してコンピューターの総当たり解析に耐えられるようにする強度の設定です。推奨設定（PBKDF2 210万回）のままで十分強力です。">?</button></label>
    <select id="bq-kdf">
-     <option value="3">Argon2id（メモリ64MB / 耐GPU・現代標準）</option>
+     <option value="3">Argon2id（メモリ64MB / 3回 / PC・スマホ両用推奨）</option>
+     <option value="4">Argon2id（メモリ128MB / 3回 / PC推奨・⚠️スマホ高負荷）</option>
+     <option value="5">Argon2id（メモリ256MB / 4回 / PC限定・⚠️スマホ復元困難）</option>
      <option value="1" selected>PBKDF2（210万回 / 推奨・高強度）</option>
      <option value="2">PBKDF2（500万回 / 超高回数・高強度）</option>
      <option value="0">PBKDF2（60万回 / 高速・標準）</option>
     </select>
     <div id="bq-kdf-desc" class="bq-select-desc"></div>
+    <div id="bq-kdf-warning" style="display:none; margin-top:6px; padding:8px 10px; border-radius:6px; font-size:0.78rem; line-height:1.45; font-weight:600;"></div>
   </div>
 
   <div class="bq-row" id="bq-password-row">
@@ -2242,12 +2245,15 @@ body.blind-mode #seed-qr-list:hover {
     <div class="bq-row" id="bv-kdf-row">
       <label for="bv-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="ストレッチング計算回数の設定です。推奨設定（PBKDF2 210万回）で十分強力です。">?</button></label>
       <select id="bv-kdf">
-        <option value="3">Argon2id（メモリ64MB / 耐GPU・現代標準）</option>
+        <option value="3">Argon2id（メモリ64MB / 3回 / PC・スマホ両用推奨）</option>
+        <option value="4">Argon2id（メモリ128MB / 3回 / PC推奨・⚠️スマホ高負荷）</option>
+        <option value="5">Argon2id（メモリ256MB / 4回 / PC限定・⚠️スマホ復元困難）</option>
         <option value="1" selected>PBKDF2（210万回 / 推奨・高強度）</option>
         <option value="2">PBKDF2（500万回 / 超高回数・高強度）</option>
         <option value="0">PBKDF2（60万回 / 高速・標準）</option>
       </select>
       <div id="bv-kdf-desc" class="bq-select-desc"></div>
+      <div id="bv-kdf-warning" style="display:none; margin-top:6px; padding:8px 10px; border-radius:6px; font-size:0.78rem; line-height:1.45; font-weight:600;"></div>
     </div>
 
     <!-- パスワード入力行 -->

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Crypto Matrix - 暗号マトリックス ＆ マイ・レシピ管理 (BIP39 24単語)
  */
 
@@ -3664,12 +3664,19 @@ document.addEventListener('DOMContentLoaded', () => {
   * CME3 Dual-Cascade Encryption (AES-256-GCM + ChaCha20-Poly1305)
   * + CME2 Legacy Backward Compatibility + Serverless 2FA
   * =================================================================== */
- const KDF_ITERATIONS={0:600000,1:2100000,2:5000000,3:'argon2id'};
+ const KDF_ITERATIONS={0:600000,1:2100000,2:5000000,3:'argon2id',4:'argon2id',5:'argon2id'};
+ const ARGON2_PROFILES={
+  3:{memorySize:65536,iterations:3,parallelism:1,label:'64MB / 3反復（PC・スマホ両用推奨）',isMobileSafe:true},
+  4:{memorySize:131072,iterations:3,parallelism:1,label:'128MB / 3反復（PC推奨・高強度 / ⚠️スマホ高負荷）',isMobileSafe:false},
+  5:{memorySize:262144,iterations:4,parallelism:1,label:'256MB / 4反復（PC限定・超高強度 / ⚠️スマホ復元困難）',isMobileSafe:false}
+ };
  const KDF_LABELS={
   0:'Level 1 PBKDF2（600,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
   1:'Level 2 PBKDF2（2,100,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
   2:'Level 3 PBKDF2（5,000,000回 ＋ HKDF-SHA512 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）',
-  3:'Level 4 Argon2id（RFC 9106 メモリ64MB / WASM 並列 ＋ 二重カスケード AES-256-GCM / ChaCha20-Poly1305 ＋ Key-Committing HMAC）'
+  3:'Level 4 Argon2id 64MB / 3回（RFC 9106標準 / PC・スマホ両用 ＋ 二重カスケード ＋ Key-Committing HMAC）',
+  4:'Level 5 Argon2id 128MB / 3回（高強度・PC推奨 ⚠️スマホ高負荷 ＋ 二重カスケード ＋ Key-Committing HMAC）',
+  5:'Level 6 Argon2id 256MB / 4回（最高強度・PC限定 ⚠️スマホ復元困難 ＋ 二重カスケード ＋ Key-Committing HMAC）'
  };
  async function derivePasskeyPrf(salt32,credentialId=null){
   if(!window.PublicKeyCredential||!navigator.credentials){
@@ -3763,9 +3770,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!extraFactor||!extraFactor.length)throw new Error('保護キー（キーファイルまたはパスキー）の導出に失敗しました。');
     keyMaterial=concat(enc.encode('CM-NOPASS:'),extraFactor);
    }
-   const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
-   zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
-   const masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
+   let masterBits;
+   if(kdfProfile===3||kdfProfile===4||kdfProfile===5){
+    if(typeof hashwasm==='undefined'||!hashwasm.argon2id){
+     throw new Error('Argon2id（WebAssembly）が読み込まれていないか利用できない環境です。');
+    }
+    const argonCfg=ARGON2_PROFILES[kdfProfile]||{memorySize:65536,iterations:3,parallelism:1};
+    const argonSalt=concat(salt,enc.encode(':ARGON2ID:'));
+    try{
+     masterBits=await hashwasm.argon2id({
+      password:keyMaterial,
+      salt:argonSalt.subarray(0,32),
+      parallelism:argonCfg.parallelism||1,
+      iterations:argonCfg.iterations,
+      memorySize:argonCfg.memorySize,
+      hashLength:64,
+      outputType:'binary'
+     });
+    }catch(err){
+     if(argonCfg.memorySize>65536){
+      throw new Error(`Argon2id（メモリ ${argonCfg.memorySize/1024}MB）の計算に失敗しました。端末のメモリ不足の可能性があります（スマホでは復元が困難な高強度設定です）: ${err?.message||err}`);
+     }
+     throw err;
+    }
+    zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
+   }else{
+    const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
+    zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
+    masterBits=await subt.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-512'},baseKey,512);
+   }
    const hkdfKey=await subt.importKey('raw',masterBits,'HKDF',false,['deriveKey']);
    zeroize(masterBits);
    const infoSuffix=extraFactor&&extraFactor.length?concat(enc.encode(':2FA:'),await sha(extraFactor)):new Uint8Array(0);
@@ -3794,20 +3827,28 @@ document.addEventListener('DOMContentLoaded', () => {
     keyMaterial=concat(enc.encode('CM-NOPASS:'),extraFactor);
    }
    let masterBits;
-   if(kdfProfile===3){
+   if(kdfProfile===3||kdfProfile===4||kdfProfile===5){
     if(typeof hashwasm==='undefined'||!hashwasm.argon2id){
      throw new Error('Argon2id（WebAssembly）が読み込まれていないか利用できない環境です。');
     }
+    const argonCfg=ARGON2_PROFILES[kdfProfile]||{memorySize:65536,iterations:3,parallelism:1};
     const argonSalt=concat(salt,enc.encode(':ARGON2ID:'));
-    masterBits=await hashwasm.argon2id({
-     password:keyMaterial,
-     salt:argonSalt.subarray(0,32),
-     parallelism:1,
-     iterations:3,
-     memorySize:65536,
-     hashLength:64,
-     outputType:'binary'
-    });
+    try{
+     masterBits=await hashwasm.argon2id({
+      password:keyMaterial,
+      salt:argonSalt.subarray(0,32),
+      parallelism:argonCfg.parallelism||1,
+      iterations:argonCfg.iterations,
+      memorySize:argonCfg.memorySize,
+      hashLength:64,
+      outputType:'binary'
+     });
+    }catch(err){
+     if(argonCfg.memorySize>65536){
+      throw new Error(`Argon2id（メモリ ${argonCfg.memorySize/1024}MB）の計算に失敗しました。端末のメモリ不足の可能性があります（スマホでは復元が困難な高強度設定です。PCブラウザでの復元をお試しください）: ${err?.message||err}`);
+     }
+     throw err;
+    }
     zeroize(keyMaterial);if(pwBytes)zeroize(pwBytes);
    }else{
     const baseKey=await subt.importKey('raw',keyMaterial,'PBKDF2',false,['deriveBits']);
@@ -4794,6 +4835,7 @@ document.addEventListener('DOMContentLoaded', () => {
   reassembleStreamGroup:(blocks,allowOutOfOrder)=>reassembleStreamGroup(blocks,allowOutOfOrder),
   qrSVG:text=>qrSVG(text),
   kdfLabel:p=>KDF_LABELS[p]||KDF_LABELS[1],
+  argon2Profiles:ARGON2_PROFILES,
   copyWithAutoClear:(text,onCleared)=>copyWithAutoClear(text,onCleared),
   estimatePasswordEntropy:pw=>estimatePasswordEntropy(pw),
   syncBlindInputs:()=>syncBlindInputs(),

@@ -3678,47 +3678,77 @@ document.addEventListener('DOMContentLoaded', () => {
   4:'Level 5 Argon2id 128MB / 3回（高強度・PC推奨 ⚠️スマホ高負荷 ＋ 二重カスケード ＋ Key-Committing HMAC）',
   5:'Level 6 Argon2id 256MB / 4回（最高強度・PC限定 ⚠️スマホ復元困難 ＋ 二重カスケード ＋ Key-Committing HMAC）'
  };
- async function derivePasskeyPrf(salt32,credentialId=null){
+ async function derivePasskeyPrf(salt32,credentialId=null,opts={}){
   if(!window.PublicKeyCredential||!navigator.credentials){
    throw new Error('お使いのブラウザ環境ではパスキーが利用できません。対応ブラウザで開いてください。');
   }
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
+  const isCompatAllowed = (opts?.passkeyCompat === true) ||
+    (typeof window !== 'undefined' && window.__ALLOW_PASSKEY_COMPAT__ === true);
+
   if(!credentialId){
-   const created=await navigator.credentials.create({
-    publicKey:{
-     challenge:crypto.getRandomValues(new Uint8Array(32)),
-     rp:{name:'Crypto Matrix Backup',id:rpId},
-     user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
-     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257},{type:'public-key',alg:-8}],
-     authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
-     timeout:60000,
-     extensions:{prf:{eval:{first:prfInput}}}
-    }
-   });
+   const userSecret=crypto.getRandomValues(new Uint8Array(32));
+   const challenge=crypto.getRandomValues(new Uint8Array(32));
+   let created;
+   try {
+    created=await navigator.credentials.create({
+     publicKey:{
+      challenge,
+      rp:{name:'Crypto Matrix Backup',id:rpId},
+      user:{id:userSecret,name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257},{type:'public-key',alg:-8}],
+      authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
+      timeout:60000,
+      extensions:{prf:{eval:{first:prfInput}}}
+     }
+    });
+   } catch(err) {
+    throw err;
+   }
    if(!created)throw new Error('パスキーの作成がキャンセルされました。');
    const rawCredId=new Uint8Array(created.rawId);
    if(!rawCredId.length||rawCredId.length>512)throw new Error('パスキー識別子の長さが不正です。');
+   
+   // 1. 作成時にすでにPRF結果がある場合（真のPRF対応）
    const extRes=created.getClientExtensionResults?.()?.prf;
    if(extRes?.results?.first){
     return{extraFactor:await sha512(new Uint8Array(extRes.results.first)),credentialId:rawCredId};
    }
-   const assertion=await navigator.credentials.get({
-    publicKey:{
-     challenge:crypto.getRandomValues(new Uint8Array(32)),
-     rpId,
-     allowCredentials:[{type:'public-key',id:rawCredId}],
-     userVerification:'required',
-     timeout:60000,
-     extensions:{prf:{eval:{first:prfInput}}}
-    }
-   });
-   const getPrf=assertion?.getClientExtensionResults?.()?.prf;
-   if(!getPrf?.results?.first){
-    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
+
+   // 2. 作成時にPRF結果がなければ get() で試行
+   let getPrf=null;
+   try {
+    const assertion=await navigator.credentials.get({
+     publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rpId,
+      allowCredentials:[{type:'public-key',id:rawCredId}],
+      userVerification:'preferred',
+      timeout:60000,
+      extensions:{prf:{eval:{first:prfInput}}}
+     }
+    });
+    getPrf=assertion?.getClientExtensionResults?.()?.prf;
+   } catch(_) {}
+
+   if(getPrf?.results?.first){
+    return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
-   return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
+
+   // 3. PRFが返らない場合（Bitwarden等の通常パスキー認証）：互換モードが許可されていればPKv2形式で暗号化
+   if(isCompatAllowed){
+    const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
+    const maskedSecret=new Uint8Array(32);
+    for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
+    const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
+    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
+    return{extraFactor,credentialId:packedCred,isCompatMode:true};
+   }
+
+   throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
   }
+
   if(credentialId.length>35&&credentialId[0]===0x50&&credentialId[1]===0x4b&&credentialId[2]===0x02){
    let allowMigrate = (typeof window !== 'undefined' && (window.__ALLOW_LEGACY_PK2__ === true || window.__ALLOW_LEGACY_MIGRATION__ === true));
    if(!allowMigrate && window.__ALLOW_LEGACY_PK2__ !== false && typeof window !== 'undefined' && typeof window.promptLegacyPK2Consent === 'function'){
@@ -3735,6 +3765,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
    return{extraFactor,credentialId:rawCredId,isLegacyPK2Migrated:true};
   }
+
   const assertion=await navigator.credentials.get({
    publicKey:{
     challenge:crypto.getRandomValues(new Uint8Array(32)),
@@ -3902,7 +3933,7 @@ document.addEventListener('DOMContentLoaded', () => {
     prf=factors.passkeyContext;
     passkeySalt=prf.salt;
     formatVersion=4;
-   }else prf=await derivePasskeyPrf(salt,null);
+   }else prf=await derivePasskeyPrf(salt,null,{passkeyCompat:factors.passkeyCompat});
    if(prf.credentialId.length>512)throw new Error('パスキー識別子が長すぎます。');
    credHeader=new Uint8Array(2+prf.credentialId.length);
    new DataView(credHeader.buffer).setUint16(0,prf.credentialId.length,false);
@@ -3946,7 +3977,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let dualFactors=factors,sharedContext=null;
   if(factors.usePasskey){
    const sharedSalt=crypto.getRandomValues(new Uint8Array(32));
-   sharedContext=await derivePasskeyPrf(sharedSalt,null);
+   sharedContext=await derivePasskeyPrf(sharedSalt,null,{passkeyCompat:factors.passkeyCompat});
    sharedContext.salt=sharedSalt;
    dualFactors={...factors,passkeyContext:sharedContext};
   }
@@ -4854,7 +4885,7 @@ document.addEventListener('DOMContentLoaded', () => {
    }
    let bodyToFrame,combo=0;
    if(usePass||useKeyfile||usePasskey){
-    const factors={usePassword:usePass,useKeyfile,usePasskey,keyfileBytes:options?.keyfileBytes};
+    const factors={usePassword:usePass,useKeyfile,usePasskey,passkeyCompat:options?.passkeyCompat,keyfileBytes:options?.keyfileBytes};
     if(options?.duress?.enabled){
       const dSeed=parseSeedValue(options.duress.seed||'11223344');
       const dSite=options.duress.site||'shopping.example.com';
@@ -4942,7 +4973,7 @@ document.addEventListener('DOMContentLoaded', () => {
   exportKeePassXmlKeyfile:opts=>exportKeePassXmlKeyfile(opts),
   showKeyfileModal:(opts,cb)=>showKeyfileModal(opts,cb),
   closeKeyfileModal:()=>closeKeyfileModal(),
-  derivePasskeyPrf:(salt32,credId)=>derivePasskeyPrf(salt32,credId),
+  derivePasskeyPrf:(salt32,credId,opts)=>derivePasskeyPrf(salt32,credId,opts),
   setPendingKeeWebTransfer:(key,data,ttlMs=60000)=>setPendingKeeWebTransfer(key,data,ttlMs),
   openKeeWeb:()=>window.openKeeWeb(),
   promptLegacyPK2Consent:()=>window.promptLegacyPK2Consent()

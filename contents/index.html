@@ -2109,6 +2109,13 @@ body.blind-mode #seed-qr-list:hover {
 
   <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
    🔐 <strong>パスキー保護：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="お使いの端末（iPhone/Android/PC）の生体認証やパスワードマネージャーによる本人確認でバックアップをロックします。復元時も同じパスキーが必要です。">?</button> お使いのパスキー（Bitwarden等のパスワードマネージャー・iPhone/MacのFace ID/Touch ID・Android生体認証・Windows Hello・YubiKey等）による認証を通過しない限り復号できなくなります。<br>復元時も同じパスキーが必要です。機種変更や別端末での復元に備え、Bitwarden・iCloud・Google等の同期対応パスキー、またはYubiKey等のセキュリティキーをお使いください。
+   <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #93c5fd;">
+     <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.8rem; color:#1e3a8a;">
+       <input type="checkbox" id="bq-passkey-compat" checked>
+       <span>Bitwarden・一般生体認証対応（互換モード）</span>
+       <button type="button" class="help-btn" aria-label="説明を表示" data-help="Bitwarden等のパスワードマネージャーや、PRF非対応の一般的な指紋・顔認証でもパスキー保護を利用できるようにする互換機能です。YubiKey等の専用ハードウェア鍵（PRF拡張）のみに限定したい場合はチェックを外してください。">?</button>
+     </label>
+   </div>
   </div>
 
   
@@ -2279,6 +2286,13 @@ body.blind-mode #seed-qr-list:hover {
     <!-- パスキー説明行 -->
     <div class="bq-row" id="bv-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
       🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。
+      <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #93c5fd;">
+        <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.8rem; color:#1e3a8a;">
+          <input type="checkbox" id="bv-passkey-compat" checked>
+          <span>Bitwarden・一般生体認証対応（互換モード）</span>
+          <button type="button" class="help-btn" aria-label="説明を表示" data-help="Bitwarden等のパスワードマネージャーや、PRF非対応の一般的な指紋・顔認証でもパスキー保護を利用できるようにする互換機能です。YubiKey等の専用ハードウェア鍵（PRF拡張）のみに限定したい場合はチェックを外してください。">?</button>
+        </label>
+      </div>
     </div>
 
     

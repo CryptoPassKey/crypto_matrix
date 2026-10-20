@@ -86,11 +86,13 @@ function getProtectionConfig(){
 
  const usePasskey=$('bq-opt-passkey')?.checked??false;
 
+ const passkeyCompat=$('bq-passkey-compat')?.checked??true;
+
  const shamirVal=($('bq-shamir')?.value||'1-1').split('-').map(Number);
 
  const shamirM=shamirVal[0]||1,shamirN=shamirVal[1]||1;
 
- return{usePass,useKeyfile,usePasskey,shamirM,shamirN};
+ return{usePass,useKeyfile,usePasskey,passkeyCompat,shamirM,shamirN};
 
 }
 
@@ -900,7 +902,7 @@ async function createBackup(){
 
  const kdfProfile=Number($('bq-kdf')?.value??1);
 
- const {usePass,useKeyfile,usePasskey,shamirM,shamirN}=getProtectionConfig();
+ const {usePass,useKeyfile,usePasskey,passkeyCompat,shamirM,shamirN}=getProtectionConfig();
 
  if(!usePass&&!useKeyfile&&!usePasskey&&shamirN<=1){
 
@@ -958,7 +960,7 @@ async function createBackup(){
 
     const signature=settingsSignature();
 
-    const res=await MatrixCardPreset.createEncryptedBip39Backup(extended,password,kdfProfile,{usePassword:usePass,useKeyfile,usePasskey,keyfileBytes,shamirM,shamirN,duress:duressOpts});
+    const res=await MatrixCardPreset.createEncryptedBip39Backup(extended,password,kdfProfile,{usePassword:usePass,useKeyfile,usePasskey,passkeyCompat,keyfileBytes,shamirM,shamirN,duress:duressOpts});
 
   if(token!==createToken||signature!==settingsSignature())return;
 
@@ -2932,6 +2934,8 @@ function initBonusVault(){
 
         usePasskey,
 
+        passkeyCompat:$('bv-passkey-compat')?.checked??true,
+
         keyfileBytes:keyfileWorkingCopy
 
        });
@@ -2945,6 +2949,8 @@ function initBonusVault(){
         useKeyfile,
 
         usePasskey,
+
+        passkeyCompat:$('bv-passkey-compat')?.checked??true,
 
         keyfileBytes:keyfileWorkingCopy
 

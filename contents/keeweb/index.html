@@ -748,9 +748,6 @@ body.kw-generator-focus-mode .gen {
         <button type="button" id="kw-btn-copy-entry-pw" style="padding:6px 12px; font-size:0.80rem; font-weight:600; color:#334155; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" title="${pw ? 'パスワードをクリップボードにコピー' : 'メモ（バックアップ情報）をクリップボードにコピー'}">
           📋 ${pw ? 'PWコピー' : 'メモをコピー'}
         </button>
-        <button type="button" id="kw-btn-save-entry-now" style="padding:6px 12px; font-size:0.80rem; font-weight:700; color:#fff; background:#16a34a; border:1px solid #15803d; border-radius:6px; cursor:pointer;" title="KeeWebの保存処理を実行します">
-          💾 保存する
-        </button>
         <button type="button" id="kw-btn-close-entry-notif" style="padding:4px 8px; font-size:0.9rem; color:#94a3b8; background:transparent; border:none; cursor:pointer;" title="閉じる">✕</button>
       </div>
       <div id="kw-cm-entry-msg" style="display:none; width:100%; font-size:0.75rem; font-weight:600; padding:6px 10px; border-radius:4px; margin-top:4px;"></div>
@@ -819,6 +816,7 @@ body.kw-generator-focus-mode .gen {
       var username = d.username || '';
       var url = d.url || '';
       var notes = d.notes || '';
+      var passphrase = d.passphrase || '';
       var attachments = d.attachments || [];
 
       // 1. Title (support both input edit mode and h1 view mode)
@@ -900,13 +898,134 @@ body.kw-generator-focus-mode .gen {
         if (done) done();
       }
 
+      function setProtectedPassphrase(value, done) {
+        // Fail-safe: ANY error in this function must NEVER block the rest of the
+        // transfer (Title, Password, URL, Notes, Attachments). We never set applyError.
+        if (!value) { if (done) done(); return; }
+        try {
+        var title = '合言葉';
+        var fields = Array.from(detailsEl.querySelectorAll('.details__field'));
+        var target = fields.find(function(field) {
+          return (field.querySelector('.details__field-label')?.textContent || '').trim() === title;
+        });
+
+        // protectAndWrite: clicks field value to enter edit mode, toggles the
+        // lock (ProtectInMemory) on, sets the passphrase, and commits.
+        // Completely fail-safe — never sets applyError.
+        function protectAndWrite(field) {
+          if (!field) { if (done) done(); return; }
+          try { var valueEl = field.querySelector('.details__field-value'); if (valueEl) valueEl.click(); } catch (_) {}
+          setTimeout(function() {
+            try {
+              if (!field.classList.contains('details__field--protected')) {
+                var lockButton = field.querySelector('.details__field-value-btn-protect');
+                if (lockButton) lockButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+              }
+            } catch (_) {}
+            setTimeout(function() {
+              try {
+                var input = field.querySelector('.details__field-value input, .details__field-value textarea');
+                if (input) commitValue(input, value);
+              } catch (_) {}
+              if (done) done();
+            }, 80);
+          }, 60);
+        }
+
+        // If the field already exists, just protect-and-write into it.
+        if (target) { protectAndWrite(target); return; }
+
+        // --- Create a new custom field ---
+        // KeeWeb's DetailsAddFieldView emits "add-field" when .details__field-value
+        // is clicked, which calls DetailsView.addNewField(). This creates a new
+        // FieldViewCustom, calls render() then startEdit().
+        //
+        // KEY INSIGHT: startEdit() only opens the VALUE input and creates the
+        // protect button. The LABEL remains plain text. The label <input> is
+        // created only when the user clicks .details__field-label, which triggers
+        // fieldLabelClick → startEditTitle(true).
+        var existingFields = Array.from(detailsEl.querySelectorAll('.details__field'));
+        var addLabel = detailsEl.querySelector('.details__field-value-add-label');
+        var addField = addLabel?.closest('.details__field-value') || detailsEl.querySelector('.details__field--no-select .details__field-value');
+        if (!addField) { if (done) done(); return; }
+        addField.click();
+
+        // Phase 1: Find the newly created field element.
+        var p1 = 0;
+        var phase1 = setInterval(function() {
+          try {
+            p1++;
+            var created = Array.from(detailsEl.querySelectorAll('.details__field')).find(function(f) {
+              return existingFields.indexOf(f) === -1;
+            });
+            if (!created) {
+              if (p1 >= 20) { clearInterval(phase1); if (done) done(); }
+              return;
+            }
+            clearInterval(phase1);
+
+            // Phase 2: Click .details__field-label to trigger startEditTitle(true).
+            // For new fields (model.newField is truthy), fieldLabelClick calls
+            // startEditTitle(true) which creates the label <input> with empty value.
+            // fieldLabelClick also calls e.stopImmediatePropagation() which prevents
+            // the global click handler from firing fieldValueBlur, so the value
+            // editing state is preserved.
+            var labelEl = created.querySelector('.details__field-label');
+            if (!labelEl) { protectAndWrite(created); return; }
+            labelEl.click();
+
+            // Phase 3: Wait for the label <input> to appear.
+            var p3 = 0;
+            var phase3 = setInterval(function() {
+              try {
+                p3++;
+                var labelInput = created.querySelector('.details__field-label input');
+                if (!labelInput) {
+                  if (p3 >= 15) {
+                    clearInterval(phase3);
+                    // Could not rename — still try to protect and write with default name.
+                    protectAndWrite(created);
+                  }
+                  return;
+                }
+                clearInterval(phase3);
+
+                // Phase 4: Set the label to "合言葉" and commit via Enter key.
+                // fieldLabelKeyup handles Enter (keyCode 13) → endEditTitle(value).
+                labelInput.value = title;
+                labelInput.dispatchEvent(new Event('input', { bubbles: true }));
+                var enter = new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true });
+                try { Object.defineProperty(enter, 'keyCode', { value: 13 }); Object.defineProperty(enter, 'which', { value: 13 }); } catch (_) {}
+                labelInput.dispatchEvent(enter);
+
+                // Phase 5: After title is committed, protect and write the value.
+                // endEditTitle sets model.title and model.titleChanged, then focuses
+                // the value input. The field element stays connected.
+                setTimeout(function() {
+                  try {
+                    var finalField = created.isConnected ? created :
+                      Array.from(detailsEl.querySelectorAll('.details__field')).find(function(f) {
+                        return (f.querySelector('.details__field-label')?.textContent || '').trim() === title;
+                      });
+                    protectAndWrite(finalField || created);
+                  } catch (_) { if (done) done(); }
+                }, 100);
+              } catch (_) { clearInterval(phase3); if (done) done(); }
+            }, 50);
+          } catch (_) { clearInterval(phase1); if (done) done(); }
+        }, 50);
+        } catch (_) { if (done) done(); }
+      }
+
       setTimeout(function() {
         setField(['pass', 'パスワード'], password, false, function() {
           setField(['ユーザー', 'user', 'アカウント'], username, false, function() {
             setField(['url', 'web', 'ウェブ', 'サイト'], url, false, function() {
               setField(['メモ', 'ノート', 'notes', 'note'], notes, true, function() {
-                attachFiles(attachments, function() {
-                  if (doneCb) doneCb(applyError);
+                setProtectedPassphrase(passphrase, function() {
+                  attachFiles(attachments, function() {
+                    if (doneCb) doneCb(applyError);
+                  });
                 });
               });
             });
@@ -931,18 +1050,6 @@ body.kw-generator-focus-mode .gen {
               : '✅ 「' + data.site + '」のバックアップメモをクリップボードにコピーしました！';
           }
         });
-      }
-    });
-
-    document.getElementById('kw-btn-save-entry-now')?.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (msgEl) {
-        msgEl.style.display = 'block';
-        msgEl.style.background = '#dcfce7';
-        msgEl.style.color = '#065f46';
-        msgEl.textContent = saveImportedEntry()
-          ? '💾 保存を実行しました。完了後に閉じてください。'
-          : '⚠️ 保存を実行できませんでした。KeeWebの保存操作を使ってください。';
       }
     });
 

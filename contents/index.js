@@ -2742,12 +2742,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   let orderNote = '';
   if (cfg.kwOrder === 1) {
-   orderNote = '【旧世代方式】結合方式：連結（サイト名＋合言葉）。以前のパスワードを正確に再現しています。';
+   orderNote = '結合方式：連結（サイト名＋合言葉を順番に並べて読み取ります）。';
   } else if (cfg.kwOrder === 3) {
-   orderNote = '【最新世代方式】結合方式：交互配置（サイト名・合言葉を交互に配置）。';
+   orderNote = '結合方式：交互配置（サイト名と合言葉を1文字ずつ交互に並べて安全性を高めます）。';
   } else {
    const name = orderTexts[cfg.kwOrder] || `結合方式 #${cfg.kwOrder}`;
-   orderNote = `【カスタム設定】結合方式：${name}。`;
+   orderNote = `結合方式：${name}。`;
   }
   const modeTitle=cfg.lenMode===3?'かんたん生成モード — 銀行などの暗証番号（数字のみ）':cfg.lenMode===5?'かんたん生成モード — パスワード（英大小・数字・記号）':'かんたん生成モード（旧互換） — パスワード（英大小・数字）';
   const notes=[orderNote,`${modeTitle}：英字A〜Zは小文字として中央を探す。中央にない文字（ドット・空白など）は飛ばす。`,'順読みは左→右。行末は次の行の左端、右下の次は左上。',cfg.lenMode===3?`${cfg.lenVal}桁まで左上を読む。不足分は最後に読んだマスの次から左上を読み足す。`:cfg.lenMode===4?`本文は${cfg.lenVal-3}文字。右上を読み、不足時は順読み。その次から右上の大文字→さらに次から右上の小文字を探し、次のマスの左上数字を採用。`:`本文は${cfg.lenVal-4}文字。左下の禁止記号は次のマスへ飛ばす。不足分も左下を順読み。最後は次から右上の大文字→次から右上の小文字→次の左上数字→次から左下の許可記号を探して採用。`,'すべての出力文字は物理カードの実在する角から直接読み取る。パスワード生成にハッシュや追加乱数は使わない。'];
@@ -4387,7 +4387,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!refSetId){
     refM=m;refN=n;refSetId=setId;refDataLen=shareData.length;
    }else if(m!==refM||n!==refN||!equal(setId,refSetId)||shareData.length!==refDataLen){
-    throw new Error('異なる秘密分散バックアップのシェアが混在しています。同じ作成時のシェア同士を入力してください。');
+    throw new Error('異なる秘密分散バックアップのシェアが混在しています。同じバックアップから生成されたシェア同士を入力してください。');
    }
    shareMap.set(k,{index:k,data:shareData});
   }

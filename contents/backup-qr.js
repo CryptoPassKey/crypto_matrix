@@ -1322,7 +1322,7 @@ async function applyRestore(){
 
   const shamirNote=d.shamir?`・秘密分散 ${d.shamir.m}-of-${d.shamir.n} 合成済み`:'';
 
-  const pk2WarnNote=d.isLegacyPK2Migrated?'\n\n⚠️【旧PKv2救出完了】旧世代の脆弱なパスキー保護（PKv2）から復元されました。安全のため、速やかにセクション3にて最新のバックアップ（PRFまたはパスワード保護）を再作成してください。':'';
+  const pk2WarnNote=d.isLegacyPK2Migrated?'\n\n⚠️【データ救出完了】以前のパスキー保護形式から復元されました。安全のため、速やかにセクション3にて最新のバックアップ（パスキーまたはパスワード保護）を再作成してください。':'';
 
   message('bq-scan-status',(d.full
 
@@ -2098,7 +2098,7 @@ function initHelpTooltips(){
 
    `<div class="help-popover-header">`+
 
-   `<span class="help-popover-title">💡 用語の解説</span>`+
+   `<span class="help-popover-title">💡 解説</span>`+
 
    `<button type="button" class="help-popover-close" aria-label="閉じる">✕</button>`+
 
@@ -4546,7 +4546,7 @@ function initBonusVault(){
 
    const legacyWarn = isMigrated
 
-    ? '\n\n⚠️【旧PKv2救出完了】旧世代の脆弱なパスキー保護（PKv2）から復元されました。安全のため、速やかに保管庫の最新バックアップを再作成してください。'
+    ? '\n\n⚠️【データ救出完了】以前のパスキー保護形式から復元されました。安全のため、速やかに保管庫の最新バックアップを再作成してください。'
 
     : '';
 

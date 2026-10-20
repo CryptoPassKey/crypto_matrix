@@ -10762,21 +10762,22 @@ function initBonusVault(){
        timestamp:Date.now()
       });
 
-      const btn=$('bv-btn-kw-single');
-      if(btn){
-       const origText=btn.innerHTML;
-       btn.innerHTML='✅ KeeWebへ転送完了！KeeWebを開く…';
-       btn.style.background='#dcfce7';
-       btn.style.borderColor='#86efac';
-       btn.style.color='#15803d';
-       setTimeout(()=>{
-        btn.innerHTML=origText;
-        btn.style.background='#f0f9ff';
-        btn.style.borderColor='#0284c7';
-        btn.style.color='#0369a1';
-       },2500);
-      }
-      openKeeWeb();
+       const btn=$('bv-btn-kw-single');
+       if(btn){
+        const origText=btn.innerHTML;
+        btn.innerHTML='✅ KeeWeb転送準備完了！ <a href="keeweb/index.html" target="_blank" style="color:#15803d; text-decoration:underline;">[🔑 KeeWebを開く]</a>';
+        btn.style.background='#dcfce7';
+        btn.style.borderColor='#86efac';
+        btn.style.color='#15803d';
+        setTimeout(()=>{
+         btn.innerHTML=origText;
+         btn.style.background='#f0f9ff';
+         btn.style.borderColor='#0284c7';
+         btn.style.color='#0369a1';
+        },3500);
+       }
+       bvMessage('bv-encrypt-status','✅ KeeWeb転送データを準備しました。<a href="keeweb/index.html" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:underline; margin-left:6px;">[🔑 KeeWebを開く]</a>');
+       openKeeWeb();
      });
 
      $('bv-btn-xml-single')?.addEventListener('click',async()=>{
@@ -11392,12 +11393,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(!artifact)return;
   const siteVal=($('sim-site')?.value||'').trim();
   const cardPw=($('sim-output-pw')?.textContent||'').trim();
-  const restorePw=artifact.usePass?window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||'':'';
+  const existingBqPw=($('bq-password')?.value||'').trim();
+  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
   if(artifact.usePass&&!restorePw){message('bq-status','KeeWeb転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);return;}
   const pw=artifact.usePass?restorePw:cardPw||'';
   const seedNum=$('input-seed-number')?.value||'0';
   const isArmored=(artifact.activeFormat==='armored');
   const textToSave=$('bq-output')?.value||artifact.packet||(isArmored?artifact.armoredText:artifact.phraseText)||'';
+
+  // Synchronously request window open during active user gesture on touch devices / iOS Safari
+  let pendingWin = openKeeWeb();
 
   const attachments=[];
   const qrSvgs=Array.from($('bq-qr-list')?.querySelectorAll('svg')||[]);
@@ -11484,7 +11489,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const btn=$('bq-transfer-keeweb');
   if(btn){
    const origText=btn.innerHTML;
-   btn.innerHTML='✅ KeeWebへ転送完了！KeeWebを開く…';
+   btn.innerHTML='✅ KeeWeb転送準備完了！';
    btn.style.background='#dcfce7';
    btn.style.borderColor='#86efac';
    btn.style.color='#15803d';
@@ -11493,15 +11498,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.style.background='#f0f9ff';
     btn.style.borderColor='#0284c7';
     btn.style.color='#0369a1';
-   },2500);
+   },3500);
   }
-  openKeeWeb();
+  message('bq-status','✅ KeeWeb転送データを準備しました。<a href="keeweb/index.html" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:underline; margin-left:6px;">[🔑 KeeWebを開く]</a>');
+  if(!pendingWin) openKeeWeb();
  });
  $('bq-save-xml')?.addEventListener('click',async()=>{
   if(!artifact)return;
   const qrSvg=$('bq-qr-list')?.querySelector('svg');
   const site=$('sim-site')?.value||'1Password';
-  const pw=artifact.usePass?window.prompt('KeePassインポート用の保護されたパスワード欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||'':($('sim-output-pw')?.textContent||'').trim();
+  const existingBqXmlPw=($('bq-password')?.value||'').trim();
+  const pw=artifact.usePass?(existingBqXmlPw||window.prompt('KeePassインポート用の保護されたパスワード欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):($('sim-output-pw')?.textContent||'').trim();
   if(artifact.usePass&&!pw){message('bq-status','KeePass用ファイルの出力を中止しました。復元用パスワードの入力が必要です。',true);return;}
   const notes=
 `【Crypto Matrix 暗号化バックアップ情報】

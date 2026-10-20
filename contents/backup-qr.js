@@ -1,4 +1,4 @@
-/* Matrix Card Backup & QR Restore (Unified BIP39 24-word x N-block + CME2 Encryption + Shamir M-of-N Secret Sharing + Serverless 2FA)
+﻿/* Matrix Card Backup & QR Restore (Unified BIP39 24-word x N-block + CME2 Encryption + Shamir M-of-N Secret Sharing + Serverless 2FA)
  * - Section 2 auto-displays unencrypted 24-word (settings-only) or 24-word x N-block (CMX2/CXB2 extended) phrases & QR codes.
  * - Section 3 creates password-encrypted 24-word x N-block (CME2/CXB2) phrases & QR codes, with optional GF(2^8) Shamir's Secret Sharing (M-of-N) and Serverless 2FA (Keyfile / WebAuthn Passkey PRF).
  * - Every QR code encodes a 24-word BIP39 block directly. Legacy MCBK1/MCQR1 strings remain supported on restore.
@@ -1948,7 +1948,8 @@ function initBonusVault(){
          btn.style.color='#0369a1';
         },3500);
        }
-       bvMessage('bv-encrypt-status','✅ KeeWeb転送データを準備しました。<a href="keeweb/index.html" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:underline; margin-left:6px;">[🔑 KeeWebを開く]</a>');
+       bvMessage('bv-encrypt-status','✅ KeeWeb転送データを準備しました。');
+       {const _el=$('bv-encrypt-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
        openKeeWeb();
      });
 
@@ -2672,7 +2673,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.style.color='#0369a1';
    },3500);
   }
-  message('bq-status','✅ KeeWeb転送データを準備しました。<a href="keeweb/index.html" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:underline; margin-left:6px;">[🔑 KeeWebを開く]</a>');
+  message('bq-status','✅ KeeWeb転送データを準備しました。');
+  {const _el=$('bq-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
   if(!pendingWin) openKeeWeb();
  });
  $('bq-save-xml')?.addEventListener('click',async()=>{

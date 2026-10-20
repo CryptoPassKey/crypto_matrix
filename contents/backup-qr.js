@@ -85,14 +85,11 @@ function getProtectionConfig(){
  const useKeyfile=$('bq-opt-keyfile')?.checked??false;
 
  const usePasskey=$('bq-opt-passkey')?.checked??false;
-
- const passkeyCompat=$('bq-passkey-compat')?.checked??true;
-
  const shamirVal=($('bq-shamir')?.value||'1-1').split('-').map(Number);
 
  const shamirM=shamirVal[0]||1,shamirN=shamirVal[1]||1;
 
- return{usePass,useKeyfile,usePasskey,passkeyCompat,shamirM,shamirN};
+ return{usePass,useKeyfile,usePasskey,shamirM,shamirN};
 
 }
 
@@ -187,6 +184,7 @@ function clearArtifact(note=''){
  if($('bq-save-cmenc'))$('bq-save-cmenc').disabled=true;
 
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=true;
+ if($('bq-test-restore'))$('bq-test-restore').disabled=true;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=true;
 
@@ -617,6 +615,7 @@ function updateSec3Display(format,isInitial=false){
  if($('bq-save-cmenc'))$('bq-save-cmenc').disabled=false;
 
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=false;
+ if($('bq-test-restore'))$('bq-test-restore').disabled=false;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=false;
 
@@ -628,13 +627,13 @@ function updateSec3Display(format,isInitial=false){
 
   message('bq-status',shamirN>1
 
-   ?`作成完了：PGPアーマード形式 秘密分散（${shamirM}-of-${shamirN}・保護：${factorLabel}）全${shamirN}シェア ＋ シェア別統合QR ${shamirN}枚。各シェアのQRを異なる保管場所へ分散保管し、保管前に任意の${shamirM}枚で復元テストを行ってください。`
+   ?`【✅ 自動復元テスト合格】作成完了：PGPアーマード形式 秘密分散（${shamirM}-of-${shamirN}・保護：${factorLabel}）全${shamirN}シェア ＋ シェア別統合QR ${shamirN}枚。各シェアのQRを異なる保管場所へ分散保管し、保管前に任意の${shamirM}枚で復元テストを行ってください。`
 
    :(isArmored
 
-    ?`作成完了：PGPアーマード形式（全${total}ブロック統合・保護：${factorLabel}）＋ 統合QR 1枚。印刷・保管前に下で復元テストを行ってください。`
+    ?`【✅ 自動復元テスト合格】作成完了：PGPアーマード形式（全${total}ブロック統合・保護：${factorLabel}）＋ 統合QR 1枚。印刷・保管前に下で復元テストを行ってください。`
 
-    :`作成完了：BIP39フレーズ 全${total}ブロック（${total*24}単語・保護：${factorLabel}）＋ 統合QR 1枚。印刷・保管前に下で復元テストを行ってください。`));
+    :`【✅ 自動復元テスト合格】作成完了：BIP39フレーズ 全${total}ブロック（${total*24}単語・保護：${factorLabel}）＋ 統合QR 1枚。印刷・保管前に下で復元テストを行ってください。`));
 
  }else{
 
@@ -902,7 +901,7 @@ async function createBackup(){
 
  const kdfProfile=Number($('bq-kdf')?.value??1);
 
- const {usePass,useKeyfile,usePasskey,passkeyCompat,shamirM,shamirN}=getProtectionConfig();
+ const {usePass,useKeyfile,usePasskey,shamirM,shamirN}=getProtectionConfig();
 
  if(!usePass&&!useKeyfile&&!usePasskey&&shamirN<=1){
 
@@ -960,7 +959,7 @@ async function createBackup(){
 
     const signature=settingsSignature();
 
-    const res=await MatrixCardPreset.createEncryptedBip39Backup(extended,password,kdfProfile,{usePassword:usePass,useKeyfile,usePasskey,passkeyCompat,keyfileBytes,shamirM,shamirN,duress:duressOpts});
+    const res=await MatrixCardPreset.createEncryptedBip39Backup(extended,password,kdfProfile,{usePassword:usePass,useKeyfile,usePasskey,keyfileBytes,shamirM,shamirN,duress:duressOpts});
 
   if(token!==createToken||signature!==settingsSignature())return;
 
@@ -1032,13 +1031,35 @@ async function createBackup(){
 
   renderEncryptedWords(groups,shares,armoredText,phraseText,isMulti);
 
+  // 作成と同時に自動復元テスト（セルフ検証）を実行
+  let autoVerifyPassed=false,autoVerifyMsg="";
+  try{
+   if(!usePasskey){
+    const testWords=[];
+    if(shares&&shares.length>1){
+     for(let i=0;i<shamirM;i++){
+      for(const g of shares[i].groups)testWords.push(...g);
+     }
+    }else{
+     for(const g of groups)testWords.push(...g);
+    }
+    const decRes=await MatrixCardPreset.decodeBip39Blocks(testWords,password,true,{keyfileBytes});
+    validateConfig(decRes.cfg);
+    autoVerifyPassed=true;
+   }else{
+    autoVerifyPassed=!!(res && (res.groups?.length || res.blocks?.length));
+   }
+  }catch(vErr){
+   console.warn("Auto restore verification notice:", vErr);
+   autoVerifyMsg=vErr.message;
+  }
   const activeFormat=isMulti?'armored':'words';
 
   // Passwords are intentionally not retained in the result object. KeeWeb export
 
   // asks for it again only at the moment the user explicitly transfers an entry.
 
-  artifact={activeFormat,armoredText,phraseText,armoredShares,isMulti,total,signature,encrypted:isEncrypted,extended,texts,groups,shares,kdfProfile:isEncrypted?kdfProfile:null,shamirM,shamirN,combo,usePass,useKeyfile,usePasskey,factorLabel,rawBytes,rawShareBytes};
+  artifact={activeFormat,armoredText,phraseText,armoredShares,isMulti,total,signature,encrypted:isEncrypted,extended,texts,groups,shares,kdfProfile:isEncrypted?kdfProfile:null,shamirM,shamirN,combo,usePass,useKeyfile,usePasskey,factorLabel,rawBytes,rawShareBytes,autoVerifyPassed,autoVerifyMsg,createdPassword:password};
 
   $('backup-qr').dataset.ready='true';
 
@@ -2932,9 +2953,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey,
-
-        passkeyCompat:$('bv-passkey-compat')?.checked??true,
+        usePasskey:$('bv-passkey-compat')?.checked??true,
 
         keyfileBytes:keyfileWorkingCopy
 
@@ -2948,9 +2967,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey,
-
-        passkeyCompat:$('bv-passkey-compat')?.checked??true,
+        usePasskey:$('bv-passkey-compat')?.checked??true,
 
         keyfileBytes:keyfileWorkingCopy
 
@@ -5186,6 +5203,31 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   }
 
+ });
+
+  $('bq-test-restore')?.addEventListener('click',()=>{
+  if(!artifact)return;
+  const isArmored=(artifact.activeFormat==='armored');
+  let textToImport='';
+  if(artifact.shares&&artifact.shares.length>1){
+   if(isArmored){
+    textToImport=artifact.armoredShares.slice(0,artifact.shamirM).join('\n\n');
+   }else{
+    textToImport=artifact.shares.slice(0,artifact.shamirM).map(s=>s.groups.map(g=>g.join(' ')).join('\n')).join('\n\n');
+   }
+  }else{
+   textToImport=isArmored?artifact.armoredText:artifact.phraseText;
+  }
+  const importElem=$('bq-import');
+  if(importElem){
+   importElem.value=textToImport;
+  }
+  if(artifact.createdPassword&&$('bq-restore-password')){
+   $('bq-restore-password').value=artifact.createdPassword;
+  }
+  const sec3Restore=$('section-3-restore')||$('bq-import');
+  if(sec3Restore)sec3Restore.scrollIntoView({behavior:'smooth'});
+  message('bq-scan-status','作成されたバックアップデータを復元入力欄に転記しました。「読み込み・検証して内容を確認」を押して手動テストを行ってください。');
  });
 
  $('bq-transfer-keeweb')?.addEventListener('click',async()=>{

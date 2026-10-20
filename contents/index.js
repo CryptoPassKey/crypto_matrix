@@ -3933,7 +3933,8 @@ document.addEventListener('DOMContentLoaded', () => {
     prf=factors.passkeyContext;
     passkeySalt=prf.salt;
     formatVersion=4;
-   }else prf=await derivePasskeyPrf(salt,null,{passkeyCompat:factors.passkeyCompat});
+   }else prf=await derivePasskeyPrf(salt,null);
+   if(factors)factors.createdPrf=prf;
    if(prf.credentialId.length>512)throw new Error('パスキー識別子が長すぎます。');
    credHeader=new Uint8Array(2+prf.credentialId.length);
    new DataView(credHeader.buffer).setUint16(0,prf.credentialId.length,false);
@@ -3977,7 +3978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let dualFactors=factors,sharedContext=null;
   if(factors.usePasskey){
    const sharedSalt=crypto.getRandomValues(new Uint8Array(32));
-   sharedContext=await derivePasskeyPrf(sharedSalt,null,{passkeyCompat:factors.passkeyCompat});
+   sharedContext=await derivePasskeyPrf(sharedSalt,null);
    sharedContext.salt=sharedSalt;
    dualFactors={...factors,passkeyContext:sharedContext};
   }
@@ -4883,9 +4884,9 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!usePass&&!useKeyfile&&!usePasskey&&shamirN<=1){
     throw new Error('保護方法（パスワード、キーファイル、パスキー、または2分割以上の秘密分散）を少なくとも1つ選択してください。');
    }
-   let bodyToFrame,combo=0;
+   let bodyToFrame,combo=0,factors=null;
    if(usePass||useKeyfile||usePasskey){
-    const factors={usePassword:usePass,useKeyfile,usePasskey,passkeyCompat:options?.passkeyCompat,keyfileBytes:options?.keyfileBytes};
+    factors={usePassword:usePass,useKeyfile,usePasskey,keyfileBytes:options?.keyfileBytes};
     if(options?.duress?.enabled){
       const dSeed=parseSeedValue(options.duress.seed||'11223344');
       const dSite=options.duress.site||'shopping.example.com';
@@ -4926,12 +4927,12 @@ document.addEventListener('DOMContentLoaded', () => {
      shares.push({index:k,m:shamirM,n:shamirN,groups:sGroups,blocks:sBlocks});
      allGroups.push(...sGroups);
     }
-    return{groups:allGroups,shares,blocks:shares.flatMap(x=>x.blocks),tagHex:hexTag(setId.slice(0,4)),kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM,shamirN,combo,usePassword:usePass,useKeyfile,usePasskey};
+    return{groups:allGroups,shares,blocks:shares.flatMap(x=>x.blocks),tagHex:hexTag(setId.slice(0,4)),kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM,shamirN,combo,usePassword:usePass,useKeyfile,usePasskey,passkeyContext:factors?.createdPrf||factors?.passkeyContext||null};
    }
    const blocks=await frameBodyToBlocks(bodyToFrame),groups=[];
    for(const b of blocks)groups.push(await entropyToBip39Words(b));
    const tagHex=hexTag(blocks[0].slice(8,12));
-   return{groups,shares:null,blocks,tagHex,kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM:1,shamirN:1,combo,usePassword:usePass,useKeyfile,usePasskey};
+   return{groups,shares:null,blocks,tagHex,kdfProfile:combo!==null?Number(kdfProfile):null,extended:!!extended,shamirM:1,shamirN:1,combo,usePassword:usePass,useKeyfile,usePasskey,passkeyContext:factors?.createdPrf||factors?.passkeyContext||null};
   },
   decodeBip39Blocks:async(words,password='',allowOutOfOrder=true,twoFaOpts=null)=>{
    const blocks=[];for(let i=0;i<words.length;i+=24)blocks.push(await bip39WordsToEntropy(words.slice(i,i+24).join(' ')));

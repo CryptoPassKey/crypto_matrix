@@ -2057,7 +2057,7 @@ body.blind-mode #seed-qr-list:hover {
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-passkey" style="width:17px; height:17px;">
-     👤 パスキー（Bitwarden・iPhone/Android生体認証・Windows Hello・YubiKey等による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やハードウェアセキュリティキー（YubiKey）、パスワードマネージャー（Bitwarden等）による本人確認でバックアップを強力にロックします。">?</button>
+     👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やハードウェアセキュリティキー（YubiKey）、パスワードマネージャー（Bitwarden等）による本人確認でバックアップを強力にロックします。">?</button>
     </label>
    </div>
    <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
@@ -2107,14 +2107,15 @@ body.blind-mode #seed-qr-list:hover {
     <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
-  <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
-   🔐 <strong>パスキー保護：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="お使いの端末（iPhone/Android/PC）の生体認証やパスワードマネージャーによる本人確認でバックアップをロックします。復元時も同じパスキーが必要です。">?</button> お使いのパスキー（Bitwarden等のパスワードマネージャー・iPhone/MacのFace ID/Touch ID・Android生体認証・Windows Hello・YubiKey等）による認証を通過しない限り復号できなくなります。<br>復元時も同じパスキーが必要です。機種変更や別端末での復元に備え、Bitwarden・iCloud・Google等の同期対応パスキー、またはYubiKey等のセキュリティキーをお使いください。
-   <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #93c5fd;">
-     <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.8rem; color:#1e3a8a;">
-       <input type="checkbox" id="bq-passkey-compat" checked>
-       <span>Bitwarden・一般生体認証対応（互換モード）</span>
-       <button type="button" class="help-btn" aria-label="説明を表示" data-help="Bitwarden等のパスワードマネージャーや、PRF非対応の一般的な指紋・顔認証でもパスキー保護を利用できるようにする互換機能です。YubiKey等の専用ハードウェア鍵（PRF拡張）のみに限定したい場合はチェックを外してください。">?</button>
-     </label>
+  <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:10px 12px; border-radius:8px; border:1px solid #93c5fd; font-size:0.82rem; color:#1e3a8a; line-height:1.5;">
+   🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
+   ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
+   <div style="margin-top:6px; padding:6px 10px; background:#ffffff; border-radius:6px; border:1px solid #bfdbfe; font-size:0.78rem; color:#1e40af;">
+     <strong>【動作対応認証器】</strong><br>
+     ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
+     ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
+     ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
+     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ Windows Hello、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
    </div>
   </div>
 
@@ -2135,6 +2136,7 @@ body.blind-mode #seed-qr-list:hover {
    <button type="button" class="btn btn-outline" id="bq-save-qr" style="padding:6px 10px; font-size:0.8rem;" disabled>🖼️ QR画像保存 (PNG)</button>
    <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled>📁 暗号化ファイル保存 (.cmenc)</button>
    <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
+    <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#047857; border-color:#059669; background:#ecfdf5;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します">🧪 復元テスト欄へ転記</button>
    <button type="button" class="btn btn-secondary" id="bq-print" disabled>カードと暗号化QRを印刷</button>
    <button type="button" class="btn btn-secondary" id="bq-clear">暗号化バックアップ表示を消去</button>
   </div>
@@ -2228,7 +2230,7 @@ body.blind-mode #seed-qr-list:hover {
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-passkey" style="width:17px; height:17px;">
-          👤 パスキー（Bitwarden・iPhone/Android生体認証・Windows Hello・YubiKey等による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やセキュリティキーでロックします。">?</button>
+          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・YubiKey 5系）でのみ復元できます。Bitwarden・Windows Hello等のPRF非対応パスキーでは復元できません。">?</button>
         </label>
       </div>
 
@@ -2286,13 +2288,7 @@ body.blind-mode #seed-qr-list:hover {
     <!-- パスキー説明行 -->
     <div class="bq-row" id="bv-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
       🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。
-      <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #93c5fd;">
-        <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.8rem; color:#1e3a8a;">
-          <input type="checkbox" id="bv-passkey-compat" checked>
-          <span>Bitwarden・一般生体認証対応（互換モード）</span>
-          <button type="button" class="help-btn" aria-label="説明を表示" data-help="Bitwarden等のパスワードマネージャーや、PRF非対応の一般的な指紋・顔認証でもパスキー保護を利用できるようにする互換機能です。YubiKey等の専用ハードウェア鍵（PRF拡張）のみに限定したい場合はチェックを外してください。">?</button>
-        </label>
-      </div>
+      
     </div>
 
     
@@ -2408,25 +2404,25 @@ body.blind-mode #seed-qr-list:hover {
   <!-- 旧PKv2救出・移行 同意モーダル -->
   <div id="legacy-pk2-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog" style="max-width:540px;">
-      <div class="duress-modal-header" style="background:#fef2f2; border-bottom:1px solid #fecaca;">
-        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#991b1b;">
-          ⚠️ 以前のパスキー保護形式（旧形式）のデータ救出・移行
+      <div class="duress-modal-header" style="background:#eff6ff; border-bottom:1px solid #bfdbfe;">
+        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#1e40af;">
+          ℹ️ 旧形式パスキー保護データの復元
         </h3>
         <button type="button" class="duress-modal-close" id="btn-legacy-pk2-close" aria-label="閉じる">✕</button>
       </div>
       <div class="duress-modal-body">
         <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:14px;">
-          読み込まれたバックアップデータは、<strong>以前のバージョンのパスキー保護形式</strong>で作成されています。<br>
-          <div style="margin-top:8px; color:#991b1b; background:#fff1f2; padding:10px 12px; border-radius:6px; border:1px solid #fecdd3; font-size:0.82rem; line-height:1.5;">
-            ⚠️ <strong>セキュリティ上のご注意：</strong><br>
-            旧PKv2形式はWebAuthn PRF拡張非対応の古い環境向けに実装されていたため、最新のハードウェア暗号鍵導出（WebAuthn PRF）に比べ安全性が劣ります。<br>
-            データ救出のために復号を許可しますか？（※許可すると、ページを閉じる・再読み込みするまでの間、このセッション内で旧PKv2の救出復号が有効になります）<br>
-            <strong>※復元完了後、安全のため速やかにセクション3にて最新のバックアップ（PRFまたはパスワード保護）を再作成してください。</strong>
+          読み込まれたバックアップデータは、<strong>旧バージョンのパスキー保護形式（旧PKv2形式）</strong>で作成されています。<br>
+          <div style="margin-top:8px; color:#1e40af; background:#f0f9ff; padding:10px 12px; border-radius:6px; border:1px solid #bae6fd; font-size:0.82rem; line-height:1.5;">
+            ℹ️ <strong>ご案内：</strong><br>
+            旧PKv2形式は以前の環境向け形式です。このデータを復号して設定を復元（救出）しますか？<br>
+            ※許可すると、このセッション内で旧形式の救出・復号を実行します。<br>
+            <strong>復元完了後、安全のためセクション3にて最新のバックアップ（最新パスキーまたはパスワード保護）を再作成することをおすすめします。</strong>
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
-          <button type="button" class="btn btn-primary" id="btn-legacy-pk2-accept" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; background:#dc2626; border-color:#b91c1c;">
-            🔓 救出・移行を許可して復号する（このページ内で許可）
+          <button type="button" class="btn btn-primary" id="btn-legacy-pk2-accept" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; background:#2563eb; border-color:#1d4ed8;">
+            🔓 復元を続行する（救出復号）
           </button>
           <button type="button" class="btn btn-outline" id="btn-legacy-pk2-cancel" style="padding:10px 14px; font-weight:700;">
             キャンセル

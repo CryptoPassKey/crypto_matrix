@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -2115,7 +2115,8 @@ body.blind-mode #seed-qr-list:hover {
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
      ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
      ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
-     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ Windows Hello、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
+     ・⭕ <strong>Windows Hello</strong> (Windows 11)<br>
+     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
    </div>
   </div>
 
@@ -2230,7 +2231,7 @@ body.blind-mode #seed-qr-list:hover {
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-passkey" style="width:17px; height:17px;">
-          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・YubiKey 5系）でのみ復元できます。Bitwarden・Windows Hello等のPRF非対応パスキーでは復元できません。">?</button>
+          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系）でのみ復元できます。PRF非対応パスキーでは復元できません。">?</button>
         </label>
       </div>
 
@@ -7611,8 +7612,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
-  const isCompatAllowed = (opts?.passkeyCompat === true) ||
-    (typeof window !== 'undefined' && window.__ALLOW_PASSKEY_COMPAT__ === true);
 
   if(!credentialId){
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
@@ -7663,15 +7662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
 
-   // 3. PRFが返らない場合（Bitwarden等の通常パスキー認証）：互換モードが許可されていればPKv2形式で暗号化
-   if(isCompatAllowed){
-    const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
-    const maskedSecret=new Uint8Array(32);
-    for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
-    const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
-    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
-    return{extraFactor,credentialId:packedCred,isCompatMode:true};
-   }
+
 
    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
   }
@@ -11864,7 +11855,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey:$('bv-passkey-compat')?.checked??true,
+        usePasskey,
 
         keyfileBytes:keyfileWorkingCopy
 
@@ -11878,7 +11869,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey:$('bv-passkey-compat')?.checked??true,
+        usePasskey,
 
         keyfileBytes:keyfileWorkingCopy
 

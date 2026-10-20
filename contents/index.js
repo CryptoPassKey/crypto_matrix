@@ -3684,8 +3684,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
-  const isCompatAllowed = (opts?.passkeyCompat === true) ||
-    (typeof window !== 'undefined' && window.__ALLOW_PASSKEY_COMPAT__ === true);
 
   if(!credentialId){
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
@@ -3736,15 +3734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
 
-   // 3. PRFが返らない場合（Bitwarden等の通常パスキー認証）：互換モードが許可されていればPKv2形式で暗号化
-   if(isCompatAllowed){
-    const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
-    const maskedSecret=new Uint8Array(32);
-    for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
-    const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
-    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
-    return{extraFactor,credentialId:packedCred,isCompatMode:true};
-   }
+
 
    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
   }

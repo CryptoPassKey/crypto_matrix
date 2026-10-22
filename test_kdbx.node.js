@@ -194,13 +194,16 @@ vm.runInContext(kdbxCode, sandbox);
 
 // Connect real Argon2id implementation to kdbxweb with strict type and parameter verification
 sandbox.kdbxweb.CryptoEngine.setArgon2Impl(async (password, salt, memory, iterations, length, parallelism, type, version) => {
-  // Assert Argon2id type parameter (2 = Argon2id in KDBX 4.0 specification; 0 = Argon2d if requested)
-  if (type !== undefined && type !== 2 && type !== 0) {
-    throw new Error(`Unsupported Argon2 type: ${type}. Expected Argon2id (2).`);
+  // Strictly enforce Argon2id (2) and version 0x13
+  assert.strictEqual(type, 2, `Expected Argon2id type (2), received type: ${type}`);
+  if (version !== undefined) {
+    assert.strictEqual(version, 0x13, `Expected Argon2 version 0x13, received version: 0x${version.toString(16)}`);
   }
-  if (version !== undefined && version !== 0x13) {
-    throw new Error(`Unsupported Argon2 version: 0x${version ? version.toString(16) : '0'}. Expected 0x13.`);
-  }
+
+  // Assert expected KDF parameters
+  assert.ok(memory > 0, 'Memory parameter must be greater than 0');
+  assert.ok(iterations > 0, 'Iterations parameter must be greater than 0');
+  assert.ok(parallelism > 0, 'Parallelism parameter must be greater than 0');
 
   const hash = await realArgon2.argon2id({
     password: new Uint8Array(password),
@@ -227,6 +230,8 @@ async function runKdbxTests() {
   const creds1 = new kdbxweb.Credentials(kdbxweb.ProtectedValue.fromString(masterPw));
 
   const db1 = await kdbxweb.Kdbx.create(creds1, 'CryptoMatrix Export');
+  db1.header.setKdf(kdbxweb.Consts.KdfId.Argon2id);
+
   const entry1 = db1.createEntry(db1.getDefaultGroup());
   entry1.fields.set('Title', 'Google Account');
   entry1.fields.set('UserName', 'myuser@gmail.com');
@@ -245,12 +250,13 @@ async function runKdbxTests() {
   const uuidBase64 = kdbxweb.ByteUtils.bytesToBase64(uuidVal.value || uuidVal);
   console.log(`KDF Provider UUID (Base64): ${uuidBase64}`);
 
-  // Assert KDF Provider is Argon2id or Argon2d in KDBX format
-  assert.ok(
-    uuidBase64 === kdbxweb.Consts.KdfId.Argon2id || uuidBase64 === kdbxweb.Consts.KdfId.Argon2d || uuidBase64 === kdbxweb.Consts.KdfId.Argon2,
-    `KDF Provider UUID must equal Argon2id (${kdbxweb.Consts.KdfId.Argon2id}) or Argon2 (${kdbxweb.Consts.KdfId.Argon2d}), got ${uuidBase64}`
+  // Assert KDF Provider is strictly Argon2id
+  assert.strictEqual(
+    uuidBase64,
+    kdbxweb.Consts.KdfId.Argon2id,
+    `KDF Provider UUID must strictly equal Argon2id (${kdbxweb.Consts.KdfId.Argon2id}), got ${uuidBase64}`
   );
-  console.log('PASS: KDBX Header KDF Provider verified as Argon2!');
+  console.log('PASS: KDBX Header KDF Provider strictly verified as Argon2id!');
 
   const loadedEntries1 = loadedDb1.getDefaultGroup().entries;
   assert.strictEqual(loadedEntries1.length, 1, 'Expected 1 entry in default group');
@@ -277,6 +283,8 @@ async function runKdbxTests() {
   );
 
   const db2 = await kdbxweb.Kdbx.create(credsCombo, 'CryptoMatrix Keyfile Export');
+  db2.header.setKdf(kdbxweb.Consts.KdfId.Argon2id);
+
   const entry2 = db2.createEntry(db2.getDefaultGroup());
   entry2.fields.set('Title', 'Secure Banking');
   entry2.fields.set('UserName', 'bank_user');

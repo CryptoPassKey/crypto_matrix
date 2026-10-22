@@ -196,14 +196,12 @@ vm.runInContext(kdbxCode, sandbox);
 sandbox.kdbxweb.CryptoEngine.setArgon2Impl(async (password, salt, memory, iterations, length, parallelism, type, version) => {
   // Strictly enforce Argon2id (2) and version 0x13
   assert.strictEqual(type, 2, `Expected Argon2id type (2), received type: ${type}`);
-  if (version !== undefined) {
-    assert.strictEqual(version, 0x13, `Expected Argon2 version 0x13, received version: 0x${version.toString(16)}`);
-  }
+  assert.strictEqual(version || 0x13, 0x13, `Expected Argon2 version 0x13, received version: 0x${version ? version.toString(16) : '13'}`);
 
   // Assert expected KDF parameters
-  assert.ok(memory > 0, 'Memory parameter must be greater than 0');
-  assert.ok(iterations > 0, 'Iterations parameter must be greater than 0');
-  assert.ok(parallelism > 0, 'Parallelism parameter must be greater than 0');
+  assert.ok(memory >= 1024, `Expected memory >= 1024 KB (1 MB), got ${memory}`);
+  assert.ok(iterations >= 2, `Expected iterations >= 2, got ${iterations}`);
+  assert.ok(parallelism >= 1, `Expected parallelism >= 1, got ${parallelism}`);
 
   const hash = await realArgon2.argon2id({
     password: new Uint8Array(password),

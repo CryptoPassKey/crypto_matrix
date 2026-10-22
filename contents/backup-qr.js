@@ -2953,7 +2953,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey:$('bv-passkey-compat')?.checked??true,
+        usePasskey,
 
         keyfileBytes:keyfileWorkingCopy
 
@@ -2967,7 +2967,7 @@ function initBonusVault(){
 
         useKeyfile,
 
-        usePasskey:$('bv-passkey-compat')?.checked??true,
+        usePasskey,
 
         keyfileBytes:keyfileWorkingCopy
 

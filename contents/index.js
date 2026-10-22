@@ -2679,6 +2679,7 @@ document.addEventListener('DOMContentLoaded', () => {
  const cardMode=cfg=>[3,4,5].includes(cfg.lenMode);
  const canonical=s=>String(s??'').replace(/[A-Z]/g,c=>c.toLowerCase()).split('').filter(c=>CENTER_CHARS.includes(c)).join('');
  function setStatus(id,text,error=false){const el=$(id);if(el){el.textContent=text;el.dataset.error=String(error);}}
+ function getCryptoRandomInt(max){if(max<=0)return 0;const arr=new Uint32Array(1);const limit=0xFFFFFFFF-(0xFFFFFFFF%max);do{window.crypto.getRandomValues(arr);}while(arr[0]>=limit);return arr[0]%max;}
  function cryptoAPI(){if(!globalThis.crypto?.subtle)throw new Error('復元フレーズの検証にはWeb Crypto対応環境が必要です。HTTPSまたはlocalhostの対応ブラウザで開いてください。');return globalThis.crypto.subtle;}
  async function sha(a){return new Uint8Array(await cryptoAPI().digest('SHA-256',a));}
  async function sha512(a){return new Uint8Array(await cryptoAPI().digest('SHA-512',a));}
@@ -3684,8 +3685,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
-  const isCompatAllowed = (opts?.passkeyCompat === true) ||
-    (typeof window !== 'undefined' && window.__ALLOW_PASSKEY_COMPAT__ === true);
 
   if(!credentialId){
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
@@ -3736,15 +3735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
 
-   // 3. PRFが返らない場合（Bitwarden等の通常パスキー認証）：互換モードが許可されていればPKv2形式で暗号化
-   if(isCompatAllowed){
-    const maskKey=(await sha512(concat(enc.encode('CM-PASSKEY-MASK-v2:'),salt32,rawCredId))).slice(0,32);
-    const maskedSecret=new Uint8Array(32);
-    for(let i=0;i<32;i++)maskedSecret[i]=userSecret[i]^maskKey[i];
-    const packedCred=concat(new Uint8Array([0x50,0x4b,0x02]),maskedSecret,rawCredId);
-    const extraFactor=await sha512(concat(enc.encode('CM-PASSKEY-FACTOR-v2:'),salt32,rawCredId,userSecret));
-    return{extraFactor,credentialId:packedCred,isCompatMode:true};
-   }
+
 
    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
   }

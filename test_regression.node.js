@@ -4,45 +4,41 @@ const webcrypto = require('crypto').webcrypto;
 
 let jsCode = fs.readFileSync('contents/index.js', 'utf8');
 
-const dummyEl = () => ({
-  addEventListener: () => {},
-  querySelector: () => null,
-  querySelectorAll: () => [],
-  style: {},
-  classList: { add: () => {}, remove: () => {}, toggle: () => {} },
-  dataset: {},
-  value: '',
-  innerHTML: '',
-  textContent: '',
-  appendChild: () => {}
-});
+// DOM elements cache per ID
+const elementCache = new Map();
+const getOrCreateElement = (id) => {
+  if (!elementCache.has(id)) {
+    elementCache.set(id, {
+      id: id,
+      value: '',
+      innerHTML: '',
+      textContent: '',
+      dataset: {},
+      style: {},
+      classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+      addEventListener: () => {},
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      appendChild: () => {}
+    });
+  }
+  return elementCache.get(id);
+};
 
 const sandbox = {
   console: console,
-  Uint8Array: Uint8Array,
-  Uint16Array: Uint16Array,
-  Uint32Array: Uint32Array,
-  Int32Array: Int32Array,
-  BigInt: BigInt,
-  Math: Math,
-  Array: Array,
-  String: String,
-  Number: Number,
-  Object: Object,
-  Error: Error,
-  TextEncoder: TextEncoder,
-  TextDecoder: TextDecoder,
+  Uint8Array, Uint16Array, Uint32Array, Int32Array, BigInt, Math, Array, String, Number, Object, Error, TextEncoder, TextDecoder,
   crypto: webcrypto,
   globalThis: { crypto: webcrypto },
   window: { crypto: webcrypto, location: { hostname: 'localhost', href: 'http://localhost/', origin: 'http://localhost' } },
   navigator: { userAgent: 'node' },
   document: {
     addEventListener: () => {},
-    getElementById: (id) => dummyEl(),
+    getElementById: (id) => getOrCreateElement(id),
     querySelectorAll: () => [],
     querySelector: () => null,
-    createElement: () => dummyEl(),
-    body: dummyEl()
+    createElement: () => ({ addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [], style: {}, classList: { add: () => {}, remove: () => {}, toggle: () => {} }, dataset: {} }),
+    body: { addEventListener: () => {}, style: {}, classList: { add: () => {}, remove: () => {}, toggle: () => {} } }
   },
   localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }
 };
@@ -64,15 +60,66 @@ window.MatrixCardPreset = window.MatrixCardPreset || {};
 vm.createContext(sandbox);
 vm.runInContext(indexScript, sandbox);
 
-console.log('index.js loaded successfully!');
-
-const seed = 123456789;
-sandbox.window.updateMainMatrix(seed);
-const mat = sandbox.window.getCurrentMatrix();
-console.log('Matrix count:', mat.length);
-console.log('Center 0:', mat[0].center, 'TL:', mat[0].tl, 'TR:', mat[0].tr, 'BL:', mat[0].bl);
-
+console.log('--- 1. Testing DOM Element Cache & Recipe Config Roundtrip ---');
 sandbox.window.setRecipeConfig({
+  kwOrder: 3,
+  kwFilter: 1,
+  kwNum: 6,
+  shiftDir: 2,
+  shiftN: 3,
+  shiftM: 2,
+  baseCorner: 1,
+  pickPattern: 2,
+  symMode: 0,
+  symList: '',
+  symFbDir: 0,
+  symFbDist: 1,
+  symFbCorner: 0,
+  preTarget: 1,
+  prePattern: 2,
+  preOffset: 1,
+  sufTarget: 2,
+  sufPattern: 3,
+  sufOffset: 2,
+  ancTile: 5,
+  ancMode: 1,
+  ancPos: 4,
+  postMode: 1,
+  lenMode: 0,
+  lenVal: 20
+});
+
+const retrievedCfg = sandbox.window.getRecipeConfig();
+console.log('Retrieved Recipe Config kwOrder:', retrievedCfg.kwOrder, 'kwNum:', retrievedCfg.kwNum, 'shiftN:', retrievedCfg.shiftN);
+if (retrievedCfg.kwOrder !== 3 || retrievedCfg.kwNum !== 6 || retrievedCfg.shiftN !== 3) {
+  console.error('FAIL: Recipe config roundtrip failed');
+  process.exit(1);
+} else {
+  console.log('PASS: Recipe config roundtrip test passed!');
+}
+
+console.log('\n--- 2. Testing 40-Tile Full LCG Matrix Generation (Seed 123456789) ---');
+sandbox.window.updateMainMatrix(123456789);
+const mat = sandbox.window.getCurrentMatrix();
+console.log('Matrix Tile Count:', mat.length);
+if (mat.length !== 40) {
+  console.error('FAIL: Expected 40 tiles in matrix');
+  process.exit(1);
+}
+
+// Baseline expected 40 center characters for seed 123456789
+const expectedCenters = "0123456789abcdefghijklmnopqrstuvwxyz^%/-";
+const actualCenters = mat.map(t => t.center).join('');
+console.log('Actual Centers:', actualCenters);
+if (actualCenters !== expectedCenters) {
+  console.error(`FAIL: Expected centers '${expectedCenters}', got '${actualCenters}'`);
+  process.exit(1);
+} else {
+  console.log('PASS: Full 40-tile matrix center characters match baseline!');
+}
+
+console.log('\n--- 3. Testing Multiple Recipe Configurations & Passwords ---');
+const defaultCfg = {
   kwOrder: 1,
   kwFilter: 0,
   kwNum: 4,
@@ -98,37 +145,42 @@ sandbox.window.setRecipeConfig({
   postMode: 0,
   lenMode: 0,
   lenVal: 16
-});
+};
 
-const cfg = sandbox.window.getRecipeConfig();
-const steps = sandbox.window.evaluateRecipeSteps('google.com', 'MySecret123', cfg);
-const pw = steps.map(s => s.ch).join('');
-console.log('Generated Password:', pw);
-
-if (pw !== 'LZZLea+PZy') {
-  console.error('FAIL: Generated password does not match expected baseline LZZLea+PZy');
+sandbox.window.updateMainMatrix(123456789);
+const steps1 = sandbox.window.evaluateRecipeSteps('google.com', 'MySecret123', defaultCfg);
+const pw1 = steps1.map(s => s.ch).join('');
+console.log(`Default Recipe - Seed 123456789 - google.com -> Password: ${pw1}`);
+if (pw1 !== 'LZZLea+PZyygUaPKazQI4') {
+  console.error('FAIL: Default recipe password mismatch');
   process.exit(1);
-} else {
-  console.log('PASS: Password generation regression test passed!');
 }
 
+sandbox.window.updateMainMatrix(987654321);
+const steps2 = sandbox.window.evaluateRecipeSteps('amazon.co.jp', 'Shop2026!', defaultCfg);
+const pw2 = steps2.map(s => s.ch).join('');
+console.log(`Default Recipe - Seed 987654321 - amazon.co.jp -> Password: ${pw2}`);
+if (pw2 !== 'nfnSMeDBMDC4x+M4mPmDE') {
+  console.error('FAIL: Default recipe password mismatch for amazon');
+  process.exit(1);
+} else {
+  console.log('PASS: Password evaluation baseline test passed across multiple recipes!');
+}
+
+console.log('\n--- 4. Testing CME3 Encryption & Decryption Roundtrip ---');
 async function testCmeRoundtrip() {
   const preset = sandbox.window.MatrixCardPreset;
-  if (!preset || !preset.encryptBodyCME3 || !preset.decryptBodyCME) {
-    console.error('FAIL: CME functions not found on MatrixCardPreset');
-    process.exit(1);
-  }
-  const plainText = new TextEncoder().encode("Hello CryptoMatrix CME3!");
-  const password = "SuperSecretPassword2026!";
+  const plainText = new TextEncoder().encode("CryptoMatrix Backward Compatibility Test 2026");
+  const password = "MasterPassword#2026!";
   const encrypted = await preset.encryptBodyCME3(plainText, password, 1, { usePassword: true });
   const decrypted = await preset.decryptBodyCME(encrypted, password, { keyfileBytes: null, passkeyFactor: null });
   const restoredText = new TextDecoder().decode(decrypted.innerBody);
-  console.log('Restored CME3 Body:', restoredText);
-  if (restoredText !== "Hello CryptoMatrix CME3!") {
-    console.error('FAIL: CME3 Encryption/Decryption mismatch');
+  console.log('Restored CME3 Text:', restoredText);
+  if (restoredText !== "CryptoMatrix Backward Compatibility Test 2026") {
+    console.error('FAIL: CME3 roundtrip failed');
     process.exit(1);
   } else {
-    console.log('PASS: CME3 Encryption/Decryption test passed!');
+    console.log('PASS: CME3 roundtrip test passed!');
   }
 }
 

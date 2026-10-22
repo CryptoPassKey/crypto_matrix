@@ -7,28 +7,30 @@ const singleHtmlPath = path.join(contentsDir, 'crypto-matrix-single.html');
 
 let html = fs.readFileSync(indexHtmlPath, 'utf8');
 
-// Replace script tags with inlined JS contents
-// 1. qr-encoder.js
-const qrJs = fs.readFileSync(path.join(contentsDir, 'qr-encoder.js'), 'utf8');
-html = html.replace('<script src="qr-encoder.js"></script>', `<script>\n${qrJs}\n</script>`);
+const replacements = [
+  { tag: '<script src="qr-encoder.js"></script>', file: 'qr-encoder.js' },
+  { tag: '<script src="argon2.umd.min.js"></script>', file: 'argon2.umd.min.js' },
+  { tag: '<script src="kdbxweb.min.js"></script>', file: 'kdbxweb.min.js', optional: true },
+  { tag: '<script src="index.js"></script>', file: 'index.js' },
+  { tag: '<script src="backup-qr.js"></script>', file: 'backup-qr.js' }
+];
 
-// 2. argon2.umd.min.js
-const argon2Js = fs.readFileSync(path.join(contentsDir, 'argon2.umd.min.js'), 'utf8');
-html = html.replace('<script src="argon2.umd.min.js"></script>', `<script>\n${argon2Js}\n</script>`);
-
-// 3. kdbxweb.min.js
-const kdbxJs = fs.readFileSync(path.join(contentsDir, 'kdbxweb.min.js'), 'utf8');
-if (html.includes('<script src="kdbxweb.min.js"></script>')) {
-  html = html.replace('<script src="kdbxweb.min.js"></script>', `<script>\n${kdbxJs}\n</script>`);
+for (const item of replacements) {
+  if (html.includes(item.tag)) {
+    const fileContent = fs.readFileSync(path.join(contentsDir, item.file), 'utf8');
+    // Use replacer function () => string to prevent special replacement pattern issue with $
+    html = html.replace(item.tag, () => `<script>\n${fileContent}\n</script>`);
+    console.log(`[PASS] Inlined ${item.file} into single HTML`);
+  } else if (!item.optional) {
+    console.error(`[FAIL] Tag '${item.tag}' not found in index.html! Build aborted.`);
+    process.exit(1);
+  }
 }
 
-// 4. index.js
-const indexJs = fs.readFileSync(path.join(contentsDir, 'index.js'), 'utf8');
-html = html.replace('<script src="index.js"></script>', `<script>\n${indexJs}\n</script>`);
-
-// 5. backup-qr.js
-const backupJs = fs.readFileSync(path.join(contentsDir, 'backup-qr.js'), 'utf8');
-html = html.replace('<script src="backup-qr.js"></script>', `<script>\n${backupJs}\n</script>`);
+// Verify no external script tags remain (except external fonts/remote CDNs if any)
+if (html.includes('<script src=')) {
+  console.warn('[WARN] External script tags remain in bundled HTML');
+}
 
 fs.writeFileSync(singleHtmlPath, html, 'utf8');
-console.log('Successfully generated crypto-matrix-single.html!');
+console.log('Successfully generated clean crypto-matrix-single.html!');

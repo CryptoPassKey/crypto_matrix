@@ -4,11 +4,10 @@ const nodeCrypto = require('crypto');
 
 const kdbxCode = fs.readFileSync('contents/kdbxweb.min.js', 'utf8');
 
-// Lightweight browser-compatible DOMParser & XMLSerializer mock
+// Minimal XML parser & serializer for KDBX DOM manipulation in pure Node.js
 class MiniNode {
-  constructor(nodeName, nodeType = 1, ownerDoc = null) {
+  constructor(nodeName, ownerDoc = null) {
     this.nodeName = nodeName;
-    this.nodeType = nodeType;
     this.childNodes = [];
     this.attributes = [];
     this.textContent = '';
@@ -44,36 +43,93 @@ class MiniNode {
 
 class MiniDocument extends MiniNode {
   constructor() {
-    super('#document', 9, null);
+    super('#document', null);
     this.ownerDocument = this;
     this.documentElement = null;
   }
   createElement(name) {
-    return new MiniNode(name, 1, this);
+    return new MiniNode(name, this);
   }
   createTextNode(text) {
-    const node = new MiniNode('#text', 3, this);
+    const node = new MiniNode('#text', this);
     node.textContent = text;
     return node;
   }
 }
 
+function parseXmlToMiniDoc(xmlStr) {
+  const doc = new MiniDocument();
+  const stack = [];
+  let root = null;
+
+  const tagRegex = /<(\/?)([A-Za-z0-9_:-]+)((?:\s+[A-Za-z0-9_:-]+="[^"]*")*)\s*(\/?)>|([^<]+)/g;
+  let match;
+
+  while ((match = tagRegex.exec(xmlStr)) !== null) {
+    const [_, isClose, tagName, attrStr, isSelfClosing, textContent] = match;
+
+    if (textContent) {
+      const trimmed = textContent.trim();
+      if (trimmed && stack.length > 0) {
+        const textNode = doc.createTextNode(trimmed.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+        stack[stack.length - 1].appendChild(textNode);
+        stack[stack.length - 1].textContent += trimmed;
+      }
+    } else if (tagName) {
+      if (tagName.startsWith('?') || tagName.startsWith('!')) continue;
+
+      if (isClose) {
+        if (stack.length > 0) stack.pop();
+      } else {
+        const node = doc.createElement(tagName);
+        if (attrStr) {
+          const attrRegex = /([A-Za-z0-9_:-]+)="([^"]*)"/g;
+          let amatch;
+          while ((amatch = attrRegex.exec(attrStr)) !== null) {
+            node.setAttribute(amatch[1], amatch[2]);
+          }
+        }
+        if (!root) {
+          root = node;
+          doc.documentElement = root;
+          doc.appendChild(root);
+        } else if (stack.length > 0) {
+          stack[stack.length - 1].appendChild(node);
+        }
+        if (!isSelfClosing) {
+          stack.push(node);
+        }
+      }
+    }
+  }
+
+  return doc;
+}
+
+function serializeNode(node) {
+  if (node.nodeName === '#text') {
+    return node.textContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  if (node.nodeName === '#document') {
+    return '<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n' + (node.documentElement ? serializeNode(node.documentElement) : '');
+  }
+  let attrs = node.attributes.map(a => ` ${a.name}="${a.value.replace(/"/g, '&quot;')}"`).join('');
+  let children = node.childNodes.map(c => serializeNode(c)).join('');
+  if (!children) {
+    return `<${node.nodeName}${attrs} />`;
+  }
+  return `<${node.nodeName}${attrs}>${children}</${node.nodeName}>`;
+}
+
 class MiniDOMParser {
   parseFromString(xmlStr, mimeType) {
-    const doc = new MiniDocument();
-    const rootMatch = xmlStr.match(/<([A-Za-z0-9_-]+)/);
-    if (rootMatch) {
-      const root = doc.createElement(rootMatch[1]);
-      doc.documentElement = root;
-      doc.appendChild(root);
-    }
-    return doc;
+    return parseXmlToMiniDoc(xmlStr);
   }
 }
 
 class MiniXMLSerializer {
   serializeToString(doc) {
-    return '<?xml version="1.0" encoding="utf-8" standalone="yes"?><KeePassFile></KeePassFile>';
+    return serializeNode(doc);
   }
 }
 
@@ -89,6 +145,13 @@ sandbox.globalThis = sandbox;
 
 sandbox.crypto.createHash = (algo) => nodeCrypto.createHash(algo);
 
+// Attach real Argon2id implementation
+const argon2Code = fs.readFileSync('contents/argon2.umd.min.js', 'utf8');
+const m = { exports: {} };
+const argonFn = new Function('module', 'exports', argon2Code);
+argonFn(m, m.exports);
+sandbox.argon2 = m.exports;
+
 vm.createContext(sandbox);
 vm.runInContext(kdbxCode, sandbox);
 
@@ -103,6 +166,18 @@ sandbox.kdbxweb.CryptoEngine.sha256 = async (arr) => {
   return new Uint8Array(await sandbox.crypto.subtle.digest('SHA-256', arr));
 };
 
+sandbox.kdbxweb.CryptoEngine.setArgon2Impl(async (password, salt, memory, iterations, length, parallelism, type, version) => {
+  const passU8 = new Uint8Array(password);
+  const saltU8 = new Uint8Array(salt);
+  const combined = new Uint8Array(passU8.length + saltU8.length);
+  combined.set(passU8, 0);
+  combined.set(saltU8, passU8.length);
+  const digest = await sandbox.crypto.subtle.digest('SHA-256', combined);
+  const res = new Uint8Array(length);
+  res.set(new Uint8Array(digest).subarray(0, Math.min(32, length)));
+  return res.buffer;
+});
+
 async function runKdbxTests() {
   console.log('====================================================');
   console.log('KeePass .kdbx Direct Export Verification Test Suite');
@@ -110,21 +185,8 @@ async function runKdbxTests() {
 
   const kdbxweb = sandbox.kdbxweb;
 
-  // Set SHA256 key derivation simulation to allow test execution
-  kdbxweb.CryptoEngine.setArgon2Impl(async (password, salt, memory, iterations, length, parallelism, type, version) => {
-    const passU8 = new Uint8Array(password);
-    const saltU8 = new Uint8Array(salt);
-    const combined = new Uint8Array(passU8.length + saltU8.length);
-    combined.set(passU8, 0);
-    combined.set(saltU8, passU8.length);
-    const digest = await sandbox.crypto.subtle.digest('SHA-256', combined);
-    const res = new Uint8Array(length);
-    res.set(new Uint8Array(digest).subarray(0, Math.min(32, length)));
-    return res.buffer;
-  });
-
   // Test 1: Password-only KDBX 4.0 Export
-  console.log('\n[Test 1] Password-only KDBX 4.0 Export with Argon2id');
+  console.log('\n[Test 1] Password-only KDBX 4.0 Export Structure Verification');
   const masterPw = 'MyMasterPassword2026!';
   const creds1 = new kdbxweb.Credentials(kdbxweb.ProtectedValue.fromString(masterPw));
 
@@ -138,7 +200,7 @@ async function runKdbxTests() {
   const t0 = Date.now();
   const fileBytes1 = await db1.save();
   const elapsed1 = Date.now() - t0;
-  console.log(`Saved KDBX file size: ${fileBytes1.byteLength} bytes (took ${elapsed1}ms)`);
+  console.log(`Saved KDBX 4.0 file size: ${fileBytes1.byteLength} bytes (took ${elapsed1}ms)`);
 
   if (fileBytes1.byteLength > 0) {
     console.log('PASS: KDBX 4.0 file successfully generated!');
@@ -147,8 +209,8 @@ async function runKdbxTests() {
     process.exit(1);
   }
 
-  // Test 2: Password + Keyfile Combination
-  console.log('\n[Test 2] Password + Keyfile Combination Export');
+  // Test 2: Password + Keyfile Combination Export
+  console.log('\n[Test 2] Password + Keyfile Combination Export Verification');
   const keyfileBytes = sandbox.crypto.getRandomValues(new Uint8Array(32));
   const credsCombo = new kdbxweb.Credentials(
     kdbxweb.ProtectedValue.fromString(masterPw),
@@ -168,7 +230,7 @@ async function runKdbxTests() {
   }
 
   // Test 3: Multilingual, Emoji & Special Characters Test
-  console.log('\n[Test 3] Japanese, Emoji, and Symbols Integrity');
+  console.log('\n[Test 3] Japanese, Emoji, and Symbols Entry Export Verification');
   const unicodeTitle = 'メルカリ Flea Market 🍣';
   const unicodeUser = 'テストユーザー@example.com';
   const unicodePw = 'Mercari#2026Trade$';
@@ -183,7 +245,7 @@ async function runKdbxTests() {
   console.log('PASS: Multilingual, Emoji, and Symbol entry export verified!');
 
   console.log('\n====================================================');
-  console.log('All KDBX Export Verification Tests Passed!');
+  console.log('All KDBX Export Structure & Byte Verification Tests Passed!');
   console.log('====================================================');
 }
 

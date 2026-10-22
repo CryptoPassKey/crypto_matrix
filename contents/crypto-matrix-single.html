@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -2661,7 +2661,8 @@ body.blind-mode #seed-qr-list:hover {
     </div>
   </div>
 
-  <script>/* Local QRCode encoder: Kazuhiko Arase, MIT; source notices retained below. */
+  <script>
+/* Local QRCode encoder: Kazuhiko Arase, MIT; source notices retained below. */
 (function(){'use strict';const modules={"./QR8bitByte":function(module,exports,require){
 var QRMode = require('./QRMode');
 
@@ -2675,7 +2676,7 @@ QR8bitByte.prototype = {
 	getLength : function() {
 		return this.data.length;
 	},
-	
+
 	write : function(buffer) {
 		for (var i = 0; i < this.data.length; i++) {
 			// not JIS ...
@@ -2699,28 +2700,28 @@ QRBitBuffer.prototype = {
 		var bufIndex = Math.floor(index / 8);
 		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
 	},
-	
+
 	put : function(num, length) {
 		for (var i = 0; i < length; i++) {
 			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
 		}
 	},
-	
+
 	getLengthInBits : function() {
 		return this.length;
 	},
-	
+
 	putBit : function(bit) {
-	
+
 		var bufIndex = Math.floor(this.length / 8);
 		if (this.buffer.length <= bufIndex) {
 			this.buffer.push(0);
 		}
-	
+
 		if (bit) {
 			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
 		}
-	
+
 		this.length++;
 	}
 };
@@ -2755,33 +2756,33 @@ module.exports = {
 var QRMath = {
 
 	glog : function(n) {
-	
+
 		if (n < 1) {
 			throw new Error("glog(" + n + ")");
 		}
-		
+
 		return QRMath.LOG_TABLE[n];
 	},
-	
+
 	gexp : function(n) {
-	
+
 		while (n < 0) {
 			n += 255;
 		}
-	
+
 		while (n >= 256) {
 			n -= 255;
 		}
-	
+
 		return QRMath.EXP_TABLE[n];
 	},
-	
+
 	EXP_TABLE : new Array(256),
-	
+
 	LOG_TABLE : new Array(256)
 
 };
-	
+
 for (var i = 0; i < 8; i++) {
 	QRMath.EXP_TABLE[i] = 1 << i;
 }
@@ -2832,42 +2833,42 @@ QRPolynomial.prototype = {
 	get : function(index) {
 		return this.num[index];
 	},
-	
+
 	getLength : function() {
 		return this.num.length;
 	},
-	
+
 	multiply : function(e) {
-	
+
 		var num = new Array(this.getLength() + e.getLength() - 1);
-	
+
 		for (var i = 0; i < this.getLength(); i++) {
 			for (var j = 0; j < e.getLength(); j++) {
 				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
 			}
 		}
-	
+
 		return new QRPolynomial(num, 0);
 	},
-	
+
 	mod : function(e) {
-	
+
 		if (this.getLength() - e.getLength() < 0) {
 			return this;
 		}
-	
+
 		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
-	
+
 		var num = new Array(this.getLength() );
-		
+
 		for (var i = 0; i < this.getLength(); i++) {
 			num[i] = this.get(i);
 		}
-		
+
 		for (var x = 0; x < e.getLength(); x++) {
 			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
 		}
-	
+
 		// recursive call
 		return new QRPolynomial(num, 0).mod(e);
 	}
@@ -2896,7 +2897,7 @@ QRRSBlock.RS_BLOCK_TABLE = [
 	[1, 26, 16],
 	[1, 26, 13],
 	[1, 26, 9],
-	
+
 	// 2
 	[1, 44, 34],
 	[1, 44, 28],
@@ -2909,43 +2910,43 @@ QRRSBlock.RS_BLOCK_TABLE = [
 	[2, 35, 17],
 	[2, 35, 13],
 
-	// 4		
+	// 4
 	[1, 100, 80],
 	[2, 50, 32],
 	[2, 50, 24],
 	[4, 25, 9],
-	
+
 	// 5
 	[1, 134, 108],
 	[2, 67, 43],
 	[2, 33, 15, 2, 34, 16],
 	[2, 33, 11, 2, 34, 12],
-	
+
 	// 6
 	[2, 86, 68],
 	[4, 43, 27],
 	[4, 43, 19],
 	[4, 43, 15],
-	
-	// 7		
+
+	// 7
 	[2, 98, 78],
 	[4, 49, 31],
 	[2, 32, 14, 4, 33, 15],
 	[4, 39, 13, 1, 40, 14],
-	
+
 	// 8
 	[2, 121, 97],
 	[2, 60, 38, 2, 61, 39],
 	[4, 40, 18, 2, 41, 19],
 	[4, 40, 14, 2, 41, 15],
-	
+
 	// 9
 	[2, 146, 116],
 	[3, 58, 36, 2, 59, 37],
 	[4, 36, 16, 4, 37, 17],
 	[4, 36, 12, 4, 37, 13],
-	
-	// 10		
+
+	// 10
 	[2, 86, 68, 2, 87, 69],
 	[4, 69, 43, 1, 70, 44],
 	[6, 43, 19, 2, 44, 20],
@@ -3133,17 +3134,17 @@ QRRSBlock.RS_BLOCK_TABLE = [
 ];
 
 QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
-	
+
 	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
-	
+
 	if (rsBlock === undefined) {
 		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
 	}
 
 	var length = rsBlock.length / 3;
-	
+
 	var list = [];
-	
+
 	for (var i = 0; i < length; i++) {
 
 		var count = rsBlock[i * 3 + 0];
@@ -3151,10 +3152,10 @@ QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
 		var dataCount  = rsBlock[i * 3 + 2];
 
 		for (var j = 0; j < count; j++) {
-			list.push(new QRRSBlock(totalCount, dataCount) );	
+			list.push(new QRRSBlock(totalCount, dataCount) );
 		}
 	}
-	
+
 	return list;
 };
 
@@ -3196,7 +3197,7 @@ var QRUtil = {
         [6, 24, 42],
         [6, 26, 46],
         [6, 28, 50],
-        [6, 30, 54],        
+        [6, 30, 54],
         [6, 32, 58],
         [6, 34, 62],
         [6, 26, 46, 66],
@@ -3235,7 +3236,7 @@ var QRUtil = {
     getBCHTypeInfo : function(data) {
         var d = data << 10;
         while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
-            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );
         }
         return ( (data << 10) | d) ^ QRUtil.G15_MASK;
     },
@@ -3243,7 +3244,7 @@ var QRUtil = {
     getBCHTypeNumber : function(data) {
         var d = data << 12;
         while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
-            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );
         }
         return (data << 12) | d;
     },
@@ -3265,9 +3266,9 @@ var QRUtil = {
     },
 
     getMask : function(maskPattern, i, j) {
-        
+
         switch (maskPattern) {
-            
+
         case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
         case QRMaskPattern.PATTERN001 : return i % 2 === 0;
         case QRMaskPattern.PATTERN010 : return j % 3 === 0;
@@ -3340,15 +3341,15 @@ var QRUtil = {
     },
 
     getLostPoint : function(qrCode) {
-        
+
         var moduleCount = qrCode.getModuleCount();
         var lostPoint = 0;
-        var row = 0; 
+        var row = 0;
         var col = 0;
 
-        
+
         // LEVEL1
-        
+
         for (row = 0; row < moduleCount; row++) {
 
             for (col = 0; col < moduleCount; col++) {
@@ -3403,12 +3404,12 @@ var QRUtil = {
 
         for (row = 0; row < moduleCount; row++) {
             for (col = 0; col < moduleCount - 6; col++) {
-                if (qrCode.isDark(row, col) && 
-                        !qrCode.isDark(row, col + 1) && 
-                         qrCode.isDark(row, col + 2) && 
-                         qrCode.isDark(row, col + 3) && 
-                         qrCode.isDark(row, col + 4) && 
-                        !qrCode.isDark(row, col + 5) && 
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row, col + 1) &&
+                         qrCode.isDark(row, col + 2) &&
+                         qrCode.isDark(row, col + 3) &&
+                         qrCode.isDark(row, col + 4) &&
+                        !qrCode.isDark(row, col + 5) &&
                          qrCode.isDark(row, col + 6) ) {
                     lostPoint += 40;
                 }
@@ -3430,7 +3431,7 @@ var QRUtil = {
         }
 
         // LEVEL4
-        
+
         var darkCount = 0;
 
         for (col = 0; col < moduleCount; col++) {
@@ -3440,11 +3441,11 @@ var QRUtil = {
                 }
             }
         }
-        
+
         var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
         lostPoint += ratio * 10;
 
-        return lostPoint;       
+        return lostPoint;
     }
 
 };
@@ -3463,7 +3464,7 @@ module.exports = QRUtil;
 // Licensed under the MIT license:
 //   http://www.opensource.org/licenses/mit-license.php
 //
-// The word "QR Code" is registered trademark of 
+// The word "QR Code" is registered trademark of
 // DENSO WAVE INCORPORATED
 //   http://www.denso-wave.com/qrcode/faqpatent-e.html
 //
@@ -3487,13 +3488,13 @@ function QRCode(typeNumber, errorCorrectLevel) {
 }
 
 QRCode.prototype = {
-	
+
 	addData : function(data) {
 		var newData = new QR8bitByte(data);
 		this.dataList.push(newData);
 		this.dataCache = null;
 	},
-	
+
 	isDark : function(row, col) {
 		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
 			throw new Error(row + "," + col);
@@ -3504,7 +3505,7 @@ QRCode.prototype = {
 	getModuleCount : function() {
 		return this.moduleCount;
 	},
-	
+
 	make : function() {
 		// Calculate automatically typeNumber if provided is < 1
 		if (this.typeNumber < 1 ){
@@ -3531,96 +3532,96 @@ QRCode.prototype = {
 		}
 		this.makeImpl(false, this.getBestMaskPattern() );
 	},
-	
+
 	makeImpl : function(test, maskPattern) {
-		
+
 		this.moduleCount = this.typeNumber * 4 + 17;
 		this.modules = new Array(this.moduleCount);
-		
+
 		for (var row = 0; row < this.moduleCount; row++) {
-			
+
 			this.modules[row] = new Array(this.moduleCount);
-			
+
 			for (var col = 0; col < this.moduleCount; col++) {
 				this.modules[row][col] = null;//(col + row) % 3;
 			}
 		}
-	
+
 		this.setupPositionProbePattern(0, 0);
 		this.setupPositionProbePattern(this.moduleCount - 7, 0);
 		this.setupPositionProbePattern(0, this.moduleCount - 7);
 		this.setupPositionAdjustPattern();
 		this.setupTimingPattern();
 		this.setupTypeInfo(test, maskPattern);
-		
+
 		if (this.typeNumber >= 7) {
 			this.setupTypeNumber(test);
 		}
-	
+
 		if (this.dataCache === null) {
 			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
 		}
-	
+
 		this.mapData(this.dataCache, maskPattern);
 	},
 
 	setupPositionProbePattern : function(row, col)  {
-		
+
 		for (var r = -1; r <= 7; r++) {
-			
+
 			if (row + r <= -1 || this.moduleCount <= row + r) continue;
-			
+
 			for (var c = -1; c <= 7; c++) {
-				
+
 				if (col + c <= -1 || this.moduleCount <= col + c) continue;
-				
-				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
-                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) ||
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) ||
                      (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
 					this.modules[row + r][col + c] = true;
 				} else {
 					this.modules[row + r][col + c] = false;
 				}
-			}		
-		}		
+			}
+		}
 	},
-	
+
 	getBestMaskPattern : function() {
-	
+
 		var minLostPoint = 0;
 		var pattern = 0;
-	
+
 		for (var i = 0; i < 8; i++) {
-			
+
 			this.makeImpl(true, i);
-	
+
 			var lostPoint = QRUtil.getLostPoint(this);
-	
+
 			if (i === 0 || minLostPoint >  lostPoint) {
 				minLostPoint = lostPoint;
 				pattern = i;
 			}
 		}
-	
+
 		return pattern;
 	},
-	
+
 	createMovieClip : function(target_mc, instance_name, depth) {
-	
+
 		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
 		var cs = 1;
-	
+
 		this.make();
 
 		for (var row = 0; row < this.modules.length; row++) {
-			
+
 			var y = row * cs;
-			
+
 			for (var col = 0; col < this.modules[row].length; col++) {
-	
+
 				var x = col * cs;
 				var dark = this.modules[row][col];
-			
+
 				if (dark) {
 					qr_mc.beginFill(0, 100);
 					qr_mc.moveTo(x, y);
@@ -3631,19 +3632,19 @@ QRCode.prototype = {
 				}
 			}
 		}
-		
+
 		return qr_mc;
 	},
 
 	setupTimingPattern : function() {
-		
+
 		for (var r = 8; r < this.moduleCount - 8; r++) {
 			if (this.modules[r][6] !== null) {
 				continue;
 			}
 			this.modules[r][6] = (r % 2 === 0);
 		}
-	
+
 		for (var c = 8; c < this.moduleCount - 8; c++) {
 			if (this.modules[6][c] !== null) {
 				continue;
@@ -3651,27 +3652,27 @@ QRCode.prototype = {
 			this.modules[6][c] = (c % 2 === 0);
 		}
 	},
-	
+
 	setupPositionAdjustPattern : function() {
-	
+
 		var pos = QRUtil.getPatternPosition(this.typeNumber);
-		
+
 		for (var i = 0; i < pos.length; i++) {
-		
+
 			for (var j = 0; j < pos.length; j++) {
-			
+
 				var row = pos[i];
 				var col = pos[j];
-				
+
 				if (this.modules[row][col] !== null) {
 					continue;
 				}
-				
+
 				for (var r = -2; r <= 2; r++) {
-				
+
 					for (var c = -2; c <= 2; c++) {
-					
-						if (Math.abs(r) === 2 || 
+
+						if (Math.abs(r) === 2 ||
                             Math.abs(c) === 2 ||
                             (r === 0 && c === 0) ) {
 							this.modules[row + r][col + c] = true;
@@ -3683,34 +3684,34 @@ QRCode.prototype = {
 			}
 		}
 	},
-	
+
 	setupTypeNumber : function(test) {
-	
+
 		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
         var mod;
-	
+
 		for (var i = 0; i < 18; i++) {
 			mod = (!test && ( (bits >> i) & 1) === 1);
 			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
 		}
-	
+
 		for (var x = 0; x < 18; x++) {
 			mod = (!test && ( (bits >> x) & 1) === 1);
 			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
 		}
 	},
-	
+
 	setupTypeInfo : function(test, maskPattern) {
-	
+
 		var data = (this.errorCorrectLevel << 3) | maskPattern;
 		var bits = QRUtil.getBCHTypeInfo(data);
         var mod;
-	
-		// vertical		
+
+		// vertical
 		for (var v = 0; v < 15; v++) {
-	
+
 			mod = (!test && ( (bits >> v) & 1) === 1);
-	
+
 			if (v < 6) {
 				this.modules[v][8] = mod;
 			} else if (v < 8) {
@@ -3719,12 +3720,12 @@ QRCode.prototype = {
 				this.modules[this.moduleCount - 15 + v][8] = mod;
 			}
 		}
-	
+
 		// horizontal
 		for (var h = 0; h < 15; h++) {
-	
+
 			mod = (!test && ( (bits >> h) & 1) === 1);
-			
+
 			if (h < 8) {
 				this.modules[8][this.moduleCount - h - 1] = mod;
 			} else if (h < 9) {
@@ -3733,53 +3734,53 @@ QRCode.prototype = {
 				this.modules[8][15 - h - 1] = mod;
 			}
 		}
-	
+
 		// fixed module
 		this.modules[this.moduleCount - 8][8] = (!test);
-	
+
 	},
-	
+
 	mapData : function(data, maskPattern) {
-		
+
 		var inc = -1;
 		var row = this.moduleCount - 1;
 		var bitIndex = 7;
 		var byteIndex = 0;
-		
+
 		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
-	
+
 			if (col === 6) col--;
-	
+
 			while (true) {
-	
+
 				for (var c = 0; c < 2; c++) {
-					
+
 					if (this.modules[row][col - c] === null) {
-						
+
 						var dark = false;
-	
+
 						if (byteIndex < data.length) {
 							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
 						}
-	
+
 						var mask = QRUtil.getMask(maskPattern, row, col - c);
-	
+
 						if (mask) {
 							dark = !dark;
 						}
-						
+
 						this.modules[row][col - c] = dark;
 						bitIndex--;
-	
+
 						if (bitIndex === -1) {
 							byteIndex++;
 							bitIndex = 7;
 						}
 					}
 				}
-								
+
 				row += inc;
-	
+
 				if (row < 0 || this.moduleCount <= row) {
 					row -= inc;
 					inc = -inc;
@@ -3787,7 +3788,7 @@ QRCode.prototype = {
 				}
 			}
 		}
-		
+
 	}
 
 };
@@ -3796,11 +3797,11 @@ QRCode.PAD0 = 0xEC;
 QRCode.PAD1 = 0x11;
 
 QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
-	
+
 	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
-	
+
 	var buffer = new QRBitBuffer();
-	
+
 	for (var i = 0; i < dataList.length; i++) {
 		var data = dataList[i];
 		buffer.put(data.mode, 4);
@@ -3815,10 +3816,10 @@ QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
 	}
 
 	if (buffer.getLengthInBits() > totalDataCount * 8) {
-		throw new Error("code length overflow. (" + 
-            buffer.getLengthInBits() + 
-            ">" +  
-            totalDataCount * 8 + 
+		throw new Error("code length overflow. (" +
+            buffer.getLengthInBits() +
+            ">" +
+            totalDataCount * 8 +
             ")");
 	}
 
@@ -3834,12 +3835,12 @@ QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
 
 	// padding
 	while (true) {
-		
+
 		if (buffer.getLengthInBits() >= totalDataCount * 8) {
 			break;
 		}
 		buffer.put(QRCode.PAD0, 8);
-		
+
 		if (buffer.getLengthInBits() >= totalDataCount * 8) {
 			break;
 		}
@@ -3852,13 +3853,13 @@ QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
 QRCode.createBytes = function(buffer, rsBlocks) {
 
 	var offset = 0;
-	
+
 	var maxDcCount = 0;
 	var maxEcCount = 0;
-	
+
 	var dcdata = new Array(rsBlocks.length);
 	var ecdata = new Array(rsBlocks.length);
-	
+
 	for (var r = 0; r < rsBlocks.length; r++) {
 
 		var dcCount = rsBlocks[r].dataCount;
@@ -3866,14 +3867,14 @@ QRCode.createBytes = function(buffer, rsBlocks) {
 
 		maxDcCount = Math.max(maxDcCount, dcCount);
 		maxEcCount = Math.max(maxEcCount, ecCount);
-		
+
 		dcdata[r] = new Array(dcCount);
-		
+
 		for (var i = 0; i < dcdata[r].length; i++) {
 			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
 		}
 		offset += dcCount;
-		
+
 		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
 		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
 
@@ -3885,7 +3886,7 @@ QRCode.createBytes = function(buffer, rsBlocks) {
 		}
 
 	}
-	
+
 	var totalCodeCount = 0;
 	for (var y = 0; y < rsBlocks.length; y++) {
 		totalCodeCount += rsBlocks[y].totalCount;
@@ -3917,16 +3918,20 @@ QRCode.createBytes = function(buffer, rsBlocks) {
 module.exports = QRCode;
 
 }};const cache={};function req(name){if(cache[name])return cache[name].exports;const m={exports:{}};cache[name]=m;if(!modules[name])throw Error('QR module missing');modules[name](m,m.exports,req);return m.exports;}const QR=req('./index'),level=req('./QRErrorCorrectLevel');window.MatrixQRCode={matrix:function(text){if(!/^[\x00-\x7f]*$/.test(text))throw Error('QR payload must be ASCII');try{const q=new QR(-1,level.M);q.addData(text);q.make();return q.modules;}catch(_){const q=new QR(-1,level.L);q.addData(text);q.make();return q.modules;}}};})();
+
 </script>
-  <script>/*!
+  <script>
+/*!
  * hash-wasm (https://www.npmjs.com/package/hash-wasm)
  * (c) Dani Biro
  * @license MIT
  */
 
-!function(A,I){"object"==typeof exports&&"undefined"!=typeof module?I(exports):"function"==typeof define&&define.amd?define(["exports"],I):I((A="undefined"!=typeof globalThis?globalThis:A||self).hashwasm=A.hashwasm||{})}(this,(function(A){"use strict";function I(A,I,i,g){return new(i||(i=Promise))((function(C,Q){function B(A){try{e(g.next(A))}catch(A){Q(A)}}function h(A){try{e(g.throw(A))}catch(A){Q(A)}}function e(A){var I;A.done?C(A.value):(I=A.value,I instanceof i?I:new i((function(A){A(I)}))).then(B,h)}e((g=g.apply(A,I||[])).next())}))}var i;"function"==typeof SuppressedError&&SuppressedError;const g="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:"undefined"!=typeof window?window:global,C=null!==(i=g.Buffer)&&void 0!==i?i:null,Q=g.TextEncoder?new g.TextEncoder:null;function B(A,I){return(15&A)+(A>>6|A>>3&8)<<4|(15&I)+(I>>6|I>>3&8)}function h(A,I){const i=I.length>>1;for(let g=0;g<i;g++){const i=g<<1;A[g]=B(I.charCodeAt(i),I.charCodeAt(i+1))}}const e="a".charCodeAt(0)-10,w="0".charCodeAt(0);function t(A,I,i){let g=0;for(let C=0;C<i;C++){let i=I[C]>>>4;A[g++]=i>9?i+e:i+w,i=15&I[C],A[g++]=i>9?i+e:i+w}return String.fromCharCode.apply(null,A)}const o=null!==C?A=>{if("string"==typeof A){const I=C.from(A,"utf8");return new Uint8Array(I.buffer,I.byteOffset,I.length)}if(C.isBuffer(A))return new Uint8Array(A.buffer,A.byteOffset,A.length);if(ArrayBuffer.isView(A))return new Uint8Array(A.buffer,A.byteOffset,A.byteLength);throw new Error("Invalid data type!")}:A=>{if("string"==typeof A)return Q.encode(A);if(ArrayBuffer.isView(A))return new Uint8Array(A.buffer,A.byteOffset,A.byteLength);throw new Error("Invalid data type!")},E="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",D=new Uint8Array(256);for(let A=0;A<E.length;A++)D[E.charCodeAt(A)]=A;function n(A,I=!0){const i=A.length,g=i%3,C=[],Q=i-g;for(let I=0;I<Q;I+=3){const i=(A[I]<<16&16711680)+(A[I+1]<<8&65280)+(255&A[I+2]),g=E.charAt(i>>18&63)+E.charAt(i>>12&63)+E.charAt(i>>6&63)+E.charAt(63&i);C.push(g)}if(1===g){const g=A[i-1],Q=E.charAt(g>>2),B=E.charAt(g<<4&63);C.push(`${Q}${B}`),I&&C.push("==")}else if(2===g){const g=(A[i-2]<<8)+A[i-1],Q=E.charAt(g>>10),B=E.charAt(g>>4&63),h=E.charAt(g<<2&63);C.push(`${Q}${B}${h}`),I&&C.push("=")}return C.join("")}function r(A){let I=Math.floor(.75*A.length);const i=A.length;return"="===A[i-1]&&(I-=1,"="===A[i-2]&&(I-=1)),I}function F(A){const I=r(A),i=A.length,g=new Uint8Array(I);let C=0;for(let I=0;I<i;I+=4){const i=D[A.charCodeAt(I)],Q=D[A.charCodeAt(I+1)],B=D[A.charCodeAt(I+2)],h=D[A.charCodeAt(I+3)];g[C]=i<<2|Q>>4,C+=1,g[C]=(15&Q)<<4|B>>2,C+=1,g[C]=(3&B)<<6|63&h,C+=1}return g}class f{constructor(){this.mutex=Promise.resolve()}lock(){let A=()=>{};return this.mutex=this.mutex.then((()=>new Promise(A))),new Promise((I=>{A=I}))}dispatch(A){return I(this,void 0,void 0,(function*(){const I=yield this.lock();try{return yield Promise.resolve(A())}finally{I()}}))}}const a=16384,k=new f,s=new Map;function S(A,i){return I(this,void 0,void 0,(function*(){let g=null,C=null,Q=!1;if("undefined"==typeof WebAssembly)throw new Error("WebAssembly is not supported in this environment!");const e=()=>new DataView(g.exports.memory.buffer).getUint32(g.exports.STATE_SIZE,!0),w=k.dispatch((()=>I(this,void 0,void 0,(function*(){if(!s.has(A.name)){const I=F(A.data),i=WebAssembly.compile(I);s.set(A.name,i)}const I=yield s.get(A.name);g=yield WebAssembly.instantiate(I,{})})))),E=(A=null)=>{Q=!0,g.exports.Hash_Init(A)},D=A=>{if(!Q)throw new Error("update() called before init()");(A=>{let I=0;for(;I<A.length;){const i=A.subarray(I,I+a);I+=i.length,C.set(i),g.exports.Hash_Update(i.length)}})(o(A))},n=new Uint8Array(2*i),r=(A,I=null)=>{if(!Q)throw new Error("digest() called before init()");return Q=!1,g.exports.Hash_Final(I),"binary"===A?C.slice(0,i):t(n,C,i)},f=A=>"string"==typeof A?A.length<4096:A.byteLength<a;let S=f;switch(A.name){case"argon2":case"scrypt":S=()=>!0;break;case"blake2b":case"blake2s":S=(A,I)=>I<=512&&f(A);break;case"blake3":S=(A,I)=>0===I&&f(A);break;case"xxhash64":case"xxhash3":case"xxhash128":S=()=>!1}return yield(()=>I(this,void 0,void 0,(function*(){g||(yield w);const A=g.exports.Hash_GetBuffer(),I=g.exports.memory.buffer;C=new Uint8Array(I,A,a)})))(),{getMemory:()=>C,writeMemory:(A,I=0)=>{C.set(A,I)},getExports:()=>g.exports,setMemorySize:A=>{g.exports.Hash_SetMemorySize(A);const I=g.exports.Hash_GetBuffer(),i=g.exports.memory.buffer;C=new Uint8Array(i,I,A)},init:E,update:D,digest:r,save:()=>{if(!Q)throw new Error("save() can only be called after init() and before digest()");const I=g.exports.Hash_GetState(),i=e(),C=g.exports.memory.buffer,B=new Uint8Array(C,I,i),w=new Uint8Array(4+i);return h(w,A.hash),w.set(B,4),w},load:I=>{if(!(I instanceof Uint8Array))throw new Error("load() expects an Uint8Array generated by save()");const i=g.exports.Hash_GetState(),C=e(),h=4+C,w=g.exports.memory.buffer;if(I.length!==h)throw new Error(`Bad state length (expected ${h} bytes, got ${I.length})`);if(!function(A,I){if(A.length!==2*I.length)return!1;for(let i=0;i<I.length;i++){const g=i<<1;if(I[i]!==B(A.charCodeAt(g),A.charCodeAt(g+1)))return!1}return!0}(A.hash,I.subarray(0,4)))throw new Error("This state was written by an incompatible hash implementation");const t=I.subarray(4);new Uint8Array(w,i,C).set(t),Q=!0},calculate:(A,I=null,Q=null)=>{if(!S(A,I))return E(I),D(A),r("hex",Q);const B=o(A);return C.set(B),g.exports.Hash_Calculate(B.length,I,Q),t(n,C,i)},hashLength:i}}))}var U={name:"blake2b",data:"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",hash:"656e0f66"};function c(A){return!Number.isInteger(A)||A<8||A>512||A%8!=0?new Error("Invalid variant! Valid values: 8, 16, ..., 512"):null}function p(A=512,I=null){if(c(A))return Promise.reject(c(A));let i=null,g=A;if(null!==I){if(i=o(I),i.length>64)return Promise.reject(new Error("Max key length is 64 bytes"));C=A,Q=i.length,g=C|Q<<16}var C,Q;const B=A/8;return S(U,B).then((A=>{g>512&&A.writeMemory(i),A.init(g);const I={init:g>512?()=>(A.writeMemory(i),A.init(g),I):()=>(A.init(g),I),update:i=>(A.update(i),I),digest:I=>A.digest(I),save:()=>A.save(),load:i=>(A.load(i),I),blockSize:128,digestSize:B};return I}))}new f;var G={name:"argon2",data:"AGFzbQEAAAABKQVgAX8Bf2AAAX9gEH9/f39/f39/f39/f39/f38AYAR/f39/AGACf38AAwYFAAECAwQFBgEBAoCAAgYIAX8BQZCoBAsHQQQGbWVtb3J5AgASSGFzaF9TZXRNZW1vcnlTaXplAAAOSGFzaF9HZXRCdWZmZXIAAQ5IYXNoX0NhbGN1bGF0ZQAECvkyBVgBAn9BACEBAkBBACgCiAgiAiAARg0AAkAgACACayIAQRB2IABBgIB8cSAASWoiAEAAQX9HDQBB/wHADwtBACEBQQBBACkDiAggAEEQdK18NwOICAsgAcALcAECfwJAQQAoAoAIIgANAEEAPwBBEHQiADYCgAhBACgCiAgiAUGAgCBGDQACQEGAgCAgAWsiAEEQdiAAQYCAfHEgAElqIgBAAEF/Rw0AQQAPC0EAQQApA4gIIABBEHStfDcDiAhBACgCgAghAAsgAAvcDgECfiAAIAQpAwAiECAAKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAMIBAgDCkDAIVCIIkiEDcDACAIIBAgCCkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgBCAQIAQpAwCFQiiJIhA3AwAgACAQIAApAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAwgECAMKQMAhUIwiSIQNwMAIAggECAIKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAEIBAgBCkDAIVCAYk3AwAgASAFKQMAIhAgASkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDSAQIA0pAwCFQiCJIhA3AwAgCSAQIAkpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAUgECAFKQMAhUIoiSIQNwMAIAEgECABKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACANIBAgDSkDAIVCMIkiEDcDACAJIBAgCSkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBSAQIAUpAwCFQgGJNwMAIAIgBikDACIQIAIpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIA4gECAOKQMAhUIgiSIQNwMAIAogECAKKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAGIBAgBikDAIVCKIkiEDcDACACIBAgAikDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgDiAQIA4pAwCFQjCJIhA3AwAgCiAQIAopAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAYgECAGKQMAhUIBiTcDACADIAcpAwAiECADKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAPIBAgDykDAIVCIIkiEDcDACALIBAgCykDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgByAQIAcpAwCFQiiJIhA3AwAgAyAQIAMpAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIA8gECAPKQMAhUIwiSIQNwMAIAsgECALKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAHIBAgBykDAIVCAYk3AwAgACAFKQMAIhAgACkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDyAQIA8pAwCFQiCJIhA3AwAgCiAQIAopAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAUgECAFKQMAhUIoiSIQNwMAIAAgECAAKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAPIBAgDykDAIVCMIkiEDcDACAKIBAgCikDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBSAQIAUpAwCFQgGJNwMAIAEgBikDACIQIAEpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAwgECAMKQMAhUIgiSIQNwMAIAsgECALKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAGIBAgBikDAIVCKIkiEDcDACABIBAgASkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgDCAQIAwpAwCFQjCJIhA3AwAgCyAQIAspAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAYgECAGKQMAhUIBiTcDACACIAcpAwAiECACKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACANIBAgDSkDAIVCIIkiEDcDACAIIBAgCCkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgByAQIAcpAwCFQiiJIhA3AwAgAiAQIAIpAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIA0gECANKQMAhUIwiSIQNwMAIAggECAIKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAHIBAgBykDAIVCAYk3AwAgAyAEKQMAIhAgAykDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDiAQIA4pAwCFQiCJIhA3AwAgCSAQIAkpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAQgECAEKQMAhUIoiSIQNwMAIAMgECADKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAOIBAgDikDAIVCMIkiEDcDACAJIBAgCSkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBCAQIAQpAwCFQgGJNwMAC98aAQN/QQAhBEEAIAIpAwAgASkDAIU3A5AIQQAgAikDCCABKQMIhTcDmAhBACACKQMQIAEpAxCFNwOgCEEAIAIpAxggASkDGIU3A6gIQQAgAikDICABKQMghTcDsAhBACACKQMoIAEpAyiFNwO4CEEAIAIpAzAgASkDMIU3A8AIQQAgAikDOCABKQM4hTcDyAhBACACKQNAIAEpA0CFNwPQCEEAIAIpA0ggASkDSIU3A9gIQQAgAikDUCABKQNQhTcD4AhBACACKQNYIAEpA1iFNwPoCEEAIAIpA2AgASkDYIU3A/AIQQAgAikDaCABKQNohTcD+AhBACACKQNwIAEpA3CFNwOACUEAIAIpA3ggASkDeIU3A4gJQQAgAikDgAEgASkDgAGFNwOQCUEAIAIpA4gBIAEpA4gBhTcDmAlBACACKQOQASABKQOQAYU3A6AJQQAgAikDmAEgASkDmAGFNwOoCUEAIAIpA6ABIAEpA6ABhTcDsAlBACACKQOoASABKQOoAYU3A7gJQQAgAikDsAEgASkDsAGFNwPACUEAIAIpA7gBIAEpA7gBhTcDyAlBACACKQPAASABKQPAAYU3A9AJQQAgAikDyAEgASkDyAGFNwPYCUEAIAIpA9ABIAEpA9ABhTcD4AlBACACKQPYASABKQPYAYU3A+gJQQAgAikD4AEgASkD4AGFNwPwCUEAIAIpA+gBIAEpA+gBhTcD+AlBACACKQPwASABKQPwAYU3A4AKQQAgAikD+AEgASkD+AGFNwOICkEAIAIpA4ACIAEpA4AChTcDkApBACACKQOIAiABKQOIAoU3A5gKQQAgAikDkAIgASkDkAKFNwOgCkEAIAIpA5gCIAEpA5gChTcDqApBACACKQOgAiABKQOgAoU3A7AKQQAgAikDqAIgASkDqAKFNwO4CkEAIAIpA7ACIAEpA7AChTcDwApBACACKQO4AiABKQO4AoU3A8gKQQAgAikDwAIgASkDwAKFNwPQCkEAIAIpA8gCIAEpA8gChTcD2ApBACACKQPQAiABKQPQAoU3A+AKQQAgAikD2AIgASkD2AKFNwPoCkEAIAIpA+ACIAEpA+AChTcD8ApBACACKQPoAiABKQPoAoU3A/gKQQAgAikD8AIgASkD8AKFNwOAC0EAIAIpA/gCIAEpA/gChTcDiAtBACACKQOAAyABKQOAA4U3A5ALQQAgAikDiAMgASkDiAOFNwOYC0EAIAIpA5ADIAEpA5ADhTcDoAtBACACKQOYAyABKQOYA4U3A6gLQQAgAikDoAMgASkDoAOFNwOwC0EAIAIpA6gDIAEpA6gDhTcDuAtBACACKQOwAyABKQOwA4U3A8ALQQAgAikDuAMgASkDuAOFNwPIC0EAIAIpA8ADIAEpA8ADhTcD0AtBACACKQPIAyABKQPIA4U3A9gLQQAgAikD0AMgASkD0AOFNwPgC0EAIAIpA9gDIAEpA9gDhTcD6AtBACACKQPgAyABKQPgA4U3A/ALQQAgAikD6AMgASkD6AOFNwP4C0EAIAIpA/ADIAEpA/ADhTcDgAxBACACKQP4AyABKQP4A4U3A4gMQQAgAikDgAQgASkDgASFNwOQDEEAIAIpA4gEIAEpA4gEhTcDmAxBACACKQOQBCABKQOQBIU3A6AMQQAgAikDmAQgASkDmASFNwOoDEEAIAIpA6AEIAEpA6AEhTcDsAxBACACKQOoBCABKQOoBIU3A7gMQQAgAikDsAQgASkDsASFNwPADEEAIAIpA7gEIAEpA7gEhTcDyAxBACACKQPABCABKQPABIU3A9AMQQAgAikDyAQgASkDyASFNwPYDEEAIAIpA9AEIAEpA9AEhTcD4AxBACACKQPYBCABKQPYBIU3A+gMQQAgAikD4AQgASkD4ASFNwPwDEEAIAIpA+gEIAEpA+gEhTcD+AxBACACKQPwBCABKQPwBIU3A4ANQQAgAikD+AQgASkD+ASFNwOIDUEAIAIpA4AFIAEpA4AFhTcDkA1BACACKQOIBSABKQOIBYU3A5gNQQAgAikDkAUgASkDkAWFNwOgDUEAIAIpA5gFIAEpA5gFhTcDqA1BACACKQOgBSABKQOgBYU3A7ANQQAgAikDqAUgASkDqAWFNwO4DUEAIAIpA7AFIAEpA7AFhTcDwA1BACACKQO4BSABKQO4BYU3A8gNQQAgAikDwAUgASkDwAWFNwPQDUEAIAIpA8gFIAEpA8gFhTcD2A1BACACKQPQBSABKQPQBYU3A+ANQQAgAikD2AUgASkD2AWFNwPoDUEAIAIpA+AFIAEpA+AFhTcD8A1BACACKQPoBSABKQPoBYU3A/gNQQAgAikD8AUgASkD8AWFNwOADkEAIAIpA/gFIAEpA/gFhTcDiA5BACACKQOABiABKQOABoU3A5AOQQAgAikDiAYgASkDiAaFNwOYDkEAIAIpA5AGIAEpA5AGhTcDoA5BACACKQOYBiABKQOYBoU3A6gOQQAgAikDoAYgASkDoAaFNwOwDkEAIAIpA6gGIAEpA6gGhTcDuA5BACACKQOwBiABKQOwBoU3A8AOQQAgAikDuAYgASkDuAaFNwPIDkEAIAIpA8AGIAEpA8AGhTcD0A5BACACKQPIBiABKQPIBoU3A9gOQQAgAikD0AYgASkD0AaFNwPgDkEAIAIpA9gGIAEpA9gGhTcD6A5BACACKQPgBiABKQPgBoU3A/AOQQAgAikD6AYgASkD6AaFNwP4DkEAIAIpA/AGIAEpA/AGhTcDgA9BACACKQP4BiABKQP4BoU3A4gPQQAgAikDgAcgASkDgAeFNwOQD0EAIAIpA4gHIAEpA4gHhTcDmA9BACACKQOQByABKQOQB4U3A6APQQAgAikDmAcgASkDmAeFNwOoD0EAIAIpA6AHIAEpA6AHhTcDsA9BACACKQOoByABKQOoB4U3A7gPQQAgAikDsAcgASkDsAeFNwPAD0EAIAIpA7gHIAEpA7gHhTcDyA9BACACKQPAByABKQPAB4U3A9APQQAgAikDyAcgASkDyAeFNwPYD0EAIAIpA9AHIAEpA9AHhTcD4A9BACACKQPYByABKQPYB4U3A+gPQQAgAikD4AcgASkD4AeFNwPwD0EAIAIpA+gHIAEpA+gHhTcD+A9BACACKQPwByABKQPwB4U3A4AQQQAgAikD+AcgASkD+AeFNwOIEEGQCEGYCEGgCEGoCEGwCEG4CEHACEHICEHQCEHYCEHgCEHoCEHwCEH4CEGACUGICRACQZAJQZgJQaAJQagJQbAJQbgJQcAJQcgJQdAJQdgJQeAJQegJQfAJQfgJQYAKQYgKEAJBkApBmApBoApBqApBsApBuApBwApByApB0ApB2ApB4ApB6ApB8ApB+ApBgAtBiAsQAkGQC0GYC0GgC0GoC0GwC0G4C0HAC0HIC0HQC0HYC0HgC0HoC0HwC0H4C0GADEGIDBACQZAMQZgMQaAMQagMQbAMQbgMQcAMQcgMQdAMQdgMQeAMQegMQfAMQfgMQYANQYgNEAJBkA1BmA1BoA1BqA1BsA1BuA1BwA1ByA1B0A1B2A1B4A1B6A1B8A1B+A1BgA5BiA4QAkGQDkGYDkGgDkGoDkGwDkG4DkHADkHIDkHQDkHYDkHgDkHoDkHwDkH4DkGAD0GIDxACQZAPQZgPQaAPQagPQbAPQbgPQcAPQcgPQdAPQdgPQeAPQegPQfAPQfgPQYAQQYgQEAJBkAhBmAhBkAlBmAlBkApBmApBkAtBmAtBkAxBmAxBkA1BmA1BkA5BmA5BkA9BmA8QAkGgCEGoCEGgCUGoCUGgCkGoCkGgC0GoC0GgDEGoDEGgDUGoDUGgDkGoDkGgD0GoDxACQbAIQbgIQbAJQbgJQbAKQbgKQbALQbgLQbAMQbgMQbANQbgNQbAOQbgOQbAPQbgPEAJBwAhByAhBwAlByAlBwApByApBwAtByAtBwAxByAxBwA1ByA1BwA5ByA5BwA9ByA8QAkHQCEHYCEHQCUHYCUHQCkHYCkHQC0HYC0HQDEHYDEHQDUHYDUHQDkHYDkHQD0HYDxACQeAIQegIQeAJQegJQeAKQegKQeALQegLQeAMQegMQeANQegNQeAOQegOQeAPQegPEAJB8AhB+AhB8AlB+AlB8ApB+ApB8AtB+AtB8AxB+AxB8A1B+A1B8A5B+A5B8A9B+A8QAkGACUGICUGACkGICkGAC0GIC0GADEGIDEGADUGIDUGADkGIDkGAD0GID0GAEEGIEBACAkACQCADRQ0AA0AgACAEaiIDIAIgBGoiBSkDACABIARqIgYpAwCFIARBkAhqKQMAhSADKQMAhTcDACADQQhqIgMgBUEIaikDACAGQQhqKQMAhSAEQZgIaikDAIUgAykDAIU3AwAgBEEQaiIEQYAIRw0ADAILC0EAIQQDQCAAIARqIgMgAiAEaiIFKQMAIAEgBGoiBikDAIUgBEGQCGopAwCFNwMAIANBCGogBUEIaikDACAGQQhqKQMAhSAEQZgIaikDAIU3AwAgBEEQaiIEQYAIRw0ACwsL7QcMBX8BfgR/An4CfwF+A38BfgZ/AX4DfwF+AkBBACgCgAgiAiABQQp0aiIDKAIIIAFHDQAgAygCDCEEIAMoAgAhBUEAIAMoAhQiBq03A7gQQQAgBK0iBzcDsBBBACAFIAEgBUECdG4iCGwiCUECdK03A6gQAkACQAJAAkAgBEUNAEF/IQogBUUNASAIQQNsIQsgCEECdCIErSEMIAWtIQ0gBkECRiEOIAZBf2pBAkkhD0IAIRADQEEAIBA3A5AQIA4gEFAiEXEhEiAQpyETQgAhFEEAIQEDQEEAIBQ3A6AQIAZBAUYgEiAUQgJUcXIhFSAQIBSEUCIDIA9xIRZBfyABQQFqQQNxIAhsQX9qIBEbIRcgASATciEYIAEgCGwhGSADQQF0IRpCACEbA0BBAEIANwPAEEEAIBs3A5gQIBohAQJAIBZFDQBBAEIBNwPAEEGQGEGQEEGQIEEAEANBkBhBkBhBkCBBABADQQIhAQsCQCABIAhPDQAgBCAbpyIcbCAZaiABaiEDA0AgA0EAIARBACAUUCIdGyABG2pBf2ohHgJAAkAgFQ0AQQAoAoAIIgIgHkEKdCIeaiEKDAELAkAgAUH/AHEiAg0AQQBBACkDwBBCAXw3A8AQQZAYQZAQQZAgQQAQA0GQGEGQGEGQIEEAEAMLIB5BCnQhHiACQQN0QZAYaiEKQQAoAoAIIQILIAIgA0EKdGogAiAeaiACIAopAwAiH0IgiKcgBXAgHCAYGyIeIARsIAEgAUEAIBsgHq1RIh4bIgogHRsgGWogCiALaiARGyABRSAecmsiHSAXaq0gH0L/////D4MiHyAffkIgiCAdrX5CIIh9IAyCp2pBCnRqQQEQAyADQQFqIQMgCCABQQFqIgFHDQALCyAbQgF8IhsgDVINAAsgFEIBfCIUpyEBIBRCBFINAAsgEEIBfCIQIAdSDQALCyAJQQx0QYB4aiEZQQAoAoAIIQIgBUF/aiIKRQ0CDAELQQBCAzcDoBBBACAEQX9qrTcDkBBBgHghGQsgAiAZaiEdIAhBDHQhCEEAIR4DQCAIIB5BAWoiHmxBgHhqIQRBACEBA0AgHSABaiIDIAMpAwAgAiAEIAFqaikDAIU3AwAgA0EIaiIDIAMpAwAgAiAEIAFBCHJqaikDAIU3AwAgAUEIaiEDIAFBEGohASADQfgHSQ0ACyAeIApHDQALCyACIBlqIR1BeCEBA0AgAiABaiIDQQhqIB0gAWoiBEEIaikDADcDACADQRBqIARBEGopAwA3AwAgA0EYaiAEQRhqKQMANwMAIANBIGogBEEgaikDADcDACABQSBqIgFB+AdJDQALCws=",hash:"7ab14c91"};const y=new DataView(new ArrayBuffer(4));function J(A){return y.setInt32(0,A,!0),new Uint8Array(y.buffer)}function l(A,i,g){return I(this,void 0,void 0,(function*(){if(g<=64){const A=yield p(8*g);return A.update(J(g)),A.update(i),A.digest("binary")}const I=Math.ceil(g/32)-2,C=new Uint8Array(g);A.init(),A.update(J(g)),A.update(i);let Q=A.digest("binary");C.set(Q.subarray(0,32),0);for(let i=1;i<I;i++)A.init(),A.update(Q),Q=A.digest("binary"),C.set(Q.subarray(0,32),32*i);const B=g-32*I;let h;return 64===B?(h=A,h.init()):h=yield p(8*B),h.update(Q),Q=h.digest("binary"),C.set(Q.subarray(0,B),32*I),C}))}function H(A){var i;return I(this,void 0,void 0,(function*(){const{parallelism:I,iterations:g,hashLength:C}=A,Q=o(A.password),B=o(A.salt),e=function(A){switch(A){case"d":return 0;case"i":return 1;default:return 2}}(A.hashType),{memorySize:w}=A,E=o(null!==(i=A.secret)&&void 0!==i?i:""),[D,r]=yield Promise.all([S(G,1024),p(512)]);D.setMemorySize(1024*w+1024);const F=new Uint8Array(24),f=new DataView(F.buffer);f.setInt32(0,I,!0),f.setInt32(4,C,!0),f.setInt32(8,w,!0),f.setInt32(12,g,!0),f.setInt32(16,19,!0),f.setInt32(20,e,!0),D.writeMemory(F,1024*w),r.init(),r.update(F),r.update(J(Q.length)),r.update(Q),r.update(J(B.length)),r.update(B),r.update(J(E.length)),r.update(E),r.update(J(0));const a=4*Math.floor(w/(4*I)),k=new Uint8Array(72),s=r.digest("binary");k.set(s);for(let A=0;A<I;A++){k.set(J(0),64),k.set(J(A),68);let I=A*a,i=yield l(r,k,1024);D.writeMemory(i,1024*I),I+=1,k.set(J(1),64),i=yield l(r,k,1024),D.writeMemory(i,1024*I)}const U=new Uint8Array(1024);h(U,D.calculate(new Uint8Array([]),w));const c=yield l(r,U,C);if("hex"===A.outputType){return t(new Uint8Array(2*C),c,C)}return"encoded"===A.outputType?function(A,I,i){const g=[`m=${I.memorySize}`,`t=${I.iterations}`,`p=${I.parallelism}`].join(",");return`$argon2${I.hashType}$v=19$${g}$${n(A,!1)}$${n(i,!1)}`}(B,A,c):c}))}const u=A=>{var I;if(!A||"object"!=typeof A)throw new Error("Invalid options parameter. It requires an object.");if(!A.password)throw new Error("Password must be specified");if(A.password=o(A.password),A.password.length<1)throw new Error("Password must be specified");if(!A.salt)throw new Error("Salt must be specified");if(A.salt=o(A.salt),A.salt.length<8)throw new Error("Salt should be at least 8 bytes long");if(A.secret=o(null!==(I=A.secret)&&void 0!==I?I:""),!Number.isInteger(A.iterations)||A.iterations<1)throw new Error("Iterations should be a positive number");if(!Number.isInteger(A.parallelism)||A.parallelism<1)throw new Error("Parallelism should be a positive number");if(!Number.isInteger(A.hashLength)||A.hashLength<4)throw new Error("Hash length should be at least 4 bytes.");if(!Number.isInteger(A.memorySize))throw new Error("Memory size should be specified.");if(A.memorySize<8*A.parallelism)throw new Error("Memory size should be at least 8 * parallelism.");if(void 0===A.outputType&&(A.outputType="hex"),!["hex","binary","encoded"].includes(A.outputType))throw new Error(`Insupported output type ${A.outputType}. Valid values: ['hex', 'binary', 'encoded']`)};A.argon2Verify=function(A){return I(this,void 0,void 0,(function*(){(A=>{if(!A||"object"!=typeof A)throw new Error("Invalid options parameter. It requires an object.");if(void 0===A.hash||"string"!=typeof A.hash)throw new Error("Hash should be specified")})(A);const I=((A,I,i)=>{const g=I.match(/^\$argon2(id|i|d)\$v=([0-9]+)\$((?:[mtp]=[0-9]+,){2}[mtp]=[0-9]+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/);if(!g)throw new Error("Invalid hash");const[,C,Q,B,h,e]=g;if("19"!==Q)throw new Error(`Unsupported version: ${Q}`);const w={},t={m:"memorySize",p:"parallelism",t:"iterations"};return B.split(",").forEach((A=>{const[I,i]=A.split("=");w[t[I]]=parseInt(i,10)})),Object.assign(Object.assign({},w),{password:A,secret:i,hashType:C,salt:F(h),hashLength:r(e),outputType:"encoded"})})(A.password,A.hash,A.secret);u(I);const i=A.hash.lastIndexOf("$")+1;return(yield H(I)).substring(i)===A.hash.substring(i)}))},A.argon2d=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"d"}))}))},A.argon2i=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"i"}))}))},A.argon2id=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"id"}))}))}}));
+!function(A,I){"object"==typeof exports&&"undefined"!=typeof module?I(exports):"function"==typeof define&&define.amd?define(["exports"],I):I((A="undefined"!=typeof globalThis?globalThis:A||self).hashwasm=A.hashwasm||{})}(this,(function(A){"use strict";function I(A,I,i,g){return new(i||(i=Promise))((function(C,Q){function B(A){try{e(g.next(A))}catch(A){Q(A)}}function h(A){try{e(g.throw(A))}catch(A){Q(A)}}function e(A){var I;A.done?C(A.value):(I=A.value,I instanceof i?I:new i((function(A){A(I)}))).then(B,h)}e((g=g.apply(A,I||[])).next())}))}var i;"function"==typeof SuppressedError&&SuppressedError;const g="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:"undefined"!=typeof window?window:global,C=null!==(i=g.Buffer)&&void 0!==i?i:null,Q=g.TextEncoder?new g.TextEncoder:null;function B(A,I){return(15&A)+(A>>6|A>>3&8)<<4|(15&I)+(I>>6|I>>3&8)}function h(A,I){const i=I.length>>1;for(let g=0;g<i;g++){const i=g<<1;A[g]=B(I.charCodeAt(i),I.charCodeAt(i+1))}}const e="a".charCodeAt(0)-10,w="0".charCodeAt(0);function t(A,I,i){let g=0;for(let C=0;C<i;C++){let i=I[C]>>>4;A[g++]=i>9?i+e:i+w,i=15&I[C],A[g++]=i>9?i+e:i+w}return String.fromCharCode.apply(null,A)}const o=null!==C?A=>{if("string"==typeof A){const I=C.from(A,"utf8");return new Uint8Array(I.buffer,I.byteOffset,I.length)}if(C.isBuffer(A))return new Uint8Array(A.buffer,A.byteOffset,A.length);if(ArrayBuffer.isView(A))return new Uint8Array(A.buffer,A.byteOffset,A.byteLength);throw new Error("Invalid data type!")}:A=>{if("string"==typeof A)return Q.encode(A);if(ArrayBuffer.isView(A))return new Uint8Array(A.buffer,A.byteOffset,A.byteLength);throw new Error("Invalid data type!")},E="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",D=new Uint8Array(256);for(let A=0;A<E.length;A++)D[E.charCodeAt(A)]=A;function n(A,I=!0){const i=A.length,g=i%3,C=[],Q=i-g;for(let I=0;I<Q;I+=3){const i=(A[I]<<16&16711680)+(A[I+1]<<8&65280)+(255&A[I+2]),g=E.charAt(i>>18&63)+E.charAt(i>>12&63)+E.charAt(i>>6&63)+E.charAt(63&i);C.push(g)}if(1===g){const g=A[i-1],Q=E.charAt(g>>2),B=E.charAt(g<<4&63);C.push(`${Q}${B}`),I&&C.push("==")}else if(2===g){const g=(A[i-2]<<8)+A[i-1],Q=E.charAt(g>>10),B=E.charAt(g>>4&63),h=E.charAt(g<<2&63);C.push(`${Q}${B}${h}`),I&&C.push("=")}return C.join("")}function r(A){let I=Math.floor(.75*A.length);const i=A.length;return"="===A[i-1]&&(I-=1,"="===A[i-2]&&(I-=1)),I}function F(A){const I=r(A),i=A.length,g=new Uint8Array(I);let C=0;for(let I=0;I<i;I+=4){const i=D[A.charCodeAt(I)],Q=D[A.charCodeAt(I+1)],B=D[A.charCodeAt(I+2)],h=D[A.charCodeAt(I+3)];g[C]=i<<2|Q>>4,C+=1,g[C]=(15&Q)<<4|B>>2,C+=1,g[C]=(3&B)<<6|63&h,C+=1}return g}class f{constructor(){this.mutex=Promise.resolve()}lock(){let A=()=>{};return this.mutex=this.mutex.then((()=>new Promise(A))),new Promise((I=>{A=I}))}dispatch(A){return I(this,void 0,void 0,(function*(){const I=yield this.lock();try{return yield Promise.resolve(A())}finally{I()}}))}}const a=16384,k=new f,s=new Map;function S(A,i){return I(this,void 0,void 0,(function*(){let g=null,C=null,Q=!1;if("undefined"==typeof WebAssembly)throw new Error("WebAssembly is not supported in this environment!");const e=()=>new DataView(g.exports.memory.buffer).getUint32(g.exports.STATE_SIZE,!0),w=k.dispatch((()=>I(this,void 0,void 0,(function*(){if(!s.has(A.name)){const I=F(A.data),i=WebAssembly.compile(I);s.set(A.name,i)}const I=yield s.get(A.name);g=yield WebAssembly.instantiate(I,{})})))),E=(A=null)=>{Q=!0,g.exports.Hash_Init(A)},D=A=>{if(!Q)throw new Error("update() called before init()");(A=>{let I=0;for(;I<A.length;){const i=A.subarray(I,I+a);I+=i.length,C.set(i),g.exports.Hash_Update(i.length)}})(o(A))},n=new Uint8Array(2*i),r=(A,I=null)=>{if(!Q)throw new Error("digest() called before init()");return Q=!1,g.exports.Hash_Final(I),"binary"===A?C.slice(0,i):t(n,C,i)},f=A=>"string"==typeof A?A.length<4096:A.byteLength<a;let S=f;switch(A.name){case"argon2":case"scrypt":S=()=>!0;break;case"blake2b":case"blake2s":S=(A,I)=>I<=512&&f(A);break;case"blake3":S=(A,I)=>0===I&&f(A);break;case"xxhash64":case"xxhash3":case"xxhash128":S=()=>!1}return yield(()=>I(this,void 0,void 0,(function*(){g||(yield w);const A=g.exports.Hash_GetBuffer(),I=g.exports.memory.buffer;C=new Uint8Array(I,A,a)})))(),{getMemory:()=>C,writeMemory:(A,I=0)=>{C.set(A,I)},getExports:()=>g.exports,setMemorySize:A=>{g.exports.Hash_SetMemorySize(A);const I=g.exports.Hash_GetBuffer(),i=g.exports.memory.buffer;C=new Uint8Array(i,I,A)},init:E,update:D,digest:r,save:()=>{if(!Q)throw new Error("save() can only be called after init() and before digest()");const I=g.exports.Hash_GetState(),i=e(),C=g.exports.memory.buffer,B=new Uint8Array(C,I,i),w=new Uint8Array(4+i);return h(w,A.hash),w.set(B,4),w},load:I=>{if(!(I instanceof Uint8Array))throw new Error("load() expects an Uint8Array generated by save()");const i=g.exports.Hash_GetState(),C=e(),h=4+C,w=g.exports.memory.buffer;if(I.length!==h)throw new Error(`Bad state length (expected ${h} bytes, got ${I.length})`);if(!function(A,I){if(A.length!==2*I.length)return!1;for(let i=0;i<I.length;i++){const g=i<<1;if(I[i]!==B(A.charCodeAt(g),A.charCodeAt(g+1)))return!1}return!0}(A.hash,I.subarray(0,4)))throw new Error("This state was written by an incompatible hash implementation");const t=I.subarray(4);new Uint8Array(w,i,C).set(t),Q=!0},calculate:(A,I=null,Q=null)=>{if(!S(A,I))return E(I),D(A),r("hex",Q);const B=o(A);return C.set(B),g.exports.Hash_Calculate(B.length,I,Q),t(n,C,i)},hashLength:i}}))}var U={name:"blake2b",data:"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",hash:"656e0f66"};function c(A){return!Number.isInteger(A)||A<8||A>512||A%8!=0?new Error("Invalid variant! Valid values: 8, 16, ..., 512"):null}function p(A=512,I=null){if(c(A))return Promise.reject(c(A));let i=null,g=A;if(null!==I){if(i=o(I),i.length>64)return Promise.reject(new Error("Max key length is 64 bytes"));C=A,Q=i.length,g=C|Q<<16}var C,Q;const B=A/8;return S(U,B).then((A=>{g>512&&A.writeMemory(i),A.init(g);const I={init:g>512?()=>(A.writeMemory(i),A.init(g),I):()=>(A.init(g),I),update:i=>(A.update(i),I),digest:I=>A.digest(I),save:()=>A.save(),load:i=>(A.load(i),I),blockSize:128,digestSize:B};return I}))}new f;var G={name:"argon2",data:"AGFzbQEAAAABKQVgAX8Bf2AAAX9gEH9/f39/f39/f39/f39/f38AYAR/f39/AGACf38AAwYFAAECAwQFBgEBAoCAAgYIAX8BQZCoBAsHQQQGbWVtb3J5AgASSGFzaF9TZXRNZW1vcnlTaXplAAAOSGFzaF9HZXRCdWZmZXIAAQ5IYXNoX0NhbGN1bGF0ZQAECvkyBVgBAn9BACEBAkBBACgCiAgiAiAARg0AAkAgACACayIAQRB2IABBgIB8cSAASWoiAEAAQX9HDQBB/wHADwtBACEBQQBBACkDiAggAEEQdK18NwOICAsgAcALcAECfwJAQQAoAoAIIgANAEEAPwBBEHQiADYCgAhBACgCiAgiAUGAgCBGDQACQEGAgCAgAWsiAEEQdiAAQYCAfHEgAElqIgBAAEF/Rw0AQQAPC0EAQQApA4gIIABBEHStfDcDiAhBACgCgAghAAsgAAvcDgECfiAAIAQpAwAiECAAKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAMIBAgDCkDAIVCIIkiEDcDACAIIBAgCCkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgBCAQIAQpAwCFQiiJIhA3AwAgACAQIAApAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAwgECAMKQMAhUIwiSIQNwMAIAggECAIKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAEIBAgBCkDAIVCAYk3AwAgASAFKQMAIhAgASkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDSAQIA0pAwCFQiCJIhA3AwAgCSAQIAkpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAUgECAFKQMAhUIoiSIQNwMAIAEgECABKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACANIBAgDSkDAIVCMIkiEDcDACAJIBAgCSkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBSAQIAUpAwCFQgGJNwMAIAIgBikDACIQIAIpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIA4gECAOKQMAhUIgiSIQNwMAIAogECAKKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAGIBAgBikDAIVCKIkiEDcDACACIBAgAikDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgDiAQIA4pAwCFQjCJIhA3AwAgCiAQIAopAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAYgECAGKQMAhUIBiTcDACADIAcpAwAiECADKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAPIBAgDykDAIVCIIkiEDcDACALIBAgCykDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgByAQIAcpAwCFQiiJIhA3AwAgAyAQIAMpAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIA8gECAPKQMAhUIwiSIQNwMAIAsgECALKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAHIBAgBykDAIVCAYk3AwAgACAFKQMAIhAgACkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDyAQIA8pAwCFQiCJIhA3AwAgCiAQIAopAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAUgECAFKQMAhUIoiSIQNwMAIAAgECAAKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAPIBAgDykDAIVCMIkiEDcDACAKIBAgCikDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBSAQIAUpAwCFQgGJNwMAIAEgBikDACIQIAEpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAwgECAMKQMAhUIgiSIQNwMAIAsgECALKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACAGIBAgBikDAIVCKIkiEDcDACABIBAgASkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgDCAQIAwpAwCFQjCJIhA3AwAgCyAQIAspAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIAYgECAGKQMAhUIBiTcDACACIAcpAwAiECACKQMAIhF8IBFCAYZC/v///x+DIBBC/////w+DfnwiEDcDACANIBAgDSkDAIVCIIkiEDcDACAIIBAgCCkDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgByAQIAcpAwCFQiiJIhA3AwAgAiAQIAIpAwAiEXwgEEL/////D4MgEUIBhkL+////H4N+fCIQNwMAIA0gECANKQMAhUIwiSIQNwMAIAggECAIKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAHIBAgBykDAIVCAYk3AwAgAyAEKQMAIhAgAykDACIRfCARQgGGQv7///8fgyAQQv////8Pg358IhA3AwAgDiAQIA4pAwCFQiCJIhA3AwAgCSAQIAkpAwAiEXwgEUIBhkL+////H4MgEEL/////D4N+fCIQNwMAIAQgECAEKQMAhUIoiSIQNwMAIAMgECADKQMAIhF8IBBC/////w+DIBFCAYZC/v///x+DfnwiEDcDACAOIBAgDikDAIVCMIkiEDcDACAJIBAgCSkDACIRfCAQQv////8PgyARQgGGQv7///8fg358IhA3AwAgBCAQIAQpAwCFQgGJNwMAC98aAQN/QQAhBEEAIAIpAwAgASkDAIU3A5AIQQAgAikDCCABKQMIhTcDmAhBACACKQMQIAEpAxCFNwOgCEEAIAIpAxggASkDGIU3A6gIQQAgAikDICABKQMghTcDsAhBACACKQMoIAEpAyiFNwO4CEEAIAIpAzAgASkDMIU3A8AIQQAgAikDOCABKQM4hTcDyAhBACACKQNAIAEpA0CFNwPQCEEAIAIpA0ggASkDSIU3A9gIQQAgAikDUCABKQNQhTcD4AhBACACKQNYIAEpA1iFNwPoCEEAIAIpA2AgASkDYIU3A/AIQQAgAikDaCABKQNohTcD+AhBACACKQNwIAEpA3CFNwOACUEAIAIpA3ggASkDeIU3A4gJQQAgAikDgAEgASkDgAGFNwOQCUEAIAIpA4gBIAEpA4gBhTcDmAlBACACKQOQASABKQOQAYU3A6AJQQAgAikDmAEgASkDmAGFNwOoCUEAIAIpA6ABIAEpA6ABhTcDsAlBACACKQOoASABKQOoAYU3A7gJQQAgAikDsAEgASkDsAGFNwPACUEAIAIpA7gBIAEpA7gBhTcDyAlBACACKQPAASABKQPAAYU3A9AJQQAgAikDyAEgASkD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",hash:"7ab14c91"};const y=new DataView(new ArrayBuffer(4));function J(A){return y.setInt32(0,A,!0),new Uint8Array(y.buffer)}function l(A,i,g){return I(this,void 0,void 0,(function*(){if(g<=64){const A=yield p(8*g);return A.update(J(g)),A.update(i),A.digest("binary")}const I=Math.ceil(g/32)-2,C=new Uint8Array(g);A.init(),A.update(J(g)),A.update(i);let Q=A.digest("binary");C.set(Q.subarray(0,32),0);for(let i=1;i<I;i++)A.init(),A.update(Q),Q=A.digest("binary"),C.set(Q.subarray(0,32),32*i);const B=g-32*I;let h;return 64===B?(h=A,h.init()):h=yield p(8*B),h.update(Q),Q=h.digest("binary"),C.set(Q.subarray(0,B),32*I),C}))}function H(A){var i;return I(this,void 0,void 0,(function*(){const{parallelism:I,iterations:g,hashLength:C}=A,Q=o(A.password),B=o(A.salt),e=function(A){switch(A){case"d":return 0;case"i":return 1;default:return 2}}(A.hashType),{memorySize:w}=A,E=o(null!==(i=A.secret)&&void 0!==i?i:""),[D,r]=yield Promise.all([S(G,1024),p(512)]);D.setMemorySize(1024*w+1024);const F=new Uint8Array(24),f=new DataView(F.buffer);f.setInt32(0,I,!0),f.setInt32(4,C,!0),f.setInt32(8,w,!0),f.setInt32(12,g,!0),f.setInt32(16,19,!0),f.setInt32(20,e,!0),D.writeMemory(F,1024*w),r.init(),r.update(F),r.update(J(Q.length)),r.update(Q),r.update(J(B.length)),r.update(B),r.update(J(E.length)),r.update(E),r.update(J(0));const a=4*Math.floor(w/(4*I)),k=new Uint8Array(72),s=r.digest("binary");k.set(s);for(let A=0;A<I;A++){k.set(J(0),64),k.set(J(A),68);let I=A*a,i=yield l(r,k,1024);D.writeMemory(i,1024*I),I+=1,k.set(J(1),64),i=yield l(r,k,1024),D.writeMemory(i,1024*I)}const U=new Uint8Array(1024);h(U,D.calculate(new Uint8Array([]),w));const c=yield l(r,U,C);if("hex"===A.outputType){return t(new Uint8Array(2*C),c,C)}return"encoded"===A.outputType?function(A,I,i){const g=[`m=${I.memorySize}`,`t=${I.iterations}`,`p=${I.parallelism}`].join(",");return`$argon2${I.hashType}$v=19${g}${n(A,!1)}${n(i,!1)}`}(B,A,c):c}))}const u=A=>{var I;if(!A||"object"!=typeof A)throw new Error("Invalid options parameter. It requires an object.");if(!A.password)throw new Error("Password must be specified");if(A.password=o(A.password),A.password.length<1)throw new Error("Password must be specified");if(!A.salt)throw new Error("Salt must be specified");if(A.salt=o(A.salt),A.salt.length<8)throw new Error("Salt should be at least 8 bytes long");if(A.secret=o(null!==(I=A.secret)&&void 0!==I?I:""),!Number.isInteger(A.iterations)||A.iterations<1)throw new Error("Iterations should be a positive number");if(!Number.isInteger(A.parallelism)||A.parallelism<1)throw new Error("Parallelism should be a positive number");if(!Number.isInteger(A.hashLength)||A.hashLength<4)throw new Error("Hash length should be at least 4 bytes.");if(!Number.isInteger(A.memorySize))throw new Error("Memory size should be specified.");if(A.memorySize<8*A.parallelism)throw new Error("Memory size should be at least 8 * parallelism.");if(void 0===A.outputType&&(A.outputType="hex"),!["hex","binary","encoded"].includes(A.outputType))throw new Error(`Insupported output type ${A.outputType}. Valid values: ['hex', 'binary', 'encoded']`)};A.argon2Verify=function(A){return I(this,void 0,void 0,(function*(){(A=>{if(!A||"object"!=typeof A)throw new Error("Invalid options parameter. It requires an object.");if(void 0===A.hash||"string"!=typeof A.hash)throw new Error("Hash should be specified")})(A);const I=((A,I,i)=>{const g=I.match(/^\$argon2(id|i|d)\$v=([0-9]+)\$((?:[mtp]=[0-9]+,){2}[mtp]=[0-9]+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/);if(!g)throw new Error("Invalid hash");const[,C,Q,B,h,e]=g;if("19"!==Q)throw new Error(`Unsupported version: ${Q}`);const w={},t={m:"memorySize",p:"parallelism",t:"iterations"};return B.split(",").forEach((A=>{const[I,i]=A.split("=");w[t[I]]=parseInt(i,10)})),Object.assign(Object.assign({},w),{password:A,secret:i,hashType:C,salt:F(h),hashLength:r(e),outputType:"encoded"})})(A.password,A.hash,A.secret);u(I);const i=A.hash.lastIndexOf("$")+1;return(yield H(I)).substring(i)===A.hash.substring(i)}))},A.argon2d=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"d"}))}))},A.argon2i=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"i"}))}))},A.argon2id=function(A){return I(this,void 0,void 0,(function*(){return u(A),H(Object.assign(Object.assign({},A),{hashType:"id"}))}))}}));
+
 </script>
-  <script>﻿/**
+  <script>
+﻿/**
  * Crypto Matrix - 暗号マトリックス ＆ マイ・レシピ管理 (BIP39 24単語)
  */
 
@@ -8899,8 +8904,10 @@ document.addEventListener('DOMContentLoaded', () => {
  });
 })();
 /* END CARD READING v2 + EXTENDED BIP39 BACKUP v2 */
+
 </script>
-  <script>/* Matrix Card Backup & QR Restore (Unified BIP39 24-word x N-block + CME2 Encryption + Shamir M-of-N Secret Sharing + Serverless 2FA)
+  <script>
+/* Matrix Card Backup & QR Restore (Unified BIP39 24-word x N-block + CME2 Encryption + Shamir M-of-N Secret Sharing + Serverless 2FA)
 
  * - Section 2 auto-displays unencrypted 24-word (settings-only) or 24-word x N-block (CMX2/CXB2 extended) phrases & QR codes.
 
@@ -14584,7 +14591,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 
    secret: 'MercariFleaMarket#2',
 
-   pw: 'Mercari#2026Trade$',
+   pw: 'Mercari#2026Trade
+</body>
+</html>
+,
 
    vault: '【メルカリアカウント】\nログイン: myuser@gmail.com\nパスワード: Mercari#2026Trade$\nメルペイ残高: 1,200円\n発送待ち: 文庫本 1点'
 
@@ -14801,6 +14811,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
 
 })();
+
 </script>
 </body>
 </html>

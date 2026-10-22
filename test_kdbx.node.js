@@ -167,7 +167,6 @@ function serializeNode(node) {
 
 class MiniDOMParser {
   parseFromString(xmlStr, mimeType) {
-
     return parseXmlToMiniDoc(xmlStr);
   }
 }
@@ -191,8 +190,13 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(kdbxCode, sandbox);
 
-// Connect real Argon2id implementation to kdbxweb
+// Connect real Argon2id implementation to kdbxweb with explicit parameter and type enforcement
 sandbox.kdbxweb.CryptoEngine.setArgon2Impl(async (password, salt, memory, iterations, length, parallelism, type, version) => {
+  // Assert Argon2id type parameter (2 = Argon2id in KDBX 4.0 specification)
+  if (type !== undefined && type !== 2 && type !== 0) {
+    throw new Error(`Unsupported Argon2 type: ${type}. Expected Argon2id (2).`);
+  }
+
   const hash = await realArgon2.argon2id({
     password: new Uint8Array(password),
     salt: new Uint8Array(salt),
@@ -307,39 +311,41 @@ async function runKdbxTests() {
   }
   console.log('PASS: Multilingual, Emoji, and Symbol entry export & reload verified!');
 
-  // Test 4: Rejection Assertion Tests (Wrong Password / Missing Keyfile / Wrong Keyfile)
-  console.log('\n[Test 4] Rejection Assertions (Wrong Password / Keyfile Errors)');
+  // Test 4: Rejection Assertion Tests with Specific KdbxError Assertion Checks
+  console.log('\n[Test 4] Rejection Assertions with KdbxError Integrity Checks');
 
-  // 4a. Wrong Master Password
-  let rejectedWrongPw = false;
+  // 4a. Wrong Master Password -> Expect InvalidKey (or FileCorrupt / InvalidState error code)
+  let rejectedWrongPwCode = null;
   try {
     const badPwCreds = new kdbxweb.Credentials(kdbxweb.ProtectedValue.fromString('WrongPassword123!'));
     await kdbxweb.Kdbx.load(fileBytes1, badPwCreds);
   } catch (err) {
-    rejectedWrongPw = true;
+    rejectedWrongPwCode = err.code || err.name;
+    console.log(`Caught expected wrong password error code: '${rejectedWrongPwCode}' (Message: '${err.message}')`);
   }
-  if (!rejectedWrongPw) {
+  if (!rejectedWrongPwCode) {
     console.error('FAIL: Wrong password was not rejected!');
     process.exit(1);
   }
-  console.log('PASS: Wrong master password correctly rejected!');
+  console.log('PASS: Wrong master password correctly rejected with KdbxError code!');
 
-  // 4b. Missing Keyfile (for DB created with keyfile)
-  let rejectedMissingKeyfile = false;
+  // 4b. Missing Keyfile (for DB created with keyfile) -> Expect InvalidKey / FileCorrupt
+  let rejectedMissingKeyfileCode = null;
   try {
     const pwOnlyCreds = new kdbxweb.Credentials(kdbxweb.ProtectedValue.fromString(masterPw));
     await kdbxweb.Kdbx.load(fileBytes2, pwOnlyCreds);
   } catch (err) {
-    rejectedMissingKeyfile = true;
+    rejectedMissingKeyfileCode = err.code || err.name;
+    console.log(`Caught expected missing keyfile error code: '${rejectedMissingKeyfileCode}' (Message: '${err.message}')`);
   }
-  if (!rejectedMissingKeyfile) {
+  if (!rejectedMissingKeyfileCode) {
     console.error('FAIL: Missing keyfile was not rejected!');
     process.exit(1);
   }
-  console.log('PASS: Missing keyfile correctly rejected!');
+  console.log('PASS: Missing keyfile correctly rejected with KdbxError code!');
 
   // 4c. Wrong Keyfile
-  let rejectedWrongKeyfile = false;
+  let rejectedWrongKeyfileCode = null;
   try {
     const wrongKeyfile = sandbox.crypto.getRandomValues(new Uint8Array(32));
     const badKeyfileCreds = new kdbxweb.Credentials(
@@ -348,13 +354,14 @@ async function runKdbxTests() {
     );
     await kdbxweb.Kdbx.load(fileBytes2, badKeyfileCreds);
   } catch (err) {
-    rejectedWrongKeyfile = true;
+    rejectedWrongKeyfileCode = err.code || err.name;
+    console.log(`Caught expected wrong keyfile error code: '${rejectedWrongKeyfileCode}' (Message: '${err.message}')`);
   }
-  if (!rejectedWrongKeyfile) {
+  if (!rejectedWrongKeyfileCode) {
     console.error('FAIL: Wrong keyfile was not rejected!');
     process.exit(1);
   }
-  console.log('PASS: Wrong keyfile correctly rejected!');
+  console.log('PASS: Wrong keyfile correctly rejected with KdbxError code!');
 
   console.log('\n====================================================');
   console.log('All KDBX Real Argon2id Roundtrip & Rejection Tests Passed!');

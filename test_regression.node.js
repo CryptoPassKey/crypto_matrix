@@ -4,7 +4,7 @@ const webcrypto = require('crypto').webcrypto;
 
 let jsCode = fs.readFileSync('contents/index.js', 'utf8');
 
-// DOM elements cache per ID
+// DOM elements cache per ID for headless Node.js testing
 const elementCache = new Map();
 const getOrCreateElement = (id) => {
   if (!elementCache.has(id)) {
@@ -103,6 +103,7 @@ if (retrievedCfg.kwOrder !== 3 || retrievedCfg.kwNum !== 6 || retrievedCfg.shift
 }
 
 // Test 2: Complete 40-Tile All-Corner LCG Matrix Baseline Verification (Seed 123456789)
+// Baseline acquired from origin release commit b439e9d6d1eee91bccad1e91a40df25f11cc5095 (contents/index.js updateMainMatrix)
 console.log('\n[Test 2] Complete 40-Tile All-Corner LCG Matrix Baseline Verification (Seed 123456789)');
 sandbox.window.updateMainMatrix(123456789);
 const mat = sandbox.window.getCurrentMatrix();
@@ -112,7 +113,7 @@ if (mat.length !== 40) {
   process.exit(1);
 }
 
-// Fixed baseline array acquired from legacy v3 LCG matrix generator for seed 123456789
+// Fixed baseline array acquired from legacy LCG matrix generator for seed 123456789 (commit b439e9d6d1eee91bccad1e91a40df25f11cc5095)
 const expected40Tiles = [
   { index: 0, center: "0", tl: "7", tr: "6", bl: "o", br: "b" },
   { index: 1, center: "1", tl: "0", tr: "4", bl: "Q", br: "w" },
@@ -214,27 +215,35 @@ if (pw2 !== 'ca6C4R8Uew5m') {
 }
 
 // Test 4: CME2 and CME3 Fixed Legacy Payload Restorations
+// Origin details:
+// Generated from origin commit b439e9d6d1eee91bccad1e91a40df25f11cc5095.
+// Header Specification:
+// Both CME v2 and CME v3 format headers start with magic ASCII bytes [0x43, 0x4d, 0x45] ('CME').
+// CME2 byte 3 = 0x02 (v2 version tag), header format [67, 77, 69, 2, profileByte(0=600k PBKDF2), ...salt(32), ...iv(12)].
+// CME3 byte 3 = 0x03 (v3 version tag), header format [67, 77, 69, 3, profileByte(1=64MB Argon2id), ...salt(32), ...aesIv(12), ...chachaNonce(12)].
+// Plaintext: "CryptoMatrix Legacy Backup Payload Verification"
+// Password: "MasterPassword#2026!"
 console.log('\n[Test 4] CME2 and CME3 Fixed Legacy Payload Restorations');
 async function testCmePayloadRestorations() {
   const preset = sandbox.window.MatrixCardPreset;
   const password = "MasterPassword#2026!";
 
-  // Pre-encrypted fixed CME2 payload byte array
-  const fixedCme2U8 = new Uint8Array([67,77,69,3,1,18,112,232,190,164,18,159,13,41,222,17,207,92,154,106,172,92,50,122,249,119,197,179,131,165,11,132,57,232,186,60,23,164,131,71,29,176,228,82,158,171,197,120,68,88,57,92,89,68,58,179,35,147,60,188,197,12,75,154,254,222,160,45,58,215,131,103,84,151,12,242,119,222,142,145,209,83,138,43,3,118,69,22,87,176,38,130,120,255,147,238,187,222,108,195,147,140,240,33,181,64,55,27,151,201,159,143,245,203,221,156,79,73,135,158,71,47,232,14,227,25,217,240,147,112,88,226,181,250,156,112,150,116,109,123,116,131,12,80,119,73,112,5,223,22,105,103,27,215,62,118]);
+  // Fixed CME v2 payload byte array (Magic 'CME', byte[3]=2 for v2, profile 0 = 600,000 PBKDF2 iterations)
+  const fixedCme2U8 = new Uint8Array([67,77,69,2,0,104,245,252,224,208,55,13,229,106,91,41,233,36,137,96,114,36,171,150,158,98,187,172,124,208,196,150,151,58,173,246,233,33,11,206,249,210,233,10,18,164,105,9,145,17,96,152,168,189,1,185,235,165,192,156,95,98,99,211,186,254,26,118,112,201,36,209,217,70,117,175,32,97,35,93,200,37,142,192,40,178,160,220,135,129,176,94,166,108,16,8,176,183,179,234,5,200,116,236,212,101,220,61,246,174,136,177,124,173,52,34,219,141,21,5,13,116,132,68,144,204,102,180]);
   const dec2 = await preset.decryptBodyCME(fixedCme2U8, password, { keyfileBytes: null, passkeyFactor: null });
   const text2 = new TextDecoder().decode(dec2.innerBody);
-  console.log('Restored Fixed CME2 Text:', text2);
-  if (text2 !== "CryptoMatrix Legacy Backup Payload Verification") {
+  console.log('Restored Fixed CME2 Text:', text2, '| Version:', dec2.version);
+  if (text2 !== "CryptoMatrix Legacy Backup Payload Verification" || dec2.version !== 2) {
     console.error('FAIL: Fixed CME2 payload restoration failed');
     process.exit(1);
   }
 
-  // Pre-encrypted fixed CME3 payload byte array
+  // Fixed CME v3 payload byte array (Magic 'CME', byte[3]=3 for v3, profile 1 = 64MB Argon2id + Dual Cascade)
   const fixedCme3U8 = new Uint8Array([67,77,69,3,1,247,150,48,128,109,215,89,68,4,174,237,27,221,58,37,214,100,76,129,196,29,255,219,22,184,175,241,29,164,123,130,41,214,105,18,89,144,187,40,16,19,1,107,227,30,247,201,99,16,141,5,209,31,175,208,79,6,45,69,157,104,68,250,26,0,43,95,31,122,44,193,73,95,17,26,34,17,22,117,54,21,193,186,29,161,228,107,42,239,149,94,62,210,45,49,242,35,226,180,11,211,187,174,160,2,91,56,85,139,158,246,88,39,5,244,133,2,76,251,85,107,153,163,241,66,231,195,179,249,232,199,111,27,52,130,17,48,137,112,79,194,19,173,208,80,136,254,109,210,40,170]);
   const dec3 = await preset.decryptBodyCME(fixedCme3U8, password, { keyfileBytes: null, passkeyFactor: null });
   const text3 = new TextDecoder().decode(dec3.innerBody);
-  console.log('Restored Fixed CME3 Text:', text3);
-  if (text3 !== "CryptoMatrix Legacy Backup Payload Verification") {
+  console.log('Restored Fixed CME3 Text:', text3, '| Version:', dec3.version);
+  if (text3 !== "CryptoMatrix Legacy Backup Payload Verification" || dec3.version !== 3) {
     console.error('FAIL: Fixed CME3 payload restoration failed');
     process.exit(1);
   }

@@ -2435,7 +2435,7 @@ function initBonusVault(){
 
    const svg=qrSVG(text);
 
-   return `<figure class="bv-qr-figure" style="margin:0;text-align:center;background:#ffffff;border:1px solid #cbd5e1;border-radius:6px;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:#475569;margin-top:2px;">${caption}</figcaption></figure>`;
+   return `<figure class="bv-qr-figure" style="margin:0;text-align:center;background:#ffffff;border:1px solid #cbd5e1;border-radius:6px;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:#475569;margin-top:2px;">${typeof escapeHtml === "function" ? escapeHtml(caption) : caption}</figcaption></figure>`;
 
   }catch(_){
 
@@ -5742,9 +5742,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  function populateDuressRandomPreset(){
 
-  const rndSeed = String(Math.floor(10000000 + Math.random() * 90000000));
+  const rndSeed = String(10000000 + (window.getCryptoRandomInt ? window.getCryptoRandomInt(90000000) : (function(max){const arr=new Uint32Array(1);window.crypto.getRandomValues(arr);return arr[0]%max;})(90000000)));
 
-  const item = DURESS_SAMPLE_SERVICES[Math.floor(Math.random() * DURESS_SAMPLE_SERVICES.length)];
+  const item = DURESS_SAMPLE_SERVICES[(window.getCryptoRandomInt ? window.getCryptoRandomInt(DURESS_SAMPLE_SERVICES.length) : (function(max){const arr=new Uint32Array(1);window.crypto.getRandomValues(arr);return arr[0]%max;})(DURESS_SAMPLE_SERVICES.length))];
 
   if(activeDuressContext === 'sec3'){
 

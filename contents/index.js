@@ -2291,7 +2291,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (_) {}
                 try {
                   if (window.opener && !window.opener.closed) {
-                    const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : window.location.href;
+                    const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
                     window.opener.postMessage({
                       type: 'cm_keyfile_created',
                       seedNum: opts.seedNum,
@@ -2459,7 +2459,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
-    const rnd = Math.floor(Math.random() * 900000000) + 100000000;
+    const rnd = 100000000 + getCryptoRandomInt(900000000);
     seedInput.value = String(rnd);
     updateMainMatrix(rnd);
     updateSimulationUI();
@@ -2614,7 +2614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentDisplayMode = 'recipe';
     const designBar = document.getElementById('gesture-design-bar');
     if (designBar) designBar.style.display = 'none';
-    const rInt = max => Math.floor(Math.random() * max);
+    const rInt = max => getCryptoRandomInt(max);
     setRecipeConfig({
       kwOrder: 1 + rInt(8),
       kwFilter: 0,
@@ -2683,7 +2683,7 @@ document.addEventListener('DOMContentLoaded', () => {
  async function sha(a){return new Uint8Array(await cryptoAPI().digest('SHA-256',a));}
  async function sha512(a){return new Uint8Array(await cryptoAPI().digest('SHA-512',a));}
  function concat(...arr){const out=new Uint8Array(arr.reduce((n,a)=>n+a.length,0));let pos=0;for(const a of arr){out.set(a,pos);pos+=a.length;}return out;}
- function equal(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
+ function equal(a,b){if(!a||!b||a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++){diff|=a[i]^b[i];}return diff===0;}
  function filtered(site,secret){const s=canonical(site),k=canonical(secret);if(!s||!k)throw new Error('サイト名・合言葉それぞれにカード中央にある文字が必要です。空欄を既定の秘密へ置き換えません。');return{site:s,secret:k};}
  function next(i){return(i+1)%currentMatrixData.length;}
  function isSymbol(c){return !/^[A-Za-z0-9]$/.test(c);}
@@ -3709,7 +3709,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!created)throw new Error('パスキーの作成がキャンセルされました。');
    const rawCredId=new Uint8Array(created.rawId);
    if(!rawCredId.length||rawCredId.length>512)throw new Error('パスキー識別子の長さが不正です。');
-   
+
    // 1. 作成時にすでにPRF結果がある場合（真のPRF対応）
    const extRes=created.getClientExtensionResults?.()?.prf;
    if(extRes?.results?.first){

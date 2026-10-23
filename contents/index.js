@@ -1807,8 +1807,7 @@ async function loadBip39Wordlist() {
     }
   }
   const urls = [
-    'https://cdn.jsdelivr.net/gh/bitcoin/bips@master/bip-0039/english.txt',
-    'https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt'
+    /* external fetch disabled: inline wordlist is used (offline-only) */
   ];
   for (const url of urls) {
     try {

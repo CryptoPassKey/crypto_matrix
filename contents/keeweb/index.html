@@ -1346,4 +1346,17 @@ body.kw-generator-focus-mode .gen {
   }, 400);
 })();
 </script>
-</body></html>
+<script>
+(function(){
+  function apply(t){
+    if(t!=='light'&&t!=='dark')return;
+    try{ if(window.kw&&window.kw.settings&&typeof window.kw.settings.set==='function'){ window.kw.settings.set('theme',t); return; } }catch(_){}
+    for(const c of Array.from(document.body.classList)) if(/^th-/.test(c)) document.body.classList.remove(c);
+    document.body.classList.add('th-'+t);
+  }
+  window.addEventListener('storage',function(e){
+    if(e.key!=='appSettings'||!e.newValue)return;
+    try{ apply(JSON.parse(e.newValue).theme); }catch(_){}
+  });
+})();
+</script></body></html>

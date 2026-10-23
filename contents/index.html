@@ -1,1421 +1,45 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Matrix - 暗号マトリックス ＆ マイ・レシピ管理</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
- 
-
-<style>
-  :root {
-    color-scheme: light;
-
-    --bg-main: #ffffff;
-    --card-bg: #ffffff;
-    --text-main: #17221b;
-    --text-sub: #56635b;
-    --accent: #008a37;
-    --accent-light: #e6ffef;
-    --border-color: #d4ded7;
-
-    --matrix-green: #00ff66;
-    --matrix-border: #00d957;
-    --surface-sub: #f7faf8;
-    --cyan: #009db8;
-
-    --warn-bg: #18181b;
-    --warn-border: #dc2626;
-
-    --font-ui:
-      'Fira Code',
-      'SFMono-Regular',
-      Consolas,
-      'Noto Sans JP',
-      monospace;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    background: var(--bg-main);
-    accent-color: var(--accent);
-    scrollbar-color: #b5c9bc #ffffff;
-    scrollbar-width: thin;
-  }
-
-  body {
-    margin: 0;
-    padding: 16px 10px 80px;
-    font-family: var(--font-ui);
-    background: var(--bg-main);
-    color: var(--text-main);
-    line-height: 1.5;
-  }
-
-  ::selection {
-    background: var(--matrix-green);
-    color: #071b0d;
-  }
-
-  input,
-  select,
-  textarea,
-  button {
-    font-family: var(--font-ui);
-  }
-
-  input,
-  select,
-  textarea {
-    color: var(--text-main);
-    caret-color: var(--accent);
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: #77867c;
-    opacity: 1;
-  }
-
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible,
-  button:focus-visible,
-  a:focus-visible,
-  [tabindex]:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  a {
-    color: #007a32;
-    text-underline-offset: 3px;
-  }
-
-  .container {
-    max-width: 1020px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    font-size: 1.35rem;
-    margin: 0 0 6px;
-    text-align: center;
-    color: var(--text-main);
-  }
-
-  .subtitle {
-    text-align: center;
-    color: var(--text-sub);
-    font-size: 0.84rem;
-    margin: 0 0 12px;
-  }
-
-  /* シード入力バー */
-  .seed-bar {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .seed-bar input {
-    width: 180px;
-    max-width: 100%;
-    font-family: var(--font-ui);
-    font-size: 0.95rem;
-    padding: 6px 10px;
-    border: 1px solid #bdcec3;
-    border-radius: 4px;
-    background: #ffffff;
-    color: var(--text-main);
-  }
-
-  /* ボタン */
-.btn {
-  background: #f3f4f4;
-  color: #26312b;
-  border: 1px solid #cbd2ce;
-  border-radius: 6px;
-  padding: 7px 14px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: none;
-  transition:
-    background-color 0.12s,
-    border-color 0.12s,
-    opacity 0.12s;
-}
-
-.btn:hover:not(:disabled) {
-  background: #e7ebe8;
-  border-color: #a9b5ae;
-  box-shadow: none;
-}
-
-.btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: #ffffff;
-  color: #46534b;
-  border-color: #d4dbd7;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #f3f5f4;
-  border-color: #b5c0b9;
-  box-shadow: none;
-}
-
-.btn-outline {
-  background: #ffffff;
-  color: #35483c;
-  border-color: #aebeb3;
-}
-
-.btn-outline:hover:not(:disabled) {
-  background: #f0f5f2;
-  border-color: #879e8f;
-  box-shadow: none;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: #ffffff;
-  border-color: #dc2626;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #dc2626;
-  border-color: #dc2626;
-  opacity: 0.9;
-  box-shadow: none;
-}
-
-  .btn-outline {
-    background: #ffffff;
-    color: #007a32;
-    border-color: #00c950;
-    box-shadow: none;
-  }
-
-  .btn-outline:hover:not(:disabled) {
-    background: var(--accent-light);
-    border-color: #00b849;
-    box-shadow: none;
-  }
-
-  /* 現在の手順・ガイド */
-  .verbal-guide-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-left: 3px solid var(--matrix-green);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-  }
-
-  .verbal-guide-header {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .verbal-guide-list {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 0.88rem;
-    color: var(--text-main);
-  }
-
-  .verbal-guide-list li {
-    margin-bottom: 4px;
-  }
-
-  .verbal-guide-list li::marker {
-    color: var(--accent);
-  }
-
-  .verbal-highlight {
-    background: #d6ffe6;
-    color: #075323;
-    padding: 1px 5px;
-    border-radius: 4px;
-    font-weight: 700;
-  }
-
-  /* マトリックス＋直下プレイヤー枠 */
-  .matrix-stage {
-    position: relative;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border: 1.5px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 14px 16px 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  }
-
-  .matrix-scroll {
-    overflow-x: auto;
-    padding: 6px 4px 10px;
-  }
-
-  #div-encrypto-matrix-main {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 8px;
-    min-width: 620px;
-    max-width: 880px;
-    margin: 0 auto;
-  }
-
-  .square {
-    position: relative;
-    aspect-ratio: 1 / 0.88;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 7px;
-    background: #ffffff;
-    font-family: 'Fira Code', 'JetBrains Mono', Consolas, ui-monospace, monospace;
-    font-variant-numeric: slashed-zero;
-    font-feature-settings: 'zero' 1;
-    user-select: none;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
-    transition:
-      transform 0.15s cubic-bezier(0, 0, 0.2, 1),
-      border-color 0.15s ease,
-      background-color 0.15s ease,
-      box-shadow 0.15s cubic-bezier(0, 0, 0.2, 1);
-  }
-
-  .square:hover {
-    transform: translateY(-2px);
-    border-color: #00c950;
-    box-shadow: 0 6px 16px -2px rgba(0, 201, 80, 0.22);
-    z-index: 2;
-  }
-
-  .square.active-tile {
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
-    border: 2px solid #00c950 !important;
-    box-shadow: 0 0 0 3px rgba(0, 201, 80, 0.22), 0 6px 16px rgba(0, 201, 80, 0.25) !important;
-    transform: scale(1.04) translateY(-2px);
-    z-index: 6;
-  }
-
-  .square.fallback-tile {
-    background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%) !important;
-    border: 2px dashed #0284c7 !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
-    transform: scale(1.02);
-    z-index: 5;
-  }
-
-  .square.stroke-active-tile {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
-    border: 2px solid #0284c7 !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22), 0 6px 16px rgba(2, 132, 199, 0.25) !important;
-    transform: scale(1.04) translateY(-2px);
-    z-index: 6;
-  }
-
-  /* なぞり前の文字軌道プレビュー表示 */
-  .square.stroke-preview-tile {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
-    border: 2px dashed #0284c7 !important;
-    box-shadow: 0 0 12px rgba(2, 132, 199, 0.35) !important;
-    transform: scale(1.02);
-    z-index: 5;
-    animation: strokePreviewPulse 1.1s ease-in-out infinite alternate;
-  }
-
-  @keyframes strokePreviewPulse {
-    0% {
-      box-shadow: 0 0 6px rgba(2, 132, 199, 0.2);
-      border-color: #38bdf8;
-    }
-    100% {
-      box-shadow: 0 0 16px rgba(2, 132, 199, 0.55);
-      border-color: #0284c7;
-    }
-  }
-
-  .square.stroke-start-tile {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-    border: 2.5px solid #d97706 !important;
-    box-shadow: 0 0 16px rgba(217, 119, 6, 0.45), 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
-    transform: scale(1.05) translateY(-2px);
-    z-index: 7;
-    animation: strokeStartPulse 1s ease-in-out infinite alternate;
-  }
-
-  @keyframes strokeStartPulse {
-    0% {
-      box-shadow: 0 0 8px rgba(217, 119, 6, 0.3), 0 0 0 2px rgba(245, 158, 11, 0.15);
-    }
-    100% {
-      box-shadow: 0 0 20px rgba(217, 119, 6, 0.6), 0 0 0 4px rgba(245, 158, 11, 0.3);
-    }
-  }
-
-  .corner-text.preview-char-spot {
-    color: #0284c7 !important;
-    font-weight: 800 !important;
-    background: rgba(2, 132, 199, 0.18) !important;
-    border-radius: 4px;
-    box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
-  }
-
-  .corner-text.start-char-spot {
-    color: #b45309 !important;
-    font-weight: 900 !important;
-    background: rgba(217, 119, 6, 0.25) !important;
-    border-radius: 4px;
-    box-shadow: 0 0 8px rgba(217, 119, 6, 0.5);
-  }
-
-  /* パターンHUDバッジ（文字告知オーバーレイ） */
-  .stroke-char-hud {
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translate(-50%, -10px) scale(0.92);
-    background: rgba(15, 23, 42, 0.92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1.5px solid rgba(56, 189, 248, 0.5);
-    box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.45), 0 0 24px rgba(2, 132, 199, 0.35);
-    border-radius: 9999px;
-    padding: 8px 20px 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 25;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .stroke-char-hud.is-visible {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-
-  .stroke-char-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 8px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    color: #ffffff;
-    font-family: 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-    font-size: 1.55rem;
-    font-weight: 900;
-    border: 1.5px solid #38bdf8;
-    box-shadow: 0 0 18px rgba(56, 189, 248, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-    line-height: 1;
-  }
-
-  .stroke-char-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: left;
-  }
-
-  .stroke-char-title {
-    color: #f8fafc;
-    font-size: 0.94rem;
-    font-weight: 800;
-    line-height: 1.25;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-    .gesture-design-bar {
-    display: none;
-    margin-top: 10px;
-    padding: 10px 14px;
-    background: #f0fdf4;
-    border: 1.5px solid #86efac;
-    border-radius: 8px;
-  }
-
-  .gesture-category-group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 6px;
-  }
-
-  .gesture-category-group:last-child {
-    margin-bottom: 0;
-  }
-
-  .gesture-cat-label {
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #15803d;
-    min-width: 90px;
-  }
-
-  .gesture-pill {
-    font-size: 0.74rem !important;
-    padding: 3px 8px !important;
-    border-radius: 6px !important;
-    border: 1px solid #86efac !important;
-    background: #ffffff !important;
-    color: #166534 !important;
-    cursor: pointer;
-    font-weight: 600 !important;
-    transition: all 0.15s ease;
-  }
-
-  .gesture-pill:hover {
-    background: #dcfce7 !important;
-    border-color: #22c55e !important;
-  }
-
-  .gesture-pill.active {
-    background: #16a34a !important;
-    color: #ffffff !important;
-    border-color: #15803d !important;
-    font-weight: 700 !important;
-    box-shadow: 0 1px 4px rgba(22, 163, 74, 0.4) !important;
-  }
-
-  .stroke-char-sub {
-    color: #94a3b8;
-    font-size: 0.74rem;
-    font-weight: 500;
-    margin-top: 2px;
-    line-height: 1.2;
-  }
-
-  .center-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.85rem;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1;
-    padding: 2px 5px;
-    border-radius: 5px;
-    letter-spacing: -0.5px;
-  }
-
-  .corner-text {
-    position: absolute;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #334155;
-    line-height: 1;
-    padding: 1px 3px;
-    border-radius: 3px;
-    transition:
-      transform 0.12s,
-      background-color 0.12s,
-      color 0.12s;
-  }
-
-  .corner-text.top-left {
-    top: 3px;
-    left: 4px;
-    color: #1e293b;
-    font-weight: 700;
-  }
-
-  .corner-text.top-right {
-    top: 3px;
-    right: 4px;
-    color: #334155;
-    font-weight: 600;
-  }
-
-  .corner-text.bottom-left {
-    bottom: 3px;
-    left: 4px;
-    color: #334155;
-    font-weight: 600;
-  }
-
-  .corner-text.bottom-right {
-    bottom: 3px;
-    right: 4px;
-    color: #0f766e;
-    font-weight: 600;
-  }
-
-  /* 再生中の文字だけ鮮やかな緑＋立体発光 */
-  .active-char-spot {
-    background: #00c950 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    transform: scale(1.3) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 102, 0.65);
-    border-radius: 4px;
-    z-index: 10;
-  }
-
-  .center-text.active-char-spot {
-    transform: translate(-50%, -50%) scale(1.25) !important;
-  }
-
-  /* コントロール＆ルート再生バー */
-  .live-player-bar {
-    margin-top: 12px;
-    background: var(--card-bg);
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px 14px;
-  }
-
-  .live-inputs-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .live-inputs-row label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--text-sub);
-    margin-bottom: 3px;
-  }
-
-  .live-inputs-row input,
-  .live-inputs-row select {
-    width: 100%;
-    min-width: 0;
-    padding: 6px 8px;
-    font-family: var(--font-ui);
-    font-size: 0.9rem;
-    border-radius: 4px;
-    border: 1px solid #bdcec3;
-    background: #ffffff;
-    color: var(--text-main);
-  }
-
-  .live-result-row {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 10px 12px;
-  }
-
-  .pw-chars-box {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    width: 100%;
-    min-width: 0;
-    font-family: var(--font-ui);
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #174c2a;
-    word-break: break-all;
-  }
-
-  .pw-char-span {
-    padding: 1px 3px;
-    border-radius: 3px;
-    transition:
-      background-color 0.12s,
-      color 0.12s,
-      transform 0.12s,
-      box-shadow 0.12s;
-  }
-
-  .pw-char-span.playing-now {
-    background: var(--matrix-green);
-    color: #05220e;
-    transform: scale(1.15);
-    box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
-  }
-
-  .step-status-banner {
-    margin-top: 8px;
-    font-family: var(--font-ui);
-    font-size: 0.84rem;
-    color: #087333;
-    min-height: 1.4em;
-    overflow-wrap: anywhere;
-  }
-
-  .trace-log-box {
-    margin-top: 8px;
-    background: var(--surface-sub);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 8px 10px;
-    max-height: 130px;
-    overflow-y: auto;
-    font-family: var(--font-ui);
-    font-size: 0.78rem;
-    color: #496352;
-    overflow-wrap: anywhere;
-  }
-
-  .trace-line {
-    padding: 2px 4px;
-    border-left: 2px solid transparent;
-    border-radius: 3px;
-  }
-
-  .trace-line.active-trace-line {
-    background: #dcffe9;
-    color: #12552b;
-    border-left-color: var(--matrix-border);
-    font-weight: 700;
-  }
-
-  /* セクションカードと設定グリッド */
-  .section-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-
-  .section-title {
-    font-size: 1.08rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 0 0 12px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid var(--matrix-green);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .recipe-grid {
-    display: grid;
-    grid-template-columns:
-      repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-    gap: 12px;
-  }
-
-  /* HTML内のインライン背景色 */
-  .field-group {
-    background: #f8fbf9 !important;
-    border: 1px solid var(--border-color);
-    border-color: var(--border-color) !important;
-    border-radius: 8px;
-    padding: 10px 12px;
-    min-width: 0;
-  }
-
-  .field-group-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .badge {
-    background: var(--matrix-green);
-    color: #072411;
-    font-size: 0.7rem;
-    padding: 1px 6px;
-    border-radius: 4px;
-  }
-
-  /* インライン指定の青いバッジ */
-  .field-group .badge {
-    background: var(--matrix-green) !important;
-    color: #072411;
-  }
-
-  .sub-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-
-  .sub-row label {
-    font-size: 0.78rem;
-    color: var(--text-sub);
-    min-width: 70px;
-  }
-
-  .sub-row select,
-  .sub-row input[type="text"],
-  .sub-row input[type="number"] {
-    flex: 1;
-    min-width: 80px;
-    padding: 6px 8px;
-    font-size: 0.85rem;
-    color: var(--text-main);
-    border: 1px solid #bdcec3;
-    border-radius: 5px;
-    background: #ffffff;
-  }
-
-  .sub-row input[type="number"] {
-    max-width: 90px;
-    font-family: var(--font-ui);
-    font-weight: 700;
-  }
-
-  .hint {
-    font-size: 0.74rem;
-    color: var(--text-sub);
-    margin-top: 4px;
-  }
-
-  /* BIP39 セクション */
-  .seed-words-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 6px;
-    margin: 12px 0;
-  }
-
-  .seed-chip {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    padding: 5px 8px;
-    font-family: var(--font-ui);
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    min-width: 0;
-  }
-
-  .seed-num {
-    font-size: 0.72rem;
-    color: var(--text-sub);
-  }
-
-  .seed-txt {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #234a30;
-    overflow-wrap: anywhere;
-  }
-
-  .seed-textarea {
-    width: 100%;
-    min-height: 76px;
-    font-family: var(--font-ui);
-    font-size: 0.88rem;
-    padding: 8px;
-    background: #ffffff;
-    color: var(--text-main);
-    border: 1px solid #bdcec3;
-    border-radius: 6px;
-    resize: vertical;
-  }
-
-  /* 警告表示 */
-  .cloud-warning {
-    background: var(--warn-bg);
-    border: 2px solid var(--warn-border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin: 12px 0;
-    color: #ffffff;
-  }
-
-  .cloud-warning-head {
-    color: #f87171;
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 4px;
-  }
-
-  /* 成功・エラー表示 */
-  .status-msg {
-    margin-top: 8px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.84rem;
-    font-weight: 700;
-    display: none;
-  }
-
-  .status-msg.ok {
-    display: block;
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
-  }
-
-  .status-msg.err {
-    display: block;
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-  }
-
-  /* スマートフォン */
-  @media (max-width: 600px) {
-    .section-card {
-      padding: 12px;
-    }
-
-    .matrix-stage {
-      padding: 8px;
-    }
-
-    .live-player-bar {
-      padding: 10px;
-    }
-
-    .verbal-guide-card {
-      padding: 10px 12px;
-    }
-
-    .seed-bar input {
-      flex: 1 1 160px;
-      min-width: 0;
-    }
-
-    .live-inputs-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation: none !important;
-      transition: none !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* 印刷 */
-  @media print {
-    .no-print {
-      display: none !important;
-    }
-
-    html,
-    body {
-      background: #ffffff !important;
-      color: #000000 !important;
-    }
-
-    body {
-      padding: 0;
-    }
-
-    body *,
-    body *::before,
-    body *::after {
-      color: #000000 !important;
-      background: transparent !important;
-      border-color: #777777 !important;
-      box-shadow: none !important;
-      text-shadow: none !important;
-    }
-
-    .field-group,
-    .field-group .badge {
-      background: #ffffff !important;
-      border-color: #777777 !important;
-    }
-
-    .matrix-scroll {
-      overflow: visible;
-      padding: 0;
-    }
-
-    #div-encrypto-matrix-main {
-      min-width: 0;
-      max-width: 100%;
-    }
-
-    .square {
-      background: #ffffff !important;
-    }
-
-    .square.active-tile {
-      background-color: #e6e6e6 !important;
-      border: 2px solid #000000 !important;
-    }
-
-    .square.fallback-tile {
-      background-color: #f0f0f0 !important;
-      border: 2px dashed #555555 !important;
-    }
-
-    .active-char-spot,
-    .pw-char-span.playing-now {
-      background-color: #dddddd !important;
-      color: #000000 !important;
-      outline: 1px solid #000000;
-    }
-
-    .section-card,
-    .verbal-guide-card,
-    .field-group,
-    .seed-chip {
-      break-inside: avoid;
-    }
-  }
-
-/* BEGIN CARD QUICK AND MOBILE */
-#card-quick .cq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px}
-#card-quick .cq-panel{min-width:0;padding:14px;border:2px solid var(--border-color);border-radius:8px;background:var(--surface-sub);transition:border-color .15s,background-color .15s,box-shadow .15s}
-#card-quick .cq-panel.active-mode-panel{border:2px solid #00c950!important;background:#edfff4!important;box-shadow:0 0 0 3px rgba(0,201,80,.14)}
-#card-quick .cq-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-#card-quick h3{margin:0;font-size:.95rem}
-#card-quick p,#card-quick li,#backup-summary{font-size:.83rem;line-height:1.7}
-#card-quick .cq-row,.backup-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-#card-quick select,#card-quick input{padding:7px 9px;border:1px solid #bdcec3;border-radius:5px;background:#fff;max-width:100%;min-width:0}
-.mode-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;line-height:1.35;font-size:.76rem;font-weight:700;background:#dcfce7;color:#065f28;border:1px solid #4ade80;max-width:100%}
-.mode-pill.inactive{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;font-weight:600}
-.btn-mode-active{background:#008a37!important;color:#fff!important;border-color:#00702c!important;box-shadow:0 1px 4px rgba(0,138,55,.25)}
-.section-card.active-mode-section{border:2px solid #00c950;box-shadow:0 0 0 3px rgba(0,201,80,.1)}
-.section-card.is-collapsed .mode-section-body{display:none}
-.section-card.is-collapsed .section-title{margin-bottom:0;padding-bottom:0;border-bottom:none}
-#sticky-pw-bar{position:fixed;left:8px;right:8px;bottom:8px;max-width:1000px;margin:0 auto;z-index:90;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);border:2px solid #00c950;border-radius:10px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,40,15,.18);display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;transition:transform .12s cubic-bezier(0,0,.2,1)}
-#sticky-pw-bar.visible{display:flex}
-#sticky-pw-bar.is-minimized{display:none!important}
-#btn-sticky-toggle{background:#f1f5f9;border-color:#cbd5e1;color:#475569;cursor:pointer;transition:all .15s ease}
-#btn-sticky-toggle:hover{background:#e2e8f0;color:#1e293b}
-#btn-sticky-min-pill{cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease,box-shadow .15s ease}
-#btn-sticky-min-pill:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,201,80,.55)}
-#cq-status{white-space:pre-wrap;overflow-wrap:anywhere;color:#075323;background:#f0fdf4;border:1px solid #86efac;border-left:4px solid #00a843;border-radius:6px;padding:10px 12px;margin:10px 0;font-weight:600}
-#cq-status[data-mode="recipe"]{background:#f8fafc;border-color:#cbd5e1;border-left-color:#008a37;color:#1e293b}
-#backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#087333}
-#cq-status[data-error="true"],#backup-summary[data-error="true"]{background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;color:#b91c1c}
-#card-quick .cq-note{color:var(--text-sub)}
-#card-quick .cq-warning,.backup-warning{padding:10px;border:1px solid #dfc577;border-radius:6px;background:#fff9e8;color:#654c10;font-size:.82rem;line-height:1.7}
-.backup-block-title{grid-column:1/-1;font-size:.86rem;font-weight:700;margin-top:10px}
-@media screen and (max-width:800px){
- body{padding:10px 8px 110px}
- .container{width:100%;padding:0;box-sizing:border-box}
- .matrix-stage{min-width:0;max-width:100%;padding:8px 6px;border-radius:8px;margin-bottom:14px}
- .matrix-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 6px}
- #div-encrypto-matrix-main{width:100%;min-width:0;max-width:760px;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(2px,.9vw,5px)}
- #div-encrypto-matrix-main .square{min-width:0;aspect-ratio:1 / 1.05;border-radius:4px}
- #div-encrypto-matrix-main .center-text{font-size:clamp(12px,3.8vw,22px);padding:0 1px}
- #div-encrypto-matrix-main .corner-text{font-size:clamp(7.5px,2.2vw,13px);padding:0}
- #div-encrypto-matrix-main .top-left{top:1px;left:2px}
- #div-encrypto-matrix-main .top-right{top:1px;right:2px}
- #div-encrypto-matrix-main .bottom-left{bottom:1px;left:2px}
- #div-encrypto-matrix-main .bottom-right{bottom:1px;right:2px}
-
- /* パターン告知HUDオーバーレイのスマホレスポンシブ */
- .stroke-char-hud{
-   max-width:calc(100% - 16px)!important;
-   box-sizing:border-box!important;
-   border-radius:12px!important;
-   padding:8px 10px!important;
-   gap:8px!important;
- }
- .stroke-char-badge{
-   min-width:32px!important;
-   height:32px!important;
-   font-size:1.25rem!important;
-   border-radius:8px!important;
- }
- .stroke-char-title{
-   font-size:0.82rem!important;
-   line-height:1.25!important;
- }
- .stroke-char-sub{
-   font-size:0.7rem!important;
-   line-height:1.3!important;
-   white-space:normal!important;
- }
-
- .live-result-row{flex-direction:column!important;align-items:stretch!important;padding:8px 10px!important}
- .live-result-row>div{width:100%!important;min-width:0!important;max-width:100%}
-
- /* スティッキーバーのスマホ最適化（画面を圧迫しないスリム化） */
- #sticky-pw-bar{
-   left:4px;
-   right:4px;
-   bottom:4px;
-   padding:6px 8px;
-   border-radius:8px;
-   gap:4px;
- }
- #sticky-pw-bar>div:first-child{flex:1 1 100%;width:100%;min-width:0}
- #sticky-output-meta{display:none!important}
- #sticky-output-pw{font-size:1.05rem!important;padding:2px 0!important;line-height:1.25!important}
- #sticky-controls-bar{
-   width:100%;
-   display:grid!important;
-   grid-template-columns:repeat(4,1fr)!important;
-   gap:4px!important;
- }
- #sticky-controls-bar button{
-   padding:6px 2px!important;
-   font-size:0.72rem!important;
-   text-align:center;
-   min-width:0!important;
- }
- .section-title>div{flex-wrap:wrap}
- .sub-row select{min-width:0;max-width:100%}
- .backup-controls>*{max-width:100%}
- body.trace-playing .live-inputs-row{display:none}
- body.trace-playing .trace-log-box{max-height:68px}
-}
-
-@media screen and (max-width:520px){
- h1{font-size:1.12rem!important;line-height:1.3}
- .subtitle{font-size:0.75rem!important;line-height:1.4}
- .seed-bar{padding:8px 10px;gap:6px}
- .seed-bar label{width:100%;text-align:center}
- .seed-bar input{width:100%!important;text-align:center;font-size:1rem!important}
- .seed-bar button{flex:1 1 calc(50% - 4px);min-width:0;padding:7px 4px;font-size:0.78rem}
- .verbal-guide-card{padding:8px 10px}
- .verbal-guide-header{flex-direction:column;align-items:flex-start;gap:4px}
- .section-card{padding:10px 8px;border-radius:8px;margin-bottom:14px}
- .field-group{padding:8px 8px}
- /* BIP39 24単語の2列レスポンシブグリッド */
- #seed-words-container{
-   display:grid!important;
-   grid-template-columns:repeat(2,minmax(0,1fr))!important;
-   gap:5px!important;
- }
- .seed-chip{padding:5px 8px!important;font-size:0.78rem!important}
- /* QRコード表示のスマホ中央揃え */
- #seed-qr-list figure,#bq-qr-list figure{
-   width:100%!important;
-   max-width:280px!important;
-   margin:8px auto!important;
- }
-}
-/* END CARD QUICK AND MOBILE */
-/* QR backup & Bonus Vault */
-#backup-qr p,#backup-qr label,#bonus-vault p,#bonus-vault label {font-size:.84rem;line-height:1.7}
-#backup-qr [hidden],#bonus-vault [hidden] {display:none!important}
-#backup-qr .bq-row,#bonus-vault .bq-row {display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
-#backup-qr input[type=password],#backup-qr input[type=text],#backup-qr select,
-#bonus-vault input[type=password],#bonus-vault input[type=text],#bonus-vault select {min-width:0;max-width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--border-color);border-radius:5px;background:#fff}
-#backup-qr select,#bonus-vault select {width:100%;box-sizing:border-box;min-width:0;max-width:100%}
-#backup-qr textarea,#bonus-vault textarea {width:100%;min-height:85px;padding:9px;box-sizing:border-box;overflow-wrap:anywhere;resize:vertical;border:1px solid #bdcec3;border-radius:6px;background:#fff}
-#backup-qr .bq-warning,#bonus-vault .bq-warning {padding:10px;border:1px solid #d49c48;background:#fff8e7;color:#654512;border-radius:6px}
-#backup-qr .bq-status,#bonus-vault .bq-status {white-space:pre-wrap;overflow-wrap:anywhere;font-size:.82rem;min-height:1.5em;color:#087333}
-#backup-qr .bq-status[data-error=true],#bonus-vault .bq-status[data-error=true] {color:#b91c1c}
-.bq-select-desc {width:100%;box-sizing:border-box;margin-top:4px;padding:6px 10px;font-size:.78rem;line-height:1.5;color:#334155;background:#f8fafc;border-left:3px solid var(--accent);border-radius:4px;transition:all .15s ease-in-out}
-#seed-qr-list,#bq-qr-list {display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:12px}
-#seed-qr-list figure,#bq-qr-list figure {margin:8px 0;padding:12px;border:1px solid #bbb;background:#fff;color:#000;max-width:100%;width:320px;break-inside:avoid;border-radius:6px}
-#seed-qr-list svg,#bq-qr-list svg {display:block;width:100%;height:auto;background:#fff}
-#seed-qr-list figcaption,#bq-qr-list figcaption {font-size:12px;text-align:center;overflow-wrap:anywhere;white-space:pre-wrap;margin-top:6px;line-height:1.45}
-#bq-video {display:block;width:100%;max-width:600px;max-height:55vh;background:#111}
-#bq-preview {white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border:1px solid var(--border-color)}
-/* ブラインド表示（覗き見防止モード：ルート再生中は自動的に解除して表示） */
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span,
-body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span {
- position: relative;
- color: transparent !important;
- text-shadow: none !important;
- user-select: none;
-}
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span::after,
-body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span::after {
- content: "●";
- position: absolute;
- inset: 0;
- display: flex;
- align-items: center;
- justify-content: center;
- color: #174c2a;
- font-size: 0.92rem;
-}
-body.blind-mode #seed-words-container,
-body.blind-mode #seed-qr-list {
- filter: blur(8px);
- transition: filter 0.18s ease;
-}
-body.blind-mode #seed-words-container:hover,
-body.blind-mode #seed-qr-list:hover {
- filter: none;
-}
-.btn-blind-active {
- background: #17221b !important;
- color: #00ff66 !important;
- border-color: #00d957 !important;
-}
-
-/* 初心者向け解説ツールチップ／ポップオーバー */
-.help-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-ui);
-  border: 1px solid #cbd5e1;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  margin-left: 6px;
-  vertical-align: middle;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.help-btn:hover,
-.help-btn:focus-visible,
-.help-btn.active {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #0369a1;
-  transform: scale(1.15);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
-}
-.help-popover {
-  position: absolute;
-  z-index: 99999;
-  max-width: 440px;
-  background: #0f172a;
-  color: #f8fafc;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.3);
-  font-size: 0.82rem;
-  line-height: 1.55;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  pointer-events: none;
-}
-.help-popover.visible {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-.help-popover-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px 6px;
-  border-bottom: 1px solid #1e293b;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #38bdf8;
-}
-.help-popover-body {
-  padding: 10px 12px 12px;
-  color: #e2e8f0;
-  word-break: break-word;
-  white-space: pre-wrap;
-  line-height: 1.5;
-  font-size: 0.8rem;
-}
-.help-popover-close {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 14px;
-  line-height: 1;
-  padding: 2px 4px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
-}
-.help-popover-close:hover {
-  color: #ffffff;
-  background: #334155;
-}
-@media (max-width: 600px) {
-  .help-popover {
-    max-width: calc(100vw - 28px);
-    font-size: 0.8rem;
-  }
-}
-@media print {
- .help-btn, #help-popover {display:none!important}
- #backup-qr {break-inside:auto}
- #backup-qr:not([data-ready=true]) {display:none!important}
- #seed-qr-list,#bq-qr-list {display:block}
- #seed-qr-list figure,#bq-qr-list figure {width:80mm;max-width:100%;padding:4mm;margin:5mm auto;break-inside:avoid;page-break-inside:avoid}
- #seed-qr-list svg,#bq-qr-list svg {width:72mm;height:72mm;max-width:100%;background:#fff!important}
- #seed-qr-list svg .qr-white,#bq-qr-list svg .qr-white {fill:#fff!important}
- #seed-qr-list svg .qr-black,#bq-qr-list svg .qr-black {fill:#000!important}
- .bv-qr-figure svg {width:130px;height:130px;display:block;margin:0 auto;}
- .bv-print-full-text {display:none;}
- #bq-print-summary {font-size:11pt;overflow-wrap:anywhere}
- body.print-vault-mode .section-card:not(#bonus-vault),
- body.print-vault-mode #card-quick,
- body.print-vault-mode #section-recipe-detail,
- body.print-vault-mode #backup-qr,
- body.print-vault-mode header,
- body.print-vault-mode footer,
- body.print-vault-mode textarea,
- body.print-vault-mode .bv-no-print {display:none!important}
- body.print-vault-mode #bonus-vault {display:block!important;border:none!important;background:#fff!important;padding:0!important;margin:0!important}
- body.print-vault-mode .bv-qr-figure {width:80mm;max-width:100%;padding:4mm;margin:5mm auto;break-inside:avoid;page-break-inside:avoid;text-align:center}
- body.print-vault-mode .bv-qr-figure svg {width:65mm;height:65mm}
- body.print-vault-mode .bv-print-full-text {display:block!important;white-space:pre-wrap!important;word-break:break-all!important;font-family:monospace!important;font-size:7.5pt!important;line-height:1.25!important;padding:4mm!important;border:1px solid #cbd5e1!important;margin:4mm 0!important;background:#fff!important;color:#000!important;break-inside:auto!important;page-break-inside:auto!important;}
-}
-
-/* Duress Secret Menu Modal */
-.duress-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  box-sizing: border-box;
-}
-.duress-modal-backdrop[hidden] {
-  display: none !important;
-}
-.duress-modal-dialog {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
-  width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 1px solid #cbd5e1;
-  box-sizing: border-box;
-  animation: duressFadeIn 0.18s ease-out;
-}
-@keyframes duressFadeIn {
-  from { opacity: 0; transform: scale(0.97) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.duress-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 12px 12px 0 0;
-}
-.duress-modal-close {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  line-height: 1;
-  color: #64748b;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.duress-modal-close:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-.duress-modal-body {
-  padding: 16px;
-}
-.duress-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-@media (max-width: 520px) {
-  .duress-form-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-}
-.duress-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.duress-field label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #78350f;
-  margin: 0;
-}
-.duress-field input,
-.duress-field textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 10px;
-  font-size: 0.84rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #0f172a;
-}
-.duress-field input:focus,
-.duress-field textarea:focus {
-  outline: none;
-  border-color: #b45309;
-  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2);
-}
-
-@keyframes seedPromptPulse {
-  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); border-color: #dc2626; }
-  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.25); border-color: #dc2626; }
-  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-}
-.seed-prompt-highlight {
-  animation: seedPromptPulse 1.2s ease-in-out 3 !important;
-  border-color: #dc2626 !important;
-  background-color: #fef2f2 !important;
-}
-
-</style>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#070b14">
+<meta name="color-scheme" content="light dark">
+<title>Crypto Matrix — オフライン暗号マトリックス</title>
+<meta name="description" content="マトリックスカードとシードからパスワードを再現。Argon2id・二重暗号化・Shamir秘密分散バックアップを完全オフラインで。">
+<meta property="og:title" content="Crypto Matrix — オフライン暗号マトリックス">
+<meta property="og:description" content="外部通信ゼロ。ブラウザだけで動くマトリックスカード式パスワード生成と暗号化バックアップ。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="theme-init.js"></script>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="legacy.css">
+<link rel="stylesheet" href="theme-cyber.css">
 </head>
+<body class="cm-body">
+<div class="cm-app">
+<header class="cm-header"><div class="cm-header-in">
+  <div class="cm-logo"><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4M21 2l-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg></div>
+  <h1 class="cm-title cm-mono">CRYPTO<span>_</span>MATRIX</h1>
+  <div class="cm-tools cm-mono">
+    <button type="button" id="cm-airgap" class="cm-badge cm-b-green" title="このアプリは全ての計算を端末内で完結させ、外部サーバーとの通信を一切行いません。ネットワークを切断した環境（エアギャップ）でもそのまま使えます。"><span class="cm-dot"></span><span class="cm-hide-sm">AIR-GAP READY · 外部通信 0</span></button>
+    <button type="button" id="cm-csp" class="cm-badge cm-b-cyan" title="CSP（コンテンツ・セキュリティ・ポリシー）により、外部への通信がブラウザの仕組みレベルでブロックされています。アプリ側の設定ミスで通信が漏れることも防げます。"><svg class="cm-ico-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="cm-hide-sm">CSP 通信ブロック</span></button>
+    <button type="button" id="cm-net" class="cm-badge"></button>
+    <button type="button" id="cm-install" class="cm-btn"><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="cm-hide-sm" id="cm-install-label">ホーム追加</span></button>
+    <button type="button" id="cm-help" class="cm-btn" disabled><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span class="cm-hide-sm">ヘルプ / チュートリアル</span></button>
+    <button type="button" id="cm-theme-toggle" class="cm-btn cm-btn-sq"></button>
+  </div>
+</div></header>
+<div class="cm-info" id="cm-badge-info" hidden><span id="cm-badge-info-text"></span><button type="button" id="cm-badge-info-close">閉じる</button></div>
+<noscript><div class="cm-error">JavaScript を有効にしてください。</div></noscript>
+<main class="cm-main">
+  <section aria-label="マトリックス盤面"><div id="cm-board" class="cm-legacy cm-board">
 <body>
   <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -1511,20 +135,20 @@ body.blind-mode #seed-qr-list:hover {
           <div style="display:flex; gap:8px; flex-wrap:wrap; width:100%; align-items:center;" id="trace-controls-bar">
             <button type="button" class="btn" id="btn-play-trace" title="現在のマイ・レシピまたは簡単生成モードの通常ルートをマトリックス上で1文字ずつ再生します">▶ 通常ルート再生</button>
             <button type="button" class="btn btn-outline" id="btn-play-stroke" style="font-size:0.85rem;" title="文字や記号の形を盤面上で指でなぞる「パターンルート」でパスワードを生成・再生します（Androidのパターン解除感覚）">✍️ パターンルート再生</button>
-            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）">⏸ 一時停止</button>
+            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; border-color:#ff941a; color:#fe7d1a; background:#292619; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）">⏸ 一時停止</button>
             <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します">⏹ 停止</button>
             <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー（30秒後自動消去）</button>
-            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送します">📥 KeePassエントリーに追加</button>
+            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#1ab1ff; color:#1aaeff; background:#192329; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送します">📥 KeePassエントリーに追加</button>
           </div>
         </div>
 
         <!-- パターン公式デザイン一覧バー -->
         <div class="gesture-design-bar" id="gesture-design-bar" style="display:none;">
-          <div style="font-size:0.80rem; font-weight:700; color:#166534; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px;">
+          <div style="font-size:0.80rem; font-weight:700; color:#3bdd79; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px;">
             <span>✍️ パターンデザイン一覧（自然な書き順）：</span>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:0.72rem; color:#15803d; font-weight:normal;">クリックで即座に切り替え</span>
-              <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem; border-color:#86efac; color:#166534; background:#fff;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
+              <span style="font-size:0.72rem; color:#32e775; font-weight:normal;">クリックで即座に切り替え</span>
+              <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem; border-color:#0eaa47; color:#3bdd79; background:#1b2027;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
             </div>
           </div>
 
@@ -1776,8 +400,8 @@ body.blind-mode #seed-qr-list:hover {
         </div>
 
         <!-- G4: 記号のホワイトリスト・ブラックリスト ＆ 強度維持代替移動 -->
-        <div class="field-group" style="border-color:#0284c7; background:#f0f9ff;">
-          <div class="field-group-title"><span class="badge" style="background:#0284c7;">4</span>記号ルール（WL/BL）＆ 暗号強度維持の代替移動<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトやサービスによって利用できる記号や禁止されている記号がまちまちです（例: ハイフンのみ可、特殊記号不可など）。ここで許可記号（ホワイトリスト）や禁止記号（ブラックリスト）を設定すると、使えない記号に当たった際も自動的に別の安全な文字へ代替移動し、パスワードの強度と再現性を保ちます。">?</button></div>
+        <div class="field-group" style="border-color:#1ab1ff; background:#192329;">
+          <div class="field-group-title"><span class="badge" style="background:#1ab1ff;">4</span>記号ルール（WL/BL）＆ 暗号強度維持の代替移動<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトやサービスによって利用できる記号や禁止されている記号がまちまちです（例: ハイフンのみ可、特殊記号不可など）。ここで許可記号（ホワイトリスト）や禁止記号（ブラックリスト）を設定すると、使えない記号に当たった際も自動的に別の安全な文字へ代替移動し、パスワードの強度と再現性を保ちます。">?</button></div>
           <div style="font-size:0.75rem; color:var(--text-sub); margin:-4px 0 8px 0;">※サイトによって使える記号や使えない記号がまちまちでも、自動で安全な文字に代替移動して強度を維持します。</div>
           <div class="sub-row">
             <label for="rc-sym-mode">記号制限:<button type="button" class="help-btn" aria-label="説明を表示" data-help="使用する記号の制限方法です。「なし」「ホワイトリスト（指定した記号のみ許可）」「ブラックリスト（指定した記号を除外）」から選べます。">?</button></label>
@@ -1975,7 +599,7 @@ body.blind-mode #seed-qr-list:hover {
         現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は下の「3. 拡張バックアップ（暗号化）＆ 印刷QRからの復元」を使用してください。
       </p>
 
-      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -1992,12 +616,12 @@ body.blind-mode #seed-qr-list:hover {
         <button type="button" class="btn btn-secondary" id="btn-copy-seed">復元フレーズを全てコピー（30秒後自動消去）</button>
         <button type="button" class="btn btn-outline" id="btn-save-seed-txt" style="padding:6px 10px; font-size:0.8rem;">💾 テキスト保存 (.txt)</button>
         <button type="button" class="btn btn-outline" id="btn-save-seed-qr" style="padding:6px 10px; font-size:0.8rem;">🖼️ QR画像保存 (PNG)</button>
-        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
+        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
       </div>
 
       <div class="cloud-warning">
         <div class="cloud-warning-head">⚠️ 警告：暗号化なしの24単語シードフレーズ・QRコードは絶対にクラウドに保存ダメ、ゼッタイ！</div>
-        <div style="font-size:0.8rem; color:#e2e8f0;">
+        <div style="font-size:0.8rem; color:#192029;">
           NEVER STORE YOUR UNENCRYPTED SEED PHRASE OR QR CODE IN THE CLOUD!<br>
           クラウドメモ・メール・写真フォルダ（スクショ）への平文保存は情報流出の直接原因となります。必ず紙に控えてオフライン保管するか、下の「3」で暗号化バックアップを作成してください。
         </div>
@@ -2044,8 +668,8 @@ body.blind-mode #seed-qr-list:hover {
     <div id="bq-scope-desc" class="bq-select-desc"></div>
   </div>
 
-  <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 14px; margin:12px 0;">
-   <div style="font-weight:700; font-size:0.88rem; color:#1e293b; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+  <div style="background:#192129; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
+   <div style="font-weight:700; font-size:0.88rem; color:#6382b5; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
    <div style="display:flex; flex-direction:column; gap:8px;">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-password" checked style="width:17px; height:17px;">
@@ -2070,7 +694,7 @@ body.blind-mode #seed-qr-list:hover {
     </select>
      <div id="bq-shamir-desc" class="bq-select-desc"></div>
    </div>
-   <div id="bq-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#dcfce7; color:#065f46; border:1px solid #86efac;">
+   <div id="bq-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#19291f; color:#1dfbbd; border:1px solid #0eaa47;">
     現在の保護方式：復元用パスワード単独
    </div>
   </div>
@@ -2100,30 +724,30 @@ body.blind-mode #seed-qr-list:hover {
    <div id="bq-pw-entropy" style="width:100%; font-size:0.78rem; color:var(--text-sub); margin:2px 0 4px;">パスワード強度診断：未入力（12文字以上必須）</div>
   </div>
 
-  <div class="bq-row" id="bq-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
+  <div class="bq-row" id="bq-keyfile-row" hidden style="background:#19291e; padding:8px 10px; border-radius:6px; border:1px solid #0eaa47;">
    <label for="bq-keyfile" style="font-weight:700;">🔑 キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="お手元の任意のファイル（画像・PDF等）や専用の.keyファイルです。ファイルの中身が1ビットでも変化すると復元できなくなるため、絶対に編集・上書き・画像圧縮しないで保管してください。">?</button></label>
    <input type="file" id="bq-keyfile">
     <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
-    <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
+    <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
-  <div class="bq-row" id="bq-passkey-row" hidden style="background:#eff6ff; padding:10px 12px; border-radius:8px; border:1px solid #93c5fd; font-size:0.82rem; color:#1e3a8a; line-height:1.5;">
+  <div class="bq-row" id="bq-passkey-row" hidden style="background:#192029; padding:10px 12px; border-radius:8px; border:1px solid #004ca0; font-size:0.82rem; color:#3b65dd; line-height:1.5;">
    🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
    ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
-   <div style="margin-top:6px; padding:6px 10px; background:#ffffff; border-radius:6px; border:1px solid #bfdbfe; font-size:0.78rem; color:#1e40af;">
+   <div style="margin-top:6px; padding:6px 10px; background:#1b2027; border-radius:6px; border:1px solid #003578; font-size:0.78rem; color:#335de6;">
      <strong>【動作対応認証器】</strong><br>
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
      ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
      ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
      ・⭕ <strong>Windows Hello</strong> (Windows 11)<br>
-     <span style="color:#b91c1c;">※❌ Bitwarden、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
+     <span style="color:#e92f2f;">※❌ Bitwarden、⚠️ iPhoneでの外付けYubiKeyはPRF拡張非対応または不安定なためご利用いただけません。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。</span>
    </div>
   </div>
 
   
 
   <p class="bq-warning">復元用パスワードや保護キー（キーファイル・パスキー）は、QRコードや24単語ブロックの中には記録されません。紛失・削除すると復元できなくなるため、バックアップとは別の場所で大切に管理してください。秘密分散（M-of-N）を選択した場合は、分割された各QRコード（またはフレーズ）を別々の保管場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分けて保管してください。</p>
-  <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+  <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>💡</span>
       <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -2136,8 +760,8 @@ body.blind-mode #seed-qr-list:hover {
    <button type="button" class="btn btn-outline" id="bq-save-txt" style="padding:6px 10px; font-size:0.8rem;" disabled>💾 テキスト保存 (.txt)</button>
    <button type="button" class="btn btn-outline" id="bq-save-qr" style="padding:6px 10px; font-size:0.8rem;" disabled>🖼️ QR画像保存 (PNG)</button>
    <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled>📁 暗号化ファイル保存 (.cmenc)</button>
-   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
-    <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#047857; border-color:#059669; background:#ecfdf5;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します">🧪 復元テスト欄へ転記</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
+    <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1affbe; border-color:#1affb8; background:#192922;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します">🧪 復元テスト欄へ転記</button>
    <button type="button" class="btn btn-secondary" id="bq-print" disabled>カードと暗号化QRを印刷</button>
    <button type="button" class="btn btn-secondary" id="bq-clear">暗号化バックアップ表示を消去</button>
   </div>
@@ -2168,20 +792,20 @@ body.blind-mode #seed-qr-list:hover {
 </section>
 
 <!-- BEGIN BONUS VAULT -->
-<section class="section-card no-print" id="bonus-vault" style="margin-top:24px; border:2px solid #38bdf8; background:#f0f9ff;">
-  <h2 class="section-title" style="color:#0369a1; border-bottom-color:#bae6fd;">
+<section class="section-card no-print" id="bonus-vault" style="margin-top:24px; border:2px solid #00abf7; background:#192329;">
+  <h2 class="section-title" style="color:#1aaeff; border-bottom-color:#00527d;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>4. 汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで安全に暗号化・分割保管できる多機能保管庫です。">?</button></span>
-      <span class="mode-pill" style="background:#e0f2fe; color:#0369a1; border-color:#38bdf8;">🛡️ 完全ローカル・ゼロナレッジ</span>
+      <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル・ゼロナレッジ</span>
     </div>
   </h2>
 
-  <p style="margin:0 0 12px; font-size:0.86rem; color:#0f172a;">
+  <p style="margin:0 0 12px; font-size:0.86rem; color:#5074c8;">
     お手元の既存パスワード、日本語の機密メモ、重要ファイルなどを、ブラウザ上（ローカル完結・外部送信ゼロ）で <strong>PBKDF2-SHA512 ＋ AES-256-GCM ＋ 二段階認証（キーファイル／パスキー） ＋ Shamir秘密分散（M-of-N）</strong> の自由な組み合わせで暗号化・分割保存・復元できます。
   </p>
 
   <!-- タブ切り替え（暗号化作成／復元・復号） -->
-  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
+  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #304257; padding-bottom:8px;">
     <button type="button" class="btn" id="bv-tab-btn-encrypt" style="font-size:0.82rem;">🔒 暗号化 ＆ 秘密分散を作成</button>
     <button type="button" class="btn btn-outline" id="bv-tab-btn-decrypt" style="font-size:0.82rem;">🔓 復元・復号する</button>
   </div>
@@ -2209,7 +833,7 @@ body.blind-mode #seed-qr-list:hover {
     </div>
 
     <!-- ファイル選択欄 -->
-    <div id="bv-input-file-area" hidden style="margin-bottom:12px; background:#ffffff; padding:12px; border-radius:8px; border:1px dashed #38bdf8;">
+    <div id="bv-input-file-area" hidden style="margin-bottom:12px; background:#1b2027; padding:12px; border-radius:8px; border:1px dashed #00abf7;">
       <label for="bv-file-input" style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
         暗号化したいファイルを選択:<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスポートの写真、身分証明書のPDF、秘密の文書など、保護したい任意のファイル（最大約20MB推奨）を選択します。ファイルごと強力に暗号化されます。">?</button>
       </label>
@@ -2218,8 +842,8 @@ body.blind-mode #seed-qr-list:hover {
     </div>
 
     <!-- 保護設定ボックス -->
-    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:12px 14px; margin:12px 0;">
-      <div style="font-weight:700; font-size:0.88rem; color:#1e293b; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+    <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
+      <div style="font-weight:700; font-size:0.88rem; color:#6382b5; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-password" checked style="width:17px; height:17px;">
@@ -2246,7 +870,7 @@ body.blind-mode #seed-qr-list:hover {
          <div id="bv-shamir-desc" class="bq-select-desc"></div>
       </div>
 
-      <div id="bv-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#dcfce7; color:#065f46; border:1px solid #86efac;">
+      <div id="bv-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#19291f; color:#1dfbbd; border:1px solid #0eaa47;">
         現在の保護方式：復元用パスワード単独
       </div>
     </div>
@@ -2279,15 +903,15 @@ body.blind-mode #seed-qr-list:hover {
     </div>
 
     <!-- キーファイル入力行 -->
-    <div class="bq-row" id="bv-keyfile-row" hidden style="background:#f0fdf4; padding:8px 10px; border-radius:6px; border:1px solid #86efac;">
+    <div class="bq-row" id="bv-keyfile-row" hidden style="background:#19291e; padding:8px 10px; border-radius:6px; border:1px solid #0eaa47;">
       <label for="bv-keyfile" style="font-weight:700;">🔑 キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの写真・PDF等のファイル、または専用に生成した .key ファイルを使って暗号化する追加認証です。ファイルを失うと復元できなくなります。">?</button></label>
       <input type="file" id="bv-keyfile">
       <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
-      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#065f46;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
+      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
     </div>
 
     <!-- パスキー説明行 -->
-    <div class="bq-row" id="bv-passkey-row" hidden style="background:#eff6ff; padding:8px 10px; border-radius:6px; border:1px solid #93c5fd; font-size:0.8rem; color:#1e3a8a;">
+    <div class="bq-row" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem; color:#3b65dd;">
       🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。
       
     </div>
@@ -2301,12 +925,12 @@ body.blind-mode #seed-qr-list:hover {
     <div id="bv-encrypt-status" class="status-msg" role="status" aria-live="polite"></div>
 
     <!-- 作成結果表示エリア -->
-    <div id="bv-encrypt-result" hidden style="margin-top:14px; padding:12px; background:#ffffff; border-radius:8px; border:1px solid var(--border-color);">
+    <div id="bv-encrypt-result" hidden style="margin-top:14px; padding:12px; background:#1b2027; border-radius:8px; border:1px solid var(--border-color);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
         <span style="font-weight:700; font-size:0.88rem; color:var(--accent);">✅ 暗号化・秘密分散の生成完了</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" id="bv-result-actions"></div>
       </div>
-      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; font-size:0.83rem; color:#14532d; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -2337,7 +961,7 @@ body.blind-mode #seed-qr-list:hover {
         <input type="file" id="bv-restore-file" multiple style="display:none;">
         <span id="bv-restore-file-name" style="font-size:0.8rem; color:var(--text-sub); align-self:center;"></span>
       </div>
-      <video id="bv-video" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border:2px solid #0284c7; margin-bottom:8px; background:#000;"></video>
+      <video id="bv-video" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border:2px solid #1ab1ff; margin-bottom:8px; background:#e1e5ea;"></video>
       <textarea id="bv-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="暗号化されたテキスト（-----BEGIN CRYPTOMATRIX VAULT...-----）を貼り付けるか、上のQRスキャン・画像読込・ファイル選択をご利用ください。秘密分散の場合は必要シェア分（例: 2シェア分）を続けて貼り付けるか、連続してQRコードをスキャンできます。"></textarea>
     </div>
 
@@ -2355,16 +979,16 @@ body.blind-mode #seed-qr-list:hover {
     <div id="bv-decrypt-status" class="status-msg" role="status" aria-live="polite"></div>
 
     <!-- 復号結果表示エリア -->
-    <div id="bv-decrypt-result" hidden style="margin-top:14px; padding:12px; background:#f0fdf4; border-radius:8px; border:1px solid #86efac;">
+    <div id="bv-decrypt-result" hidden style="margin-top:14px; padding:12px; background:#19291e; border-radius:8px; border:1px solid #0eaa47;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-        <span style="font-weight:700; font-size:0.88rem; color:#065f46;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
+        <span style="font-weight:700; font-size:0.88rem; color:#1dfbbd;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <button type="button" class="btn btn-secondary" id="bv-copy-decrypted" style="font-size:0.78rem;">コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;">💾 ファイルをダウンロード</button>
         </div>
       </div>
-      <div id="bv-decrypted-content" style="white-space:pre-wrap; word-break:break-word; font-family:var(--font-ui); font-size:0.86rem; background:#ffffff; padding:10px; border-radius:6px; border:1px solid #cbd5e1; max-height:300px; overflow-y:auto;"></div>
-      <div id="bv-decrypted-meta" style="font-size:0.75rem; color:#065f46; margin-top:6px;"></div>
+      <div id="bv-decrypted-content" style="white-space:pre-wrap; word-break:break-word; font-family:var(--font-ui); font-size:0.86rem; background:#1b2027; padding:10px; border-radius:6px; border:1px solid #304257; max-height:300px; overflow-y:auto;"></div>
+      <div id="bv-decrypted-meta" style="font-size:0.75rem; color:#1dfbbd; margin-top:6px;"></div>
     </div>
   </div>
 </section>
@@ -2372,8 +996,13 @@ body.blind-mode #seed-qr-list:hover {
 
     <!-- フッター -->
     <footer id="page-footer" style="margin-top:28px; padding:16px 0 110px; text-align:center;">
-      <hr style="margin-bottom:14px; border:0; border-top:1px solid var(--border-color, #cbd5e1);">
-      <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" style="color:#007a32; font-weight:600; text-decoration:underline;">Contact us</a>
+      <hr style="margin-bottom:14px; border:0; border-top:1px solid var(--border-color, #304257);">
+      <p style="margin:0 0 10px; font-size:12px; line-height:1.8; color:var(--text-sub, #8fa3bf);">
+        🔒 このアプリは<strong style="color:var(--accent, #34f58a);">完全オフライン設計</strong>です。
+        すべての計算はお使いの端末内で完結し、外部サーバーへの通信は一切行いません（CSP により技術的にブロック）。<br>
+        シード・合言葉・生成パスワードが外部に送信されることはありません。機密性の高い操作は、ネットワークを切断した環境（エアギャップ）での利用を推奨します。
+      </p>
+      <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" style="color:#1aff78; font-weight:600; text-decoration:underline;">Contact us</a>
     </footer>
   </div>
 
@@ -2393,28 +1022,28 @@ body.blind-mode #seed-qr-list:hover {
     <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;" id="sticky-controls-bar">
       <button type="button" class="btn" id="btn-sticky-play" style="padding:5px 10px; font-size:0.78rem;" title="通常ルート再生">▶ 通常再生</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-stroke" style="padding:5px 10px; font-size:0.78rem;" title="パターンルート再生（Androidパターン感覚）">✍️ パターン再生</button>
-      <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="一時停止／再開">⏸ 一時停止</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; border-color:#ff941a; color:#fe7d1a; background:#292619; font-weight:700;" title="一時停止／再開">⏸ 一時停止</button>
       <button type="button" class="btn btn-danger" id="btn-sticky-stop" style="padding:5px 10px; font-size:0.78rem; display:none;" title="停止">⏹ 停止</button>
       <button type="button" class="btn btn-secondary" id="btn-sticky-copy" style="padding:5px 10px; font-size:0.78rem;">コピー</button>
-      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送">📥 KeePass追加</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#1ab1ff; color:#1aaeff; background:#192329; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送">📥 KeePass追加</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-top" style="padding:5px 10px; font-size:0.78rem;">▲ マトリックスへ</button>
     </div>
   </div>
-  <button type="button" class="btn btn-primary no-print" id="btn-sticky-min-pill" style="display:none; position:fixed; bottom:10px; right:10px; z-index:91; padding:6px 14px; font-size:0.78rem; font-weight:700; border-radius:9999px; box-shadow:0 4px 16px rgba(0,201,80,0.45); border:1.5px solid #00a843; background:#00c950; color:#fff;" title="パスワード確認バーを展開">🔑 パスワード表示 ▲</button>
+  <button type="button" class="btn btn-primary no-print" id="btn-sticky-min-pill" style="display:none; position:fixed; bottom:10px; right:10px; z-index:91; padding:6px 14px; font-size:0.78rem; font-weight:700; border-radius:9999px; box-shadow:0 4px 16px rgba(0,201,80,0.45); border:1.5px solid #1aff75; background:#1aff75; color:#1b2027;" title="パスワード確認バーを展開">🔑 パスワード表示 ▲</button>
 
   <!-- 旧PKv2救出・移行 同意モーダル -->
   <div id="legacy-pk2-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog" style="max-width:540px;">
-      <div class="duress-modal-header" style="background:#eff6ff; border-bottom:1px solid #bfdbfe;">
-        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#1e40af;">
+      <div class="duress-modal-header" style="background:#192029; border-bottom:1px solid #003578;">
+        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#335de6;">
           ℹ️ 旧形式パスキー保護データの復元
         </h3>
         <button type="button" class="duress-modal-close" id="btn-legacy-pk2-close" aria-label="閉じる">✕</button>
       </div>
       <div class="duress-modal-body">
-        <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:14px;">
+        <div style="font-size:0.86rem; color:#6d87ac; line-height:1.6; margin-bottom:14px;">
           読み込まれたバックアップデータは、<strong>旧バージョンのパスキー保護形式（旧PKv2形式）</strong>で作成されています。<br>
-          <div style="margin-top:8px; color:#1e40af; background:#f0f9ff; padding:10px 12px; border-radius:6px; border:1px solid #bae6fd; font-size:0.82rem; line-height:1.5;">
+          <div style="margin-top:8px; color:#335de6; background:#192329; padding:10px 12px; border-radius:6px; border:1px solid #00527d; font-size:0.82rem; line-height:1.5;">
             ℹ️ <strong>ご案内：</strong><br>
             旧PKv2形式は以前の環境向け形式です。このデータを復号して設定を復元（救出）しますか？<br>
             ※許可すると、このセッション内で旧形式の救出・復号を実行します。<br>
@@ -2422,7 +1051,7 @@ body.blind-mode #seed-qr-list:hover {
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
-          <button type="button" class="btn btn-primary" id="btn-legacy-pk2-accept" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; background:#2563eb; border-color:#1d4ed8;">
+          <button type="button" class="btn btn-primary" id="btn-legacy-pk2-accept" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; background:#1e62f5; border-color:#2c5eed;">
             🔓 復元を続行する（救出復号）
           </button>
           <button type="button" class="btn btn-outline" id="btn-legacy-pk2-cancel" style="padding:10px 14px; font-weight:700;">
@@ -2443,34 +1072,34 @@ body.blind-mode #seed-qr-list:hover {
         <button type="button" class="duress-modal-close" id="btn-duress-close" aria-label="閉じる">✕</button>
       </div>
       <div class="duress-modal-body">
-        <div id="duress-modal-intro" style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:14px;">
+        <div id="duress-modal-intro" style="font-size:0.86rem; color:#6d87ac; line-height:1.6; margin-bottom:14px;">
           通常は<strong>「🔒 このまま本命のみで作成（通常）」</strong>を押せば安全に作成完了します。<br>
-          <div style="margin-top:8px; color:#92400e; background:#fffbeb; padding:10px 12px; border-radius:6px; border:1px solid #fde68a; font-size:0.82rem; line-height:1.5;">
+          <div style="margin-top:8px; color:#f47324; background:#292619; padding:10px 12px; border-radius:6px; border:1px solid #a88700; font-size:0.82rem; line-height:1.5;">
             🛡️ <strong>二重暗号・別パスワード表示（Duress Mode / 強要対策）：</strong><br>
             強盗や脅迫・強要時に、本命とは異なるパスワードを入力することで無害な日常情報（ダミーデータ）を表示させる<strong>【別パスワード表示機能（Duress/おとりスロット）】</strong>です。（※暗号化構造上、2スロット形式であることはファイル解析により判別可能です。身体的安全や存在の完全な秘匿を保証するものではありません）
           </div>
         </div>
 
-        <div id="duress-modal-error" style="display:none; color:#dc2626; background:#fee2e2; border:1px solid #fca5a5; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
+        <div id="duress-modal-error" style="display:none; color:#e83838; background:#291919; border:1px solid #910000; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
 
         <!-- 選択ボタン群 -->
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;" id="duress-choice-btns">
           <button type="button" class="btn btn-outline" id="btn-duress-skip" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700;">
             🔒 このまま本命のみで作成（通常）
           </button>
-          <button type="button" class="btn btn-secondary" id="btn-duress-open-config" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; color:#b45309; border-color:#fcd34d; background:#fffbeb;">
+          <button type="button" class="btn btn-secondary" id="btn-duress-open-config" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; color:#fe7d1a; border-color:#e0ac00; background:#292619;">
             🎭 おとりパスワードも設定する（二重金庫）
           </button>
         </div>
 
         <!-- おとり設定パネル（「おとりパスワードを設定する」を押すと展開） -->
-        <div id="duress-modal-config" hidden style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px; margin-top:10px;">
+        <div id="duress-modal-config" hidden style="background:#292619; border:1px solid #a88700; border-radius:8px; padding:12px; margin-top:10px;">
           <!-- 共通ヘッダー ＆ ダミー自動生成ボタン -->
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #fde68a;">
-            <div style="font-weight:700; font-size:0.84rem; color:#92400e;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #a88700;">
+            <div style="font-weight:700; font-size:0.84rem; color:#f47324;">
               🎭 二重金庫（おとり・ダミー偽装）の設定：
             </div>
-            <button type="button" class="btn btn-outline" id="btn-duress-modal-random" style="padding:4px 10px; font-size:0.76rem; font-weight:700; background:#ffffff; border-color:#b45309; color:#92400e; cursor:pointer;" title="実在する有名サービス（Amazon、楽天、Yahoo!、メルカリ等）をもとにリアルなダミー情報（サイト・合言葉・シード）を切り替えます">
+            <button type="button" class="btn btn-outline" id="btn-duress-modal-random" style="padding:4px 10px; font-size:0.76rem; font-weight:700; background:#1b2027; border-color:#fe7d1a; color:#f47324; cursor:pointer;" title="実在する有名サービス（Amazon、楽天、Yahoo!、メルカリ等）をもとにリアルなダミー情報（サイト・合言葉・シード）を切り替えます">
               🎲 実在サイトのダミー情報をランダム変更
             </button>
           </div>
@@ -2481,7 +1110,7 @@ body.blind-mode #seed-qr-list:hover {
               <div class="duress-field">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <label for="duress-modal-pw">おとり用パスワード:</label>
-                  <button type="button" class="btn-toggle-pw-visibility" data-target="duress-modal-pw,duress-modal-pw-conf" style="background:none; border:none; color:#92400e; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ パスワードを表示</button>
+                  <button type="button" class="btn-toggle-pw-visibility" data-target="duress-modal-pw,duress-modal-pw-conf" style="background:none; border:none; color:#f47324; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ パスワードを表示</button>
                 </div>
                 <input type="password" id="duress-modal-pw" autocomplete="new-password" placeholder="自分が思い出せる12文字以上のパスワード">
               </div>
@@ -2490,11 +1119,11 @@ body.blind-mode #seed-qr-list:hover {
                 <input type="password" id="duress-modal-pw-conf" autocomplete="new-password" placeholder="確認のためもう一度入力">
               </div>
             </div>
-            <div style="font-size:0.75rem; color:#92400e; margin:-4px 0 10px 0; line-height:1.4;">
+            <div style="font-size:0.75rem; color:#f47324; margin:-4px 0 10px 0; line-height:1.4;">
               💡 <strong>重要：</strong>強盗や脅迫を受けた際にとっさに思い出せるよう、<strong>自分が昔使っていた古いパスワードや記憶しやすい合言葉</strong>など、ご自身が確実に覚えているパスワード（12文字以上）を設定してください。
             </div>
 
-            <div style="font-size:0.78rem; color:#92400e; margin-bottom:8px; line-height:1.4;">
+            <div style="font-size:0.78rem; color:#f47324; margin-bottom:8px; line-height:1.4;">
               ※脅迫者におとりパスワードを教えると、この実在サイトの無害なダミー情報が復元されます：
             </div>
 
@@ -2521,7 +1150,7 @@ body.blind-mode #seed-qr-list:hover {
               <div class="duress-field">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <label for="duress-vault-pw">おとり用パスワード:</label>
-                  <button type="button" class="btn-toggle-pw-visibility" data-target="duress-vault-pw,duress-vault-pw-conf" style="background:none; border:none; color:#92400e; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ パスワードを表示</button>
+                  <button type="button" class="btn-toggle-pw-visibility" data-target="duress-vault-pw,duress-vault-pw-conf" style="background:none; border:none; color:#f47324; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ パスワードを表示</button>
                 </div>
                 <input type="password" id="duress-vault-pw" autocomplete="new-password" placeholder="自分が思い出せる12文字以上のパスワード">
               </div>
@@ -2530,11 +1159,11 @@ body.blind-mode #seed-qr-list:hover {
                 <input type="password" id="duress-vault-pw-conf" autocomplete="new-password" placeholder="確認のためもう一度入力">
               </div>
             </div>
-            <div style="font-size:0.75rem; color:#92400e; margin:-4px 0 10px 0; line-height:1.4;">
+            <div style="font-size:0.75rem; color:#f47324; margin:-4px 0 10px 0; line-height:1.4;">
               💡 <strong>重要：</strong>強盗や脅迫を受けた際にとっさに思い出せるよう、<strong>自分が昔使っていた古いパスワードや記憶しやすい合言葉</strong>など、ご自身が確実に覚えているパスワード（12文字以上）を設定してください。
             </div>
 
-            <div style="font-size:0.78rem; color:#92400e; margin-bottom:8px; line-height:1.4;">
+            <div style="font-size:0.78rem; color:#f47324; margin-bottom:8px; line-height:1.4;">
               ※脅迫者におとりパスワードを教えると、この無害なダミーメモが復元されます：
             </div>
 
@@ -2545,7 +1174,7 @@ body.blind-mode #seed-qr-list:hover {
           </div>
 
           <div style="margin-top:12px;">
-            <button type="button" class="btn" id="btn-duress-confirm-dual" style="width:100%; padding:10px; font-weight:700; background:#b45309; border-color:#92400e; color:#fff;">
+            <button type="button" class="btn" id="btn-duress-confirm-dual" style="width:100%; padding:10px; font-weight:700; background:#fe7d1a; border-color:#f47324; color:#1b2027;">
               🛡️ 二重暗号（本命＋おとり）で作成する
             </button>
           </div>
@@ -2556,7 +1185,7 @@ body.blind-mode #seed-qr-list:hover {
             <input type="checkbox" id="chk-duress-remember-skip">
             次回からこの確認を表示せず本命のみで即作成する
           </label>
-          <span style="font-size:0.72rem; color:#64748b;">※緊急時に別のパスワードでダミーデータを表示できるデュアルスロット暗号化機能です</span>
+          <span style="font-size:0.72rem; color:#7889a1;">※緊急時に別のパスワードでダミーデータを表示できるデュアルスロット暗号化機能です</span>
         </div>
       </div>
     </div>
@@ -2565,84 +1194,84 @@ body.blind-mode #seed-qr-list:hover {
   <!-- KeePass キーファイル作成・復元オプション ポップアップモーダル -->
   <div id="keyfile-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog">
-      <div class="duress-modal-header" style="background:#f0f9ff; border-bottom:1px solid #bae6fd;">
-        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#0369a1;">
+      <div class="duress-modal-header" style="background:#192329; border-bottom:1px solid #00527d;">
+        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#1aaeff;">
           🔑 KeePassキーファイル (.key) 作成・復元オプション
         </h3>
         <button type="button" class="duress-modal-close" id="btn-keyfile-modal-close" aria-label="閉じる">✕</button>
       </div>
       <div class="duress-modal-body">
-        <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:12px;">
+        <div style="font-size:0.86rem; color:#6d87ac; line-height:1.6; margin-bottom:12px;">
           カードの配列シードから、KeePass 2.x / KeePassXC / KeeWeb で使える暗号キーファイル（.key）を書き出します。<br>
           万が一の紛失や再発行時に、<strong>どのようにキーファイルを復元（再生成）するか</strong>を選択してください。
         </div>
 
-        <div id="keyfile-modal-error" style="display:none; color:#dc2626; background:#fee2e2; border:1px solid #fca5a5; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
+        <div id="keyfile-modal-error" style="display:none; color:#e83838; background:#291919; border:1px solid #910000; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
 
         <!-- シード番号表示・確認 -->
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <div style="font-size:0.82rem; color:#0f172a; font-weight:700;">
+        <div style="background:#192129; border:1px solid #304257; border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:0.82rem; color:#5074c8; font-weight:700;">
             💳 対象カードシード番号:
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
-            <input type="text" id="keyfile-modal-seed" style="font-family:monospace; font-weight:700; font-size:0.95rem; width:130px; padding:4px 8px; border:1.5px solid #0284c7; border-radius:4px; text-align:center; color:#0369a1; background:#fff;" />
+            <input type="text" id="keyfile-modal-seed" style="font-family:monospace; font-weight:700; font-size:0.95rem; width:130px; padding:4px 8px; border:1.5px solid #1ab1ff; border-radius:4px; text-align:center; color:#1aaeff; background:#1b2027;" />
           </div>
         </div>
 
         <!-- 復元ファクターの選択（ラジオボタン） -->
         <div style="margin-bottom:14px;">
-          <div style="font-size:0.84rem; font-weight:700; color:#1e293b; margin-bottom:8px;">
+          <div style="font-size:0.84rem; font-weight:700; color:#6382b5; margin-bottom:8px;">
             🛡️ キーファイルの復元ポリシー（生成方式）：<button type="button" class="help-btn" aria-label="説明を表示" data-help="カードのシード番号だけでなく、自分だけのパスワードや端末の生体認証（パスキー）を組み合わせることで、物理カードを見られてもキーファイルを絶対に解読されないように二重・多重に保護します。">?</button>
           </div>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-seed">
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-seed">
             <input type="radio" name="km-factor" id="km-factor-seed" value="seed" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
               <strong>【カード単体】シード番号のみで復元（※カード空間依存）</strong><br>
-              <span style="color:#d97706;">⚠️ 注意：カードシード空間（最大約32ビット）から決定論的に導出されるため、独立した256ビット真性乱数キーファイルの暗号強度はありません。カード紛失時の安全性を高めるため、下記の【二要素認証】（パスワードまたはパスキー併用）を推奨します。</span>
+              <span style="color:#ff941a;">⚠️ 注意：カードシード空間（最大約32ビット）から決定論的に導出されるため、独立した256ビット真性乱数キーファイルの暗号強度はありません。カード紛失時の安全性を高めるため、下記の【二要素認証】（パスワードまたはパスキー併用）を推奨します。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #0284c7; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f0f9ff;" id="lbl-km-factor-dual">
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #1ab1ff; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192329;" id="lbl-km-factor-dual">
             <input type="radio" name="km-factor" id="km-factor-dual" value="dual" checked style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
-              <strong style="color:#0369a1;">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
-              <span style="color:#0369a1;">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
+              <strong style="color:#1aaeff;">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
+              <span style="color:#1aaeff;">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-passkey">
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-passkey">
             <input type="radio" name="km-factor" id="km-factor-passkey" value="passkey" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
-              <strong style="color:#0f766e;">【二要素認証】シード番号 ＋ パスキー（生体認証／セキュリティキー）で復元</strong><br>
-              <span style="color:#64748b;">お使いの端末（Touch ID / Face ID / Windows Hello / YubiKey等）のパスキー生体認証を通過しないと復元できません。パスワード記憶は不要です。</span>
+              <strong style="color:#2aeedf;">【二要素認証】シード番号 ＋ パスキー（生体認証／セキュリティキー）で復元</strong><br>
+              <span style="color:#7889a1;">お使いの端末（Touch ID / Face ID / Windows Hello / YubiKey等）のパスキー生体認証を通過しないと復元できません。パスワード記憶は不要です。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#f8fafc;" id="lbl-km-factor-multi">
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-multi">
             <input type="radio" name="km-factor" id="km-factor-multi" value="multi" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
-              <strong style="color:#7c3aed;">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
-              <span style="color:#64748b;">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
+              <strong style="color:#610bf4;">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
+              <span style="color:#7889a1;">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
             </div>
           </label>
 
           <!-- パスワード入力エリア -->
-          <div id="km-pass-wrap" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:10px 12px; margin-top:6px;">
+          <div id="km-pass-wrap" style="background:#192129; border:1px solid #304257; border-radius:6px; padding:10px 12px; margin-top:6px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label for="km-password" style="font-size:0.8rem; font-weight:700; color:#334155;">復元用パスワード（合言葉）:</label>
-              <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#0284c7; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
+              <label for="km-password" style="font-size:0.8rem; font-weight:700; color:#6d87ac;">復元用パスワード（合言葉）:</label>
+              <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#1ab1ff; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
-            <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #cbd5e1; border-radius:4px; background:#fff;">
-            <div style="font-size:0.75rem; color:#475569; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#0284c7; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
-            <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#065f46; margin-top:6px; padding:5px 7px; background:#dcfce7; border:1px solid #86efac; border-radius:4px;"></div>
-            <div style="font-size:0.74rem; color:#64748b; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
+            <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #304257; border-radius:4px; background:#1b2027;">
+            <div style="font-size:0.75rem; color:#7488a5; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
+            <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
+            <div style="font-size:0.74rem; color:#7889a1; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>
 
           <!-- パスキー説明エリア -->
-          <div id="km-passkey-wrap" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; color:#1e3a8a; line-height:1.5;">
+          <div id="km-passkey-wrap" style="display:none; background:#192029; border:1px solid #004ca0; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; color:#3b65dd; line-height:1.5;">
             <div>👤 <strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
-            <div id="km-passkey-existing-notice" style="display:none; margin-top:6px; padding:4px 8px; background:#dcfce7; border:1px solid #86efac; border-radius:4px; color:#065f46; font-size:0.75rem;">
+            <div id="km-passkey-existing-notice" style="display:none; margin-top:6px; padding:4px 8px; background:#19291f; border:1px solid #0eaa47; border-radius:4px; color:#1dfbbd; font-size:0.75rem;">
               ✨ この端末にこのカード用パスキー認証情報が登録されています。確認を押すと登録済みパスキーで認証・復元されます。
             </div>
           </div>
@@ -2650,7 +1279,7 @@ body.blind-mode #seed-qr-list:hover {
 
         <!-- 決定ボタン -->
         <div style="display:flex; gap:10px; margin-top:14px;">
-          <button type="button" class="btn btn-primary" id="btn-km-confirm" style="flex:1; padding:10px; font-weight:700; background:#0284c7; border-color:#0369a1; color:#fff;">
+          <button type="button" class="btn btn-primary" id="btn-km-confirm" style="flex:1; padding:10px; font-weight:700; background:#1ab1ff; border-color:#1aaeff; color:#1b2027;">
             🔑 この設定でキーファイル (.key) を作成
           </button>
           <button type="button" class="btn btn-outline" id="btn-km-cancel" style="padding:10px 16px;">
@@ -2661,9 +1290,24 @@ body.blind-mode #seed-qr-list:hover {
     </div>
   </div>
 
-  <script src="qr-encoder.js"></script>
-  <script src="argon2.umd.min.js"></script>
-  <script src="index.js"></script>
-  <script src="backup-qr.js"></script>
+  </div></section>
+  <section aria-label="設定">
+    <div class="cm-tablist" role="tablist">
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick">✨ かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe">🎛 マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup">🛡 暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault">🔐 セキュア保管庫</button>
+    </div>
+    <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
+    <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
+    <div id="tab-backup" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
+    <div id="tab-vault" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
+  </section>
+</main>
+<div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
+</div>
+<script src="layout.js"></script>
+<script src="qr-encoder.js"></script>
+<script src="argon2.umd.min.js"></script>
+<script src="index.js"></script>
+<script src="backup-qr.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

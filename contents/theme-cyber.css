@@ -1,0 +1,654 @@
+/* Cyber dark layer on top of the original (auto-darkened) stylesheet. Visual only. */
+:root {
+  --bg-main: #070b14;
+  --card-bg: #0d1422;
+  --text-main: #e2e8f0;
+  --text-sub: #94a3b8;
+  --accent: #34f58a;
+  --accent-light: rgba(52, 245, 138, 0.1);
+  --border-color: #1f2a3d;
+  --surface-sub: #0b1220;
+  --cyan: #38d6f5;
+  --font-ui: "Fira Code", "JetBrains Mono", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", ui-monospace, monospace;
+}
+html, body { background: var(--bg-main) !important; color: var(--text-main); }
+body { padding: 0 !important; }
+.cm-legacy .container { max-width: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; box-shadow: none !important; border: 0 !important; }
+.cm-legacy .section-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 40px -20px rgba(0, 0, 0, 0.8) !important;
+  margin-top: 0 !important;
+}
+.cm-legacy .section-title { color: var(--text-main) !important; border-bottom-color: var(--border-color) !important; }
+.cm-legacy input, .cm-legacy select, .cm-legacy textarea {
+  background: #0a101c !important; color: var(--text-main) !important; border-color: #273349 !important;
+}
+.cm-legacy input:focus, .cm-legacy select:focus, .cm-legacy textarea:focus {
+  outline: none; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(52, 245, 138, 0.18) !important;
+}
+
+/* ===== Matrix board ===== */
+.cm-board .matrix-stage {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(52, 245, 138, 0.07), transparent 60%), #0a0f1b !important;
+  border: 1px solid rgba(52, 245, 138, 0.25) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 0 40px rgba(52, 245, 138, 0.04), 0 20px 50px -30px rgba(0, 0, 0, 0.9) !important;
+}
+.cm-board #div-encrypto-matrix-main { gap: 6px !important; }
+.cm-board .square {
+  background: linear-gradient(180deg, #111a2b, #0c1322) !important;
+  border: 1px solid #22304a !important;
+  box-shadow: none !important;
+}
+.cm-board .square:hover { border-color: rgba(56, 214, 245, 0.6) !important; }
+.cm-board .center-text { color: #f1f5f9 !important; text-shadow: 0 0 10px rgba(148, 163, 184, 0.25); }
+.cm-board .corner-text { color: #8fa3bf !important; font-size: 0.92rem !important; }
+.cm-board .corner-text.top-left { color: #e2e8f0 !important; }
+.cm-board .corner-text.bottom-right { color: #5eead4 !important; }
+.cm-board .active-char-spot {
+  background: #34f58a !important;
+  color: #04140a !important;
+  box-shadow: 0 0 0 2px rgba(52, 245, 138, 0.35), 0 0 22px rgba(52, 245, 138, 0.9), 0 0 48px rgba(52, 245, 138, 0.45) !important;
+  text-shadow: none !important;
+}
+.cm-board .corner-text.preview-char-spot { color: #7dd3fc !important; background: rgba(56, 189, 248, 0.2) !important; }
+.cm-board .corner-text.start-char-spot { color: #fbbf24 !important; background: rgba(251, 191, 36, 0.22) !important; }
+.cm-board .verbal-guide-card { background: #0d1422 !important; border-color: var(--border-color) !important; }
+.cm-board .verbal-highlight { background: rgba(52, 245, 138, 0.14) !important; color: #6ff7a9 !important; }
+
+/* buttons */
+.cm-legacy .btn, .cm-legacy button.btn {
+  border-radius: 8px !important;
+  transition: box-shadow .15s, transform .1s, border-color .15s;
+}
+.cm-legacy .btn:hover { box-shadow: 0 0 0 1px rgba(52, 245, 138, 0.4), 0 0 16px -4px rgba(52, 245, 138, 0.6); }
+.cm-legacy .btn:active { transform: translateY(1px); }
+.cm-legacy a { color: var(--cyan); }
+
+/* keep heavy inline light boxes readable */
+html:not(.light) .cm-legacy [style*="background:#f"], html:not(.light) .cm-legacy [style*="background: #f"] { background: #0f1828 !important; }
+
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  .cm-app > header, [role="tablist"] { display: none !important; }
+}
+#sticky-pw-bar { background: #0a0f1b !important; border-color: rgba(52, 245, 138, 0.45) !important; color: var(--text-main) !important; box-shadow: 0 0 30px -8px rgba(52, 245, 138, 0.45) !important; }
+#sticky-pw-bar *:not(button):not(button *) { color: inherit; }
+
+/* ===== Light mode ===== */
+html.light {
+  color-scheme: light;
+  --bg-main: #f3f6fa; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #526077;
+  --accent: #0f9d58; --accent-light: rgba(15,157,88,.1); --border-color: #d5dde8;
+  --surface-sub: #eef3f8; --cyan: #0369a1; --matrix-green: #0f9d58; --matrix-border: #0f9d58;
+}
+html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
+html.light .cm-legacy [style*="color:#1"], html.light .cm-legacy [style*="color: #1"] { color: #0b7a44 !important; }
+html.light .cm-legacy [style*="background:#1"], html.light .cm-legacy [style*="background: #1"],
+html.light .cm-legacy [style*="background:#2"], html.light .cm-legacy [style*="background: #2"],
+html.light .cm-legacy [style*="background:#0"] { background: #eef3f8 !important; }
+html.light .cm-legacy [style*="border"] { border-color: #cfd8e3 !important; }
+html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .cm-legacy a { color: #0369a1 !important; }
+html.light .cm-board .matrix-stage { background: #ffffff !important; border-color: rgba(15,157,88,.35) !important; box-shadow: 0 10px 30px -20px rgba(0,0,0,.3) !important; }
+html.light .cm-board .square { background: linear-gradient(180deg,#ffffff,#f1f5f9) !important; border-color: #cbd5e1 !important; }
+html.light .cm-board .center-text { color: #0f172a !important; text-shadow: none; }
+html.light .cm-board .corner-text { color: #475569 !important; }
+html.light .cm-board .corner-text.top-left { color: #0f172a !important; }
+html.light .cm-board .corner-text.bottom-right { color: #0f766e !important; }
+html.light .cm-board .active-char-spot { background: #16c060 !important; color: #fff !important; box-shadow: 0 0 0 2px rgba(22,192,96,.35), 0 0 18px rgba(22,192,96,.7) !important; }
+html.light .cm-board .verbal-guide-card { background: #fff !important; }
+html.light .cm-board .verbal-highlight { background: rgba(15,157,88,.12) !important; color: #0b7a44 !important; }
+html.light #sticky-pw-bar { background: #ffffff !important; box-shadow: 0 0 24px -10px rgba(0,0,0,.3) !important; }
+html.light .cm-legacy .btn-primary, html.light .cm-legacy .btn-primary * { color: #fff !important; }
+html.light .cm-legacy [role="status"], html.light .cm-legacy [class*="status"], html.light .cm-legacy [class*="badge"], html.light .cm-legacy .mode-pill { background: #e3f6ec !important; color: #0b7a44 !important; border-color: #9fd9b9 !important; }
+
+/* Legacy panels keep hardcoded dark backgrounds; give them light surfaces and readable text */
+html.light .cm-legacy .field-group { background: #eef4ec !important; }
+html.light .cm-legacy .field-group .badge { color: #fff !important; }
+html.light .cm-legacy .seed-chip { background: #fff !important; }
+html.light .cm-legacy .seed-chip .seed-txt { color: #1e293b !important; }
+html.light .cm-legacy .bq-select-desc { background: #eef3f8 !important; color: #526077 !important; }
+html.light .cm-legacy #card-quick .cq-warning,
+html.light .cm-legacy .backup-warning { background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important; }
+html.light .cm-legacy #card-quick .cq-panel.active-mode-panel { background: #eaf7ef !important; }
+html.light .cm-legacy .cloud-warning { color: #1e293b !important; }
+html.light .cm-legacy #seed-qr-list figure, html.light .cm-legacy #bq-qr-list figure { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .cm-legacy #card-quick select, html.light .cm-legacy #card-quick input,
+html.light .cm-legacy #backup-qr textarea, html.light .cm-legacy #bonus-vault textarea,
+html.light .cm-legacy #bonus-vault input[type=password], html.light .cm-legacy #bonus-vault input[type=text], html.light .cm-legacy #bonus-vault select { background: #fff !important; color: #1e293b !important; }
+
+/* ===== Add-ons: strength meter / peek guard / clipboard badge ===== */
+.cm-meter { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:6px 0 2px; font-size:12px; color:var(--text-sub); }
+.cm-meter-bar { flex:1 1 120px; height:6px; border-radius:99px; background:var(--border-color); overflow:hidden; }
+.cm-meter-bar span { display:block; height:100%; width:0; border-radius:99px; transition:width .25s, background .25s; background:#ef4444; }
+.cm-meter[data-level="1"] .cm-meter-bar span { background:#f59e0b; }
+.cm-meter[data-level="2"] .cm-meter-bar span { background:#22c55e; }
+.cm-meter[data-level="3"] .cm-meter-bar span { background:var(--accent); box-shadow:0 0 10px var(--accent); }
+.cm-meter-text { font-family:var(--font-ui); }
+.cm-peek-toggle { font-size:11px !important; padding:3px 8px !important; }
+#sim-output-pw.cm-peek { filter:blur(7px); transition:filter .15s; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:pointer; }
+@media (hover:hover) { #sim-output-pw.cm-peek:hover { filter:none; } }
+#sim-output-pw.cm-peek.cm-reveal { filter:none; }
+.cm-clip-badge { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:90; padding:8px 14px; border-radius:99px; font-size:12px;
+  background:var(--card-bg); color:var(--text-main); border:1px solid var(--accent); box-shadow:0 0 20px -6px var(--accent); max-width:92vw; text-align:center; }
+
+/* ===== Cyberpunk layer ===== */
+html:not(.light) body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(52,245,138,.028) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, rgba(56,214,245,.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(56,214,245,.05) 1px, transparent 1px);
+  background-size: auto, 44px 44px, 44px 44px;
+}
+html:not(.light) .cm-app > * { position: relative; z-index: 1; }
+html:not(.light) .cm-app > header {
+  box-shadow: 0 1px 0 rgba(52,245,138,.25), 0 8px 30px -18px rgba(52,245,138,.35);
+}
+html:not(.light) .cm-board .matrix-stage::after {
+  content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px);
+}
+html:not(.light) .cm-board .matrix-stage { position: relative; overflow: hidden; }
+html:not(.light) .cm-legacy .section-card:hover { border-color: rgba(52,245,138,.45) !important; }
+html:not(.light) .cm-legacy .btn-primary {
+  box-shadow: 0 0 18px -4px rgba(52,245,138,.55) !important;
+}
+html:not(.light) ::selection { background: rgba(52,245,138,.35); }
+html:not(.light) .cm-legacy ::-webkit-scrollbar { width: 8px; height: 8px; }
+html:not(.light) .cm-legacy ::-webkit-scrollbar-thumb { background: #22304a; border-radius: 99px; }
+
+/* ===== Always expanded: tab layout removed the need to collapse ===== */
+.cm-legacy .section-card.is-collapsed .mode-section-body { display: block !important; }
+.cm-legacy .section-card.is-collapsed .section-title { margin-bottom: revert !important; padding-bottom: revert !important; border-bottom: revert !important; }
+.cm-legacy #btn-toggle-cq, .cm-legacy #btn-toggle-recipe { display: none !important; }
+
+/* ===== Secondary buttons get cyber styling in dark mode ===== */
+html:not(.light) .cm-legacy .btn-secondary,
+html:not(.light) .cm-legacy .btn-outline {
+  background: linear-gradient(180deg, #14202f, #0e1622) !important;
+  color: #a5c8e8 !important;
+  border: 1px solid #2c4258 !important;
+  box-shadow: inset 0 1px 0 rgba(120,180,230,.08) !important;
+}
+html:not(.light) .cm-legacy .btn-secondary:hover:not(:disabled),
+html:not(.light) .cm-legacy .btn-outline:hover:not(:disabled) {
+  border-color: rgba(56,214,245,.6) !important;
+  color: #d6ecff !important;
+  box-shadow: 0 0 14px -4px rgba(56,214,245,.5) !important;
+}
+
+/* ===== Action buttons: play = green glow, copy = cyan glow (dark) ===== */
+html:not(.light) .cm-legacy #btn-play-trace, html:not(.light) .cm-legacy #btn-sticky-play {
+  background: linear-gradient(180deg, #14532d, #0d3a20) !important;
+  color: #6ff7a9 !important;
+  border: 1px solid rgba(52,245,138,.55) !important;
+  box-shadow: 0 0 16px -4px rgba(52,245,138,.55), inset 0 1px 0 rgba(52,245,138,.2) !important;
+}
+html:not(.light) .cm-legacy #btn-play-trace:hover:not(:disabled), html:not(.light) .cm-legacy #btn-sticky-play:hover:not(:disabled) {
+  box-shadow: 0 0 24px -4px rgba(52,245,138,.8) !important; color: #a7fccb !important;
+}
+html:not(.light) .cm-legacy #btn-copy-pw {
+  background: linear-gradient(180deg, #0c3a4a, #092834) !important;
+  color: #7dd3fc !important;
+  border: 1px solid rgba(56,214,245,.5) !important;
+  box-shadow: 0 0 16px -6px rgba(56,214,245,.5), inset 0 1px 0 rgba(56,214,245,.15) !important;
+}
+html:not(.light) .cm-legacy #btn-copy-pw:hover:not(:disabled) {
+  box-shadow: 0 0 24px -4px rgba(56,214,245,.7) !important; color: #bae6fd !important;
+}
+
+/* ===== Peek guard replaces blind display ===== */
+.cm-legacy #btn-blind-mode { display: none !important; }
+
+/* ===== Print: white paper, black QR (override legacy dark print) ===== */
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  .cm-legacy .section-card, .cm-legacy .field-group, .cm-legacy .bq-select-desc,
+  .cm-legacy #card-quick, .cm-legacy #section-recipe-detail, .cm-legacy #backup-qr,
+  .cm-legacy #bonus-vault, body.print-vault-mode #bonus-vault {
+    background: #fff !important; color: #000 !important; border-color: #999 !important; box-shadow: none !important;
+  }
+  .cm-legacy .section-card *, .cm-legacy #backup-qr *, .cm-legacy #bonus-vault * { color: #000 !important; }
+  #seed-qr-list svg, #bq-qr-list svg, .bv-qr-figure svg { background: #fff !important; }
+  #seed-qr-list svg .qr-white, #bq-qr-list svg .qr-white { fill: #fff !important; }
+  #seed-qr-list svg .qr-black, #bq-qr-list svg .qr-black { fill: #000 !important; }
+  #seed-qr-list figure, #bq-qr-list figure, .bv-qr-figure { background: #fff !important; border-color: #999 !important; }
+}
+
+/* ===== Sticky password bar: only when the main password row is out of view (engine toggles .visible) ===== */
+#sticky-pw-bar.visible:not(.is-minimized) { display: flex !important; }
+
+/* ===== Light mode: duress modal & remaining dark surfaces ===== */
+html.light .duress-modal-dialog { background: #fff !important; border-color: #cbd5e1 !important; color: #1e293b !important; }
+html.light .duress-modal-header { background: #f1f5f9 !important; border-bottom-color: #e2e8f0 !important; color: #1e293b !important; }
+html.light .duress-modal-header h3 { color: #1e293b !important; }
+html.light .duress-modal-close { color: #475569 !important; }
+html.light .duress-modal-body, html.light .duress-modal-body * { color: #1e293b !important; }
+html.light .duress-modal-body [style*="background:#292619"], html.light .duress-modal-body [style*="background: #292619"] {
+  background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important;
+}
+html.light .duress-modal-body [style*="background:#292619"] *, html.light .duress-modal-body [style*="background: #292619"] * { color: #7c600f !important; }
+html.light .duress-modal-body [style*="color:#6d87ac"], html.light .duress-modal-body [style*="color: #6d87ac"] { color: #526077 !important; }
+html.light .duress-modal-body input, html.light .duress-modal-body select, html.light .duress-modal-body textarea { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+
+/* ===== Light mode: on-screen QR + remaining warning boxes ===== */
+html.light .cm-legacy #seed-qr-list svg, html.light .cm-legacy #bq-qr-list svg, html.light .cm-legacy .bv-qr-figure svg { background: #fff !important; }
+html.light .cm-legacy #seed-qr-list svg .qr-white, html.light .cm-legacy #bq-qr-list svg .qr-white { fill: #fff !important; }
+html.light .cm-legacy #seed-qr-list svg .qr-black, html.light .cm-legacy #bq-qr-list svg .qr-black { fill: #000 !important; }
+html.light .cm-legacy .bq-warning { background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important; }
+html.light .cm-legacy .bq-warning * { color: #7c600f !important; }
+
+/* ===== Peek guard: mask all sensitive fields (seed/site/passphrase/pw/sticky/seedphrase/PGP) =====
+   Engine sets .cm-peek on each target; hover (PC) / long-press (mobile, .cm-reveal) unmasks. */
+.cm-legacy .cm-peek { filter: blur(7px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer; }
+@media (hover:hover) { .cm-legacy .cm-peek:hover { filter: none; } }
+.cm-legacy .cm-peek.cm-reveal { filter: none; }
+
+/* ===== Light mode: help popover ===== */
+html.light .cm-legacy .help-popover, html.light .help-popover { background: #ffffff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .cm-legacy .help-popover *, html.light .help-popover * { color: #1e293b !important; }
+html.light .help-popover-header { background: #f1f5f9 !important; border-bottom-color: #e2e8f0 !important; }
+
+/* ===== Modal backdrop: no bleed-through ===== */
+.duress-modal-backdrop { background: rgba(4, 8, 16, 0.82) !important; z-index: 100000 !important; }
+html.light .duress-modal-backdrop { background: rgba(30, 41, 59, 0.55) !important; }
+
+/* ===== Light mode: trace log active line ===== */
+html.light .cm-legacy .trace-log-box { background: #f4f7fb !important; color: #3f5570 !important; border-color: #d4dde8 !important; }
+html.light .cm-legacy .trace-line.active-trace-line { background: #d3f2e2 !important; color: #0b7a44 !important; border-left-color: #16c060 !important; }
+
+/* ===== Light mode: scrollbars ===== */
+html.light { scrollbar-color: #b6c4d4 #eef2f7 !important; }
+html.light .cm-legacy ::-webkit-scrollbar { width: 8px; height: 8px; }
+html.light .cm-legacy ::-webkit-scrollbar-thumb { background: #b6c4d4; border-radius: 99px; }
+html.light .cm-legacy ::-webkit-scrollbar-track { background: #eef2f7; }
+
+/* ===== Modals live on <body> now: light-mode button/input fixes (no .cm-legacy ancestor) ===== */
+html.light .duress-modal-backdrop .btn-primary { background: #16c060 !important; color: #fff !important; border-color: #0e9a4a !important; }
+html.light .duress-modal-backdrop .btn-primary * { color: #fff !important; }
+html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) { background: #e8eef5 !important; border: 1px solid #c3cfdd !important; color: #1e293b !important; }
+html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) * { color: #1e293b !important; }
+html.light .duress-modal-backdrop .help-btn { background: #cbd5e1 !important; color: #1e293b !important; }
+
+/* ===== Peek guard: never blur empty containers =====
+   NOTE: <input>/<textarea> are ALWAYS :empty (void of child nodes), so this
+   exception must target divs only — otherwise seed/site/passphrase fields
+   and the PGP armored textarea would never be masked. */
+.cm-legacy div.cm-peek:empty { filter: none !important; cursor: default; }
+/* Empty output textarea shows its placeholder — no secret to hide yet */
+.cm-legacy textarea.cm-peek:placeholder-shown { filter: none !important; cursor: default; }
+
+/* ===== Peek guard: containers hold a non-secret format-toggle bar =====
+   #seed-words-container / #bq-words-container contain the "出力形式" bar plus
+   the actual secret (armored text / word chips). Blur only the secret wraps. */
+.cm-legacy #seed-words-container.cm-peek,
+.cm-legacy #bq-words-container.cm-peek { filter: none !important; }
+/* Single-block layout renders chips directly (no wrap ids); multi-block adds a
+   non-secret format bar (.bv-no-print). Blur every child except that bar. */
+.cm-legacy #seed-words-container.cm-peek > *:not(.bv-no-print),
+.cm-legacy #bq-words-container.cm-peek > *:not(.bv-no-print) {
+  filter: blur(7px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+@media (hover:hover) {
+  .cm-legacy #seed-words-container.cm-peek:hover > *:not(.bv-no-print),
+  .cm-legacy #bq-words-container.cm-peek:hover > *:not(.bv-no-print) { filter: none; }
+}
+.cm-legacy #seed-words-container.cm-peek.cm-reveal > *:not(.bv-no-print),
+.cm-legacy #bq-words-container.cm-peek.cm-reveal > *:not(.bv-no-print) { filter: none; }
+
+/* ===== Strength meters under password inputs ===== */
+.cm-meter-input { margin: 4px 0 8px; }
+.cm-meter-input .cm-meter-text { font-size: 0.75rem; }
+
+/* ===== Missing-input guidance highlight ===== */
+.cm-legacy .cm-need-input, .cm-need-input {
+  outline: 3px solid #f59e0b !important;
+  outline-offset: 2px;
+  border-radius: 6px;
+  animation: cm-need-pulse 1s ease-in-out infinite;
+}
+@keyframes cm-need-pulse {
+  0%, 100% { outline-color: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55); }
+  50% { outline-color: #fbbf24; box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+}
+.cm-need-tag {
+  margin: 6px 0;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+  background: #fdf3d7;
+  color: #7c600f;
+  border: 1px solid #d9bd4f;
+}
+html:not(.light) .cm-need-tag {
+  background: #2a2110;
+  color: #ffd97a;
+  border-color: #8a6d1f;
+}
+
+/* ===== Peek guard: QR images (save buttons stay visible) ===== */
+.cm-legacy #seed-qr-list.cm-peek,
+.cm-legacy #bq-qr-list.cm-peek { filter: none !important; }
+.cm-legacy #seed-qr-list.cm-peek svg,
+.cm-legacy #seed-qr-list.cm-peek canvas,
+.cm-legacy #seed-qr-list.cm-peek img,
+.cm-legacy #bq-qr-list.cm-peek svg,
+.cm-legacy #bq-qr-list.cm-peek canvas,
+.cm-legacy #bq-qr-list.cm-peek img {
+  filter: blur(10px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+@media (hover:hover) {
+  .cm-legacy #seed-qr-list.cm-peek figure:hover svg,
+  .cm-legacy #seed-qr-list.cm-peek figure:hover canvas,
+  .cm-legacy #seed-qr-list.cm-peek figure:hover img,
+  .cm-legacy #bq-qr-list.cm-peek figure:hover svg,
+  .cm-legacy #bq-qr-list.cm-peek figure:hover canvas,
+  .cm-legacy #bq-qr-list.cm-peek figure:hover img { filter: none; }
+}
+.cm-legacy #seed-qr-list.cm-peek.cm-reveal svg,
+.cm-legacy #seed-qr-list.cm-peek.cm-reveal canvas,
+.cm-legacy #seed-qr-list.cm-peek.cm-reveal img,
+.cm-legacy #bq-qr-list.cm-peek.cm-reveal svg,
+.cm-legacy #bq-qr-list.cm-peek.cm-reveal canvas,
+.cm-legacy #bq-qr-list.cm-peek.cm-reveal img { filter: none; }
+
+/* ===== Mobile: compact sticky password bar ===== */
+@media (max-width: 640px) {
+  #sticky-pw-bar { padding: 6px 10px !important; gap: 6px !important; }
+  #sticky-pw-bar > div:first-child { padding-right: 96px; min-width: 0 !important; }
+  #sticky-pw-bar .pw-chars-box { font-size: 0.95rem !important; }
+  #sticky-output-meta { font-size: 0.66rem !important; }
+  /* minimize button pinned top-right, "マトリックスへ" in the gap below it */
+  #btn-sticky-toggle { position: absolute !important; top: 6px; right: 8px; margin-left: 0 !important; z-index: 2; }
+  #btn-sticky-top { position: absolute !important; top: 32px; right: 8px; z-index: 2; }
+  #sticky-controls-bar { gap: 4px !important; }
+  #sticky-controls-bar .btn { padding: 4px 8px !important; font-size: 0.72rem !important; }
+}
+
+/* ===== Gesture design bar: visible frames in both modes ===== */
+html:not(.light) .cm-legacy .gesture-design-bar {
+  background: #101a14 !important;
+  border: 1.5px solid #2cec73 !important;
+  box-shadow: 0 0 12px rgba(44, 236, 115, 0.25), inset 0 0 20px rgba(44, 236, 115, 0.05) !important;
+}
+html:not(.light) .cm-legacy #gesture-design-bar .btn.gesture-pill {
+  background: #14231a !important;
+  border: 1px solid #33e575 !important;
+  color: #7cf5ae !important;
+}
+html:not(.light) .cm-legacy #gesture-design-bar .btn.gesture-pill:hover { border-color: #7cf5ae !important; box-shadow: 0 0 8px rgba(44, 236, 115, 0.35) !important; }
+html.light .cm-legacy .gesture-design-bar {
+  background: #eaf7ef !important;
+  border: 1.5px solid #16c060 !important;
+  box-shadow: 0 1px 6px rgba(22, 192, 96, 0.18) !important;
+}
+html.light .cm-legacy .gesture-design-bar span,
+html.light .cm-legacy .gesture-cat-label { color: #0b7a44 !important; }
+html.light .cm-legacy #gesture-design-bar .btn.gesture-pill {
+  background: #ffffff !important;
+  border: 1px solid #16c060 !important;
+  color: #0b7a44 !important;
+}
+html.light .cm-legacy #gesture-design-bar .btn.gesture-pill:hover { background: #d3f2e2 !important; border-color: #0b7a44 !important; }
+html.light .cm-legacy #gesture-design-bar .btn.gesture-pill.active { background: #16c060 !important; color: #ffffff !important; border-color: #0e9a4a !important; }
+html.light .cm-legacy #gesture-design-bar button#btn-close-gesture-bar { background: #ffffff !important; border-color: #16c060 !important; color: #0b7a44 !important; }
+
+/* ===== Tutorial: temporarily unmask blurred fields while guiding =====
+   Tour adds .cm-tour-active on <html> for the input steps (removed again
+   for the final step, which explains the peek guard itself). */
+html.cm-tour-active .cm-legacy .cm-peek,
+html.cm-tour-active .cm-legacy #seed-words-container.cm-peek > *:not(.bv-no-print),
+html.cm-tour-active .cm-legacy #bq-words-container.cm-peek > *:not(.bv-no-print),
+html.cm-tour-active .cm-legacy #seed-qr-list.cm-peek svg,
+html.cm-tour-active .cm-legacy #seed-qr-list.cm-peek canvas,
+html.cm-tour-active .cm-legacy #seed-qr-list.cm-peek img,
+html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek svg,
+html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek canvas,
+html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek img,
+html.cm-tour-active #sim-output-pw.cm-peek { filter: none !important; }
+
+/* Light mode: keep the minimized pill readable (inline #1aff75 bg gets neutralized by the [style*=background:#1] rule) */
+html.light #btn-sticky-min-pill { background: #16c060 !important; color: #ffffff !important; border-color: #0e9a4a !important; }
+
+/* ===== Light mode: comprehensive de-blackening (buttons, modals, badges) ===== */
+/* All legacy buttons: light surface, readable dark text */
+html.light .cm-legacy .btn,
+html.light .cm-legacy .btn-secondary,
+html.light .cm-legacy .btn-outline,
+html.light .cm-legacy button.btn,
+html.light .cm-legacy label.btn,
+html.light .cm-legacy #btn-sticky-toggle,
+html.light .cm-legacy #btn-sticky-top {
+  background: #e8eef5 !important;
+  color: #1e293b !important;
+  border: 1px solid #c3cfdd !important;
+  box-shadow: none !important;
+}
+html.light .cm-legacy .btn:hover:not(:disabled),
+html.light .cm-legacy .btn-secondary:hover:not(:disabled),
+html.light .cm-legacy .btn-outline:hover:not(:disabled) {
+  background: #dbe4ee !important;
+  border-color: #94a8bf !important;
+}
+/* Inline-styled buttons (style="background:#1.../#19.../#0...") also go light */
+html.light .cm-legacy button[style*="background"],
+html.light .cm-legacy label.btn[style*="background"] {
+  background: #e8eef5 !important;
+  color: #1e293b !important;
+  border-color: #c3cfdd !important;
+}
+/* Primary / danger keep their accent colors with white text */
+html.light .cm-legacy .btn-primary,
+html.light .cm-legacy button.btn-primary,
+html.light .cm-legacy #btn-sticky-min-pill {
+  background: #16c060 !important;
+  color: #ffffff !important;
+  border-color: #0e9a4a !important;
+}
+html.light .cm-legacy .btn-primary *, html.light .cm-legacy #btn-sticky-min-pill * { color: #ffffff !important; }
+html.light .cm-legacy .btn-danger,
+html.light .cm-legacy #btn-zeroize {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #b91c1c !important;
+}
+html.light .cm-legacy .btn-danger *, html.light .cm-legacy #btn-zeroize * { color: #ffffff !important; }
+/* Active mode pill stays green */
+html.light .cm-legacy .btn-mode-active {
+  background: #16c060 !important;
+  color: #ffffff !important;
+  border-color: #0e9a4a !important;
+}
+/* Inactive mode pills / status chips: light surface */
+html.light .cm-legacy .mode-pill.inactive {
+  background: #eef3f8 !important;
+  color: #526077 !important;
+  border-color: #cbd5e1 !important;
+}
+/* Keyfile rows use dark green inline bg (#19291e) -> light green */
+html.light .cm-legacy [id$="-keyfile-row"] {
+  background: #eaf7ef !important;
+  border-color: #16c060 !important;
+}
+html.light .cm-legacy [id$="-keyfile-row"] *:not(button):not(button *) { color: #1e293b !important; }
+
+/* Modals live on <body> (no .cm-legacy ancestor): full light restyle */
+html.light .duress-modal-dialog,
+html.light .duress-modal-dialog *:not(button):not(button *) { color: #1e293b; }
+html.light .duress-modal-dialog [style*="background"] {
+  background: #f4f7fb !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html.light .duress-modal-dialog [style*="background"] *:not(button):not(button *) { color: #1e293b !important; }
+html.light .duress-modal-dialog [style*="color"] { color: #1e293b !important; }
+html.light .duress-modal-backdrop .btn,
+html.light .duress-modal-backdrop .btn-outline,
+html.light .duress-modal-backdrop .btn-secondary {
+  background: #e8eef5 !important;
+  color: #1e293b !important;
+  border: 1px solid #c3cfdd !important;
+  box-shadow: none !important;
+}
+html.light .duress-modal-backdrop .btn * { color: #1e293b !important; }
+html.light .duress-modal-backdrop .btn-primary,
+html.light .duress-modal-backdrop .btn-primary * {
+  background: #16c060 !important;
+  color: #ffffff !important;
+  border-color: #0e9a4a !important;
+}
+/* Keyfile seed input keeps its blue accent but on white */
+html.light #keyfile-modal-seed { background: #ffffff !important; color: #0369a1 !important; border-color: #38bdf8 !important; }
+
+/* =====================================================================
+   Light mode = original Crypto Matrix (uploaded ZIP) palette, restored.
+   Sage white surfaces, matrix green accents, glowing board frame.
+   ===================================================================== */
+html.light {
+  --bg-main: #ffffff; --card-bg: #ffffff; --text-main: #17221b; --text-sub: #56635b;
+  --accent: #008a37; --accent-light: #e6ffef; --border-color: #d4ded7; --surface-sub: #f7faf8;
+}
+html.light body, html.light .cm-legacy { background-color: #ffffff; }
+html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: #17221b; }
+html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { border-color: #bdcec3 !important; color: #17221b !important; }
+html.light .cm-legacy a { color: #007a32 !important; }
+
+/* Buttons: original neutral sage */
+html.light .cm-legacy .btn, html.light .cm-legacy button.btn, html.light .cm-legacy label.btn,
+html.light .cm-legacy #btn-sticky-toggle, html.light .cm-legacy #btn-sticky-top {
+  background: #f3f4f4 !important; color: #26312b !important; border: 1px solid #cbd2ce !important; box-shadow: none !important;
+}
+html.light .cm-legacy .btn:hover:not(:disabled) { background: #e7ebe8 !important; border-color: #a9b5ae !important; }
+html.light .cm-legacy .btn-secondary { background: #ffffff !important; color: #46534b !important; border-color: #d4dbd7 !important; }
+html.light .cm-legacy .btn-outline { background: #ffffff !important; color: #007a32 !important; border-color: #00c950 !important; }
+html.light .cm-legacy .btn-outline:hover:not(:disabled) { background: #e6ffef !important; border-color: #00b849 !important; }
+html.light .cm-legacy .btn-primary, html.light .cm-legacy .btn-mode-active, html.light .cm-legacy #btn-sticky-min-pill {
+  background: #008a37 !important; color: #ffffff !important; border-color: #007a32 !important;
+}
+html.light .cm-legacy #btn-play-trace { background: #00c950 !important; color: #ffffff !important; border-color: #00b849 !important; }
+html.light .cm-legacy #btn-play-trace * { color: #ffffff !important; }
+
+/* Board: original glowing frame + tiles */
+html.light .cm-board .matrix-stage {
+  background: linear-gradient(180deg, #ffffff 0%, #f7faf8 100%) !important;
+  border: 1.5px solid #00d957 !important;
+  box-shadow: 0 0 0 1px rgba(0,217,87,.15), 0 0 24px rgba(0,201,80,.22), 0 4px 20px -2px rgba(15,23,42,.06) !important;
+}
+html.light .cm-board .square {
+  background: #ffffff !important; border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,.05) !important;
+}
+html.light .cm-board .square:hover { border-color: #00c950 !important; box-shadow: 0 6px 16px -2px rgba(0,201,80,.22) !important; }
+html.light .cm-board .square.active-tile {
+  background: linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%) !important; border: 2px solid #00c950 !important;
+  box-shadow: 0 0 0 3px rgba(0,201,80,.22), 0 6px 16px rgba(0,201,80,.25) !important;
+}
+html.light .cm-board .center-text { color: #0f172a !important; }
+/* Original corner hierarchy: digits (top-left) bold & darkest, symbols (bottom-right) teal */
+html.light .cm-board .corner-text { color: #334155 !important; font-weight: 600 !important; }
+html.light .cm-board .corner-text.top-left { color: #1e293b !important; font-weight: 700 !important; }
+html.light .cm-board .corner-text.bottom-right { color: #0f766e !important; }
+html.light .cm-board .active-char-spot { background: #00c950 !important; color: #ffffff !important; box-shadow: 0 0 12px rgba(0,255,102,.65) !important; }
+
+/* Dark board: glowing frame + readable digit corner */
+html:not(.light) .cm-board .matrix-stage {
+  border: 1.5px solid rgba(26,255,117,.55) !important;
+  box-shadow: 0 0 0 1px rgba(26,255,117,.18), 0 0 28px rgba(26,255,117,.22), inset 0 0 40px rgba(52,245,138,.05) !important;
+}
+html:not(.light) .cm-board .corner-text.top-left { color: #f1f5f9 !important; font-weight: 700 !important; }
+
+/* 四隅文字色：4隅すべて同色に統一（再生ハイライトは除外） */
+html .cm-board .corner-text:is(.top-left,.top-right,.bottom-left,.bottom-right):not(.preview-char-spot):not(.start-char-spot) { color: #94a3b8 !important; font-weight: 600 !important; }
+html.light .cm-board .corner-text:is(.top-left,.top-right,.bottom-left,.bottom-right):not(.preview-char-spot):not(.start-char-spot) { color: #334155 !important; font-weight: 600 !important; }
+
+/* ===== Pattern route HUD: readable in both modes ===== */
+html:not(.light) .cm-legacy .stroke-char-hud {
+  background: rgba(10, 20, 15, 0.95) !important;
+  border-color: #2cec73 !important;
+  box-shadow: 0 10px 28px -4px rgba(0,0,0,0.6), 0 0 22px rgba(44,236,115,0.3) !important;
+}
+html:not(.light) .cm-legacy .stroke-char-title { color: #f0fdf4 !important; }
+html:not(.light) .cm-legacy .stroke-char-sub { color: #a7f3d0 !important; }
+html.light .cm-legacy .stroke-char-hud {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border-color: #16c060 !important;
+  box-shadow: 0 8px 22px -6px rgba(15,23,42,0.25), 0 0 14px rgba(22,192,96,0.2) !important;
+}
+html.light .cm-legacy .stroke-char-title { color: #0f172a !important; }
+html.light .cm-legacy .stroke-char-sub { color: #334155 !important; }
+
+/* ===== Trace log: roomy when idle, compact auto-follow while playing ===== */
+.cm-legacy .trace-log-box { max-height: 520px !important; overflow-y: auto !important; scroll-behavior: smooth; transition: max-height .25s ease; }
+body.trace-playing .cm-legacy .trace-log-box { max-height: 140px !important; overflow-y: auto !important; }
+
+/* ===== Recipe step number badges: original ZIP look (bright green + dark bold digit) ===== */
+html .cm-legacy .field-group-title .badge,
+html.light .cm-legacy .field-group-title .badge {
+  background: #00ff66 !important; color: #072411 !important; font-weight: 700 !important; border-color: transparent !important;
+}
+
+/* ===== Mobile first view: compact title row + zeroize beside title ===== */
+@media (max-width: 640px) {
+  .cm-legacy .container > div:first-child { flex-wrap: nowrap !important; align-items: flex-start !important; gap: 6px !important; margin-bottom: 6px; }
+  .cm-legacy .container > div:first-child > div:first-child { flex: 1 1 auto; min-width: 0; }
+  .cm-legacy .container > div:first-child > div:last-child { flex: 0 0 auto; flex-wrap: nowrap !important; }
+  .cm-legacy .container h1 { font-size: 0.98rem !important; text-align: left !important; margin: 0 0 2px !important; line-height: 1.25; }
+  .cm-legacy .container .subtitle { font-size: 0.68rem !important; text-align: left !important; margin: 0 !important; line-height: 1.35; }
+  .cm-legacy #btn-zeroize { padding: 4px 8px !important; font-size: 0.68rem !important; white-space: nowrap; line-height: 1.2; }
+  .cm-legacy .seed-bar { margin-bottom: 8px !important; padding: 6px 8px !important; }
+  .cm-legacy .verbal-guide-card { margin-bottom: 8px !important; }
+}
+
+/* ===== Route preview (before play / idle): MATRIX green, start tile amber ===== */
+.cm-board .square.stroke-preview-tile {
+  background: linear-gradient(135deg, rgba(0,255,102,.10), rgba(0,200,80,.18)) !important;
+  border: 2px dashed #00ff66 !important;
+  box-shadow: 0 0 14px rgba(0,255,102,.35) !important;
+  animation: cmPrevPulseD 1.1s ease-in-out infinite alternate;
+}
+@keyframes cmPrevPulseD { from { box-shadow: 0 0 6px rgba(0,255,102,.2); } to { box-shadow: 0 0 18px rgba(0,255,102,.55); } }
+.cm-board .square.stroke-start-tile {
+  background: linear-gradient(135deg, #2a1f0a, #452a05) !important;
+  border: 2.5px solid #f59e0b !important;
+  box-shadow: 0 0 18px rgba(245,158,11,.5), 0 0 0 3px rgba(245,158,11,.2) !important;
+}
+.cm-board .corner-text.preview-char-spot { color: #00ff66 !important; font-weight: 800 !important; background: rgba(0,255,102,.16) !important; border-radius: 4px; box-shadow: 0 0 8px rgba(0,255,102,.45) !important; }
+.cm-board .corner-text.start-char-spot { color: #fde68a !important; font-weight: 900 !important; background: rgba(245,158,11,.3) !important; border-radius: 4px; box-shadow: 0 0 8px rgba(245,158,11,.6) !important; }
+html.light .cm-board .square.stroke-preview-tile {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+  border: 2px dashed #00a843 !important;
+  animation: cmPrevPulseL 1.1s ease-in-out infinite alternate;
+}
+@keyframes cmPrevPulseL { from { box-shadow: 0 0 6px rgba(0,168,67,.2); } to { box-shadow: 0 0 16px rgba(0,168,67,.5); } }
+html.light .cm-board .square.stroke-start-tile {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+  border: 2.5px solid #d97706 !important;
+  box-shadow: 0 0 16px rgba(217,119,6,.45), 0 0 0 3px rgba(245,158,11,.2) !important;
+}
+html.light .cm-board .corner-text.preview-char-spot { color: #0b7a44 !important; background: rgba(0,201,80,.2) !important; box-shadow: 0 0 6px rgba(0,168,67,.4) !important; }
+html.light .cm-board .corner-text.start-char-spot { color: #b45309 !important; background: rgba(217,119,6,.25) !important; box-shadow: 0 0 8px rgba(217,119,6,.5) !important; }
+/* idle (always-on) preview is subtler than the pre-play preview */
+.cm-board.cm-idle-preview .square.stroke-preview-tile { animation: none !important; box-shadow: none !important; }
+.cm-board.cm-idle-preview .square.stroke-start-tile { box-shadow: 0 0 8px rgba(245,158,11,.35) !important; }
+
+/* ===== Dark: route/pattern playback tiles glow like light mode ===== */
+html:not(.light) .cm-board .square.active-tile,
+html:not(.light) .cm-board .square.stroke-active-tile {
+  background: linear-gradient(135deg,#0d2a1b 0%,#065f33 100%) !important;
+  border: 2px solid #1aff75 !important;
+  box-shadow: 0 0 0 3px rgba(26,255,117,.28), 0 0 22px rgba(26,255,117,.45), inset 0 0 12px rgba(26,255,117,.18) !important;
+  transform: scale(1.04) translateY(-2px); z-index: 6;
+}
+html:not(.light) .cm-board .square.fallback-tile {
+  background: linear-gradient(135deg,#0d2422 0%,#035e4c 100%) !important;
+  border: 2px dashed #1aff75 !important;
+  box-shadow: 0 0 0 3px rgba(26,255,117,.2), 0 0 16px rgba(26,255,117,.3) !important;
+  transform: scale(1.02); z-index: 5;
+}
+html:not(.light) .cm-board .active-char-spot { background: #1aff75 !important; color: #04130a !important; box-shadow: 0 0 12px rgba(26,255,117,.75) !important; }

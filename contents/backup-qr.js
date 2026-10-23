@@ -1393,7 +1393,7 @@ async function getDecoder(){
 
   const allowCdn=($('bv-cdn')?.checked ?? $('bq-cdn')?.checked ?? true);
 
-  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(async()=>{if(!allowCdn)throw Error('お使いのブラウザでQRコードを読み取るには、「標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る」にチェックを入れてください。');await script('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');}).catch(e=>{decoderPromise=null;throw e;});
+  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(async()=>{if(!allowCdn)throw Error('お使いのブラウザでQRコードを読み取るには、「標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る」にチェックを入れてください。');throw Error('QR読取補助ライブラリを読み込めませんでした（オフライン専用：外部通信は無効化されています）');}).catch(e=>{decoderPromise=null;throw e;});
 
   await decoderPromise;
 

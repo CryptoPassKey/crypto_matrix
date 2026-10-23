@@ -90,6 +90,21 @@ function escapeHtml(str) {
   }[m]));
 }
 
+function secureRandomInt(max) {
+  if (max <= 0) return 0;
+  const uint32Max = 0xFFFFFFFF;
+  const limit = uint32Max - (uint32Max % max);
+  const buf = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(buf);
+  } while (buf[0] >= limit);
+  return buf[0] % max;
+}
+
+function secureRandomRange(min, max) {
+  return min + secureRandomInt(max - min + 1);
+}
+
 function parseSeedValue(raw) {
   const s = String(raw || '0').trim();
   if (/^\d+$/.test(s)) return (parseInt(s, 10) >>> 0) || 0;
@@ -2458,7 +2473,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
-    const rnd = Math.floor(Math.random() * 900000000) + 100000000;
+    const rnd = secureRandomRange(100000000, 999999999);
     seedInput.value = String(rnd);
     updateMainMatrix(rnd);
     updateSimulationUI();
@@ -2613,7 +2628,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentDisplayMode = 'recipe';
     const designBar = document.getElementById('gesture-design-bar');
     if (designBar) designBar.style.display = 'none';
-    const rInt = max => Math.floor(Math.random() * max);
+    const rInt = max => secureRandomInt(max);
     setRecipeConfig({
       kwOrder: 1 + rInt(8),
       kwFilter: 0,
@@ -2682,7 +2697,7 @@ document.addEventListener('DOMContentLoaded', () => {
  async function sha(a){return new Uint8Array(await cryptoAPI().digest('SHA-256',a));}
  async function sha512(a){return new Uint8Array(await cryptoAPI().digest('SHA-512',a));}
  function concat(...arr){const out=new Uint8Array(arr.reduce((n,a)=>n+a.length,0));let pos=0;for(const a of arr){out.set(a,pos);pos+=a.length;}return out;}
- function equal(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
+ function equal(a,b){if(!a||!b||a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=(a[i]^b[i]);return diff===0;}
  function filtered(site,secret){const s=canonical(site),k=canonical(secret);if(!s||!k)throw new Error('サイト名・合言葉それぞれにカード中央にある文字が必要です。空欄を既定の秘密へ置き換えません。');return{site:s,secret:k};}
  function next(i){return(i+1)%currentMatrixData.length;}
  function isSymbol(c){return !/^[A-Za-z0-9]$/.test(c);}

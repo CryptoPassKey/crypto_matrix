@@ -50,9 +50,24 @@ async function hashHex(bytes){return [...new Uint8Array(await api().digest('SHA-
 
 async function shaBytes(bytes){return new Uint8Array(await api().digest('SHA-256',bytes));}
 
-function equalBytes(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
+function equalBytes(a,b){if(!a||!b||a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=(a[i]^b[i]);return diff===0;}
 
 function hexTag(b){return [...b].map(v=>v.toString(16).padStart(2,'0')).join('');}
+
+function secureRandomInt(max) {
+  if (max <= 0) return 0;
+  const uint32Max = 0xFFFFFFFF;
+  const limit = uint32Max - (uint32Max % max);
+  const buf = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(buf);
+  } while (buf[0] >= limit);
+  return buf[0] % max;
+}
+
+function secureRandomRange(min, max) {
+  return min + secureRandomInt(max - min + 1);
+}
 
 
 
@@ -5742,9 +5757,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  function populateDuressRandomPreset(){
 
-  const rndSeed = String(Math.floor(10000000 + Math.random() * 90000000));
+  const rndSeed = String(secureRandomRange(10000000, 99999999));
 
-  const item = DURESS_SAMPLE_SERVICES[Math.floor(Math.random() * DURESS_SAMPLE_SERVICES.length)];
+  const item = DURESS_SAMPLE_SERVICES[secureRandomInt(DURESS_SAMPLE_SERVICES.length)];
 
   if(activeDuressContext === 'sec3'){
 

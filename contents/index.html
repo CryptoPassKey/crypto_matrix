@@ -1112,9 +1112,9 @@
         <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #f59e0b; border-radius:8px; cursor:pointer; background:#292119;">
           <input type="radio" name="tl-mode" id="tl-mode-b" value="B" checked style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
-            <strong style="color:#fbbf24; font-size:0.88rem;">🛡️ パスワード付きタイムカプセル（時刻解禁 ＋ パスワード暗号化保護 ★推奨）</strong><br>
-            指定時刻の到来 <strong>かつ</strong> 設定した追加保護要素（パスワード／キーファイル／パスキー）の両方が揃わない限り復号できません。<br>
-            <span style="color:#fcd34d; font-size:0.76rem;">※万が一カプセルファイルが第三者に流出しても、解禁時刻後であってもあなた以外は絶対に中身を解読できません。</span>
+            <strong style="color:#fbbf24; font-size:0.88rem;">🛡️ 追加暗号化保護タイムカプセル（時刻解禁 ＋ パスワード／パスキー／秘密分散 ★推奨）</strong><br>
+            指定時刻の到来 <strong>かつ</strong> 設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。<br>
+            <span style="color:#fcd34d; font-size:0.76rem;">※万が一カプセルファイルが第三者に流出しても、解禁時刻後であっても中身を絶対に解読できません。</span>
           </div>
         </label>
       </div>
@@ -1201,7 +1201,7 @@
       <!-- パスワード保護オプション群 -->
       <div id="tl-mode-b-options" style="border-top:1px dashed #304257; padding-top:10px; margin-top:8px;">
         <div style="font-weight:700; font-size:0.84rem; color:#38bdf8; margin-bottom:8px;">
-          🛡️ パスワード暗号化保護の設定（CME3: AES-256-GCM ＋ ChaCha20-Poly1305）:
+          🛡️ 追加の保護・暗号化要素（組み合わせ自由・単独利用もOK）:
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">

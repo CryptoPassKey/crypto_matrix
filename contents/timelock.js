@@ -478,7 +478,7 @@
   async function createTimelockCapsule(options) {
     const TL = getTLBundle();
     const Preset = getPreset();
-    const {
+    let {
       mode = 'A', // 'A' | 'B'
       targetTimeMs,
       roundNumber: explicitRound,
@@ -530,25 +530,31 @@
     let hasDuress = false;
     if (mode === 'B') {
       if (!usePassword && !useKeyfile && !usePasskey) {
-        throw new Error('パスワード付きタイムカプセルでは、復元用パスワード、キーファイル、またはパスキーのいずれかを有効にしてください。');
-      }
-      if (usePassword) {
-        if (Array.from(password || '').length < 12) {
-          throw new Error('復元用パスワードは12文字以上で設定してください。');
+        if (shamirN > 1) {
+          // 秘密分散のみ（パスワード・キーファイル・パスキーなし）：Mode A (cma1 App/Seed-Bound) として扱い、CME3暗号化をスキップ
+          mode = 'A';
+        } else {
+          throw new Error('保護方法（パスワード、キーファイル、パスキー、または2分割以上の秘密分散）のいずれかを有効にしてください。');
         }
+      } else {
+        if (usePassword) {
+          if (Array.from(password || '').length < 12) {
+            throw new Error('復元用パスワードは12文字以上で設定してください。');
+          }
+        }
+        if (useKeyfile && (!keyfileBytes || keyfileBytes.length === 0)) {
+          throw new Error('キーファイルが選択されていません。');
+        }
+        if (usePassword && !useKeyfile && !usePasskey) combo = 0;
+        else if (usePassword && useKeyfile && !usePasskey) combo = 1;
+        else if (usePassword && !useKeyfile && usePasskey) combo = 2;
+        else if (usePassword && useKeyfile && usePasskey) combo = 3;
+        else if (!usePassword && useKeyfile && !usePasskey) combo = 4;
+        else if (!usePassword && !useKeyfile && usePasskey) combo = 5;
+        else if (!usePassword && useKeyfile && usePasskey) combo = 6;
+        else throw new Error('未対応の保護要素組み合わせです。');
+        hasDuress = Boolean(duress && duress.password && duress.decoyBytes);
       }
-      if (useKeyfile && (!keyfileBytes || keyfileBytes.length === 0)) {
-        throw new Error('キーファイルが選択されていません。');
-      }
-      if (usePassword && !useKeyfile && !usePasskey) combo = 0;
-      else if (usePassword && useKeyfile && !usePasskey) combo = 1;
-      else if (usePassword && !useKeyfile && usePasskey) combo = 2;
-      else if (usePassword && useKeyfile && usePasskey) combo = 3;
-      else if (!usePassword && useKeyfile && !usePasskey) combo = 4;
-      else if (!usePassword && !useKeyfile && usePasskey) combo = 5;
-      else if (!usePassword && useKeyfile && usePasskey) combo = 6;
-      else throw new Error('未対応の保護要素組み合わせです。');
-      hasDuress = Boolean(duress && duress.password && duress.decoyBytes);
     }
 
     const headerObj = {
@@ -788,7 +794,7 @@
     const beaconUrl2 = `https://drand.cloudflare.com/${m.chainHash}/public/${m.round}`;
     const factorDesc =
       m.mode === 'A'
-        ? 'なし（時間解禁のみ：指定時刻到達で自動開封可能）'
+        ? (m.shamir && m.shamir.n > 1 ? `秘密分散のみ（${m.shamir.m}-of-${m.shamir.n}・追加パスワードなし）` : 'なし（時間解禁のみ：指定時刻到達で自動開封可能）')
         : comboLabelTL(m.combo);
     const shamirDesc =
       m.shamir && m.shamir.n > 1
@@ -1003,6 +1009,8 @@
     const optPw = $('tl-opt-password');
     const optKf = $('tl-opt-keyfile');
     const optPk = $('tl-opt-passkey');
+    const hasCmeFactors = Boolean(optPw?.checked || optKf?.checked || optPk?.checked);
+    if ($('tl-kdf-row')) $('tl-kdf-row').hidden = !(mode === 'B' && hasCmeFactors);
     if ($('tl-password-row')) $('tl-password-row').hidden = !(mode === 'B' && optPw?.checked);
     if ($('tl-keyfile-row')) $('tl-keyfile-row').hidden = !(mode === 'B' && optKf?.checked);
     if ($('tl-passkey-row')) $('tl-passkey-row').hidden = !(mode === 'B' && optPk?.checked);
@@ -1081,7 +1089,23 @@
         <div style="font-weight:700; font-size:0.88rem; color:#38bdf8; margin-bottom:6px;">📋 暗号化前の設定確認サマリー</div>
         <div style="font-size:0.82rem; line-height:1.6;">
           ・<strong>保護対象データ：</strong> ${escapeHtml(payloadDesc)}<br>
-          ・<strong>保護タイプ：</strong> <strong>${mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : 'パスワード付きタイムカプセル（時刻解禁＋パスワード保護）'}</strong><br>
+          ・<strong>保護タイプ：</strong> <strong>${(() => {
+            if (mode === 'A') {
+              return shamirN > 1 ? `タイムロック ＋ 秘密分散（${shamirM}-of-${shamirN}・時間解禁のみ）` : 'タイムカプセル（時間解禁のみ）';
+            }
+            if (!hasCmeFactors && shamirN > 1) {
+              return `タイムロック ＋ 秘密分散のみ（${shamirM}-of-${shamirN}・パスワード不要）`;
+            }
+            if (!hasCmeFactors && shamirN <= 1) {
+              return '<span style="color:#ef4444; font-weight:700;">⚠️ 保護方式未選択（パスワード、キーファイル、パスキー、または秘密分散を1つ以上選択してください）</span>';
+            }
+            const factorNames = [];
+            if (optPw?.checked) factorNames.push('パスワード');
+            if (optKf?.checked) factorNames.push('キーファイル');
+            if (optPk?.checked) factorNames.push('パスキー');
+            if (shamirN > 1) factorNames.push(`秘密分散(${shamirM}-of-${shamirN})`);
+            return `追加保護付きタイムカプセル（時刻解禁 ＋ ${factorNames.join(' ＋ ')}）`;
+          })()}</strong><br>
           ・<strong>連動カード配列シード番号 (Secret Key)：</strong> <strong style="color:#38bdf8; font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（1PasswordのSecret Keyのように機能。作成時のシード番号と連動して二重暗号化されます）</span><br>
           ・<strong>解禁予定日時：</strong> <strong style="color:#fbbf24;">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong>（Round #${rInfo.round}）<br>
           ・<strong>復号に必要な条件：</strong> ${reqFactors.map(escapeHtml).join(' ＋ ')}<br>
@@ -1194,9 +1218,9 @@
       if (authBox) {
         authBox.hidden = meta.mode !== 'B';
         const combo = meta.combo ?? 0;
-        const needPw = combo === 0 || combo === 1 || combo === 2 || combo === 3;
-        const needKf = combo === 1 || combo === 3 || combo === 4 || combo === 6;
-        const needPk = combo === 2 || combo === 3 || combo === 5 || combo === 6;
+        const needPw = meta.mode === 'B' && (combo === 0 || combo === 1 || combo === 2 || combo === 3);
+        const needKf = meta.mode === 'B' && (combo === 1 || combo === 3 || combo === 4 || combo === 6);
+        const needPk = meta.mode === 'B' && (combo === 2 || combo === 3 || combo === 5 || combo === 6);
         if ($('tl-restore-pw-wrap')) $('tl-restore-pw-wrap').hidden = !needPw;
         if ($('tl-restore-kf-wrap')) $('tl-restore-kf-wrap').hidden = !needKf;
         if ($('tl-restore-pk-notice')) $('tl-restore-pk-notice').hidden = !needPk;
@@ -1217,7 +1241,7 @@
             ${statusBadge}
           </div>
           <div style="font-size:0.82rem; line-height:1.65;">
-            ・<strong>保護タイプ：</strong> ${meta.mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : `パスワード付きタイムカプセル（時刻解禁 ＋ ${escapeHtml(comboLabelTL(meta.combo))}）`}<br>
+            ・<strong>保護タイプ：</strong> ${meta.mode === 'A' ? (meta.shamir && meta.shamir.n > 1 ? `タイムロック ＋ 秘密分散（${meta.shamir.m}-of-${meta.shamir.n}・パスワード不要）` : 'タイムカプセル（時間解禁のみ）') : `追加保護付きタイムカプセル（時刻解禁 ＋ ${escapeHtml(comboLabelTL(meta.combo))}）`}<br>
             ・<strong>封入データ種別：</strong> ${escapeHtml(payloadKindLabel(meta.payloadKind))}<br>
             ・<strong>秘密分散：</strong> ${shamirStatusHtml}<br>
             ・<strong>drandネットワーク / 対象ラウンド：</strong> <code>${escapeHtml(meta.net)}</code> ／ <strong style="color:#fbbf24; font-family:monospace;">Round #${meta.round}</strong><br>
@@ -1493,6 +1517,7 @@
         const shamirM = shamirParts[0] || 1;
         const shamirN = shamirParts[1] || 1;
 
+        let effectiveMode = mode;
         const usePassword = mode === 'B' && Boolean($('tl-opt-password')?.checked);
         const useKeyfile = mode === 'B' && Boolean($('tl-opt-keyfile')?.checked);
         const usePasskey = mode === 'B' && Boolean($('tl-opt-passkey')?.checked);
@@ -1502,7 +1527,12 @@
 
         if (mode === 'B') {
           if (!usePassword && !useKeyfile && !usePasskey) {
-            throw new Error('復元用パスワード、キーファイル、またはパスキーのいずれかを選択してください。');
+            if (shamirN > 1) {
+              // 秘密分散のみ（パスワード・キーファイル・パスキーなし）：Mode A (cma1 App/Seed-Bound) で作成
+              effectiveMode = 'A';
+            } else {
+              throw new Error('保護方法（パスワード、キーファイル、パスキー、または2分割以上の秘密分散）のいずれかを有効にしてください。追加保護なし（時間解禁のみ）で作成する場合は「タイムカプセル（時間解禁のみ）」を選択してください。');
+            }
           }
           if (usePassword) {
             password = $('tl-password')?.value || '';
@@ -1543,7 +1573,7 @@
 
         const currentCardSeed = $('input-seed-number')?.value || '0';
         const res = await createTimelockCapsule({
-          mode,
+          mode: effectiveMode,
           seedNum: currentCardSeed,
           targetTimeMs,
           payloadType,
@@ -1610,7 +1640,7 @@
 
         tlMessage(
           'tl-encrypt-status',
-          `✅ タイムロック・カプセル（${mode === 'A' ? 'タイムカプセル' : 'パスワード付きタイムカプセル'} ／ 解禁ラウンド #${res.meta.round}）を作成しました。保管前にリカバリーガイドの保存と復元タブへの転記確認をおすすめします。`
+          `✅ タイムロック・カプセル（${res.meta.mode === 'A' ? (res.meta.shamir && res.meta.shamir.n > 1 ? `タイムロック ＋ 秘密分散 (${res.meta.shamir.m}-of-${res.meta.shamir.n})` : 'タイムカプセル') : '追加保護付きタイムカプセル'} ／ 解禁ラウンド #${res.meta.round}）を作成しました。保管前にリカバリーガイドの保存と復元タブへの転記確認をおすすめします。`
         );
       } catch (err) {
         if (myToken !== tlOpToken) return;

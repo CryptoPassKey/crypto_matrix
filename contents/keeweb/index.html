@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html><html><head lang="en"><meta charset="UTF-8"><title>KeeWeb</title><meta name="application-name" content="KeeWeb"><meta name="kw-config" content="config.json"><script>if(location.protocol==="file:"){var m=document.querySelector("meta[name=\"kw-config\"]");if(m)m.content="(kw-config)";}</script>
+<!DOCTYPE html><html><head lang="en"><meta charset="UTF-8"><title>KeeWeb</title><meta name="application-name" content="KeeWeb"><meta name="kw-config" content="config.json"><script>if(location.protocol==="file:"){var m=document.querySelector("meta[name=\"kw-config\"]");if(m)m.content="(kw-config)";}</script>
 <style>
 /* Hide unusable cloud storage providers */
 .open__icon[data-storage="gdrive"],
@@ -646,7 +646,7 @@ body.kw-generator-focus-mode .gen {
 
     var hashParams = new URLSearchParams((window.location.hash || '').replace(/^#[^&]*/, ''));
     var cmTarget = hashParams.get('cmTarget');
-    var targetLabels = { bq: 'バックアップ用の復元パスワード', bv: '保管庫用の復元パスワード', km: 'キーファイル用の復元パスワード' };
+    var targetLabels = { bq: 'バックアップ用の復元パスワード', bv: '保管庫用の復元パスワード', km: 'キーファイル用の復元パスワード', tl: 'タイムロック用の復元パスワード' };
     if (!targetLabels[cmTarget]) cmTarget = '';
 
     var btnRow = document.createElement('div');

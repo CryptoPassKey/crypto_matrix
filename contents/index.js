@@ -3687,12 +3687,72 @@ document.addEventListener('DOMContentLoaded', () => {
   4:'Level 5 Argon2id 128MB / 3回（高強度・PC推奨 ⚠️スマホ高負荷 ＋ 二重カスケード ＋ Key-Committing HMAC）',
   5:'Level 6 Argon2id 256MB / 4回（最高強度・PC限定 ⚠️スマホ復元困難 ＋ 二重カスケード ＋ Key-Committing HMAC）'
  };
+
+ function getSavedPasskeyCredential() {
+  try {
+   const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem('cm_registered_passkey_v1') : null;
+   if (!raw) return null;
+   const parsed = JSON.parse(raw);
+   const rpId = (typeof location !== 'undefined' && location.hostname) ? location.hostname : 'localhost';
+   if (parsed && parsed.id && (!parsed.rpId || parsed.rpId === rpId)) {
+    const bin = atob(parsed.id);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return { credentialId: arr, metadata: parsed };
+   }
+  } catch (_) {}
+  return null;
+ }
+
+ function savePasskeyCredential(rawCredId, meta = {}) {
+  try {
+   if (!rawCredId || !rawCredId.length || typeof localStorage === 'undefined') return;
+   const b64 = btoa(String.fromCharCode(...rawCredId));
+   const rpId = (typeof location !== 'undefined' && location.hostname) ? location.hostname : 'localhost';
+   const obj = {
+    id: b64,
+    rpId,
+    createdAt: meta.createdAt || Date.now(),
+    label: meta.label || 'CryptoMatrix パスキー'
+   };
+   localStorage.setItem('cm_registered_passkey_v1', JSON.stringify(obj));
+   if (typeof window !== 'undefined' && window.dispatchEvent) {
+    window.dispatchEvent(new CustomEvent('cm-passkey-changed', { detail: obj }));
+   }
+  } catch (_) {}
+ }
+
+ function clearSavedPasskeyCredential() {
+  try {
+   if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('cm_registered_passkey_v1');
+   }
+   if (typeof window !== 'undefined' && window.dispatchEvent) {
+    window.dispatchEvent(new CustomEvent('cm-passkey-changed', { detail: null }));
+   }
+  } catch (_) {}
+ }
+
  async function derivePasskeyPrf(salt32,credentialId=null,opts={}){
   if(!window.PublicKeyCredential||!navigator.credentials){
    throw new Error('お使いのブラウザ環境ではパスキーが利用できません。対応ブラウザで開いてください。');
   }
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
+
+  if(!credentialId && !opts.forceNew){
+   const saved = getSavedPasskeyCredential();
+   if(saved && saved.credentialId && saved.credentialId.length){
+    try {
+     return await derivePasskeyPrf(salt32, saved.credentialId, opts);
+    } catch(err) {
+     if(err.name === 'AbortError' || (err.name === 'NotAllowedError' && (err.message?.includes('cancel') || err.message?.includes('キャンセル')))){
+      throw err;
+     }
+     console.warn('Saved passkey authentication failed, creating new:', err);
+    }
+   }
+  }
 
   if(!credentialId){
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
@@ -3720,6 +3780,7 @@ document.addEventListener('DOMContentLoaded', () => {
    // 1. 作成時にすでにPRF結果がある場合（真のPRF対応）
    const extRes=created.getClientExtensionResults?.()?.prf;
    if(extRes?.results?.first){
+    savePasskeyCredential(rawCredId);
     return{extraFactor:await sha512(new Uint8Array(extRes.results.first)),credentialId:rawCredId};
    }
 
@@ -3740,6 +3801,7 @@ document.addEventListener('DOMContentLoaded', () => {
    } catch(_) {}
 
    if(getPrf?.results?.first){
+    savePasskeyCredential(rawCredId);
     return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
 
@@ -5006,6 +5068,14 @@ document.addEventListener('DOMContentLoaded', () => {
   showKeyfileModal:(opts,cb)=>showKeyfileModal(opts,cb),
   closeKeyfileModal:()=>closeKeyfileModal(),
   derivePasskeyPrf:(salt32,credId,opts)=>derivePasskeyPrf(salt32,credId,opts),
+  getSavedPasskeyCredential:()=>getSavedPasskeyCredential(),
+  savePasskeyCredential:(rawCredId,meta)=>savePasskeyCredential(rawCredId,meta),
+  clearSavedPasskeyCredential:()=>clearSavedPasskeyCredential(),
+  registerNewPasskey:async(opts={})=>{
+   const dummySalt=crypto.getRandomValues(new Uint8Array(32));
+   const res=await derivePasskeyPrf(dummySalt,null,{forceNew:true});
+   return res;
+  },
   setPendingKeeWebTransfer:(key,data,ttlMs=60000)=>setPendingKeeWebTransfer(key,data,ttlMs),
   openKeeWeb:()=>window.openKeeWeb(),
   promptLegacyPK2Consent:()=>window.promptLegacyPK2Consent()

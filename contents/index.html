@@ -745,6 +745,7 @@
   <div class="bq-row" id="bq-passkey-row" hidden style="background:#192029; padding:10px 12px; border-radius:8px; border:1px solid #004ca0; font-size:0.82rem; color:#3b65dd; line-height:1.5;">
    🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
    ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
+   <div id="bq-passkey-manager" class="cm-passkey-manager-slot"></div>
    <div style="margin-top:6px; padding:6px 10px; background:#1b2027; border-radius:6px; border:1px solid #003578; font-size:0.78rem; color:#335de6;">
      <strong>【動作対応認証器】</strong><br>
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
@@ -935,8 +936,8 @@
 
     <!-- パスキー説明行 -->
     <div class="bq-row" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem; color:#3b65dd;">
-      🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。
-      
+      🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。<br>
+      <div id="bv-passkey-manager" class="cm-passkey-manager-slot"></div>
     </div>
 
     
@@ -1269,7 +1270,8 @@
           ⚠️ <strong>【重要警告：パスキー併用時のドメイン拘束と独立復元ツール制限】</strong><br>
           WebAuthnパスキー（PRF拡張）はブラウザ仕様により<strong>「現在のドメイン（同一オリジン）」に厳密に拘束</strong>されます。<br>
           ・パスキーを有効にしたカプセルは、<strong>このドメインでしか開けない可能性があり、単体HTMLの「独立復元ツール（timelock-recover.html）」や別ドメインでは復元できません。</strong><br>
-          ・数ヶ月〜数年後の長期タイムロック保管では、端末買い替えやドメイン変更で開けなくなるリスクがあるため、パスキーを使わず<strong>「パスワード ＋ キーファイル」または「Shamir秘密分散」</strong>のご利用を強く推奨します。
+          ・数ヶ月〜数年後の長期タイムロック保管では、端末買い替えやドメイン変更で開けなくなるリスクがあるため、パスキーを使わず<strong>「パスワード ＋ キーファイル」または「Shamir秘密分散」</strong>のご利用を強く推奨します。<br>
+          <div id="tl-passkey-manager" class="cm-passkey-manager-slot"></div>
         </div>
       </div>
     </div>

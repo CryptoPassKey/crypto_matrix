@@ -52,8 +52,8 @@
     var on = navigator.onLine, b = $('cm-net');
     b.className = 'cm-badge ' + (on ? 'cm-b-amber' : 'cm-b-green');
     b.title = on
-      ? '現在ネットワークに接続されています。このアプリは通信しませんが、シード・合言葉・パスワードを扱う操作は、Wi-Fi・モバイル通信を切った環境（エアギャップ）での利用がより安全です。'
-      : 'ネットワーク切断環境で動作中です。シード・合言葉・パスワードが外部に漏れる経路が物理的に存在しない、最も安全な状態です。';
+      ? '現在ネットワークに接続されています。パスワード算出・バックアップ・保管庫・タイムロック暗号化は外部通信ゼロで動作します（タイムロック復号時のdrand自動取得のみ公開乱数ビーコンを参照します）。機密操作はオフライン環境での利用がより安全です。'
+      : 'ネットワーク切断環境で動作中です。シード・合言葉・パスワードが外部に漏れる経路が物理的に存在しない最も安全な状態です（タイムロック復号も手動ビーコン入力で完全オフライン実行可能です）。';
     b.innerHTML = (on ? WIFI : WIFI_OFF) + '<span class="cm-hide-sm">' + (on ? 'オンライン — 機密操作はオフライン推奨' : 'オフライン動作中 · 推奨環境') + '</span>';
   }
   window.addEventListener('online', paintNet);
@@ -90,7 +90,7 @@
     o.setAttribute('aria-modal', 'true');
     var body = standalone ? '' :
       (deferred ? '<button type="button" class="cm-primary" data-act="install">アプリをインストール</button>' : '') +
-      '<div class="cm-box"><p>' + (ios ? 'iPhone / iPad（Safari）' : 'iPhone / iPad（Safari）の場合') + '</p><ol><li>画面下の共有ボタン（□に↑）をタップ</li><li>「ホーム画面に追加」を選ぶ</li><li>右上の「追加」をタップ</li></ol></div>' +
+      '<div class="cm-box"><p>' + (ios ? 'iPhone / iPad（Safari）' : 'iPhone / iPad（Safari）の場合') + '</p><ol><li>画面下の共有ボタン（<svg style="display:inline-block;vertical-align:-2px;margin:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="共有アイコン"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>四角から上矢印）をタップ</li><li>「ホーム画面に追加」を選ぶ</li><li>右上の「追加」をタップ</li></ol></div>' +
       (ios ? '' : '<div class="cm-box"><p>Android / パソコン（Chrome・Edge）</p><ol><li>右上のメニュー（⋮）を開く</li><li>「ホーム画面に追加」または「アプリをインストール」を選ぶ</li></ol></div>') +
       '<p class="cm-note">※ 一度オンラインで開いて追加しておくと、以後はオフラインでも起動できます。</p>';
     o.innerHTML = '<div class="cm-dialog"><button type="button" class="cm-close" aria-label="閉じる">✕</button>' +
@@ -139,10 +139,11 @@
   }
 
   var PEEK_TARGETS = ['#input-seed-number', '#sim-site', '#sim-secret', '#sim-output-pw', '#sticky-output-pw',
-    '#seed-words-container', '#bq-words-container', '#bq-output', '#seed-armored-text', '#seed-qr-list', '#bq-qr-list'];
+    '#seed-words-container', '#bq-words-container', '#bq-output', '#seed-armored-text', '#seed-qr-list', '#bq-qr-list',
+    '#tl-output-text', '#tl-qr-container', '#tl-decrypted-content', '#tl-shares-container'];
   // 合言葉(#sim-secret)には付けない：弱い合言葉でもカード盤面経由で強力なパスワードになるため
   var METER_TARGETS = ['#bq-password', '#bq-restore-password', '#bv-password', '#bv-restore-password',
-    '#duress-modal-pw', '#duress-vault-pw', '#km-password'];
+    '#duress-modal-pw', '#duress-vault-pw', '#km-password', '#tl-password', '#tl-restore-password', '#tl-duress-pw'];
 
   function initAddons() {
     var out = $('sim-output-pw');
@@ -164,19 +165,24 @@
     var guard = store('cm-peek-guard') !== 'off';
     var peekEls = function () { return PEEK_TARGETS.map(function (s) { return document.querySelector(s); }).filter(Boolean); };
     var applyGuard = function () {
-      peekEls().forEach(function (el) { el.classList.toggle('cm-peek', guard); });
+      peekEls().forEach(function (el) {
+        el.classList.toggle('cm-peek', guard);
+        if (!el.dataset.cmPeekWired) {
+          el.dataset.cmPeekWired = '1';
+          var reveal = function (on) { el.classList.toggle('cm-reveal', on); };
+          el.addEventListener('touchstart', function () { reveal(true); }, { passive: true });
+          el.addEventListener('touchend', function () { reveal(false); });
+          el.addEventListener('touchcancel', function () { reveal(false); });
+          el.addEventListener('contextmenu', function (e) { if (guard) e.preventDefault(); });
+        }
+      });
       guardBtn.textContent = guard ? '🙈 覗き見防止 ON' : '👁 覗き見防止 OFF';
       guardBtn.title = guard ? 'シード・サイト・合言葉・パスワード・シードフレーズを隠しています。PCはマウスを乗せる / スマホは長押しで表示' : '常に表示中';
     };
     guardBtn.addEventListener('click', function () { guard = !guard; store('cm-peek-guard', guard ? 'on' : 'off'); applyGuard(); });
-    peekEls().forEach(function (el) {
-      var reveal = function (on) { el.classList.toggle('cm-reveal', on); };
-      el.addEventListener('touchstart', function () { reveal(true); }, { passive: true });
-      el.addEventListener('touchend', function () { reveal(false); });
-      el.addEventListener('touchcancel', function () { reveal(false); });
-      el.addEventListener('contextmenu', function (e) { if (guard) e.preventDefault(); });
-    });
     applyGuard();
+    window.cmApplyPeekGuard = applyGuard;
+    window.cmIsPeekGuardOn = function () { return guard; };
 
     // クリップボード自動消去
     var badge = document.createElement('div');

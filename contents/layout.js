@@ -8,6 +8,7 @@
     'section-bip39-plain': 'tab-backup',
     'backup-qr': 'tab-backup',
     'bonus-vault': 'tab-vault',
+    'timelock-section': 'tab-timelock',
     'page-footer': 'cm-footer-slot'
   };
   Object.keys(slots).forEach(function (id) {

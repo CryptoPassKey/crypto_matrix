@@ -117,8 +117,9 @@ html.light .cm-legacy #card-quick .cq-panel.active-mode-panel { background: #eaf
 html.light .cm-legacy .cloud-warning { color: #1e293b !important; }
 html.light .cm-legacy #seed-qr-list figure, html.light .cm-legacy #bq-qr-list figure { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
 html.light .cm-legacy #card-quick select, html.light .cm-legacy #card-quick input,
-html.light .cm-legacy #backup-qr textarea, html.light .cm-legacy #bonus-vault textarea,
-html.light .cm-legacy #bonus-vault input[type=password], html.light .cm-legacy #bonus-vault input[type=text], html.light .cm-legacy #bonus-vault select { background: #fff !important; color: #1e293b !important; }
+html.light .cm-legacy #backup-qr textarea, html.light .cm-legacy #bonus-vault textarea, html.light .cm-legacy #timelock-section textarea,
+html.light .cm-legacy #bonus-vault input[type=password], html.light .cm-legacy #bonus-vault input[type=text], html.light .cm-legacy #bonus-vault select,
+html.light .cm-legacy #timelock-section input[type=password], html.light .cm-legacy #timelock-section input[type=text], html.light .cm-legacy #timelock-section select, html.light .cm-legacy #timelock-section input[type=datetime-local] { background: #fff !important; color: #1e293b !important; }
 
 /* ===== Add-ons: strength meter / peek guard / clipboard badge ===== */
 .cm-meter { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:6px 0 2px; font-size:12px; color:var(--text-sub); }
@@ -204,19 +205,183 @@ html:not(.light) .cm-legacy #btn-copy-pw:hover:not(:disabled) {
 /* ===== Peek guard replaces blind display ===== */
 .cm-legacy #btn-blind-mode { display: none !important; }
 
-/* ===== Print: white paper, black QR (override legacy dark print) ===== */
+/* ===== Print Stylesheet (All Tabs Printable via Browser Print Ctrl+P) ===== */
 @media print {
-  html, body { background: #fff !important; color: #000 !important; }
-  .cm-legacy .section-card, .cm-legacy .field-group, .cm-legacy .bq-select-desc,
-  .cm-legacy #card-quick, .cm-legacy #section-recipe-detail, .cm-legacy #backup-qr,
-  .cm-legacy #bonus-vault, body.print-vault-mode #bonus-vault {
-    background: #fff !important; color: #000 !important; border-color: #999 !important; box-shadow: none !important;
+  /* 1. Page & Base Colors */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .cm-legacy .section-card *, .cm-legacy #backup-qr *, .cm-legacy #bonus-vault * { color: #000 !important; }
-  #seed-qr-list svg, #bq-qr-list svg, .bv-qr-figure svg { background: #fff !important; }
-  #seed-qr-list svg .qr-white, #bq-qr-list svg .qr-white { fill: #fff !important; }
-  #seed-qr-list svg .qr-black, #bq-qr-list svg .qr-black { fill: #000 !important; }
-  #seed-qr-list figure, #bq-qr-list figure, .bv-qr-figure { background: #fff !important; border-color: #999 !important; }
+
+  /* 2. Hide screen-only interactive header, navigation, floating widgets & buttons */
+  .cm-header,
+  .cm-tablist,
+  #sticky-pw-bar,
+  .no-print,
+  .bv-no-print,
+  .btn,
+  button,
+  input[type="file"],
+  video,
+  #div-tile-template,
+  .help-btn,
+  #help-popover,
+  .cm-tools {
+    display: none !important;
+  }
+
+  /* 3. Main layout wrapper must expand across full printable width */
+  .cm-main {
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .cm-app {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 4. Display ALL 5 Tab Panels sequentially in the printout */
+  .cm-panel,
+  .cm-panel[hidden] {
+    display: block !important;
+    visibility: visible !important;
+    margin-bottom: 20mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Each tab panel starts on a clean new printed page */
+  .cm-panel + .cm-panel {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* 5. Force un-blur on any peek-protected text/QR for print */
+  * {
+    filter: none !important;
+    user-select: auto !important;
+  }
+
+  /* 6. Card containers & field groups in print */
+  .cm-legacy .section-card,
+  .cm-legacy .field-group,
+  .cm-legacy .bq-select-desc,
+  .cm-legacy #card-quick,
+  .cm-legacy #section-recipe-detail,
+  .cm-legacy #backup-qr,
+  .cm-legacy #bonus-vault,
+  .cm-legacy #timelock-section,
+  #tl-panel-encrypt,
+  #tl-panel-encrypt > div,
+  #tl-panel-decrypt,
+  #tl-panel-decrypt > div {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    page-break-inside: auto;
+    break-inside: auto;
+    margin-bottom: 12pt !important;
+    padding: 8pt 10pt !important;
+  }
+
+  .cm-legacy .section-card *,
+  .cm-legacy #backup-qr *,
+  .cm-legacy #bonus-vault *,
+  .cm-legacy #timelock-section * {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  /* 7. Section Titles in print */
+  .section-title {
+    font-size: 13pt !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #000000 !important;
+    margin-bottom: 10pt !important;
+    padding-bottom: 4pt !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    color: #000000 !important;
+  }
+
+  /* 8. Textareas & Secret Outputs expand fully without scrollbars */
+  textarea,
+  .seed-textarea,
+  #bq-output,
+  #bv-single-ta,
+  #tl-output-text,
+  #tl-decrypted-content,
+  #tl-manual-beacon-input {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #94a3b8 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    font-size: 8pt !important;
+    line-height: 1.4 !important;
+    display: block !important;
+  }
+
+  /* 9. QR Codes & SVG crisp black & white rendering */
+  #seed-qr-list,
+  #bq-qr-list,
+  #tl-qr-container,
+  #bv-result-shares-container {
+    display: block !important;
+    visibility: visible !important;
+  }
+  #seed-qr-list svg,
+  #bq-qr-list svg,
+  #tl-qr-container svg,
+  .bv-qr-figure svg {
+    background: #ffffff !important;
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  #seed-qr-list svg .qr-white,
+  #bq-qr-list svg .qr-white,
+  #tl-qr-container svg .qr-white,
+  .bv-qr-figure svg .qr-white {
+    fill: #ffffff !important;
+  }
+  #seed-qr-list svg .qr-black,
+  #bq-qr-list svg .qr-black,
+  #tl-qr-container svg .qr-black,
+  .bv-qr-figure svg .qr-black {
+    fill: #000000 !important;
+  }
+  #seed-qr-list figure,
+  #bq-qr-list figure,
+  .bv-qr-figure,
+  .tl-qr-figure {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 10. Matrix Stage and Board Display */
+  .matrix-stage, .cm-board {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
 
 /* ===== Sticky password bar: only when the main password row is out of view (engine toggles .visible) ===== */
@@ -301,7 +466,7 @@ html.light .duress-modal-backdrop .help-btn { background: #cbd5e1 !important; co
 .cm-legacy #bq-words-container.cm-peek.cm-reveal > *:not(.bv-no-print) { filter: none; }
 
 /* ===== Strength meters under password inputs ===== */
-.cm-meter-input { margin: 4px 0 8px; }
+.cm-meter-input { width: 100%; margin: 4px 0 8px; }
 .cm-meter-input .cm-meter-text { font-size: 0.75rem; }
 
 /* ===== Missing-input guidance highlight ===== */
@@ -334,14 +499,21 @@ html:not(.light) .cm-need-tag {
 
 /* ===== Peek guard: QR images (save buttons stay visible) ===== */
 .cm-legacy #seed-qr-list.cm-peek,
-.cm-legacy #bq-qr-list.cm-peek { filter: none !important; }
+.cm-legacy #bq-qr-list.cm-peek,
+.cm-legacy #tl-qr-container.cm-peek,
+.cm-legacy #tl-shares-container.cm-peek { filter: none !important; }
 .cm-legacy #seed-qr-list.cm-peek svg,
 .cm-legacy #seed-qr-list.cm-peek canvas,
 .cm-legacy #seed-qr-list.cm-peek img,
 .cm-legacy #bq-qr-list.cm-peek svg,
 .cm-legacy #bq-qr-list.cm-peek canvas,
-.cm-legacy #bq-qr-list.cm-peek img {
+.cm-legacy #bq-qr-list.cm-peek img,
+.cm-legacy #tl-qr-container.cm-peek svg,
+.cm-legacy #tl-shares-container.cm-peek svg {
   filter: blur(10px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.cm-legacy #tl-shares-container.cm-peek textarea {
+  filter: blur(7px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 @media (hover:hover) {
   .cm-legacy #seed-qr-list.cm-peek figure:hover svg,
@@ -349,14 +521,22 @@ html:not(.light) .cm-need-tag {
   .cm-legacy #seed-qr-list.cm-peek figure:hover img,
   .cm-legacy #bq-qr-list.cm-peek figure:hover svg,
   .cm-legacy #bq-qr-list.cm-peek figure:hover canvas,
-  .cm-legacy #bq-qr-list.cm-peek figure:hover img { filter: none; }
+  .cm-legacy #bq-qr-list.cm-peek figure:hover img,
+  .cm-legacy #tl-qr-container.cm-peek figure:hover svg,
+  .cm-legacy #tl-qr-container.cm-peek svg:hover,
+  .cm-legacy #tl-shares-container.cm-peek figure:hover svg,
+  .cm-legacy #tl-shares-container.cm-peek svg:hover,
+  .cm-legacy #tl-shares-container.cm-peek textarea:hover { filter: none; }
 }
 .cm-legacy #seed-qr-list.cm-peek.cm-reveal svg,
 .cm-legacy #seed-qr-list.cm-peek.cm-reveal canvas,
 .cm-legacy #seed-qr-list.cm-peek.cm-reveal img,
 .cm-legacy #bq-qr-list.cm-peek.cm-reveal svg,
 .cm-legacy #bq-qr-list.cm-peek.cm-reveal canvas,
-.cm-legacy #bq-qr-list.cm-peek.cm-reveal img { filter: none; }
+.cm-legacy #bq-qr-list.cm-peek.cm-reveal img,
+.cm-legacy #tl-qr-container.cm-peek.cm-reveal svg,
+.cm-legacy #tl-shares-container.cm-peek.cm-reveal svg,
+.cm-legacy #tl-shares-container.cm-peek.cm-reveal textarea { filter: none; }
 
 /* ===== Mobile: compact sticky password bar ===== */
 @media (max-width: 640px) {
@@ -411,6 +591,8 @@ html.cm-tour-active .cm-legacy #seed-qr-list.cm-peek img,
 html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek svg,
 html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek canvas,
 html.cm-tour-active .cm-legacy #bq-qr-list.cm-peek img,
+html.cm-tour-active .cm-legacy #tl-qr-container.cm-peek svg,
+html.cm-tour-active .cm-legacy #tl-shares-container.cm-peek svg,
 html.cm-tour-active #sim-output-pw.cm-peek { filter: none !important; }
 
 /* Light mode: keep the minimized pill readable (inline #1aff75 bg gets neutralized by the [style*=background:#1] rule) */
@@ -652,3 +834,195 @@ html:not(.light) .cm-board .square.fallback-tile {
   transform: scale(1.02); z-index: 5;
 }
 html:not(.light) .cm-board .active-char-spot { background: #1aff75 !important; color: #04130a !important; box-shadow: 0 0 12px rgba(26,255,117,.75) !important; }
+
+/* =====================================================================
+   Time Lock Section Theme Styling (High-contrast Dark & Light Modes)
+   ===================================================================== */
+
+/* 1. Main Action Buttons */
+#tl-btn-encrypt {
+  background: #f59e0b !important;
+  color: #111827 !important;
+  border: 1px solid #d97706 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+  cursor: pointer;
+}
+#tl-btn-encrypt:hover:not(:disabled) {
+  background: #d97706 !important;
+  color: #ffffff !important;
+}
+
+#tl-btn-decrypt {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border: 1px solid #047857 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3) !important;
+  cursor: pointer;
+}
+#tl-btn-decrypt:hover:not(:disabled) {
+  background: #047857 !important;
+  color: #ffffff !important;
+}
+
+/* 2. Subtab switcher buttons */
+#tl-tab-btn-encrypt.btn:not(.btn-outline),
+#tl-tab-btn-decrypt.btn:not(.btn-outline) {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0369a1 !important;
+  font-weight: 700 !important;
+}
+
+/* 3. Transition Buttons (Send to Sec 3 / Sec 4) */
+#tl-route-sec3,
+#tl-route-sec4 {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border: 1.5px solid #0369a1 !important;
+  font-weight: 700 !important;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25) !important;
+}
+#tl-route-sec3:hover,
+#tl-route-sec4:hover {
+  background: #0369a1 !important;
+  color: #ffffff !important;
+}
+
+/* 4. Decryption Result & Content Areas */
+html:not(.light) #tl-decrypt-result {
+  background: #064e3b !important;
+  border: 1.5px solid #10b981 !important;
+}
+html:not(.light) #tl-decrypted-content {
+  background: #111827 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+html:not(.light) #tl-decrypted-meta {
+  color: #a7f3d0 !important;
+}
+html:not(.light) .tl-guide-banner {
+  background: #143324 !important;
+  border: 1.5px solid #10b981 !important;
+  color: #ecfdf5 !important;
+}
+
+/* 5. Light Mode: Comprehensive High-Contrast & Legibility Fixes */
+html.light #timelock-section {
+  color: #1e293b;
+}
+
+/* Card steps in Light Mode */
+html.light #tl-panel-encrypt > div,
+html.light #tl-panel-decrypt > div {
+  background: #ffffff !important;
+  border: 1px solid #d4ded7 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Protection Mode Radio Cards */
+html.light label:has(#tl-mode-a) {
+  background: #f0f9ff !important;
+  border: 1.5px solid #0284c7 !important;
+}
+html.light label:has(#tl-mode-b) {
+  background: #fffbeb !important;
+  border: 1.5px solid #f59e0b !important;
+}
+
+/* Informational & Preview Boxes in Light Mode */
+html.light #tl-round-preview-box,
+html.light #tl-pre-summary-box,
+html.light #tl-capsule-info-box {
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.light #tl-round-preview-box span,
+html.light #tl-round-preview-box strong,
+html.light #tl-pre-summary-box span,
+html.light #tl-pre-summary-box strong,
+html.light #tl-capsule-info-box span,
+html.light #tl-capsule-info-box strong {
+  color: #0f172a !important;
+}
+
+/* Textareas and Inputs in Light Mode */
+html.light #tl-decrypted-content {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #86efac !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light #tl-output-text,
+html.light #tl-text-content,
+html.light #tl-restore-text,
+html.light #tl-manual-beacon-input {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* Decryption Result Box in Light Mode */
+html.light #tl-decrypt-result {
+  background: #f0fdf4 !important;
+  border: 1.5px solid #22c55e !important;
+  color: #14532d !important;
+}
+html.light #tl-decrypt-result > div:first-child > span {
+  color: #15803d !important;
+}
+html.light #tl-decrypted-meta {
+  color: #166534 !important;
+}
+html.light .tl-guide-banner {
+  background: #ecfdf5 !important;
+  border: 1.5px solid #10b981 !important;
+  color: #065f46 !important;
+}
+html.light .tl-guide-banner strong {
+  color: #047857 !important;
+}
+
+/* Color remapping for Light Mode readability (excluding buttons) */
+html.light #timelock-section *:not(button):not(button *)[style*="color:#fbbf24"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #fbbf24"] {
+  color: #b45309 !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#38bdf8"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #38bdf8"] {
+  color: #0369a1 !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#34d399"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #34d399"] {
+  color: #047857 !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#93c5fd"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #93c5fd"] {
+  color: #1e3a8a !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#94a3b8"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #94a3b8"] {
+  color: #475569 !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#fcd34d"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #fcd34d"] {
+  color: #92400e !important;
+}
+html.light #timelock-section *:not(button):not(button *)[style*="color:#d1d5db"],
+html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"] {
+  color: #334155 !important;
+}
+
+/* Ensure action buttons always keep white text */
+#tl-route-sec3, #tl-route-sec4,
+#tl-route-sec3 *, #tl-route-sec4 *,
+#tl-btn-decrypt, #tl-btn-decrypt * {
+  color: #ffffff !important;
+}
+
+

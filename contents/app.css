@@ -31,6 +31,8 @@ body.cm-body { margin: 0; background: var(--background); color: var(--foreground
 @media (min-width: 640px) { .cm-hide-sm { display: inline; } }
 .cm-ico { width: 16px; height: 16px; flex-shrink: 0; }
 .cm-ico-s { width: 12px; height: 12px; flex-shrink: 0; }
+.cm-btn-ico { width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 5px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.cm-tab-ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; margin-right: 6px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
 /* header */
 .cm-header { z-index: 40; border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--background) 85%, transparent); backdrop-filter: blur(8px); }
@@ -71,7 +73,7 @@ html.light .cm-b-amber { border-color: rgba(245,158,11,.6); background: #fef3c7;
 
 /* tabs */
 .cm-tablist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 10px; background: var(--card); }
-@media (min-width: 640px) { .cm-tablist { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .cm-tablist { grid-template-columns: repeat(5, 1fr); } }
 .cm-tab { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
 .cm-tab[aria-selected="true"] { background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); box-shadow: var(--glow); }
 .cm-panel[hidden] { display: none !important; }

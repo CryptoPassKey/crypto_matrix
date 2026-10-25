@@ -185,6 +185,7 @@ function clearArtifact(note=''){
 
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=true;
  if($('bq-test-restore'))$('bq-test-restore').disabled=true;
+ if($('bq-transfer-timelock'))$('bq-transfer-timelock').disabled=true;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=true;
 
@@ -360,11 +361,11 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
    `<div class="bv-no-print" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">`+
 
-   `<button type="button" class="btn btn-secondary btn-copy-share" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;">シェア ${s.index}/${s.n} をコピー</button>`+
+   `<button type="button" class="btn btn-secondary btn-copy-share" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>シェア ${s.index}/${s.n} コピー</button>`+
 
-   `<button type="button" class="btn btn-outline btn-save-share-txt" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;">💾 テキスト保存</button>`+
+   `<button type="button" class="btn btn-outline btn-save-share-txt" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存</button>`+
 
-   `<button type="button" class="btn btn-outline btn-save-share-qr" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;">🖼️ QR保存</button>`+
+   `<button type="button" class="btn btn-outline btn-save-share-qr" data-share-index="${s.index}" style="padding:3px 8px;font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR保存</button>`+
 
    `</div>`+
 
@@ -616,6 +617,7 @@ function updateSec3Display(format,isInitial=false){
 
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=false;
  if($('bq-test-restore'))$('bq-test-restore').disabled=false;
+ if($('bq-transfer-timelock'))$('bq-transfer-timelock').disabled=false;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=false;
 
@@ -845,7 +847,7 @@ function showDuressModal(context, realPassword, onConfirm, onCancel){
 
  if($('duress-sec3-fields')) $('duress-sec3-fields').hidden = (context !== 'sec3');
 
- if($('duress-sec4-fields')) $('duress-sec4-fields').hidden = (context !== 'sec4');
+ if($('duress-sec4-fields')) $('duress-sec4-fields').hidden = (context !== 'sec4' && context !== 'sec5');
 
 
 
@@ -1063,7 +1065,7 @@ async function createBackup(){
 
   $('backup-qr').dataset.ready='true';
 
-  $('bq-copy').disabled=false;$('bq-print').disabled=false;
+  $('bq-copy').disabled=false;if($('bq-print'))$('bq-print').disabled=false;
 
   if(usePass){$('bq-password').value='';$('bq-password-confirm').value='';}
 
@@ -1390,13 +1392,8 @@ async function getDecoder(){
  if(window.BarcodeDetector){try{if(!BarcodeDetector.getSupportedFormats||(await BarcodeDetector.getSupportedFormats()).includes('qr_code')){const detector=new BarcodeDetector({formats:['qr_code']});return async canvas=>(await detector.detect(canvas)).map(r=>r.rawValue);}}catch(_){}}
 
  if(!window.jsQR){
-
-  const allowCdn=($('bv-cdn')?.checked ?? $('bq-cdn')?.checked ?? true);
-
-  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(async()=>{if(!allowCdn)throw Error('お使いのブラウザでQRコードを読み取るには、「標準カメラ読取非対応のブラウザ（iPhone等）ではQR読取補助ライブラリを使用して読み取る」にチェックを入れてください。');throw Error('QR読取補助ライブラリを読み込めませんでした（オフライン専用：外部通信は無効化されています）');}).catch(e=>{decoderPromise=null;throw e;});
-
+  if(!decoderPromise)decoderPromise=script('vendor/jsQR.js').catch(e=>{decoderPromise=null;throw Error('QR読取補助ライブラリ（vendor/jsQR.js）を読み込めませんでした。');});
   await decoderPromise;
-
  }
 
  if(typeof window.jsQR!=='function')throw Error('QR読取ライブラリが利用できません。');
@@ -1480,6 +1477,16 @@ async function ingest(text){
  // 2. PGP Armored CRYPTOMATRIX QR Code
 
  if(trimmed.includes('-----BEGIN CRYPTOMATRIX')){
+
+  if(/-----BEGIN CRYPTOMATRIX TIMELOCK\b/i.test(trimmed)){
+
+   document.dispatchEvent(new CustomEvent('cm-route-timelock-text',{detail:{text:trimmed}}));
+
+   message('bq-scan-status','タイムロック（⏳ タイムロックタブ）のデータを検出したため、解禁・復元欄へ自動的に移動しました。');
+
+   return true;
+
+  }
 
   if(/-----BEGIN CRYPTOMATRIX VAULT\b/i.test(trimmed)){
 
@@ -1684,6 +1691,14 @@ async function readImage(file){
  try{
 
   if(file.size>25*1024*1024)throw Error('ファイルサイズは25MB以内にしてください。');
+
+  if(file.name.toLowerCase().endsWith('.cmtl')){
+
+   document.dispatchEvent(new CustomEvent('cm-route-timelock-files',{detail:{files:[file]}}));
+
+   return;
+
+  }
 
   if(file.name.toLowerCase().endsWith('.cmenc')){
 
@@ -3117,15 +3132,15 @@ function initBonusVault(){
 
            <div class="bv-no-print" style="display:flex; gap:6px; flex-wrap:wrap;">
 
-             <button type="button" class="btn btn-secondary bv-btn-copy-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">シェア${s.index}をコピー</button>
+             <button type="button" class="btn btn-secondary bv-btn-copy-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
 
-             <button type="button" class="btn btn-outline bv-btn-dl-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">💾 保存 (.cmenc)</button>
+             <button type="button" class="btn btn-outline bv-btn-dl-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>保存 (.cmenc)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-txt-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">💾 テキスト保存 (.txt)</button>
+             <button type="button" class="btn btn-outline bv-btn-txt-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-qr-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;" ${s.arm.length>2200?'disabled':''}>🖼️ QR画像保存 (PNG)</button>
+             <button type="button" class="btn btn-outline bv-btn-qr-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;" ${s.arm.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePass(KeeWeb)に保存">📥 KeePassに保存</button>
+             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePass(KeeWeb)に保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
 
              ${(isMulti&&s.hasWords)?`<button type="button" class="btn btn-outline bv-btn-toggle-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替</button>`:''}
 
@@ -3583,27 +3598,28 @@ function initBonusVault(){
 
      actions.appendChild(dlAllCmencBtn);
 
-
-
-     const printBtn=document.createElement('button');
-
-     printBtn.type='button';printBtn.className='btn btn-outline bv-no-print';
-
-     printBtn.style.fontSize='0.78rem';
-
-     printBtn.textContent='🖨️ 全シェアQR・保管シートを印刷';
-
-     printBtn.addEventListener('click',()=>{
-
-      document.body.classList.add('print-vault-mode');
-
-      window.print();
-
-      setTimeout(()=>document.body.classList.remove('print-vault-mode'),1000);
-
+     const tlAllBtn=document.createElement('button');
+     tlAllBtn.id='bv-btn-tl-all';
+     tlAllBtn.type='button';tlAllBtn.className='btn btn-outline bv-no-print';
+     tlAllBtn.style.cssText='font-size:0.78rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;';
+     tlAllBtn.textContent='⏳ 全シェアをタイムロックへ転記';
+     tlAllBtn.addEventListener('click',()=>{
+      if(window.TimeLockApp?.receiveTransferredPayload){
+       const allArmored=shares.map(s=>s.arm).join('\n\n');
+       window.TimeLockApp.receiveTransferredPayload({
+        source:'sec4',
+        label:`セクション4 保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
+        bytes:enc.encode(allArmored),
+        armoredText:allArmored,
+        factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
+        shamirM,
+        shamirN,
+        createdPassword:password,
+        filename:`${baseName}-${shamirM}of${shamirN}.txt`
+       });
+      }
      });
-
-     actions.appendChild(printBtn);
+     actions.appendChild(tlAllBtn);
 
 
 
@@ -3687,17 +3703,18 @@ function initBonusVault(){
 
            <div class="bv-no-print" style="display:flex; gap:6px; flex-wrap:wrap;">
 
-             <button type="button" class="btn btn-secondary" id="bv-btn-copy-single" style="padding:4px 8px; font-size:0.75rem;">テキストをコピー</button>
+             <button type="button" class="btn btn-secondary" id="bv-btn-copy-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>テキストをコピー</button>
 
-             <button type="button" class="btn btn-outline" id="bv-btn-dl-single" style="padding:4px 8px; font-size:0.75rem;">💾 ファイル保存 (.cmenc)</button>
+             <button type="button" class="btn btn-outline" id="bv-btn-dl-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイル保存 (.cmenc)</button>
 
-             <button type="button" class="btn btn-outline" id="bv-btn-txt-single" style="padding:4px 8px; font-size:0.75rem;">💾 テキスト保存 (.txt)</button>
+             <button type="button" class="btn btn-outline" id="bv-btn-txt-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
 
-             <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}>🖼️ QR画像保存 (PNG)</button>
+             <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像・キーファイルを両方自動添付）">📥 KeePassに保存</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムロックタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
 
-             ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替（PGP ⇄ BIP39）</button>`:''}
+             ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>表示切替（PGP ⇄ BIP39）</button>`:''}
 
            </div>
 
@@ -3759,6 +3776,23 @@ function initBonusVault(){
 
       bvMessage('bv-encrypt-status',`暗号化ファイルを「${outFileName}」としてダウンロードしました。`);
 
+     });
+
+     const singleBytesCopy=new Uint8Array(bodyToShare);
+     $('bv-btn-tl-single')?.addEventListener('click',()=>{
+      if(window.TimeLockApp?.receiveTransferredPayload){
+       window.TimeLockApp.receiveTransferredPayload({
+        source:'sec4',
+        label:isFile?`セクション4 暗号化ファイル (${name})`:'セクション4 保管庫暗号化データ',
+        bytes:singleBytesCopy.slice(),
+        armoredText:armored,
+        factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
+        shamirM:1,
+        shamirN:1,
+        createdPassword:password,
+        filename:outFileName
+       });
+      }
      });
 
 
@@ -4050,38 +4084,6 @@ function initBonusVault(){
       }
 
      });
-
-
-
-     const printBtn=document.createElement('button');
-
-     printBtn.type='button';printBtn.className='btn btn-outline bv-no-print';
-
-     printBtn.style.fontSize='0.78rem';
-
-     printBtn.textContent='🖨️ QRコード・保管シートを印刷';
-
-     printBtn.addEventListener('click',()=>{
-
-      if(armored.length>8000){
-
-       if(!confirm(`データサイズが大きいため（約${(armored.length/1024).toFixed(1)} KB）、紙への印刷から手動入力で復元するのは非常に困難です。暗号化ファイル（.cmenc）での保存を強く推奨します。\n\nそれでも印刷しますか？`)){
-
-        return;
-
-       }
-
-      }
-
-      document.body.classList.add('print-vault-mode');
-
-      window.print();
-
-      setTimeout(()=>document.body.classList.remove('print-vault-mode'),1000);
-
-     });
-
-     actions.appendChild(printBtn);
 
 
 
@@ -4387,6 +4389,19 @@ function initBonusVault(){
 
     return;
 
+   }
+
+   for(const b of items){
+    if(b.length>=16&&b[0]===0x43&&b[1]===0x4d&&b[2]===0x54&&(b[3]===0x4c||b[3]===0x53)){
+     scrubAllSensitive();
+     if(rawText.includes('-----BEGIN CRYPTOMATRIX TIMELOCK')){
+      document.dispatchEvent(new CustomEvent('cm-route-timelock-text',{detail:{text:rawText}}));
+     }else if(rawFiles&&rawFiles.length){
+      document.dispatchEvent(new CustomEvent('cm-route-timelock-files',{detail:{files:rawFiles}}));
+     }
+     bvMessage('bv-decrypt-status','⏳ タイムロックカプセル (.cmtl) を検出したため、「⏳ タイムロック」タブへ移動しました。');
+     return;
+    }
    }
 
 
@@ -5230,6 +5245,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   message('bq-scan-status','作成されたバックアップデータを復元入力欄に転記しました。「読み込み・検証して内容を確認」を押して手動テストを行ってください。');
  });
 
+  $('bq-transfer-timelock')?.addEventListener('click',()=>{
+   if(!artifact||!window.TimeLockApp?.receiveTransferredPayload)return;
+   const payloadStr=artifact.armoredText||artifact.phraseText||'';
+   const payloadBytes=artifact.shamirN>1
+    ?enc.encode(payloadStr)
+    :(artifact.rawBytes?artifact.rawBytes.slice():enc.encode(payloadStr));
+   window.TimeLockApp.receiveTransferredPayload({
+    source:'sec3',
+    label:artifact.extended?'セクション3 拡張暗号化バックアップ':'セクション3 暗号化バックアップ',
+    bytes:payloadBytes,
+    armoredText:payloadStr,
+    factorLabel:artifact.factorLabel||'暗号化済み',
+    shamirM:artifact.shamirM||1,
+    shamirN:artifact.shamirN||1,
+    createdPassword:artifact.createdPassword||'',
+    filename:artifact.shamirN>1?`cryptomatrix-backup-${artifact.shamirM}of${artifact.shamirN}.txt`:'cryptomatrix-encrypted-backup.cmenc'
+   });
+   message('bq-status','⏳ 作成された暗号化バックアップを復号・削除せず「⏳ タイムロック」タブへ転記しました。');
+  });
+
  $('bq-transfer-keeweb')?.addEventListener('click',async()=>{
 
   if(!artifact)return;
@@ -5776,7 +5811,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
    targets.forEach(el => { el.type = isCurrentlyPassword ? 'text' : 'password'; });
 
-   btn.textContent = isCurrentlyPassword ? '🙈 伏字にする' : '👁️ パスワードを表示';
+   btn.innerHTML = isCurrentlyPassword
+    ? '<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>伏字にする'
+    : '<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示';
 
   });
 
@@ -5891,6 +5928,28 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
 
 
+
+  window.showDuressModal = showDuressModal;
+  window.closeDuressModal = closeDuressModal;
+
+  window.CMQrHelpers=Object.freeze({
+   qrSVG,
+   getQrCanvasDecoder:getDecoder,
+   decodeQrFromFile:async(file)=>{
+    const decode=await getDecoder();
+    const image=await createImageBitmap(file);
+    try{
+     const scale=Math.min(1,1800/Math.max(image.width,image.height));
+     const canvas=document.createElement('canvas');
+     canvas.width=Math.max(1,Math.round(image.width*scale));
+     canvas.height=Math.max(1,Math.round(image.height*scale));
+     canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+     return await decode(canvas);
+    }finally{
+     image.close();
+    }
+   }
+  });
 
   window.addEventListener('pagehide',()=>stopCamera());
 

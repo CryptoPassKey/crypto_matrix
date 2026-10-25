@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Crypto Matrix - 暗号マトリックス ＆ マイ・レシピ管理 (BIP39 24単語)
  */
 
@@ -2321,7 +2321,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       raw = localStorage.getItem(key) || '';
       const data = JSON.parse(raw);
-      const validTargets = new Set(['bq', 'bv', 'km']);
+      const validTargets = new Set(['bq', 'bv', 'km', 'tl']);
       if (!data || typeof data !== 'object' || Array.isArray(data) ||
           !validTargets.has(data.target) || typeof data.password !== 'string' || !data.password ||
           !Number.isFinite(data._expiresAt) || data._expiresAt <= Date.now() ||
@@ -2333,7 +2333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ? ['bq-password', 'bq-password-confirm']
         : data.target === 'bv'
           ? ['bv-password', 'bv-password-confirm']
-          : ['km-password'];
+          : data.target === 'tl'
+            ? ['tl-password', 'tl-password-confirm']
+            : ['km-password'];
       const inputs = inputIds.map(id => document.getElementById(id)).filter(Boolean);
       if (!inputs.length) return false;
       inputs.forEach(input => {
@@ -2342,8 +2344,8 @@ document.addEventListener('DOMContentLoaded', () => {
         input.dispatchEvent(new Event('change', {bubbles:true}));
       });
       if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
-      const labels = {bq:'バックアップ用の復元パスワード', bv:'保管庫用の復元パスワード', km:'キーファイル用の復元パスワード'};
-      const statusId = data.target === 'bq' ? 'bq-status' : data.target === 'bv' ? 'bv-encrypt-status' : 'km-generated-password-status';
+      const labels = {bq:'バックアップ用の復元パスワード', bv:'保管庫用の復元パスワード', km:'キーファイル用の復元パスワード', tl:'タイムロック用の復元パスワード'};
+      const statusId = data.target === 'bq' ? 'bq-status' : data.target === 'bv' ? 'bv-encrypt-status' : data.target === 'tl' ? 'tl-encrypt-status' : 'km-generated-password-status';
       const status = document.getElementById(statusId);
       if (status) {
         if (statusId === 'km-generated-password-status') status.style.display = 'block';
@@ -2387,30 +2389,37 @@ document.addEventListener('DOMContentLoaded', () => {
     hint.id = 'cm-global-drop-hint';
     hint.setAttribute('aria-live', 'polite');
     hint.style.cssText = 'display:none;position:fixed;inset:18px;z-index:100000;border:3px dashed #0284c7;border-radius:14px;background:rgba(240,249,255,.94);color:#075985;align-items:center;justify-content:center;text-align:center;font-size:1.1rem;font-weight:800;pointer-events:none;';
-    hint.textContent = '📥 復元ファイルをドロップ — バックアップ／保管庫を自動判別します';
+    hint.textContent = '📥 復元ファイルをドロップ — バックアップ／保管庫／タイムロックを自動判別します';
     document.body.appendChild(hint);
     return hint;
   }
   function showDropHint(show) { ensureDropHint().style.display = show ? 'flex' : 'none'; }
   async function routeDroppedFiles(fileList) {
-    const backupFiles = [], vaultFiles = [];
+    const backupFiles = [], vaultFiles = [], timelockFiles = [];
     for (const file of Array.from(fileList || [])) {
       const lower = (file.name || '').toLowerCase();
+      if (lower.endsWith('.cmtl')) { timelockFiles.push(file); continue; }
       if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/i.test(lower)) { backupFiles.push(file); continue; }
-      let isBackup = /\.(txt|asc)$/i.test(lower);
+      let target = /\.(txt|asc)$/i.test(lower) ? 'backup' : 'vault';
       try {
         const head = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
         const text = new TextDecoder().decode(head);
-        if (/CRYPTOMATRIX\s+VAULT\b/i.test(text)) isBackup = false;
-        else if (/CRYPTOMATRIX\s+BACKUP\b/i.test(text)) isBackup = true;
-        else if (head.length >= 3) {
-          const magic = String.fromCharCode(head[0], head[1], head[2]);
-          if (magic === 'CXB' || magic === 'CMS') isBackup = true;
-          if (magic === 'CME' || magic === 'CMV') isBackup = false;
+        if (/CRYPTOMATRIX\s+TIMELOCK\b/i.test(text)) target = 'timelock';
+        else if (/CRYPTOMATRIX\s+VAULT\b/i.test(text)) target = 'vault';
+        else if (/CRYPTOMATRIX\s+BACKUP\b/i.test(text)) target = 'backup';
+        else if (head.length >= 4) {
+          const magic4 = String.fromCharCode(head[0], head[1], head[2], head[3]);
+          const magic3 = magic4.slice(0, 3);
+          if (magic4 === 'CMTL' || magic4 === 'CMTS') target = 'timelock';
+          else if (magic3 === 'CXB' || magic3 === 'CMS') target = 'backup';
+          else if (magic3 === 'CME' || magic3 === 'CMV') target = 'vault';
         }
       } catch (_) {}
-      (isBackup ? backupFiles : vaultFiles).push(file);
+      if (target === 'timelock') timelockFiles.push(file);
+      else if (target === 'backup') backupFiles.push(file);
+      else vaultFiles.push(file);
     }
+    if (timelockFiles.length) document.dispatchEvent(new CustomEvent('cm-route-timelock-files', {detail:{files:timelockFiles}}));
     if (backupFiles.length) document.dispatchEvent(new CustomEvent('cm-route-backup-files', {detail:{files:backupFiles}}));
     if (vaultFiles.length) document.dispatchEvent(new CustomEvent('cm-route-vault-files', {detail:{files:vaultFiles}}));
   }
@@ -2765,6 +2774,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=true;
   if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=true;
   if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=true;
+  if($('btn-sec2-transfer-timelock'))$('btn-sec2-transfer-timelock').disabled=true;
   if($('seed-words-container'))$('seed-words-container').textContent=message;
   if($('seed-qr-list'))$('seed-qr-list').replaceChildren();
  }
@@ -3289,7 +3299,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(btn){
    btn.setAttribute('aria-pressed',String(blindMode));
    btn.classList.toggle('btn-blind-active',blindMode);
-   btn.textContent=blindMode?(playing?'👁️ ブラインド表示: ON（ルート再生中は自動表示）':'🙈 ブラインド表示: ON（覗き見防止中）'):'🙈 ブラインド表示: OFF';
+   btn.innerHTML=blindMode?(playing?'<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>ブラインド表示: ON（ルート再生中は自動表示）':'<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>ブラインド表示: ON（覗き見防止中）'):'<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>ブラインド表示: OFF';
   }
  }
  function setBlindMode(active){
@@ -4228,6 +4238,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=false;
    if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=false;
    if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=false;
+   if($('btn-sec2-transfer-timelock'))$('btn-sec2-transfer-timelock').disabled=false;
    if(qrBox&&window.MatrixQRCode){
     const wordsText=groups[0].join(' ');
     const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(wordsText);
@@ -4272,6 +4283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if($('btn-save-seed-txt'))$('btn-save-seed-txt').disabled=false;
   if($('btn-save-seed-qr'))$('btn-save-seed-qr').disabled=false;
   if($('btn-sec2-transfer-keeweb'))$('btn-sec2-transfer-keeweb').disabled=false;
+  if($('btn-sec2-transfer-timelock'))$('btn-sec2-transfer-timelock').disabled=false;
 
   function updateSec2QR(format){
    if(!qrBox||!window.MatrixQRCode)return;
@@ -4800,6 +4812,34 @@ document.addEventListener('DOMContentLoaded', () => {
    }
    if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
   });
+
+  $('btn-sec2-transfer-timelock')?.addEventListener('click', () => {
+    if (!currentMnemonicWords.length) {
+      alert('転送する復元データがありません。先にシード番号を入力してフレーズを生成してください。');
+      return;
+    }
+    if (!window.TimeLockApp?.receiveTransferredPayload) {
+      alert('タイムロック機能が利用できません。');
+      return;
+    }
+    const words = currentMnemonicWords.slice();
+    const isArmored = (activeSec2Format === 'armored' && sec2ArmoredText);
+    const text = isArmored ? sec2ArmoredText : Array.from({length: words.length / 24}, (_, i) => words.slice(i * 24, i * 24 + 24).join(' ')).join('\n');
+    const seedNum = $('input-seed-number')?.value || '0';
+
+    window.TimeLockApp.receiveTransferredPayload({
+      source: 'sec2',
+      label: 'セクション2 BIP39復元フレーズ（カード・レシピ設定）',
+      bytes: new TextEncoder().encode(text),
+      armoredText: text,
+      factorLabel: '平文（未暗号化）',
+      shamirM: 1,
+      shamirN: 1,
+      createdPassword: '',
+      filename: isArmored ? `cryptomatrix-backup-seed-${seedNum}.asc` : `cryptomatrix-backup-seed-${seedNum}.txt`
+    });
+    setStatus('backup-summary', '⏳ BIP39復元フレーズを「⏳ タイムロック」タブへ転記しました。タイムロック側で時間暗号化を設定してください。');
+  });
   initKeyfileModalEvents();
 
   $('btn-zeroize')?.addEventListener('click',async()=>{
@@ -4826,12 +4866,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if(len>0){try{el.value='0'.repeat(len);el.value='\u0000'.repeat(len);}catch(_){}}
     el.value='';
    }
-   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-restore-text','bv-keyfile','bv-restore-keyfile','duress-modal-pw','duress-modal-pw-conf','duress-modal-seed','duress-modal-site','duress-modal-secret','duress-vault-pw','duress-vault-pw-conf','duress-vault-text','km-password','km-password-confirm','keyfile-modal-seed']){
+   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-restore-text','bv-keyfile','bv-restore-keyfile','tl-text-content','tl-password','tl-password-confirm','tl-restore-password','tl-restore-text','tl-keyfile','tl-restore-keyfile','tl-duress-pw','tl-duress-pw-conf','tl-duress-text','tl-manual-beacon-input','duress-modal-pw','duress-modal-pw-conf','duress-modal-seed','duress-modal-site','duress-modal-secret','duress-vault-pw','duress-vault-pw-conf','duress-vault-text','km-password','km-password-confirm','keyfile-modal-seed']){
     scrubDOM($(id));
    }
    if($('bv-decrypted-content'))$('bv-decrypted-content').textContent='';
    if($('bv-decrypt-result'))$('bv-decrypt-result').style.display='none';
    if($('bv-encrypt-result'))$('bv-encrypt-result').style.display='none';
+   $('tl-clear-output')?.click();
+   $('tl-restore-clear')?.click();
    if($('duress-modal')){delete $('duress-modal').dataset.realPassword;$('duress-modal').hidden=true;}
    if($('keyfile-modal'))$('keyfile-modal').hidden=true;
    if(Array.isArray(currentMnemonicWords)){currentMnemonicWords.fill('');currentMnemonicWords.length=0;}

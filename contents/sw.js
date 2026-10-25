@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-85f32dcee0';
+const VERSION = 'cm-timelock-v1.9';
 const FILES = [
   "./",
   "app.css",
@@ -44,7 +44,10 @@ const FILES = [
   "qr-encoder.js",
   "theme-cyber.css",
   "theme-init.js",
-  "vendor/jsQR.js"
+  "timelock.js",
+  "timelock-recover.html",
+  "vendor/jsQR.js",
+  "vendor/tlock.bundle.js"
 ];
 
 self.addEventListener('install', (e) => {

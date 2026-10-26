@@ -32,18 +32,25 @@ body.cm-body { margin: 0; background: var(--background); color: var(--foreground
 .cm-ico { width: 16px; height: 16px; flex-shrink: 0; }
 .cm-ico-s { width: 12px; height: 12px; flex-shrink: 0; }
 .cm-btn-ico { width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 5px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-.cm-tab-ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; margin-right: 6px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.cm-tab-ico { width: 20px; height: 20px; display: inline-block; vertical-align: middle; object-fit: contain; flex-shrink: 0; border-radius: 4px; }
+svg.cm-tab-ico { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* header */
 .cm-header { z-index: 40; border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--background) 85%, transparent); backdrop-filter: blur(8px); }
 @media (min-width: 1024px) { .cm-header { position: sticky; top: 0; } }
 .cm-header-in { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; gap: 6px; padding: 12px 8px; }
 @media (min-width: 640px) { .cm-header-in { gap: 12px; padding: 12px 16px; } }
-.cm-logo { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--primary) 40%, transparent); background: color-mix(in oklab, var(--primary) 10%, transparent); color: var(--primary); box-shadow: var(--glow); }
-@media (min-width: 640px) { .cm-logo { width: 36px; height: 36px; } }
-.cm-title { margin: 0; white-space: nowrap; font-size: 12px; font-weight: 700; letter-spacing: -0.02em; }
+.cm-logo { display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; padding: 0; background: transparent; border: none; }
+@media (min-width: 640px) { .cm-logo { width: 38px; height: 38px; } }
+.cm-logo-img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 50%; filter: drop-shadow(0 0 5px color-mix(in oklab, var(--primary) 45%, transparent)); transition: transform 0.25s ease, filter 0.25s ease; }
+.cm-logo:hover .cm-logo-img { transform: rotate(15deg) scale(1.08); filter: drop-shadow(0 0 10px var(--primary)); }
+.cm-title-wrap { display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; }
+.cm-title { margin: 0; white-space: nowrap; font-size: 13px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
 @media (min-width: 640px) { .cm-title { font-size: 16px; } }
 .cm-title span { color: var(--primary); }
+.cm-subtitle { font-size: 9px; letter-spacing: 0.04em; color: var(--muted-foreground); white-space: nowrap; display: none; line-height: 1.1; }
+@media (min-width: 768px) { .cm-subtitle { display: block; } }
+@media (max-width: 1280px) { .cm-subtitle .cm-sub-extra { display: none; } }
 .cm-tools { margin-left: auto; display: flex; min-width: 0; align-items: center; gap: 4px; font-size: 11px; }
 .cm-tools > * { flex-shrink: 0; }
 @media (min-width: 640px) { .cm-tools { gap: 8px; } }
@@ -74,8 +81,12 @@ html.light .cm-b-amber { border-color: rgba(245,158,11,.6); background: #fef3c7;
 /* tabs */
 .cm-tablist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 10px; background: var(--card); }
 @media (min-width: 768px) { .cm-tablist { grid-template-columns: repeat(5, 1fr); } }
-.cm-tab { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
-.cm-tab[aria-selected="true"] { background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); box-shadow: var(--glow); }
+.cm-tab { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
+@media (min-width: 768px) { .cm-tab { flex-direction: column; gap: 4px; padding: 7px 2px; font-size: 11px; line-height: 1.25; text-align: center; } }
+.cm-tab .cm-tab-ico { transition: transform 0.15s ease, filter 0.15s ease; }
+.cm-tab:hover .cm-tab-ico { transform: scale(1.08); }
+.cm-tab[aria-selected="true"] { background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); box-shadow: var(--glow); font-weight: 600; }
+.cm-tab[aria-selected="true"] .cm-tab-ico { transform: scale(1.12); filter: drop-shadow(0 0 4px color-mix(in oklab, var(--primary) 70%, transparent)); }
 .cm-panel[hidden] { display: none !important; }
 
 /* modal (install guide / masked password) */

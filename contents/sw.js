@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-seed-bound-v2.3';
+const VERSION = 'cm-emblem-v2.5';
 const FILES = [
   "./",
   "app.css",
@@ -8,11 +8,17 @@ const FILES = [
   "apple-touch-icon.png",
   "argon2.umd.min.js",
   "backup-qr.js",
+  "emblem.png",
   "favicon.png",
   "fonts/jetbrains-mono-latin-400-normal.woff2",
   "fonts/jetbrains-mono-latin-700-normal.woff2",
   "index.html",
   "index.js",
+  "tab-backup.png",
+  "tab-capsule.png",
+  "tab-quick.png",
+  "tab-recipe.png",
+  "tab-vault.png",
   "keeweb/404.html",
   "keeweb/browserconfig.xml",
   "keeweb/build.txt",

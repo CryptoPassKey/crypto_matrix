@@ -507,15 +507,106 @@
     }, 300);
   });
 
-  /* ---------- オフライン対応（Service Worker） ---------- */
+  /* ---------- QRコード ドラッグ＆ドロップ ＆ クリップボード貼り付け（Ctrl+V） ---------- */
+  function dispatchFileToInput(inputEl, file) {
+    if (!inputEl || !file) return false;
+    try {
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      inputEl.files = dt.files;
+      inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function handlePastedOrDroppedImage(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    var tabBackup = $('tab-backup'), tabVault = $('tab-vault'), tabTimelock = $('tab-timelock');
+    var isBackup = tabBackup && !tabBackup.hidden;
+    var isVault = tabVault && !tabVault.hidden;
+    var isTimelock = tabTimelock && !tabTimelock.hidden;
+
+    if (isTimelock && $('tl-restore-qr-img')) {
+      dispatchFileToInput($('tl-restore-qr-img'), file);
+    } else if (isVault && $('bv-restore-qr-img')) {
+      dispatchFileToInput($('bv-restore-qr-img'), file);
+    } else if ($('bq-image')) {
+      dispatchFileToInput($('bq-image'), file);
+    }
+  }
+
+  window.addEventListener('paste', function (e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        var file = items[i].getAsFile();
+        if (file) {
+          handlePastedOrDroppedImage(file);
+          break;
+        }
+      }
+    }
+  });
+
+  ['dragover', 'dragenter'].forEach(function (evName) {
+    window.addEventListener(evName, function (e) {
+      if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+        e.preventDefault();
+      }
+    });
+  });
+
+  window.addEventListener('drop', function (e) {
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) {
+      var imgFile = null;
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('image/')) { imgFile = files[i]; break; }
+      }
+      if (imgFile) {
+        e.preventDefault();
+        handlePastedOrDroppedImage(imgFile);
+      }
+    }
+  });
+
+  /* ---------- オフライン対応（Service Worker 更新通知） ---------- */
   if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').then(function (reg) {
-        // 新しい版が入ったら次回起動から自動で切り替わる
+        function showUpdatePrompt(worker) {
+          if ($('cm-sw-update-banner')) return;
+          var banner = document.createElement('div');
+          banner.id = 'cm-sw-update-banner';
+          banner.style.position = 'fixed';
+          banner.style.bottom = '16px';
+          banner.style.right = '16px';
+          banner.style.zIndex = '9999';
+          banner.style.background = '#0284c7';
+          banner.style.color = '#ffffff';
+          banner.style.padding = '10px 16px';
+          banner.style.borderRadius = '8px';
+          banner.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+          banner.style.cursor = 'pointer';
+          banner.style.fontWeight = '600';
+          banner.style.fontSize = '0.86rem';
+          banner.innerHTML = '✨ Crypto Matrix の新しいバージョンが利用可能です。タップして更新';
+          banner.addEventListener('click', function () {
+            if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
+            location.reload();
+          });
+          document.body.appendChild(banner);
+        }
+        if (reg.waiting) showUpdatePrompt(reg.waiting);
         reg.addEventListener('updatefound', function () {
           var nw = reg.installing;
           if (nw) nw.addEventListener('statechange', function () {
-            if (nw.state === 'activated' && navigator.serviceWorker.controller) console.info('Crypto Matrix: 新しい版を読み込みました（次回の再読み込みで反映）');
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdatePrompt(nw);
+            }
           });
         });
       }).catch(function () {});

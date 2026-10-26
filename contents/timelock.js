@@ -1373,7 +1373,14 @@
     // Quick relative preset buttons
     document.querySelectorAll('.tl-preset-time-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const sec = Number(btn.dataset.sec || 3600);
+        let sec = 0;
+        if (btn.dataset.sec === 'next-year') {
+          const now = new Date();
+          const nextNY = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+          sec = Math.max(1, Math.round((nextNY.getTime() - Date.now()) / 1000));
+        } else {
+          sec = Number(btn.dataset.sec || 3600);
+        }
         if ($('tl-time-mode-rel')?.checked) {
           if (sec < 60) {
             if ($('tl-rel-amount')) $('tl-rel-amount').value = String(Math.max(1, Math.round(sec / 60)));

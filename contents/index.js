@@ -2447,16 +2447,40 @@ document.addEventListener('DOMContentLoaded', () => {
     void routeDroppedFiles(event.dataTransfer.files);
   });
 
+  function updateAllBoundSeedBadges() {
+    const seed = (document.getElementById('input-seed-number')?.value || '0').trim();
+    const tlBadge = document.getElementById('tl-bound-seed-badge');
+    const bqBadge = document.getElementById('bq-bound-seed-badge');
+    const bvBadge = document.getElementById('bv-bound-seed-badge');
+    if (tlBadge) tlBadge.textContent = `#${seed}`;
+    if (bqBadge) bqBadge.textContent = `#${seed}`;
+    if (bvBadge) bvBadge.textContent = `#${seed}`;
+  }
+
   updateMainMatrix(seedInput ? seedInput.value : '0');
   updateSimulationUI();
   generateAndRenderSeedPhrase();
   saveStateToStorage();
+  updateAllBoundSeedBadges();
 
   seedInput?.addEventListener('input', () => {
     saveStateToStorage();
+    updateAllBoundSeedBadges();
   });
   seedInput?.addEventListener('change', () => {
     saveStateToStorage();
+    updateAllBoundSeedBadges();
+  });
+
+  document.getElementById('bq-btn-sync-card-seed')?.addEventListener('click', () => {
+    const curSeed = (document.getElementById('input-seed-number')?.value || '0').trim();
+    const bqRestoreInput = document.getElementById('bq-restore-seed-number');
+    if (bqRestoreInput) bqRestoreInput.value = curSeed;
+    const statusEl = document.getElementById('restore-status');
+    if (statusEl) {
+      statusEl.className = 'status-msg';
+      statusEl.textContent = `現在のカード配列シード番号 (#${curSeed}) を反映しました。`;
+    }
   });
 
   document.getElementById('btn-update-matrix')?.addEventListener('click', () => {
@@ -2464,6 +2488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSimulationUI();
     generateAndRenderSeedPhrase();
     saveStateToStorage();
+    updateAllBoundSeedBadges();
   });
 
   document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
@@ -2473,6 +2498,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSimulationUI();
     generateAndRenderSeedPhrase();
     saveStateToStorage();
+    updateAllBoundSeedBadges();
   });
 
   document.querySelectorAll('.rc-input').forEach(el => {
@@ -3959,6 +3985,74 @@ document.addEventListener('DOMContentLoaded', () => {
    if(pwBytes)zeroize(pwBytes);if(keyMaterial)zeroize(keyMaterial);
   }
  }
+
+ /* ===================================================================
+  * Card Array Seed Bound Encryption (CMA1)
+  * Domain Separators for Section 3 (Backup), Section 4 (Vault), Section 5 (TimeLock)
+  * =================================================================== */
+ const CM_APP_DOMAIN_PEPPER = 'CryptoMatrix:TimeLock:AppDomainSecret:v1:2026';
+ const CM_BACKUP_DOMAIN_PEPPER = 'CryptoMatrix:Backup:AppDomainSecret:v1:2026';
+ const CM_VAULT_DOMAIN_PEPPER = 'CryptoMatrix:Vault:AppDomainSecret:v1:2026';
+
+ function bytesToHex(b) {
+   return Array.from(b, v => v.toString(16).padStart(2, '0')).join('');
+ }
+
+ async function deriveAppDomainKey(domain, iv, seedNum = '0') {
+   const cleanSeed = (seedNum !== undefined && seedNum !== null) ? String(seedNum).trim() : '0';
+   let pepper = CM_APP_DOMAIN_PEPPER;
+   if (domain === 'Backup') pepper = CM_BACKUP_DOMAIN_PEPPER;
+   else if (domain === 'Vault') pepper = CM_VAULT_DOMAIN_PEPPER;
+
+   const ivHash = iv instanceof Uint8Array ? await sha(iv) : new Uint8Array(32);
+   const seedBytes = enc.encode(`${pepper}:seed=${cleanSeed}:${bytesToHex(ivHash)}`);
+   const keyHash = await sha(seedBytes);
+   return cryptoAPI().importKey('raw', keyHash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+ }
+
+ async function packAppBound(domain, plainBytes, seedNum = '0') {
+   const iv = crypto.getRandomValues(new Uint8Array(12));
+   const appKey = await deriveAppDomainKey(domain, iv, seedNum);
+   const aad = enc.encode(`CryptoMatrix:CMA1:${domain}:v1`);
+   const ciphertext = new Uint8Array(await cryptoAPI().encrypt({ name: 'AES-GCM', iv, additionalData: aad }, appKey, plainBytes));
+   const out = new Uint8Array(4 + 12 + ciphertext.length);
+   out[0] = 0x43; out[1] = 0x4d; out[2] = 0x41; out[3] = 0x31; // "CMA1"
+   out.set(iv, 4);
+   out.set(ciphertext, 16);
+   return out;
+ }
+
+ async function unpackAppBound(domain, bodyBytes, seedNum = '0') {
+   if (!(bodyBytes instanceof Uint8Array) || bodyBytes.length < 32) {
+     return bodyBytes;
+   }
+   // "CMA1" (Seed-bound authenticated encryption)
+   if (bodyBytes[0] === 0x43 && bodyBytes[1] === 0x4d && bodyBytes[2] === 0x41 && bodyBytes[3] === 0x31) {
+     const iv = bodyBytes.subarray(4, 16);
+     const ciphertext = bodyBytes.subarray(16);
+     const appKey = await deriveAppDomainKey(domain, iv, seedNum);
+     const aad = enc.encode(`CryptoMatrix:CMA1:${domain}:v1`);
+     try {
+       return new Uint8Array(await cryptoAPI().decrypt({ name: 'AES-GCM', iv, additionalData: aad }, appKey, ciphertext));
+     } catch (_) {
+       const targetName = domain === 'Backup' ? 'バックアップ' : domain === 'Vault' ? '保管庫データ' : 'カプセル';
+       throw new Error(`本${targetName}はカード配列シード連動で暗号化されています。連動カード配列シード番号 (seed) が一致しません。作成時のシード番号（デフォルト: 0）をご確認ください。`);
+     }
+   }
+   // Legacy fallback (return as-is)
+   return bodyBytes;
+ }
+
+ function updateAllBoundSeedBadges() {
+   const seed = (document.getElementById('input-seed-number')?.value || '0').trim();
+   const tlBadge = document.getElementById('tl-bound-seed-badge');
+   const bqBadge = document.getElementById('bq-bound-seed-badge');
+   const bvBadge = document.getElementById('bv-bound-seed-badge');
+   if (tlBadge) tlBadge.textContent = `#${seed}`;
+   if (bqBadge) bqBadge.textContent = `#${seed}`;
+   if (bvBadge) bvBadge.textContent = `#${seed}`;
+ }
+
  async function encryptBodyCME3(plainBody,password,kdfProfile=1,factors={}){
   const profile=Number(kdfProfile);
   if(!(profile in KDF_ITERATIONS))throw new Error('暗号化プロファイルの指定が不正です。');
@@ -4463,11 +4557,15 @@ document.addEventListener('DOMContentLoaded', () => {
    }
    if(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3)){
     const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(body,password,twoFaOpts);
-    const res=parsePlainBody(innerBody,true,kdfProfile,tagHex,combo,null,combo);
+    const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
+    const plain = await unpackAppBound('Backup', innerBody, restoreSeed);
+    const res=parsePlainBody(plain,true,kdfProfile,tagHex,combo,null,combo);
     if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
     return res;
    }
-   return parsePlainBody(body,false,null,tagHex,0,null,null);
+   const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
+   const plain = await unpackAppBound('Backup', body, restoreSeed);
+   return parsePlainBody(plain,false,null,tagHex,0,null,null);
   }
   // Multiple tag groups -> check for Shamir M-of-N shares
   const shareMap=new Map();
@@ -4496,11 +4594,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if(!equal(cmeHash.slice(0,8),refSetId))throw new Error('秘密分散シェアの合成検証（SHA-256）に失敗しました。');
   if(cmeBody[0]===0x43&&cmeBody[1]===0x4d&&cmeBody[2]===0x45&&(cmeBody[3]===2||cmeBody[3]===3)){
    const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
-   const res=parsePlainBody(innerBody,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
+   const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
+   const plain = await unpackAppBound('Backup', innerBody, restoreSeed);
+   const res=parsePlainBody(plain,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
    if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
    return res;
   }
-  return parsePlainBody(cmeBody,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
+  const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
+  const plain = await unpackAppBound('Backup', cmeBody, restoreSeed);
+  return parsePlainBody(plain,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
  }
  function saveUI(){return{cfg:getRecipeConfig(),site:$('sim-site').value,secret:$('sim-secret').value,seed:appliedSeed,seedInput:$('input-seed-number').value,inc:$('chk-include-card-seed').checked,kind:$('backup-kind').value,words:currentMnemonicWords.slice(),box:$('seed-words-container').innerHTML,summary:$('backup-summary').textContent,cqPinLen:$('cq-pin-length')?.value,cqSymLen:$('cq-symbol-length')?.value,cqSymMode:$('cq-symbol-mode')?.value,cqSymList:$('cq-symbol-list')?.value};}
  function restoreUI(s){currentDisplayMode='recipe';setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix(s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
@@ -4970,6 +5072,8 @@ document.addEventListener('DOMContentLoaded', () => {
    if(parseSeedValue($('input-seed-number').value)!==appliedSeed){updateMainMatrix($('input-seed-number').value);updateSimulationUI();}
    const s=snapshotBackup(extended,true),core=packRecipeTo256Bit(s.cfg,true,s.seed);
    const plainBody=await buildPlainBody(s,core);
+   const activeSeed = options?.seedNum !== undefined ? String(options.seedNum).trim() : String(s.seed !== undefined ? s.seed : ($('input-seed-number')?.value || '0')).trim();
+   const appBoundBody = await packAppBound('Backup', plainBody, activeSeed);
    const shamirM=Number(options?.shamirM||1),shamirN=Number(options?.shamirN||1);
    const usePass=options?.usePassword!==undefined?!!options.usePassword:!!password;
    const useKeyfile=!!options?.useKeyfile;
@@ -4994,9 +5098,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const dSnap={full:extended,includeSeed:true,seed:dSeed,site:dSite,secret:dSecret,cfg:s.cfg,value:dVal};
       const dCore=packRecipeTo256Bit(s.cfg,true,dSeed);
       const decoyPlainBody=await buildPlainBody(dSnap,dCore);
-      bodyToFrame=await encryptDuressDualCME(plainBody,password,decoyPlainBody,options.duress.password,kdfProfile,factors);
+      const decoyAppBoundBody = await packAppBound('Backup', decoyPlainBody, String(dSeed).trim());
+      bodyToFrame=await encryptDuressDualCME(appBoundBody,password,decoyAppBoundBody,options.duress.password,kdfProfile,factors);
      }else{
-     bodyToFrame=await encryptBodyCME2(plainBody,password,kdfProfile,factors);
+     bodyToFrame=await encryptBodyCME2(appBoundBody,password,kdfProfile,factors);
     }
     if(usePass&&!useKeyfile&&!usePasskey)combo=0;
     else if(usePass&&useKeyfile&&!usePasskey)combo=1;
@@ -5006,7 +5111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if(!usePass&&!useKeyfile&&usePasskey)combo=5;
     else if(!usePass&&useKeyfile&&usePasskey)combo=6;
    }else{
-    bodyToFrame=plainBody;
+    bodyToFrame=appBoundBody;
     combo=null;
    }
    if(shamirN>1){
@@ -5050,6 +5155,10 @@ document.addEventListener('DOMContentLoaded', () => {
   encryptDuressDualCME:(realBody,realPassword,decoyBody,decoyPassword,kdfProfile=1,factors={})=>encryptDuressDualCME(realBody,realPassword,decoyBody,decoyPassword,kdfProfile,factors),
   decryptBodyCME2:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME2(cmeBody,password,twoFaOpts),
   decryptBodyCME:(cmeBody,password,twoFaOpts=null)=>decryptBodyCME(cmeBody,password,twoFaOpts),
+  updateAllBoundSeedBadges:()=>updateAllBoundSeedBadges(),
+  packAppBound:(domain,plainBytes,seedNum)=>packAppBound(domain,plainBytes,seedNum),
+  unpackAppBound:(domain,bodyBytes,seedNum)=>unpackAppBound(domain,bodyBytes,seedNum),
+  deriveAppDomainKey:(domain,iv,seedNum)=>deriveAppDomainKey(domain,iv,seedNum),
   shamirSplit:(secretBytes,m,n)=>shamirSplit(secretBytes,m,n),
   shamirCombine:shareItems=>shamirCombine(shareItems),
   sha:b=>sha(b),

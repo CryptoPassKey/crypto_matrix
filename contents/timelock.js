@@ -183,6 +183,9 @@
     };
   }
 
+  // ドメイン分離子（Domain Separator）: CryptoMatrixのタイムロック名前空間を他アプリケーションから論理分離するための固定コンテキスト文字列（RFC 5869準拠）。
+  // ※ 注意: これは公開ソースコードに含まれる固定文字列であり、「秘密鍵」ではありません。
+  // 本機能の真の秘密保護エントロピーは、ユーザーが保持する物理「カード配列シード番号 (seed)」によって担保されます。
   const CM_APP_DOMAIN_PEPPER = 'CryptoMatrix:TimeLock:AppDomainSecret:v1:2026';
 
   async function deriveAppDomainKey(hdrHash, seedNum = '0') {
@@ -496,7 +499,7 @@
       keyfileBytes = null,
       usePasskey = false,
       duress = null, // { password: '...', decoyBytes: Uint8Array }
-      seedNum = null, // Card array seed number (like 1Password Secret Key)
+      seedNum = null, // Card array seed number for seed-bound key derivation
       // Outer Shamir options:
       shamirM = 1,
       shamirN = 1,
@@ -813,7 +816,7 @@
       `・フォーマット       : CMTL1 (Version ${m.v})`,
       `・作成日時           : ${createdStr}`,
       `・保護タイプ         : ${m.mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : 'パスワード付きタイムカプセル（時刻解禁＋暗号化保護）'}`,
-      `・連動カードシード   : #${artifact.seedNum || '0'} (1PasswordのSecret Keyに相当。復元時に必要)`,
+      `・連動カードシード   : #${artifact.seedNum || '0'} (復元時に必要)`,
       `・封入データ種別     : ${payloadKindLabel(m.payloadKind)}`,
       `・秘密分散 (Shamir)  : ${shamirDesc}`,
       `・追加保護要素       : ${factorDesc}`,
@@ -1106,7 +1109,7 @@
             if (shamirN > 1) factorNames.push(`秘密分散(${shamirM}-of-${shamirN})`);
             return `追加保護付きタイムカプセル（時刻解禁 ＋ ${factorNames.join(' ＋ ')}）`;
           })()}</strong><br>
-          ・<strong>連動カード配列シード番号 (Secret Key)：</strong> <strong style="color:#38bdf8; font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（1PasswordのSecret Keyのように機能。作成時のシード番号と連動して二重暗号化されます）</span><br>
+          ・<strong>連動カード配列シード番号：</strong> <strong style="color:#38bdf8; font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（作成時のカード配列シード番号と連動して暗号鍵が導出されます）</span><br>
           ・<strong>解禁予定日時：</strong> <strong style="color:#fbbf24;">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong>（Round #${rInfo.round}）<br>
           ・<strong>復号に必要な条件：</strong> ${reqFactors.map(escapeHtml).join(' ＋ ')}<br>
           ・<strong>解禁ツール制限：</strong> <span style="color:#38bdf8; font-weight:700;">🔒 本サイトおよび独立復元ツール限定（App-Domain Bindingにより、外部ツールからの直接解凍を遮断）</span><br>
@@ -1808,7 +1811,7 @@
       const notes = [
         '【CryptoMatrix タイムロックカプセル情報】',
         `■ 保護タイプ: ${modeLabel}`,
-        `■ 連動カード配列シード番号: #${tlLastArtifact.seedNum || '0'} (1PasswordのSecret Keyに相当)`,
+        `■ 連動カード配列シード番号: #${tlLastArtifact.seedNum || '0'} (復元時に必要)`,
         `■ 解禁予定日時: ${unlockDateStr}`,
         `■ drand対象ラウンド: Round #${meta.round}`,
         `■ ネットワーク: ${meta.net || 'quicknet'}`,
@@ -2064,13 +2067,15 @@
             } catch (_) {
               throw new Error('入力されたビーコンJSONの形式が不正です。');
             }
-          } else if (/^(0x)?[0-9a-fA-F]{96,192}$/.test(rawBeaconStr)) {
+          } else if (/^(0x)?[0-9a-fA-F]{96}$/.test(rawBeaconStr)) {
             manualBeacon = {
               round: expectedRound,
               signature: rawBeaconStr.replace(/^0x/i, ''),
             };
+          } else if (/^(0x)?[0-9a-fA-F]{192}$/.test(rawBeaconStr)) {
+            throw new Error('入力された署名は192文字（96バイト）です。quicknetは96文字の16進数（48バイト・G1圧縮点）の署名を入力してください。');
           } else {
-            throw new Error('ビーコン入力は JSON形式（{"round":...,"signature":"..."}）または 96文字の16進数署名で入力してください。');
+            throw new Error('ビーコン入力は JSON形式（{"round":...,"signature":"..."}）または 96文字の16進数署名（48バイト）で入力してください。');
           }
         }
 

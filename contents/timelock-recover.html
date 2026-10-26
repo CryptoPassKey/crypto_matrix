@@ -176,7 +176,7 @@
         <div style="font-size:0.8rem; color:var(--muted); margin-bottom:6px;">
           取得URL例: <code id="rec-beacon-url-hint">https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/&lt;ROUND&gt;</code>
         </div>
-        <textarea id="rec-manual-beacon" rows="3" placeholder='{"round": 123456, "signature": "..."} または 96バイトBLS署名hex'></textarea>
+        <textarea id="rec-manual-beacon" rows="3" placeholder='{"round": 123456, "signature": "..."} または 96文字 (48バイト) BLS署名hex'></textarea>
       </div>
 
       <div style="margin-bottom:12px; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
@@ -185,7 +185,7 @@
         </label>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <input type="text" id="rec-seed-number" style="width:130px; font-weight:700; font-family:monospace; padding:6px 10px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
-          <span style="font-size:0.78rem; color:var(--muted);">※CryptoMatrix作成時に指定したカード配列シード番号（デフォルト: 0）。1PasswordのSecret Keyのように機能し、正しいシード番号でのみ解禁・復号されます。</span>
+          <span style="font-size:0.78rem; color:var(--muted);">※CryptoMatrix作成時に指定したカード配列シード番号（デフォルト: 0）。正しいシード番号でのみ解禁・復号されます。</span>
         </div>
       </div>
 
@@ -511,6 +511,9 @@ ${i}
     }
 
     // CMTL1 / CMTS / CMV1 / CMA1 Unpacking (exact match with timelock.js)
+    // ドメイン分離子（Domain Separator）: CryptoMatrixのタイムロック名前空間を他アプリケーションから論理分離するための固定コンテキスト文字列（RFC 5869準拠）。
+    // ※ 注意: これは公開ソースコードに含まれる固定文字列であり、「秘密鍵」ではありません。
+    // 本機能の真の秘密保護エントロピーは、ユーザーが保持する物理「カード配列シード番号 (seed)」によって担保されます。
     const CM_APP_DOMAIN_PEPPER = 'CryptoMatrix:TimeLock:AppDomainSecret:v1:2026';
 
     async function deriveAppDomainKey(hdrHash, seedNum = '0') {
@@ -761,7 +764,14 @@ ${i}
           if (raw.startsWith('{')) {
             beacon = JSON.parse(raw);
           } else {
-            beacon = { round: h.round, signature: raw.replace(/^0x/i, '') };
+            const sig = raw.replace(/^0x/i, '');
+            if (/^[0-9a-fA-F]{192}$/.test(sig)) {
+              throw new Error('入力された署名は192文字（96バイト）です。quicknetは96文字の16進数（48バイト・G1圧縮点）の署名を入力してください。');
+            }
+            if (!/^[0-9a-fA-F]{96}$/.test(sig)) {
+              throw new Error('ビーコン入力は JSON形式（{"round":...,"signature":"..."}）または 96文字の16進数署名（48バイト）で入力してください。');
+            }
+            beacon = { round: h.round, signature: sig };
           }
           const v = await TLockBundle.verifyBeaconDetailed(chainInfo, beacon, h.round);
           if (!v.valid) throw new Error('手動入力されたビーコンのBLS12-381署名検証に失敗しました: ' + v.reason);

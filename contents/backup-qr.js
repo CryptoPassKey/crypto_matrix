@@ -1186,6 +1186,8 @@ async function review(){
   const password=$('bq-restore-password').value;
 
   const keyfileBytes=await getRestoreKeyfileBytes();
+  const restoreSeed = String($('bq-restore-seed-number')?.value || $('input-seed-number')?.value || '0').trim();
+  const reviewTwoFa = keyfileBytes ? { keyfileBytes, seedNum: restoreSeed } : { seedNum: restoreSeed };
 
   let d;
 
@@ -1229,7 +1231,7 @@ async function review(){
 
    }
 
-   d=await MatrixCardPreset.decodeBip39Blocks(words,password,true,keyfileBytes?{keyfileBytes}:null);
+   d=await MatrixCardPreset.decodeBip39Blocks(words,password,true,reviewTwoFa);
 
    validateConfig(d.cfg);
 
@@ -1243,7 +1245,7 @@ async function review(){
 
    }
 
-   d=await MatrixCardPreset.decodeBip39Blocks(words,password,true,keyfileBytes?{keyfileBytes}:null);
+   d=await MatrixCardPreset.decodeBip39Blocks(words,password,true,reviewTwoFa);
 
    validateConfig(d.cfg);
 
@@ -2426,6 +2428,9 @@ function initBonusVault(){
 
  }
 
+ window.packCMV1 = packCMV1;
+ window.unpackCMV1 = unpackCMV1;
+
 
 
  const tabEncrypt=$('bv-tab-btn-encrypt');
@@ -2946,20 +2951,29 @@ function initBonusVault(){
 
     try{
 
-     packed = trackSensitive(packCMV1(isFile?'file':'text',name,payload));
+     const activeSeed = duressOpts?.seedNum !== undefined ? String(duressOpts.seedNum).trim() : String($('input-seed-number')?.value || '0').trim();
+     const rawPacked = packCMV1(isFile?'file':'text',name,payload);
+     if (window.MatrixCardPreset?.packAppBound) {
+       packed = trackSensitive(await window.MatrixCardPreset.packAppBound('Vault', rawPacked, activeSeed));
+       scrubSensitive(rawPacked);
+     } else {
+       packed = trackSensitive(rawPacked);
+     }
 
      if (payload) { scrubSensitive(payload); payload = null; }
-
-
 
      if(usePass||useKeyfile||usePasskey){
 
       if(duressOpts?.enabled){
 
        const decoyRaw = trackSensitive(enc.encode(duressOpts.text||''));
-
-       decoyPacked = trackSensitive(packCMV1('text','',decoyRaw));
-
+       const rawDecoyPacked = packCMV1('text','',decoyRaw);
+       if (window.MatrixCardPreset?.packAppBound) {
+         decoyPacked = trackSensitive(await window.MatrixCardPreset.packAppBound('Vault', rawDecoyPacked, activeSeed));
+         scrubSensitive(rawDecoyPacked);
+       } else {
+         decoyPacked = trackSensitive(rawDecoyPacked);
+       }
        scrubSensitive(decoyRaw);
 
        bodyToShare=await MatrixCardPreset.encryptDuressDualCME(packed,password,decoyPacked,duressOpts.password,kdfProfile,{
@@ -4211,7 +4225,11 @@ function initBonusVault(){
 
  let lastDecryptedResult=null;
 
-
+ $('bv-btn-sync-card-seed')?.addEventListener('click', () => {
+  const curSeed = ($('input-seed-number')?.value || '0').trim();
+  if ($('bv-restore-seed-number')) $('bv-restore-seed-number').value = curSeed;
+  bvMessage('bv-decrypt-status', `現在のカード配列シード番号 (#${curSeed}) を反映しました。`);
+ });
 
  $('bv-btn-decrypt')?.addEventListener('click',async()=>{
 
@@ -4554,7 +4572,9 @@ function initBonusVault(){
 
    }
 
-   unpacked=unpackCMV1(plainBody);
+   const restoreSeed = twoFaOpts?.seedNum !== undefined ? String(twoFaOpts.seedNum).trim() : String($('bv-restore-seed-number')?.value || $('input-seed-number')?.value || '0').trim();
+   const unpackedCmv1 = window.MatrixCardPreset?.unpackAppBound ? await window.MatrixCardPreset.unpackAppBound('Vault', plainBody, restoreSeed) : plainBody;
+   unpacked=unpackCMV1(unpackedCmv1);
 
    if (unpacked?.payload) {
 

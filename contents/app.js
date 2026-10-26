@@ -210,6 +210,13 @@
     });
   }
 
+  window.addEventListener('cm-passkey-changed', renderPasskeyStatusSlots);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderPasskeyStatusSlots);
+  } else {
+    renderPasskeyStatusSlots();
+  }
+
   function initAddons() {
     var out = $('sim-output-pw');
     if (!out || out.dataset.cmAddons) return;

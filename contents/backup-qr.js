@@ -5797,9 +5797,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  function populateDuressRandomPreset(){
 
-  const rndSeed = String(Math.floor(10000000 + Math.random() * 90000000));
+  const rBuf = new Uint32Array(2);
+  crypto.getRandomValues(rBuf);
 
-  const item = DURESS_SAMPLE_SERVICES[Math.floor(Math.random() * DURESS_SAMPLE_SERVICES.length)];
+  const rndSeed = String((rBuf[0] % 90000000) + 10000000);
+
+  const item = DURESS_SAMPLE_SERVICES[rBuf[1] % DURESS_SAMPLE_SERVICES.length];
 
   if(activeDuressContext === 'sec3'){
 

@@ -2492,7 +2492,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
-    const rnd = Math.floor(Math.random() * 900000000) + 100000000;
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    const rnd = (arr[0] % 900000000) + 100000000;
     seedInput.value = String(rnd);
     updateMainMatrix(rnd);
     updateSimulationUI();
@@ -2648,7 +2650,12 @@ document.addEventListener('DOMContentLoaded', () => {
     currentDisplayMode = 'recipe';
     const designBar = document.getElementById('gesture-design-bar');
     if (designBar) designBar.style.display = 'none';
-    const rInt = max => Math.floor(Math.random() * max);
+    const rInt = max => {
+      if (!max || max <= 0) return 0;
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return arr[0] % max;
+    };
     setRecipeConfig({
       kwOrder: 1 + rInt(8),
       kwFilter: 0,

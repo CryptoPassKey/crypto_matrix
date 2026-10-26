@@ -179,7 +179,7 @@ body.kw-generator-focus-mode .gen {
     if (!data || !removePendingTransfer(key, data._transferId)) return false;
     try {
       if (window.opener && !window.opener.closed) {
-        var targetOrigin = window.location.origin === 'null' ? '*' : window.location.origin;
+        var targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
         window.opener.postMessage({type:'KEEWEB_IMPORT_COMPLETE', key:key, transferId:data._transferId}, targetOrigin);
       }
     } catch (_) {}
@@ -264,7 +264,7 @@ body.kw-generator-focus-mode .gen {
     container.style.cssText = 'box-sizing:border-box; margin:12px 0 16px; padding:12px 14px; background:#f0f9ff; border:1.5px solid #0284c7; border-radius:8px; font-size:0.82rem; color:#0369a1; box-shadow:0 2px 8px rgba(2,132,199,0.12);';
 
     var savedSeed = getActiveSeed();
-    var seedLabel = savedSeed ? '（カードシード: ' + savedSeed + ' 連携中）' : '（カードシード未連携・初期0）';
+    var seedLabel = savedSeed ? '（カードシード: ' + escapeHtml(savedSeed) + ' 連携中）' : '（カードシード未連携・初期0）';
 
     container.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">

@@ -179,7 +179,7 @@ body.kw-generator-focus-mode .gen {
     if (!data || !removePendingTransfer(key, data._transferId)) return false;
     try {
       if (window.opener && !window.opener.closed) {
-        var targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
+        var targetOrigin = window.location.origin === 'null' ? '*' : window.location.origin;
         window.opener.postMessage({type:'KEEWEB_IMPORT_COMPLETE', key:key, transferId:data._transferId}, targetOrigin);
       }
     } catch (_) {}

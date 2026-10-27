@@ -159,12 +159,12 @@
         '<span style="font-size:1.1rem;">' + (hasSaved ? '🔑' : 'ℹ️') + '</span>' +
         '<div>' +
         '<div style="font-weight:700; font-size:0.82rem; color:' + (hasSaved ? '#38bdf8' : '#e2e8f0') + ';">' +
-        (hasSaved ? '登録済みパスキーを使用中（同じパスキーで再利用）' : 'パスキー未登録（初回暗号化時に自動登録）') +
+        (hasSaved ? '登録済みパスキーを使用中（同じパスキーで再利用）' : 'このブラウザに登録情報なし（既存パスキーを検索）') +
         '</div>' +
         '<div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">' +
         (hasSaved
           ? '暗号化時に同じパスキー（生体認証）で認証します。毎回新しいパスキーは作成されず、このパスキーが再利用されます。'
-          : '暗号化を実行するとパスキーが自動登録され、次回から同じパスキーが再利用されます（事前登録も可能）。') +
+          : 'まず同期済みなどの既存パスキーで認証を試します。見つからない場合は、意図しない新規登録を防ぐため、ここから明示的に登録してください。') +
         '</div></div></div>' +
         '<div style="display:flex; gap:6px; align-items:center;">' +
         '<button type="button" class="btn btn-outline btn-reregister-pk" style="font-size:0.74rem; padding:4px 9px; font-weight:600; color:#38bdf8; border-color:#0284c7;">' +
@@ -201,7 +201,7 @@
       var clBtn = slot.querySelector('.btn-clear-pk');
       if (clBtn) {
         clBtn.addEventListener('click', function () {
-          if (confirm('登録済みパスキーの記憶を解除しますか？\n（解除すると、次回の暗号化時に新しいパスキーが作成されます。既存の暗号化データの復号には影響しません）')) {
+          if (confirm('このブラウザに保存したパスキー識別子を解除しますか？\n（認証器上のパスキー自体は削除されません。次回は利用可能な既存パスキーの検出を試み、見つからない場合も自動で新規作成しません）')) {
             window.MatrixCardPreset.clearSavedPasskeyCredential();
             renderPasskeyStatusSlots();
           }

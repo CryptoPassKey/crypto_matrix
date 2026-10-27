@@ -3772,15 +3772,52 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
      return await derivePasskeyPrf(salt32, saved.credentialId, opts);
     } catch(err) {
-     if(err.name === 'AbortError' || (err.name === 'NotAllowedError' && (err.message?.includes('cancel') || err.message?.includes('キャンセル')))){
-      throw err;
-     }
-     console.warn('Saved passkey authentication failed, creating new:', err);
+     // Never silently replace a credential that may protect existing backups.
+     // A failed assertion is not evidence that no passkey exists.
+     if(err.name === 'AbortError') throw err;
+     console.warn('Saved passkey authentication failed; trying discoverable credential lookup:', err);
     }
+   }
+
+   // localStorage is isolated per browser/profile. Before asking the user to
+   // create anything, try a discoverable credential (e.g. a synced passkey).
+   // Omitting allowCredentials lets the authenticator choose an available
+   // credential for this RP. This is deliberately an authentication-only path.
+   try {
+    const assertion = await navigator.credentials.get({
+     publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rpId,
+      userVerification: 'required',
+      timeout: 60000,
+      extensions: { prf: { eval: { first: prfInput } } }
+     }
+    });
+    const extRes = assertion?.getClientExtensionResults?.()?.prf;
+    if (assertion && extRes?.results?.first) {
+     const discoveredId = new Uint8Array(assertion.rawId);
+     if (!discoveredId.length || discoveredId.length > 512) {
+      throw new Error('パスキー識別子の長さが不正です。');
+     }
+     savePasskeyCredential(discoveredId, { label: 'CryptoMatrix パスキー（検出）' });
+     return { extraFactor: await sha512(new Uint8Array(extRes.results.first)), credentialId: discoveredId };
+    }
+    throw new Error('認証器からWebAuthn PRFの結果が返されませんでした。');
+   } catch (err) {
+    // NotAllowedError can mean cancellation OR no matching credential. Do not
+    // respond by silently creating a new credential: that can strand old data.
+    const detail = (err && err.message) ? `（${err.message}）` : '';
+    throw new Error('このブラウザに利用可能な登録済みパスキーが見つからないか、認証がキャンセルされました。既存データを保護するパスキーを勝手に置き換えないため、自動登録は行いません。元のブラウザで認証するか、パスキーマネージャーから新規登録してください。' + detail);
    }
   }
 
+  // Credential creation is only permitted when the caller explicitly asks for
+  // registration (forceNew). Normal encryption/decryption must authenticate an
+  // existing credential, never create a replacement as a fallback.
   if(!credentialId){
+   if(!opts.forceNew){
+    throw new Error('新しいパスキーの登録が必要です。パスキー管理画面から明示的に登録してください。');
+   }
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
    const challenge=crypto.getRandomValues(new Uint8Array(32));
    let created;

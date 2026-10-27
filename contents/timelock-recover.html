@@ -67,12 +67,16 @@
     label { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
     textarea, input[type="text"], input[type="password"], input[type="file"] {
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       padding: 9px 11px;
       border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--bg);
       color: var(--text);
       font-size: 0.92rem;
+      word-break: break-all;
+      overflow-wrap: anywhere;
     }
     textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82rem; }
     .btn {

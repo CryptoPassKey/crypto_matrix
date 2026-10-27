@@ -856,6 +856,10 @@
     font-size: 0.84rem;
     font-weight: 700;
     display: none;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .status-msg.ok {
@@ -1117,7 +1121,7 @@
 #timelock-section input[type=password],#timelock-section input[type=text],#timelock-section select,
 #timelock-section input[type=datetime-local] {min-width:0;max-width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--border-color);border-radius:5px;background:#1b2027}
 #backup-qr select,#bonus-vault select,#timelock-section select {width:100%;box-sizing:border-box;min-width:0;max-width:100%}
-#backup-qr textarea,#bonus-vault textarea,#timelock-section textarea {width:100%;min-height:85px;padding:9px;box-sizing:border-box;overflow-wrap:anywhere;resize:vertical;border:1px solid #363f4d;border-radius:6px;background:#1b2027}
+#backup-qr textarea,#bonus-vault textarea,#timelock-section textarea,#section-recipe-detail textarea {width:100%;max-width:100%;min-height:85px;padding:9px;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-all;resize:vertical;border:1px solid #363f4d;border-radius:6px;background:#1b2027}
 #backup-qr .bq-warning,#bonus-vault .bq-warning,#timelock-section .bq-warning {padding:10px;border:1px solid #d89531;background:#292519;color:#e4a034;border-radius:6px}
 #backup-qr .bq-status,#bonus-vault .bq-status,#timelock-section .bq-status {white-space:pre-wrap;overflow-wrap:anywhere;font-size:.82rem;min-height:1.5em;color:#1efa77}
 #backup-qr .bq-status[data-error=true],#bonus-vault .bq-status[data-error=true],#timelock-section .bq-status[data-error=true] {color:#e92f2f}
@@ -1259,6 +1263,17 @@ body.blind-mode #seed-qr-list:hover {
     font-size: 0.8rem;
   }
 }
+/* Print-only elements must remain hidden on screen */
+.bv-print-full-text,
+#bq-print-summary {
+  display: none !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-all !important;
+  white-space: pre-wrap !important;
+}
+
 @media print {
  .help-btn, #help-popover {display:none!important}
  #backup-qr {break-inside:auto}
@@ -1269,7 +1284,7 @@ body.blind-mode #seed-qr-list:hover {
  #seed-qr-list svg .qr-black,#bq-qr-list svg .qr-black {fill:#e1e5ea!important}
  .bv-qr-figure svg {width:130px;height:130px;display:block;margin:0 auto;}
  .bv-print-full-text {display:none;}
- #bq-print-summary {font-size:11pt;overflow-wrap:anywhere}
+ #bq-print-summary {display:block!important;font-size:11pt!important;overflow-wrap:anywhere!important;word-break:break-all!important}
  body.print-vault-mode .section-card:not(#bonus-vault),
  body.print-vault-mode #card-quick,
  body.print-vault-mode #section-recipe-detail,
@@ -1281,7 +1296,7 @@ body.blind-mode #seed-qr-list:hover {
  body.print-vault-mode #bonus-vault {display:block!important;border:none!important;background:#1b2027!important;padding:0!important;margin:0!important}
  body.print-vault-mode .bv-qr-figure {width:80mm;max-width:100%;padding:4mm;margin:5mm auto;break-inside:avoid;page-break-inside:avoid;text-align:center}
  body.print-vault-mode .bv-qr-figure svg {width:65mm;height:65mm}
- body.print-vault-mode .bv-print-full-text {display:block!important;white-space:pre-wrap!important;word-break:break-all!important;font-family:monospace!important;font-size:7.5pt!important;line-height:1.25!important;padding:4mm!important;border:1px solid #304257!important;margin:4mm 0!important;background:#1b2027!important;color:#e1e5ea!important;break-inside:auto!important;page-break-inside:auto!important;}
+ body.print-vault-mode .bv-print-full-text {display:block!important;white-space:pre-wrap!important;word-break:break-all!important;overflow-wrap:anywhere!important;font-family:monospace!important;font-size:7.5pt!important;line-height:1.25!important;padding:4mm!important;border:1px solid #304257!important;margin:4mm 0!important;background:#1b2027!important;color:#e1e5ea!important;break-inside:auto!important;page-break-inside:auto!important;max-width:100%!important;box-sizing:border-box!important;}
 }
 
 /* Duress Secret Menu Modal */

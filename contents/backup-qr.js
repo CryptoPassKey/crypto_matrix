@@ -3166,11 +3166,11 @@ function initBonusVault(){
 
            ${renderVaultQrHtml(s.arm, `シェア ${s.index} / ${shamirN} QR`)}
 
-           <div style="flex:1; min-width:240px;">
+           <div style="flex:1; min-width:240px; max-width:100%; box-sizing:border-box;">
 
-             <textarea readonly id="bv-share-ta-${s.index}" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box;">${escapeHtml(defaultText)}</textarea>
+             <textarea readonly id="bv-share-ta-${s.index}" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultText)}</textarea>
 
-             <div class="bv-print-full-text">${escapeHtml(s.arm)}</div>
+             <div class="bv-print-full-text" style="display:none;">${escapeHtml(s.arm)}</div>
 
              ${sizeWarn}
 
@@ -3738,11 +3738,11 @@ function initBonusVault(){
 
            ${renderVaultQrHtml(armored, '暗号化データ QR')}
 
-           <div style="flex:1; min-width:240px;">
+           <div style="flex:1; min-width:240px; max-width:100%; box-sizing:border-box;">
 
-             <textarea readonly id="bv-single-ta" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box;">${escapeHtml(defaultSingleText)}</textarea>
+             <textarea readonly id="bv-single-ta" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultSingleText)}</textarea>
 
-             <div class="bv-print-full-text">${escapeHtml(armored)}</div>
+             <div class="bv-print-full-text" style="display:none;">${escapeHtml(armored)}</div>
 
              ${sizeWarn}
 

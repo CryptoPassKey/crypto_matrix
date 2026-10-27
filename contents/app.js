@@ -146,7 +146,7 @@
     '#duress-modal-pw', '#duress-vault-pw', '#km-password', '#tl-password', '#tl-restore-password', '#tl-duress-pw'];
 
 
-  /* ---------- パスキー再利用・管理スロット ---------- */
+  /* ---------- パスキー状態スロット（ボタンなし・認証結果と厳密同期） ---------- */
   function renderPasskeyStatusSlots() {
     var saved = window.MatrixCardPreset ? window.MatrixCardPreset.getSavedPasskeyCredential() : null;
     var hasSaved = Boolean(saved && saved.credentialId && saved.credentialId.length > 0);
@@ -154,8 +154,7 @@
 
     slots.forEach(function (slot) {
       slot.innerHTML =
-        '<div style="margin-top:8px; padding:8px 12px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid ' + (hasSaved ? '#0284c7' : '#475569') + '; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">' +
-        '<div style="display:flex; align-items:center; gap:8px;">' +
+        '<div style="margin-top:8px; padding:8px 12px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid ' + (hasSaved ? '#0284c7' : '#475569') + '; display:flex; align-items:center; gap:8px;">' +
         '<span style="font-size:1.1rem;">' + (hasSaved ? '🔑' : 'ℹ️') + '</span>' +
         '<div>' +
         '<div style="font-weight:700; font-size:0.82rem; color:' + (hasSaved ? '#38bdf8' : '#e2e8f0') + ';">' +
@@ -164,49 +163,8 @@
         '<div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">' +
         (hasSaved
           ? '暗号化時に同じパスキー（生体認証）で認証します。毎回新しいパスキーは作成されず、このパスキーが再利用されます。'
-          : 'まず同期済みなどの既存パスキーで認証を試します。見つからない場合は、意図しない新規登録を防ぐため、ここから明示的に登録してください。') +
-        '</div></div></div>' +
-        '<div style="display:flex; gap:6px; align-items:center;">' +
-        '<button type="button" class="btn btn-outline btn-reregister-pk" style="font-size:0.74rem; padding:4px 9px; font-weight:600; color:#38bdf8; border-color:#0284c7;">' +
-        '<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>' +
-        (hasSaved ? '別のパスキーを再登録' : 'パスキーを今すぐ登録') +
-        '</button>' +
-        (hasSaved
-          ? '<button type="button" class="btn btn-outline btn-clear-pk" style="font-size:0.74rem; padding:4px 9px; color:#f87171; border-color:#ef4444;" title="ブラウザに記憶しているパスキーの紐付けを解除します">' +
-            '<svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>登録解除</button>'
-          : '') +
-        '</div></div>';
-
-      var reBtn = slot.querySelector('.btn-reregister-pk');
-      if (reBtn) {
-        reBtn.addEventListener('click', async function () {
-          var orig = reBtn.innerHTML;
-          try {
-            reBtn.disabled = true;
-            reBtn.textContent = '認証器を起動中...';
-            await window.MatrixCardPreset.registerNewPasskey();
-            renderPasskeyStatusSlots();
-            alert('✅ パスキーを登録しました。セクション3・4・5の暗号化でこのパスキーが再利用されます。');
-          } catch (err) {
-            if (err.name !== 'AbortError' && !err.message?.includes('cancel') && !err.message?.includes('キャンセル')) {
-              alert('パスキーの登録に失敗しました: ' + err.message);
-            }
-          } finally {
-            reBtn.disabled = false;
-            reBtn.innerHTML = orig;
-          }
-        });
-      }
-
-      var clBtn = slot.querySelector('.btn-clear-pk');
-      if (clBtn) {
-        clBtn.addEventListener('click', function () {
-          if (confirm('このブラウザに保存したパスキー識別子を解除しますか？\n（認証器上のパスキー自体は削除されません。次回は利用可能な既存パスキーの検出を試み、見つからない場合も自動で新規作成しません）')) {
-            window.MatrixCardPreset.clearSavedPasskeyCredential();
-            renderPasskeyStatusSlots();
-          }
-        });
-      }
+          : '暗号化時に端末・クラウドに同期された既存パスキーで認証します。既存パスキーが見つからない場合、自動で新規登録されることはありません。') +
+        '</div></div></div>';
     });
   }
 
@@ -293,7 +251,6 @@
 
     initInputGuidance();
     renderPasskeyStatusSlots();
-    window.addEventListener('cm-passkey-changed', renderPasskeyStatusSlots);
     initMaskedPasswordPrompt();
   }
 

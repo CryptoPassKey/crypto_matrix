@@ -973,7 +973,7 @@
 
     <!-- パスキー説明行 -->
     <div class="bq-row" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem; color:#3b65dd;">
-      🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。作成時にポップアップが表示されます。<br>
+      🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。暗号化・復号実行時に認証画面が表示されます。<br>
       <div id="bv-passkey-manager" class="cm-passkey-manager-slot"></div>
     </div>
 
@@ -1062,7 +1062,7 @@
           <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>ファイルをダウンロード</button>
         </div>
       </div>
-      <div id="bv-decrypted-content" style="white-space:pre-wrap; word-break:break-word; font-family:var(--font-ui); font-size:0.86rem; background:#1b2027; padding:10px; border-radius:6px; border:1px solid #304257; max-height:300px; overflow-y:auto;"></div>
+      <div id="bv-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#1b2027; padding:10px; border-radius:6px; border:1px solid #304257; max-height:300px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
       <div id="bv-decrypted-meta" style="font-size:0.75rem; color:#1dfbbd; margin-top:6px;"></div>
     </div>
   </div>
@@ -1358,9 +1358,9 @@
 
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div id="tl-qr-container" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
-        <div style="flex:1; min-width:260px;">
+        <div style="flex:1; min-width:260px; max-width:100%; box-sizing:border-box;">
           <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">タイムロック・アーマード文字列（CRYPTOMATRIX TIMELOCK）:</label>
-          <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; background:#111827; color:#f3f4f6; border:1px solid #374151; border-radius:6px; padding:8px; box-sizing:border-box;"></textarea>
+          <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; background:#111827; color:#f3f4f6; border:1px solid #374151; border-radius:6px; padding:8px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;"></textarea>
         </div>
       </div>
 
@@ -1479,7 +1479,7 @@
           <button type="button" class="btn btn-outline" id="tl-route-sec4" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セクション4（保管庫復号欄）へ送る</button>
         </div>
       </div>
-      <div id="tl-decrypted-content" style="white-space:pre-wrap; word-break:break-word; font-family:var(--font-ui); font-size:0.86rem; background:#111827; color:#f9fafb; padding:10px; border-radius:6px; border:1px solid #374151; max-height:320px; overflow-y:auto;"></div>
+      <div id="tl-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#111827; color:#f9fafb; padding:10px; border-radius:6px; border:1px solid #374151; max-height:320px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
       <div id="tl-decrypted-meta" style="font-size:0.76rem; color:#a7f3d0; margin-top:6px;"></div>
     </div>
   </div>

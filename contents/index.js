@@ -3759,6 +3759,38 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (_) {}
  }
 
+ function hasRecoveryContext() {
+  try {
+   if (typeof window !== 'undefined' && window.__CM_RESTORED_SESSION__) return true;
+   if (typeof location !== 'undefined' && location.search) {
+    const sp = new URLSearchParams(location.search);
+    if (sp.has('k') || sp.has('seed') || sp.has('recipe') || sp.has('import')) return true;
+   }
+   if (typeof document !== 'undefined') {
+    const sec2Val = document.getElementById('input-restore-seed')?.value?.trim();
+    if (sec2Val && sec2Val.length > 0) return true;
+
+    const bqVal = document.getElementById('bq-restore-input')?.value?.trim();
+    if (bqVal && bqVal.length > 0) return true;
+    if (document.getElementById('bq-restore-file')?.files?.length > 0) return true;
+
+    const bvVal = document.getElementById('bv-restore-ta')?.value?.trim();
+    if (bvVal && bvVal.length > 0) return true;
+    if (document.getElementById('bv-restore-file')?.files?.length > 0) return true;
+
+    const tlVal = document.getElementById('tl-restore-ta')?.value?.trim();
+    if (tlVal && tlVal.length > 0) return true;
+    if (document.getElementById('tl-restore-file')?.files?.length > 0) return true;
+
+    const seedInput = document.getElementById('input-seed-number');
+    if (seedInput && (seedInput.dataset?.restored === '1' || seedInput.dataset?.imported === '1')) return true;
+   }
+   const currentSeed = (typeof document !== 'undefined') ? document.getElementById('input-seed-number')?.value?.trim() || '0' : '0';
+   if (typeof localStorage !== 'undefined' && localStorage.getItem('cm_passkey_cred_' + currentSeed)) return true;
+  } catch (_) {}
+  return false;
+ }
+
  async function derivePasskeyPrf(salt32,credentialId=null,opts={}){
   if(!window.PublicKeyCredential||!navigator.credentials){
    throw new Error('お使いのブラウザ環境ではパスキーが利用できません。対応ブラウザで開いてください。');
@@ -3766,23 +3798,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const rpId=location.hostname||'localhost';
   const prfInput=await sha(concat(enc.encode('CryptoMatrix-WebAuthn-PRF-v1:'),salt32));
 
+  // =========================================================================
+  // 暗号化フロー（credentialId 未指定 かつ 明示的新規作成 forceNew でない場合）
+  // =========================================================================
   if(!credentialId && !opts.forceNew){
+   // 1. 同じブラウザで既存パスキーを利用（localStorageに登録情報がある場合）
    const saved = getSavedPasskeyCredential();
    if(saved && saved.credentialId && saved.credentialId.length){
     try {
      return await derivePasskeyPrf(salt32, saved.credentialId, opts);
     } catch(err) {
-     // Never silently replace a credential that may protect existing backups.
-     // A failed assertion is not evidence that no passkey exists.
      if(err.name === 'AbortError') throw err;
-     console.warn('Saved passkey authentication failed; trying discoverable credential lookup:', err);
+     const msg = err?.message || '';
+     if(msg.includes('キャンセル') || msg.includes('cancel')) throw err;
+     console.warn('Saved passkey authentication failed; trying discoverable lookup:', err);
     }
    }
 
-   // localStorage is isolated per browser/profile. Before asking the user to
-   // create anything, try a discoverable credential (e.g. a synced passkey).
-   // Omitting allowCredentials lets the authenticator choose an available
-   // credential for this RP. This is deliberately an authentication-only path.
+   // 2. 初めて使うブラウザ／管理情報がないが、既存パスキー（discoverable credentials）を利用できる場合
    try {
     const assertion = await navigator.credentials.get({
      publicKey: {
@@ -3799,25 +3832,33 @@ document.addEventListener('DOMContentLoaded', () => {
      if (!discoveredId.length || discoveredId.length > 512) {
       throw new Error('パスキー識別子の長さが不正です。');
      }
-     savePasskeyCredential(discoveredId, { label: 'CryptoMatrix パスキー（検出）' });
+     // 認証結果に応じて登録済み状態を更新・同期
+     savePasskeyCredential(discoveredId, { label: 'CryptoMatrix パスキー' });
      return { extraFactor: await sha512(new Uint8Array(extRes.results.first)), credentialId: discoveredId };
     }
-    throw new Error('認証器からWebAuthn PRFの結果が返されませんでした。');
    } catch (err) {
-    // NotAllowedError can mean cancellation OR no matching credential. Do not
-    // respond by silently creating a new credential: that can strand old data.
-    const detail = (err && err.message) ? `（${err.message}）` : '';
-    throw new Error('このブラウザに利用可能な登録済みパスキーが見つからないか、認証がキャンセルされました。既存データを保護するパスキーを勝手に置き換えないため、自動登録は行いません。元のブラウザで認証するか、パスキーマネージャーから新規登録してください。' + detail);
+    if(err.name === 'AbortError') throw err;
+    const msg = err?.message || '';
+    if(msg.includes('キャンセル') || msg.includes('cancel')) throw err;
+    // 既存パスキーが検出されなかった場合、復旧情報・ユーザー状態を判定
    }
+
+   // 3. 既存パスキーが利用できない場合の分岐判定
+   const isRecovering = hasRecoveryContext();
+   if (isRecovering) {
+    // 復旧情報（シード復元、既存暗号文入力等）が存在し、既存ユーザーであると判断される場合：
+    // 勝手に新規登録して既存データとの関係を壊さないよう、利用できない理由を案内して中断
+    throw new Error('このカードまたは復元データに対応する既存のパスキーがこの端末・ブラウザで見つかりませんでした。別の端末で作成したパスキーがクラウド同期されていない可能性があります。既存データとの関係を保護するため自動新規登録は行いません。パスキーを作成済みの端末・ブラウザ環境でご利用いただくか、「パスワード保護」または「キーファイル保護」をご利用ください。');
+   }
+
+   // 4. 復旧情報がなく、新規ユーザーであると判断できる場合：
+   // 初回の暗号化時にパスキーを自動作成する（フォールスルーして create を実行）
   }
 
-  // Credential creation is only permitted when the caller explicitly asks for
-  // registration (forceNew). Normal encryption/decryption must authenticate an
-  // existing credential, never create a replacement as a fallback.
+  // =========================================================================
+  // パスキー新規作成処理（新規ユーザー初回暗号化時の自動登録、または明示的 forceNew）
+  // =========================================================================
   if(!credentialId){
-   if(!opts.forceNew){
-    throw new Error('新しいパスキーの登録が必要です。パスキー管理画面から明示的に登録してください。');
-   }
    const userSecret=crypto.getRandomValues(new Uint8Array(32));
    const challenge=crypto.getRandomValues(new Uint8Array(32));
    let created;
@@ -3834,7 +3875,8 @@ document.addEventListener('DOMContentLoaded', () => {
      }
     });
    } catch(err) {
-    throw err;
+    if(err.name === 'AbortError') throw err;
+    throw new Error('パスキーの作成・認証がキャンセルされたか失敗しました: ' + (err?.message || err));
    }
    if(!created)throw new Error('パスキーの作成がキャンセルされました。');
    const rawCredId=new Uint8Array(created.rawId);
@@ -3867,8 +3909,6 @@ document.addEventListener('DOMContentLoaded', () => {
     savePasskeyCredential(rawCredId);
     return{extraFactor:await sha512(new Uint8Array(getPrf.results.first)),credentialId:rawCredId};
    }
-
-
 
    throw new Error('お使いの認証器・ブラウザはWebAuthn PRF（暗号鍵導出拡張）に対応していません。パスキー保護にはPRF対応環境、または「キーファイル／パスワード」保護をご利用ください。');
   }
@@ -4675,6 +4715,8 @@ document.addEventListener('DOMContentLoaded', () => {
    }
    if(request!==restoreRequest)return;
    previous=saveUI();invalidateBackup();restoring=true;
+   if(typeof window!=='undefined')window.__CM_RESTORED_SESSION__=true;
+   if($('input-seed-number'))$('input-seed-number').dataset.restored='1';
    setRecipeConfig(data.cfg);
    $('chk-include-card-seed').checked=data.includeCardSeed;
    if(data.includeCardSeed){$('input-seed-number').value=String(data.seedNumber);updateMainMatrix(data.seedNumber);}

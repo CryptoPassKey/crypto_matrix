@@ -2281,7 +2281,7 @@
                 <button type="button" class="btn btn-outline tl-btn-kw-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
               </div>
             </div>
-            <textarea readonly style="width:100%; height:70px; font-family:monospace; font-size:0.72rem; background:#111827; color:#e5e7eb; border:1px solid #374151; border-radius:4px; padding:6px; box-sizing:border-box;">${escapeHtml(s.armored)}</textarea>
+            <textarea readonly style="width:100%; height:70px; font-family:monospace; font-size:0.72rem; background:#111827; color:#e5e7eb; border:1px solid #374151; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(s.armored)}</textarea>
           </div>
         `
           )

@@ -1305,7 +1305,6 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
   .cm-legacy .live-inputs-row { gap: 6px; }
   .cm-legacy #live-result-row { gap: 6px; margin-top: 6px; }
   .cm-legacy #live-result-row > div:first-child { margin-bottom: 0; }
-  .cm-legacy #sim-output-meta { display: none; }
   .cm-legacy #live-mode-badge { font-size: .72rem; padding: 3px 6px; }
   .cm-legacy #trace-controls-bar { gap: 6px; }
   .cm-legacy #trace-controls-bar .btn { padding: 7px 9px; font-size: .82rem; }
@@ -1313,5 +1312,4 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
   .cm-legacy #sim-trace-log { margin-top: 4px; max-height: 112px; padding: 6px 8px; }
 }
 
-/* Entropy is available on demand through the nearby help control. */
-.cm-legacy #sim-output-meta { display: none; }
+/* Entropy caveat is available on demand through the existing help control. */

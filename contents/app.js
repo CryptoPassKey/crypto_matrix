@@ -216,8 +216,19 @@
         el.classList.toggle('cm-peek', guard);
         if (!el.dataset.cmPeekWired) {
           el.dataset.cmPeekWired = '1';
+          var startY = 0;
           var reveal = function (on) { el.classList.toggle('cm-reveal', on); };
-          el.addEventListener('touchstart', function () { reveal(true); }, { passive: true });
+          el.addEventListener('touchstart', function (e) {
+            if (e.touches && e.touches[0]) startY = e.touches[0].clientY;
+            reveal(true);
+          }, { passive: true });
+          el.addEventListener('touchmove', function (e) {
+            if (e.touches && e.touches[0]) {
+              if (Math.abs(e.touches[0].clientY - startY) > 10) {
+                reveal(false);
+              }
+            }
+          }, { passive: true });
           el.addEventListener('touchend', function () { reveal(false); });
           el.addEventListener('touchcancel', function () { reveal(false); });
           el.addEventListener('contextmenu', function (e) { if (guard) e.preventDefault(); });
@@ -243,8 +254,7 @@
     badge.hidden = true;
     document.body.appendChild(badge);
     var timer;
-    var copyBtn = $('btn-copy-pw');
-    if (copyBtn) copyBtn.addEventListener('click', function () {
+    function startClipCountdown() {
       clearInterval(timer);
       var left = 30;
       badge.hidden = false;
@@ -258,6 +268,21 @@
           function () { badge.textContent = '⚠ 自動消去できませんでした（画面を開いた状態で再度お試しください）'; }
         ).then(function () { setTimeout(function () { badge.hidden = true; }, 2500); });
       }, 1000);
+    }
+
+    var ALL_COPY_BTNS = [
+      '#btn-copy-pw', '#btn-sticky-copy', '#btn-copy-seed',
+      '#bq-copy', '#bv-copy-decrypted', '#tl-btn-copy', '#tl-copy-decrypted'
+    ];
+    ALL_COPY_BTNS.forEach(function (sel) {
+      var btn = document.querySelector(sel);
+      if (btn) btn.addEventListener('click', startClipCountdown);
+    });
+    document.body.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest && e.target.closest('button');
+      if (b && b.id && ALL_COPY_BTNS.indexOf('#' + b.id) !== -1) {
+        startClipCountdown();
+      }
     });
 
     // 各パスワード欄の強度
@@ -275,6 +300,74 @@
     initInputGuidance();
     renderPasskeyStatusSlots();
     initMaskedPasswordPrompt();
+    initDropAndPasteSupport();
+  }
+
+  /* ---------- ファイルドラッグ＆ドロップ ＆ Ctrl+V 貼り付けサポート ---------- */
+  function initDropAndPasteSupport() {
+    function setupDropzone(textareaId, fileInputId, imageInputId) {
+      var ta = $(textareaId);
+      if (!ta || ta.dataset.cmDropWired) return;
+      ta.dataset.cmDropWired = '1';
+
+      var container = ta.closest('.section-card') || ta.parentElement;
+
+      container.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        container.classList.add('cm-drag-over');
+      });
+      container.addEventListener('dragleave', function (e) {
+        if (!container.contains(e.relatedTarget)) {
+          container.classList.remove('cm-drag-over');
+        }
+      });
+      container.addEventListener('drop', function (e) {
+        e.preventDefault();
+        container.classList.remove('cm-drag-over');
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+
+        var imageInput = imageInputId ? $(imageInputId) : null;
+        var fileInput = fileInputId ? $(fileInputId) : null;
+        var targetInput = imageInput || fileInput;
+
+        if (targetInput && typeof DataTransfer !== 'undefined') {
+          try {
+            var dt = new DataTransfer();
+            for (var i = 0; i < files.length; i++) dt.items.add(files[i]);
+            targetInput.files = dt.files;
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (err) {}
+        }
+      });
+
+      ta.addEventListener('paste', function (e) {
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        var imageFiles = [];
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].kind === 'file' && items[i].type.indexOf('image/') !== -1) {
+            var f = items[i].getAsFile();
+            if (f) imageFiles.push(f);
+          }
+        }
+        if (imageFiles.length > 0) {
+          e.preventDefault();
+          var imageInput = imageInputId ? $(imageInputId) : (fileInputId ? $(fileInputId) : null);
+          if (imageInput && typeof DataTransfer !== 'undefined') {
+            try {
+              var dt = new DataTransfer();
+              for (var j = 0; j < imageFiles.length; j++) dt.items.add(imageFiles[j]);
+              imageInput.files = dt.files;
+              imageInput.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (err) {}
+          }
+        }
+      });
+    }
+
+    setupDropzone('bq-import', 'bq-image', 'bq-image');
+    setupDropzone('bv-restore-text', 'bv-restore-file', 'bv-restore-qr-img');
   }
 
   /* ---------- 「どこに入力？」案内 ---------- */

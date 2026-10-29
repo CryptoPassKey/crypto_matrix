@@ -54,7 +54,7 @@
     b.title = on
       ? '現在ネットワークに接続されています。パスワード算出・バックアップ・保管庫・タイムロック暗号化は外部通信ゼロで動作します（タイムロック復号時のdrand自動取得のみ公開乱数ビーコンを参照します）。機密操作はオフライン環境での利用がより安全です。'
       : 'ネットワーク切断環境で動作中です。シード・合言葉・パスワードが外部に漏れる経路が物理的に存在しない最も安全な状態です（タイムロック復号も手動ビーコン入力で完全オフライン実行可能です）。';
-    b.innerHTML = (on ? WIFI : WIFI_OFF) + '<span class="cm-hide-sm">' + (on ? 'オンライン — 機密操作はオフライン推奨' : 'オフライン動作中 · 推奨環境') + '</span>';
+    b.innerHTML = (on ? WIFI : WIFI_OFF) + '<span class="cm-hide-sm">' + (on ? 'オンライン' : 'オフライン動作中 · 推奨環境') + '</span>';
   }
   window.addEventListener('online', paintNet);
   window.addEventListener('offline', paintNet);

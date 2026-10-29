@@ -2464,6 +2464,10 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAllBoundSeedBadges();
 
   seedInput?.addEventListener('input', () => {
+    // Apply each edit immediately; keep the existing deterministic engine unchanged.
+    updateMainMatrix(seedInput.value);
+    updateSimulationUI();
+    generateAndRenderSeedPhrase();
     saveStateToStorage();
     updateAllBoundSeedBadges();
   });
@@ -2471,6 +2475,25 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStateToStorage();
     updateAllBoundSeedBadges();
   });
+  const speedInput = document.getElementById('sim-speed');
+  const speedOutput = document.getElementById('sim-speed-value');
+  const refreshSpeedLabel = () => {
+    const ms = Number(speedInput?.value) || 500;
+    if (speedOutput) speedOutput.value = `${(ms / 1000).toFixed(2).replace(/0+$/, '').replace(/\\.$/, '')}秒/文字`;
+  };
+  speedInput?.addEventListener('input', () => {
+    refreshSpeedLabel();
+    // Adjust an active playback immediately, without restarting its current step.
+    if (traceTimer && traceStepRunner && !traceIsPaused) {
+      clearInterval(traceTimer);
+      const ms = Number(speedInput.value) || 500;
+      traceTimer = setInterval(() => {
+        const nextIdx = traceCurrentIndex + 1;
+        traceStepRunner(nextIdx);
+      }, ms);
+    }
+  });
+  refreshSpeedLabel();
 
   document.getElementById('bq-btn-sync-card-seed')?.addEventListener('click', () => {
     const curSeed = (document.getElementById('input-seed-number')?.value || '0').trim();
@@ -2483,25 +2506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('btn-update-matrix')?.addEventListener('click', () => {
-    updateMainMatrix(seedInput.value);
-    updateSimulationUI();
-    generateAndRenderSeedPhrase();
-    saveStateToStorage();
-    updateAllBoundSeedBadges();
-  });
 
-  document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const rnd = (arr[0] % 900000000) + 100000000;
-    seedInput.value = String(rnd);
-    updateMainMatrix(rnd);
-    updateSimulationUI();
-    generateAndRenderSeedPhrase();
-    saveStateToStorage();
-    updateAllBoundSeedBadges();
-  });
 
   document.querySelectorAll('.rc-input').forEach(el => {
     el.addEventListener('input', () => {

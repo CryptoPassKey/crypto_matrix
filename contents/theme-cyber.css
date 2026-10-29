@@ -280,8 +280,7 @@ html:not(.light) .cm-legacy #btn-copy-pw:hover:not(:disabled) {
   box-shadow: 0 0 24px -4px rgba(56,214,245,.7) !important; color: #bae6fd !important;
 }
 
-/* ===== Peek guard replaces blind display ===== */
-.cm-legacy #btn-blind-mode { display: none !important; }
+/* The privacy toggle is intentionally visible beside the emergency-clear button. */
 
 /* ===== Print Stylesheet (All Tabs Printable via Browser Print Ctrl+P) ===== */
 @media print {

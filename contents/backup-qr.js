@@ -675,7 +675,7 @@ function updateSec3Display(format,isInitial=false){
 
    const encTitle=encrypted?`暗号化${modeLabel}（保護：${factorLabel}）`:`${modeLabel} 秘密分散（暗号化なし）`;
 
-   caption.textContent=`${encTitle} 秘密分散シェア ${s.index} / ${s.n}（任意の${s.m}枚のQRで復元可能）\n${isArmored?`全${s.groups.length}ブロック統合QR（1枚）`:`全${s.groups.length}ブロック・${s.groups.length*24}単語を1枚のQRに統合`}\n${extended?'拡張バックアップ（サイト名・合言葉含む）':'設定のみ（シードフレーズ・マイレシピ設定）'}`;
+   caption.textContent=`${encTitle} 秘密分散シェア ${s.index} / ${s.n}（任意の${s.m}枚のQRで復元可能）\n${isArmored?`全${s.groups.length}ブロック統合QR（1枚）`:`全${s.groups.length}ブロック・${s.groups.length*24}単語を1枚のQRに統合`}\n${extended?'拡張バックアップ（サイト名・合言葉含む）':'設定のみ（マイレシピ設定）'}`;
 
    const dlBtn=document.createElement('button');
 
@@ -721,7 +721,7 @@ function updateSec3Display(format,isInitial=false){
 
   const modeLabel=isArmored?'PGPアーマード':'BIP39';
 
-  caption.textContent=`${modeLabel} 暗号化バックアップ（全${total}ブロック${isArmored?'統合QR 1枚':`・${total*24}単語を1枚のQRに統合`}）\n保護方式：${factorLabel} / ${extended?'拡張バックアップ（サイト名・合言葉含む）':'設定のみ（シードフレーズ・マイレシピ設定）'}`;
+  caption.textContent=`${modeLabel} 暗号化バックアップ（全${total}ブロック${isArmored?'統合QR 1枚':`・${total*24}単語を1枚のQRに統合`}）\n保護方式：${factorLabel} / ${extended?'拡張バックアップ（サイト名・合言葉含む）':'設定のみ（マイレシピ設定）'}`;
 
   const dlBtn=document.createElement('button');
 
@@ -779,7 +779,7 @@ function updateSec3Display(format,isInitial=false){
 
  const protDesc=`保護方式：${factorLabel}。`;
 
- $('bq-print-summary').textContent=`${isArmored?'PGPアーマード':'BIP39'}復元用QR：${shamirDesc}${extended?'拡張バックアップ（シードフレーズ・マイレシピ設定・サイト名・合言葉）':'設定のみ（シードフレーズ・マイレシピ設定）'}。${encrypted?`暗号化方式：${MatrixCardPreset.kdfLabel?MatrixCardPreset.kdfLabel(kdfProfile):'CME2'}。`:''}${protDesc}${usePass?'復元用パスワードは別保管し、印刷しないでください。':''}`;
+ $('bq-print-summary').textContent=`${isArmored?'PGPアーマード':'BIP39'}復元用QR：${shamirDesc}${extended?'拡張バックアップ（マイレシピ設定・サイト名・合言葉）':'設定のみ（マイレシピ設定）'}。${encrypted?`暗号化方式：${MatrixCardPreset.kdfLabel?MatrixCardPreset.kdfLabel(kdfProfile):'CME2'}。`:''}${protDesc}${usePass?'復元用パスワードは別保管し、印刷しないでください。':''}`;
 
 }
 
@@ -1269,7 +1269,7 @@ async function review(){
 
   $('bq-preview').textContent=[
 
-   `検証済み：${d.full?'拡張バックアップ（シードフレーズ・マイレシピ設定・サイト名・合言葉）':'設定のみ（シードフレーズ・マイレシピ設定）'} ／ ${encDesc}`,
+   `検証済み：${d.full?'拡張バックアップ（マイレシピ設定・サイト名・合言葉）':'設定のみ（マイレシピ設定）'} ／ ${encDesc}`,
 
    `入力ブロック数：${d.blockCount||1}ブロック（${(d.blockCount||1)*24}単語） ／ ${shamirLine}`,
 
@@ -1808,17 +1808,17 @@ const SELECT_DESCRIPTIONS = {
 
  'backup-kind': {
 
-  'settings': 'ℹ️ シードフレーズとマイレシピ設定のみを保存します（サイト名・合言葉は別途手動入力が必要）。',
+  'settings': 'ℹ️ マイレシピ設定のみを保存します（サイト名・合言葉は別途手動入力が必要）。',
 
-  'full': 'ℹ️ シードフレーズ・マイレシピ設定・サイト名・合言葉をすべて保存し、復元時に即座に完全復元されます。'
+  'full': 'ℹ️ マイレシピ設定・サイト名・合言葉をすべて保存し、復元時に即座に完全復元されます。'
 
  },
 
  'bq-scope': {
 
-  'extended': 'ℹ️ シードフレーズ・マイレシピ設定・サイト名・合言葉をすべて保存し、復元時に即座に完全復元されます。',
+  'extended': 'ℹ️ マイレシピ設定・サイト名・合言葉をすべて保存し、復元時に即座に完全復元されます。',
 
-  'basic': 'ℹ️ シードフレーズとマイレシピ設定のみを保存します（サイト名・合言葉は別途手動入力が必要）。'
+  'basic': 'ℹ️ マイレシピ設定のみを保存します（サイト名・合言葉は別途手動入力が必要）。'
 
  },
 

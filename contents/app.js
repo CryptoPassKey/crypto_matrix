@@ -189,11 +189,21 @@
     upd();
 
     // 覗き見防止
+    var guardControl = document.createElement('div');
+    guardControl.className = 'cm-peek-control';
+    guardControl.setAttribute('aria-label', '覗き見防止設定');
     var guardBtn = document.createElement('button');
     guardBtn.type = 'button';
     guardBtn.className = 'btn cm-peek-toggle';
-    meter.appendChild(guardBtn);
-    var guard = store('cm-peek-guard') !== 'off';
+    guardBtn.setAttribute('aria-pressed', 'false');
+    var guardStatus = document.createElement('div');
+    guardStatus.className = 'cm-peek-status';
+    guardStatus.setAttribute('aria-live', 'polite');
+    guardControl.appendChild(guardBtn);
+    guardControl.appendChild(guardStatus);
+    meter.insertAdjacentElement('afterend', guardControl);
+    // 初回は OFF。ユーザーが明示的に ON にした設定だけを次回以降も引き継ぐ。
+    var guard = store('cm-peek-guard') === 'on';
     var peekEls = function () { return PEEK_TARGETS.map(function (s) { return document.querySelector(s); }).filter(Boolean); };
     var applyGuard = function () {
       peekEls().forEach(function (el) {
@@ -207,8 +217,14 @@
           el.addEventListener('contextmenu', function (e) { if (guard) e.preventDefault(); });
         }
       });
-      guardBtn.textContent = guard ? '🙈 覗き見防止 ON' : '👁 覗き見防止 OFF';
-      guardBtn.title = guard ? 'シード・サイト・合言葉・パスワード・シードフレーズを隠しています。PCはマウスを乗せる / スマホは長押しで表示' : '常に表示中';
+      guardControl.classList.toggle('is-on', guard);
+      guardControl.classList.toggle('is-off', !guard);
+      guardBtn.textContent = guard ? '🔒 覗き見防止：ON' : '👁 覗き見防止：OFF';
+      guardBtn.setAttribute('aria-pressed', guard ? 'true' : 'false');
+      guardStatus.textContent = guard
+        ? '保護中：対象の秘密情報はぼかして表示します。PCはマウスを乗せる／スマホは長押しで一時表示。'
+        : '現在 OFF：秘密情報はそのまま表示されます。必要なときにボタンで ON にできます。';
+      guardBtn.title = guard ? '覗き見防止は有効です。PCはマウスを乗せる／スマホは長押しで一時表示' : '覗き見防止は無効です。クリックして秘密情報をぼかします。';
     };
     guardBtn.addEventListener('click', function () { guard = !guard; store('cm-peek-guard', guard ? 'on' : 'off'); applyGuard(); });
     applyGuard();

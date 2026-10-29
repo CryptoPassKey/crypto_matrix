@@ -140,7 +140,8 @@
 
   var PEEK_TARGETS = ['#input-seed-number', '#sim-site', '#sim-secret', '#sim-output-pw', '#sticky-output-pw',
     '#seed-words-container', '#bq-words-container', '#bq-output', '#seed-armored-text', '#seed-qr-list', '#bq-qr-list',
-    '#tl-output-text', '#tl-qr-container', '#tl-decrypted-content', '#tl-shares-container'];
+    '#tl-output-text', '#tl-qr-container', '#tl-decrypted-content', '#tl-shares-container',
+    '#bv-result-shares-container', '#bv-decrypted-content'];
   // 合言葉(#sim-secret)には付けない：弱い合言葉でもカード盤面経由で強力なパスワードになるため
   var METER_TARGETS = ['#bq-password', '#bq-restore-password', '#bv-password', '#bv-restore-password',
     '#duress-modal-pw', '#duress-vault-pw', '#km-password', '#tl-password', '#tl-restore-password', '#tl-duress-pw'];

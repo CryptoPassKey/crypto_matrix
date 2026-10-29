@@ -853,6 +853,25 @@ function stopMatrixTrace() {
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 }
 
+// Scroll the matrix into view without placing it underneath the fixed/sticky app header.
+function scrollMatrixBelowHeader(stageEl) {
+  if (!stageEl) return;
+  const header = document.querySelector('.cm-header');
+  const headerRect = header?.getBoundingClientRect();
+  const headerStyle = header ? window.getComputedStyle(header) : null;
+  const headerIsPinned = !!header && headerStyle &&
+    (headerStyle.position === 'fixed' || headerStyle.position === 'sticky');
+  const headerBottom = headerIsPinned && headerRect ? Math.max(0, headerRect.bottom) : 0;
+  const targetTop = headerBottom + 12;
+  const rect = stageEl.getBoundingClientRect();
+  if (rect.top < targetTop || rect.top > window.innerHeight - 80) {
+    window.scrollTo({
+      top: Math.max(0, window.scrollY + rect.top - targetTop),
+      behavior: 'smooth'
+    });
+  }
+}
+
 function playMatrixTrace() {
   lastPlayTrigger = 'recipe';
   const modeChanged = currentDisplayMode !== 'recipe';
@@ -867,12 +886,7 @@ function playMatrixTrace() {
   updateTraceButtonsUI('playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
   const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  if (stageEl) {
-    const r = stageEl.getBoundingClientRect();
-    if (r.top < -10 || r.top > 110) {
-      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
-    }
-  }
+  scrollMatrixBelowHeader(stageEl);
 
   const speed = Number(document.getElementById('sim-speed')?.value) || 500;
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
@@ -1707,12 +1721,7 @@ function playStrokeGestureTrace() {
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 
   const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  if (stageEl) {
-    const r = stageEl.getBoundingClientRect();
-    if (r.top < -10 || r.top > 110) {
-      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
-    }
-  }
+  scrollMatrixBelowHeader(stageEl);
 
   const site = document.getElementById('sim-site')?.value || '1Password';
   const designKey = getGestureDesignKey(site);
@@ -4889,7 +4898,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-sticky-copy')?.addEventListener('click',()=>$('btn-copy-pw')?.click());
   $('btn-sticky-top')?.addEventListener('click',()=>{
    const stageEl=$('matrix-stage-box')||$('div-encrypto-matrix-main');
-   if(stageEl)window.scrollTo({top:Math.max(0,window.scrollY+stageEl.getBoundingClientRect().top-8),behavior:'smooth'});
+   scrollMatrixBelowHeader(stageEl);
   });
   const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar'),pageFooter=$('page-footer');
   const btnStickyToggle=$('btn-sticky-toggle'),btnStickyMinPill=$('btn-sticky-min-pill');

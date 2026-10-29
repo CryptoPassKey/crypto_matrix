@@ -204,7 +204,13 @@
     meter.insertAdjacentElement('afterend', guardControl);
     // 初回は OFF。ユーザーが明示的に ON にした設定だけを次回以降も引き継ぐ。
     var guard = store('cm-peek-guard') === 'on';
-    var peekEls = function () { return PEEK_TARGETS.map(function (s) { return document.querySelector(s); }).filter(Boolean); };
+    // Bonus Vaultでは秘密のテキストとQRだけを対象にし、説明文や操作ボタンはぼかさない。
+  var peekEls = function () {
+    var els = PEEK_TARGETS.map(function (s) { return document.querySelector(s); }).filter(Boolean);
+    document.querySelectorAll('#bv-result-shares-container textarea[id^="bv-share-ta-"], #bv-result-shares-container textarea#bv-single-ta, #bv-result-shares-container .bv-qr-figure svg')
+      .forEach(function (el) { els.push(el); });
+    return Array.from(new Set(els));
+  };
     var applyGuard = function () {
       peekEls().forEach(function (el) {
         el.classList.toggle('cm-peek', guard);

@@ -1592,7 +1592,7 @@ function updateStrokeGestureUI() {
 
   const metaBox = document.getElementById('sim-output-meta');
   if (metaBox) {
-    metaBox.innerHTML = `✍️ <strong>パターンルート</strong>（${design.category}「${escapeHtml(design.symbol)}: ${escapeHtml(design.name)}」）／ 総文字数: ${strokeSteps.length}文字 ／ 推定エントロピー: ${ent.bits} bits`;
+    metaBox.innerHTML = `✍️ <strong>パターンルート</strong>（${design.category}「${escapeHtml(design.symbol)}: ${escapeHtml(design.name)}」）／ 総文字数: ${strokeSteps.length}文字 ／ 文字種・長さからの理論値: ${ent.bits} bits`;
   }
 
   const badge = document.getElementById('live-mode-badge');
@@ -1631,7 +1631,7 @@ function updateStrokeGestureUI() {
 
   const cqSt = document.getElementById('cq-status');
   if (cqSt) {
-    cqSt.textContent = `【現在使用中のモード】✍️ パターンルート方式\n・選択デザイン：${design.category}「${design.symbol}」(${design.name})\n・出力：英大小・数字・記号 ${strokeSteps.length}文字（推定エントロピー ${ent.bits} bits）\n・特徴：Androidのパターンロックのようにカード上で指を滑らせるだけで、誰でも直感的にパスワードを復元できます。`;
+    cqSt.textContent = `【現在使用中のモード】✍️ パターンルート方式\n・選択デザイン：${design.category}「${design.symbol}」(${design.name})\n・出力：英大小・数字・記号 ${strokeSteps.length}文字（文字種・長さからの理論値 ${ent.bits} bits）\n・特徴：Androidのパターンロックのようにカード上で指を滑らせるだけで、誰でも直感的にパスワードを復元できます。`;
   }
 
   for (const id of ['btn-copy-pw', 'btn-play-trace', 'btn-play-stroke', 'btn-sticky-play', 'btn-sticky-stroke', 'btn-sticky-copy']) {
@@ -3428,17 +3428,17 @@ document.addEventListener('DOMContentLoaded', () => {
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
    const subMode=cfg.lenMode===5?'パスワード（英大小・数字・記号）':cfg.lenMode===4?'パスワード（英大小・数字）':'銀行などの暗証番号（数字のみ）';
-   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 推定エントロピー: ${ent.bits} bits（※文字種・長さに基づく参考値。決定論的カード生成ではカードシード空間が上限）`;
+   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 文字種・長さからの理論値: ${ent.bits} bits（※文字種・長さから算出した理論値であり、実際の推測困難性を示すものではありません。決定論的生成ではシードや入力情報の探索空間が上限です）`;
    $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さ参考エントロピー ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
+   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さからの理論値 ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
   else{
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 推定エントロピー: ${ent.bits} bits（※文字種・長さに基づく参考値。決定論的カード生成ではカードシード空間が上限）`;
+   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 文字種・長さからの理論値: ${ent.bits} bits（※文字種・長さから算出した理論値であり、実際の推測困難性を示すものではありません。決定論的生成ではシードや入力情報の探索空間が上限です）`;
    setStatus('cq-status','【現在使用中のモード】1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）\n上の「銀行などの暗証番号（数字のみ）」または「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと、かんたん生成モードに切り替わります。');
   }
   const stickyPw=$('sticky-output-pw'),stickyMeta=$('sticky-output-meta');

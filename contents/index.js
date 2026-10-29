@@ -4902,11 +4902,14 @@ document.addEventListener('DOMContentLoaded', () => {
    const updateStickyVisibility=()=>{
     const r=liveRow.getBoundingClientRect();
     const outOfView=r.bottom<0||r.top>window.innerHeight;
-    stickyBar.classList.toggle('visible',outOfView);
+    // フッターが画面内に入ったら固定バーを隠し、フッターとの重なりを防ぐ。
+    const footerInView=!!(pageFooter&&pageFooter.getBoundingClientRect().top<window.innerHeight);
+    const shouldShow=outOfView&&!footerInView;
+    stickyBar.classList.toggle('visible',shouldShow);
     if(btnStickyMinPill){
-     if(outOfView&&stickyBar.classList.contains('is-minimized')){
+     if(shouldShow&&stickyBar.classList.contains('is-minimized')){
       btnStickyMinPill.style.display='inline-flex';
-     }else if(!outOfView){
+     }else if(!shouldShow){
       btnStickyMinPill.style.display='none';
      }
     }

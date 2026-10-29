@@ -78,7 +78,7 @@
   var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   function paintInstall() {
     $('cm-install').title = standalone ? 'アプリとして起動中' : 'ホーム画面に追加';
-    $('cm-install-label').textContent = standalone ? 'アプリ起動中' : 'ホーム追加';
+    $('cm-install-label').textContent = standalone ? 'アプリ起動中' : 'アプリ追加';
   }
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
   window.addEventListener('appinstalled', function () { deferred = null; standalone = true; paintInstall(); });

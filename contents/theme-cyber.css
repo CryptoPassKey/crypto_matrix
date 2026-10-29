@@ -1282,3 +1282,16 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
 
 
 
+
+
+/* Compact build marker: helps confirm which deployed revision is open. */
+.cm-build-version {
+  margin: 10px auto 6px;
+  padding: 4px 8px;
+  text-align: center;
+  font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .03em;
+  color: var(--muted, #718096);
+  opacity: .78;
+}
+.cm-build-version span { opacity: .8; }

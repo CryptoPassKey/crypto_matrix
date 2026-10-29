@@ -201,7 +201,9 @@
     guardStatus.setAttribute('aria-live', 'polite');
     guardControl.appendChild(guardBtn);
     guardControl.appendChild(guardStatus);
-    meter.insertAdjacentElement('afterend', guardControl);
+    var peekSlot = document.getElementById('peek-control-slot');
+    if (peekSlot) peekSlot.replaceWith(guardControl);
+    else meter.insertAdjacentElement('afterend', guardControl);
     // 初回は OFF。ユーザーが明示的に ON にした設定だけを次回以降も引き継ぐ。
     var guard = store('cm-peek-guard') === 'on';
     // Bonus Vaultでは秘密のテキストとQRだけを対象にし、説明文や操作ボタンはぼかさない。

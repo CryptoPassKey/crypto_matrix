@@ -1313,3 +1313,17 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
 }
 
 /* Entropy caveat is available on demand through the existing help control. */
+
+
+/* Route playback focus mode: hide secondary controls and descriptive metadata only
+   while a route is actively playing or paused. Normal UI and feature handlers remain intact. */
+body.trace-playing .cm-legacy #btn-blind-mode,
+body.trace-playing .cm-legacy #live-mode-badge,
+body.trace-playing .cm-legacy #sim-output-meta,
+body.trace-playing .cm-legacy #btn-copy-pw,
+body.trace-playing .cm-legacy #btn-transfer-to-keeweb {
+  display: none !important;
+}
+body.trace-playing .cm-legacy #live-result-row > div:first-child > div:first-child {
+  margin-bottom: 2px !important;
+}

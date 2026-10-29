@@ -1132,38 +1132,21 @@
 #seed-qr-list figcaption,#bq-qr-list figcaption {font-size:12px;text-align:center;overflow-wrap:anywhere;white-space:pre-wrap;margin-top:6px;line-height:1.45}
 #bq-video {display:block;width:100%;max-width:600px;max-height:55vh;background:#d0d6df}
 #bq-preview {white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border:1px solid var(--border-color)}
-/* ブラインド表示（覗き見防止モード：ルート再生中は自動的に解除して表示） */
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span,
-body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span {
- position: relative;
- color: transparent !important;
- text-shadow: none !important;
- user-select: none;
-}
-body.blind-mode:not(.trace-playing) #sim-output-pw .pw-char-span::after,
-body.blind-mode:not(.trace-playing) #sticky-output-pw .pw-char-span::after {
- content: "●";
- position: absolute;
- inset: 0;
- display: flex;
- align-items: center;
- justify-content: center;
- color: #49d079;
- font-size: 0.92rem;
-}
+/* ブラインド表示：保護対象を実際にぼかす。通常のホバーでは解除しない。 */
+body.blind-mode:not(.trace-playing) #sim-output-pw,
+body.blind-mode:not(.trace-playing) #sticky-output-pw,
 body.blind-mode #seed-words-container,
 body.blind-mode #seed-qr-list {
- filter: blur(8px);
+ filter: blur(8px) !important;
  transition: filter 0.18s ease;
-}
-body.blind-mode #seed-words-container:hover,
-body.blind-mode #seed-qr-list:hover {
- filter: none;
+ user-select: none;
+ -webkit-user-select: none;
+ -webkit-touch-callout: none;
 }
 .btn-blind-active {
- background: #74a586 !important;
- color: #1aff75 !important;
- border-color: #1aff76 !important;
+ background: #166534 !important;
+ color: #ffffff !important;
+ border-color: #4ade80 !important;
 }
 
 /* 初心者向け解説ツールチップ／ポップオーバー */

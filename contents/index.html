@@ -59,9 +59,8 @@
     <!-- シードフレーズ番号バー -->
     <div class="seed-bar no-print">
       <label for="input-seed-number" style="font-weight:700; font-size:0.88rem;">カード配列シード番号 (seed):<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字の並び順を決める基準番号です。同じシード番号を入力すれば、世界中どの端末でも全く同じカード文字盤が再現されます。自分だけの秘密の番号を設定することも可能です。">?</button></label>
-      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力">
-      <button type="button" class="btn" id="btn-update-matrix">確認（マトリックス更新）</button>
-      <button type="button" class="btn btn-secondary" id="btn-random-matrix">ランダム生成</button>
+      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力" inputmode="numeric" autocomplete="off" aria-describedby="seed-live-hint">
+      <span id="seed-live-hint" style="font-size:0.76rem;color:var(--text-sub);">入力すると即時反映</span>
     </div>
 
     <!-- マトリックスの上に配置：現在のパスワード作成手順（説明ボックス） -->
@@ -118,11 +117,10 @@
           </div>
           <div>
             <label for="sim-speed">再生スピード（1文字あたり）<button type="button" class="help-btn" aria-label="説明を表示" data-help="読み取りガイドのアニメーション速度を調整します。カードを手元で確認しながら操作するのに適した速さに設定してください。">?</button></label>
-            <select id="sim-speed">
-              <option value="1000">ゆっくり (1秒/文字)</option>
-              <option value="500" selected>通常 (0.5秒/文字)</option>
-              <option value="250">高速 (0.25秒/文字)</option>
-            </select>
+            <div class="sim-speed-control">
+              <input type="range" id="sim-speed" min="100" max="1500" step="50" value="500" aria-label="再生速度（1文字あたりの時間）">
+              <output id="sim-speed-value" for="sim-speed">0.5秒/文字</output>
+            </div>
           </div>
         </div>
 

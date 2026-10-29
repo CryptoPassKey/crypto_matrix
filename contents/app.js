@@ -196,11 +196,7 @@
     guardBtn.type = 'button';
     guardBtn.className = 'btn cm-peek-toggle';
     guardBtn.setAttribute('aria-pressed', 'false');
-    var guardStatus = document.createElement('div');
-    guardStatus.className = 'cm-peek-status';
-    guardStatus.setAttribute('aria-live', 'polite');
     guardControl.appendChild(guardBtn);
-    guardControl.appendChild(guardStatus);
     var peekSlot = document.getElementById('peek-control-slot');
     if (peekSlot) peekSlot.replaceWith(guardControl);
     else meter.insertAdjacentElement('afterend', guardControl);
@@ -229,9 +225,6 @@
       guardControl.classList.toggle('is-off', !guard);
       guardBtn.textContent = guard ? '🔒 覗き見防止：ON' : '👁 覗き見防止：OFF';
       guardBtn.setAttribute('aria-pressed', guard ? 'true' : 'false');
-      guardStatus.textContent = guard
-        ? '保護中：対象の秘密情報はぼかして表示します。PCはマウスを乗せる／スマホは長押しで一時表示。'
-        : '現在 OFF：秘密情報はそのまま表示されます。必要なときにボタンで ON にできます。';
       guardBtn.title = guard ? '覗き見防止は有効です。PCはマウスを乗せる／スマホは長押しで一時表示' : '覗き見防止は無効です。クリックして秘密情報をぼかします。';
     };
     guardBtn.addEventListener('click', function () { guard = !guard; store('cm-peek-guard', guard ? 'on' : 'off'); applyGuard(); });

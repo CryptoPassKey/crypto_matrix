@@ -4141,6 +4141,9 @@ function initBonusVault(){
 
      $('bv-encrypt-result').style.display='';
 
+     // 暗号化結果は動的に生成されるため、表示直後に現在の覗き見防止設定を適用する。
+     if (typeof window.cmApplyPeekGuard === 'function') window.cmApplyPeekGuard();
+
      if(usePass){$('bv-password').value='';$('bv-password-confirm').value='';}
 
     }catch(e){

@@ -590,6 +590,19 @@ html:not(.light) .cm-need-tag {
 .cm-legacy #tl-shares-container.cm-peek svg {
   filter: blur(10px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
+/* Bonus Vault: mask only secret payloads, not the card captions or action controls. */
+.cm-legacy #bv-result-shares-container textarea.cm-peek,
+.cm-legacy #bv-result-shares-container .bv-qr-figure svg.cm-peek {
+  filter: blur(7px);
+  transition: filter .15s;
+}
+@media (hover:hover) {
+  .cm-legacy #bv-result-shares-container textarea.cm-peek:hover,
+  .cm-legacy #bv-result-shares-container .bv-qr-figure:hover svg.cm-peek { filter: none; }
+}
+.cm-legacy #bv-result-shares-container textarea.cm-peek.cm-reveal,
+.cm-legacy #bv-result-shares-container .bv-qr-figure svg.cm-peek.cm-reveal { filter: none; }
+
 .cm-legacy #tl-shares-container.cm-peek textarea {
   filter: blur(7px); transition: filter .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }

@@ -257,7 +257,7 @@
 <option value="31">31文字</option>
 <option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">このモードを使う</button></div>
 <p>本文は左下。末尾4文字は、カードから「英大文字・英小文字・数字・許可記号」の順に追加する。</p>
-<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『ホワイトリスト』は入力した記号だけを許可し、『ブラックリスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0">すべて許可</option><option value="2" selected>ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
+<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『ホワイトリスト』は入力した記号だけを許可し、『ブラックリスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0" selected>すべて許可</option><option value="2">ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
 <div class="cq-row" style="margin-top:8px"><label for="cq-symbol-list">対象記号<button type="button" class="help-btn" aria-label="説明を表示" data-help="許可または除外したい記号を続けて入力します（例: -_!#）。Webサイトで使える記号が決まっている場合に設定します。">?</button></label><input type="text" id="cq-symbol-list" value="-_!#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cq-symbol-help"></div>
 <p class="cq-note" id="cq-symbol-help">記号を区切りなしで入力（例：-_!#）。英数字は常に許可。ルール変更時は生成値が変わるため、運用中の設定は変更しないでください。</p></section>
 </div>

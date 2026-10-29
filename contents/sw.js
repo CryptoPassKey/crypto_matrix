@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.9.1-mobile-peek-entropy';
+const VERSION = 'cm-v2.9.7-privacy-toggle-ui';
 const FILES = [
   "./",
   "app.css",

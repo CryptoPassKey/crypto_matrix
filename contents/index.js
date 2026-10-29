@@ -2479,7 +2479,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const speedOutput = document.getElementById('sim-speed-value');
   const refreshSpeedLabel = () => {
     const ms = Number(speedInput?.value) || 500;
-    if (speedOutput) speedOutput.value = `${(ms / 1000).toFixed(2).replace(/0+$/, '').replace(/\\.$/, '')}秒/文字`;
+    if (speedOutput) speedOutput.value = `${ms / 1000}秒/文字`;
   };
   speedInput?.addEventListener('input', () => {
     refreshSpeedLabel();

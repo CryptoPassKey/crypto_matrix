@@ -1354,3 +1354,34 @@ body.trace-playing .cm-legacy #live-result-row > div:first-child > div:first-chi
   .cm-legacy .sim-speed-control { gap: 8px; }
   .cm-legacy #sim-speed { flex: 1; width: auto; }
 }
+
+
+/* Global privacy toggle beside emergency clear: neutral when off, green when on. */
+.cm-legacy #btn-blind-mode {
+  background: #334155 !important;
+  color: #f8fafc !important;
+  border: 1px solid #64748b !important;
+}
+.cm-legacy #btn-blind-mode:hover {
+  background: #475569 !important;
+  border-color: #94a3b8 !important;
+}
+.cm-legacy #btn-blind-mode.btn-blind-active {
+  background: #166534 !important;
+  color: #ffffff !important;
+  border-color: #4ade80 !important;
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, .22) !important;
+}
+html.light .cm-legacy #btn-blind-mode {
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: #94a3b8 !important;
+}
+html.light .cm-legacy #btn-blind-mode:hover {
+  background: #cbd5e1 !important;
+}
+html.light .cm-legacy #btn-blind-mode.btn-blind-active {
+  background: #15803d !important;
+  color: #ffffff !important;
+  border-color: #166534 !important;
+}

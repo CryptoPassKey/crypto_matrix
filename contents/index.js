@@ -2554,6 +2554,12 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStateToStorage();
   });
 
+  // Persist every recipe control, including controls that do not carry .rc-input.
+  document.querySelectorAll('[id^="rc-"]').forEach(el => {
+    el.addEventListener('input', saveStateToStorage);
+    el.addEventListener('change', saveStateToStorage);
+  });
+
   // Persist quick-generation settings immediately, including symbol mode "0".
   ['cq-pin-length', 'cq-symbol-length', 'cq-symbol-mode', 'cq-symbol-list'].forEach(id => {
     const el = document.getElementById(id);
@@ -2561,6 +2567,10 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('input', saveStateToStorage);
     el.addEventListener('change', saveStateToStorage);
   });
+
+  // Flush the latest recipe state when the page is refreshed or navigated away.
+  window.addEventListener('pagehide', saveStateToStorage);
+  window.addEventListener('beforeunload', saveStateToStorage);
 
   function transferGeneratedPasswordToKeeWeb(sourceButton) {
     saveStateToStorage();

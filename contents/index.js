@@ -5127,7 +5127,7 @@ document.addEventListener('DOMContentLoaded', () => {
    Object.keys(localStorage).filter(k=>k.startsWith('cm_')).forEach(k=>{try{localStorage.removeItem(k);}catch(_){}});
    if($('cq-pin-length'))$('cq-pin-length').value='4';
    if($('cq-symbol-length'))$('cq-symbol-length').value='20';
-   if($('cq-symbol-mode'))$('cq-symbol-mode').value='2';
+   if($('cq-symbol-mode'))$('cq-symbol-mode').value='0';
    if($('cq-symbol-list'))$('cq-symbol-list').value='-_!#';
    if($('chk-include-card-seed'))$('chk-include-card-seed').checked=true;
    if($('backup-kind'))$('backup-kind').value='settings';

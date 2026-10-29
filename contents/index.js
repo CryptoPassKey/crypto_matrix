@@ -2186,10 +2186,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const parsed = JSON.parse(savedRecipe);
           if (parsed.cfg) {
             setRecipeConfig(parsed.cfg);
-            if (parsed.cqPinLen && document.getElementById('cq-pin-length')) document.getElementById('cq-pin-length').value = parsed.cqPinLen;
-            if (parsed.cqSymLen && document.getElementById('cq-symbol-length')) document.getElementById('cq-symbol-length').value = parsed.cqSymLen;
-            if (parsed.cqSymMode && document.getElementById('cq-symbol-mode')) document.getElementById('cq-symbol-mode').value = parsed.cqSymMode;
-            if (parsed.cqSymList && document.getElementById('cq-symbol-list')) document.getElementById('cq-symbol-list').value = parsed.cqSymList;
+            if (parsed.cqPinLen != null && document.getElementById('cq-pin-length')) document.getElementById('cq-pin-length').value = parsed.cqPinLen;
+            if (parsed.cqSymLen != null && document.getElementById('cq-symbol-length')) document.getElementById('cq-symbol-length').value = parsed.cqSymLen;
+            if (parsed.cqSymMode != null && document.getElementById('cq-symbol-mode')) document.getElementById('cq-symbol-mode').value = parsed.cqSymMode;
+            if (parsed.cqSymList != null && document.getElementById('cq-symbol-list')) document.getElementById('cq-symbol-list').value = parsed.cqSymList;
           } else {
             setRecipeConfig(parsed);
           }
@@ -2552,6 +2552,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('chk-include-card-seed')?.addEventListener('change', () => {
     generateAndRenderSeedPhrase();
     saveStateToStorage();
+  });
+
+  // Persist quick-generation settings immediately, including symbol mode "0".
+  ['cq-pin-length', 'cq-symbol-length', 'cq-symbol-mode', 'cq-symbol-list'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', saveStateToStorage);
+    el.addEventListener('change', saveStateToStorage);
   });
 
   function transferGeneratedPasswordToKeeWeb(sourceButton) {

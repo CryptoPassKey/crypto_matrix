@@ -129,7 +129,7 @@
         <div class="live-result-row" id="live-result-row">
           <div style="width:100%;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
-              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：<button type="button" class="help-btn" aria-label="説明を表示" data-help="現在のカード・サイト名・合言葉・マイレシピ設定から自動的に導き出されたパスワードです。この値は外部サーバーに送信・保存されず、お使いの端末内で毎回同じルールから瞬時に計算されます。">?</button></span>
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：<button type="button" class="help-btn" aria-label="説明を表示" data-help="生成パスワードはカード・サイト名・合言葉・レシピ設定から決定論的に算出されます。文字種と長さから計算するビット数は理論値で、実際の推測困難性を保証しません。安全性はシードや入力情報の探索空間にも制約されます。">?</button></span>
               <span class="mode-pill" id="live-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
             </div>
             <div class="pw-chars-box" id="sim-output-pw"></div>
@@ -1795,7 +1795,7 @@
   </section>
 </main>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.9.2 <span>· build 428e503</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.9.3 <span>· build e94ee34</span></div>
 </div>
 <script src="layout.js"></script>
 <script src="qr-encoder.js"></script>

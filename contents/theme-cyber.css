@@ -907,12 +907,23 @@ html.light .cm-legacy .field-group-title .badge {
 
 /* ===== Mobile first view: compact title row + zeroize beside title ===== */
 @media (max-width: 640px) {
-  .cm-legacy .container > div:first-child { flex-wrap: nowrap !important; align-items: flex-start !important; gap: 6px !important; margin-bottom: 6px; }
-  .cm-legacy .container > div:first-child > div:first-child { flex: 1 1 auto; min-width: 0; }
-  .cm-legacy .container > div:first-child > div:last-child { flex: 0 0 auto; flex-wrap: nowrap !important; }
-  .cm-legacy .container h1 { font-size: 0.98rem !important; text-align: left !important; margin: 0 0 2px !important; line-height: 1.25; }
-  .cm-legacy .container .subtitle { font-size: 0.68rem !important; text-align: left !important; margin: 0 !important; line-height: 1.35; }
-  .cm-legacy #btn-zeroize { padding: 4px 8px !important; font-size: 0.68rem !important; white-space: nowrap; line-height: 1.2; }
+  /* Stack the intro and its controls vertically on phones to remove the large empty right-side area. */
+  .cm-legacy .container > div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    margin-bottom: 8px;
+  }
+  .cm-legacy .container > div:first-child > div:first-child { flex: 1 1 auto; min-width: 0; width: 100%; }
+  .cm-legacy .container > div:first-child > div:last-child {
+    flex: 0 0 auto;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap !important;
+  }
+  .cm-legacy .container h1 { font-size: 1.05rem !important; text-align: left !important; margin: 0 0 3px !important; line-height: 1.25; }
+  .cm-legacy .container .subtitle { font-size: 0.72rem !important; text-align: left !important; margin: 0 !important; line-height: 1.4; }
+  .cm-legacy #btn-zeroize { padding: 5px 9px !important; font-size: 0.72rem !important; white-space: nowrap; line-height: 1.2; }
   .cm-legacy .seed-bar { margin-bottom: 8px !important; padding: 6px 8px !important; }
   .cm-legacy .verbal-guide-card { margin-bottom: 8px !important; }
 }

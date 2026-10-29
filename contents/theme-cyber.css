@@ -1327,3 +1327,30 @@ body.trace-playing .cm-legacy #btn-transfer-to-keeweb {
 body.trace-playing .cm-legacy #live-result-row > div:first-child > div:first-child {
   margin-bottom: 2px !important;
 }
+
+
+/* Playback speed slider: compact, touch-friendly control */
+.cm-legacy .sim-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.cm-legacy #sim-speed {
+  width: min(100%, 220px);
+  min-width: 100px;
+  accent-color: var(--accent, #00c950);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.cm-legacy #sim-speed-value {
+  min-width: 70px;
+  color: var(--text-sub);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .cm-legacy .sim-speed-control { gap: 8px; }
+  .cm-legacy #sim-speed { flex: 1; width: auto; }
+}

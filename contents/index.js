@@ -4969,7 +4969,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!pw)return;
    try{
     await copyWithAutoClear(pw,()=>{if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
-    if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
+    if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました。';
     const btn=$('btn-copy-pw');
     if(btn){
      const origText=btn.dataset.origText||btn.textContent;
@@ -4988,7 +4988,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const words=currentMnemonicWords.slice();
     const text=(activeSec2Format==='armored'&&sec2ArmoredText)?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
     await copyWithAutoClear(text,()=>setStatus('backup-summary','🛡️ クリップボードの復元データを自動消去しました。'));
-    setStatus('backup-summary',activeSec2Format==='armored'?'PGPアーマード形式の拡張バックアップをコピーしました（30秒後にクリップボードから自動消去されます）。':`${words.length/24}ブロック・${words.length}単語をコピーしました（30秒後にクリップボードから自動消去されます）。`);
+    setStatus('backup-summary',activeSec2Format==='armored'?'PGPアーマード形式の拡張バックアップをコピーしました。':`${words.length/24}ブロック・${words.length}単語をコピーしました。`);
    }catch(_){setStatus('backup-summary','コピーできませんでした。画面の全ブロックを順番どおり控えてください。',true);}
   },true);
   $('btn-save-seed-txt')?.addEventListener('click',()=>{

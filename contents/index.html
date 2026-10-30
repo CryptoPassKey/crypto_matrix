@@ -51,17 +51,15 @@
         <p class="subtitle">物理カード配列の完全再現・パスワード算出・BIP39 24単語／高強度暗号化・秘密分散バックアップ</p>
       </div>
       <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button type="button" class="btn btn-outline" id="btn-blind-mode" aria-pressed="false" style="padding:6px 12px; font-size:0.78rem;" title="覗き見防止のため生成パスワード・合言葉・シード番号をマスクします（ルート再生中は自動的に表示されます）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>ブラインド表示: OFF</button>
-        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>緊急消去 (Zeroize)</button>
+        <div id="peek-control-slot"></div>
+        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>緊急消去</button>
       </div>
     </div>
 
     <!-- シードフレーズ番号バー -->
     <div class="seed-bar no-print">
       <label for="input-seed-number" style="font-weight:700; font-size:0.88rem;">カード配列シード番号 (seed):<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字の並び順を決める基準番号です。同じシード番号を入力すれば、世界中どの端末でも全く同じカード文字盤が再現されます。自分だけの秘密の番号を設定することも可能です。">?</button></label>
-      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力">
-      <button type="button" class="btn" id="btn-update-matrix">確認（マトリックス更新）</button>
-      <button type="button" class="btn btn-secondary" id="btn-random-matrix">ランダム生成</button>
+      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力" inputmode="numeric" autocomplete="off" aria-describedby="seed-live-hint">
     </div>
 
     <!-- マトリックスの上に配置：現在のパスワード作成手順（説明ボックス） -->
@@ -118,18 +116,17 @@
           </div>
           <div>
             <label for="sim-speed">再生スピード（1文字あたり）<button type="button" class="help-btn" aria-label="説明を表示" data-help="読み取りガイドのアニメーション速度を調整します。カードを手元で確認しながら操作するのに適した速さに設定してください。">?</button></label>
-            <select id="sim-speed">
-              <option value="1000">ゆっくり (1秒/文字)</option>
-              <option value="500" selected>通常 (0.5秒/文字)</option>
-              <option value="250">高速 (0.25秒/文字)</option>
-            </select>
+            <div class="sim-speed-control">
+              <input type="range" id="sim-speed" min="100" max="1500" step="50" value="500" aria-label="再生速度（1文字あたりの時間）">
+              <output id="sim-speed-value" for="sim-speed">0.5秒/文字</output>
+            </div>
           </div>
         </div>
 
         <div class="live-result-row" id="live-result-row">
           <div style="width:100%;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
-              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：<button type="button" class="help-btn" aria-label="説明を表示" data-help="現在のカード・サイト名・合言葉・マイレシピ設定から自動的に導き出されたパスワードです。この値は外部サーバーに送信・保存されず、お使いの端末内で毎回同じルールから瞬時に計算されます。">?</button></span>
+              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：<button type="button" class="help-btn" aria-label="説明を表示" data-help="生成パスワードはカード・サイト名・合言葉・レシピ設定から決定論的に算出されます。文字種と長さから計算するビット数は理論値で、実際の推測困難性を保証しません。安全性はシードや入力情報の探索空間にも制約されます。">?</button></span>
               <span class="mode-pill" id="live-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
             </div>
             <div class="pw-chars-box" id="sim-output-pw"></div>
@@ -259,7 +256,7 @@
 <option value="31">31文字</option>
 <option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">このモードを使う</button></div>
 <p>本文は左下。末尾4文字は、カードから「英大文字・英小文字・数字・許可記号」の順に追加する。</p>
-<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『ホワイトリスト』は入力した記号だけを許可し、『ブラックリスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0">すべて許可</option><option value="2" selected>ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
+<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『ホワイトリスト』は入力した記号だけを許可し、『ブラックリスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0" selected>すべて許可</option><option value="2">ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
 <div class="cq-row" style="margin-top:8px"><label for="cq-symbol-list">対象記号<button type="button" class="help-btn" aria-label="説明を表示" data-help="許可または除外したい記号を続けて入力します（例: -_!#）。Webサイトで使える記号が決まっている場合に設定します。">?</button></label><input type="text" id="cq-symbol-list" value="-_!#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cq-symbol-help"></div>
 <p class="cq-note" id="cq-symbol-help">記号を区切りなしで入力（例：-_!#）。英数字は常に許可。ルール変更時は生成値が変わるため、運用中の設定は変更しないでください。</p></section>
 </div>
@@ -1499,7 +1496,7 @@
   </div>
 
   <!-- スクロール追従（フローティング）：設定変更中にリアルタイムで生成パスワードを確認できるバー -->
-  <div id="sticky-pw-bar" class="no-print" role="region" aria-label="リアルタイム生成パスワード確認バー">
+  <div id="sticky-pw-bar" class="no-print is-minimized" role="region" aria-label="リアルタイム生成パスワード確認バー">
     <div style="flex:1; min-width:180px;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:2px;">
         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -1795,7 +1792,7 @@
   </section>
 </main>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.9.2 <span>· build 428e503</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.9.9 <span>· build 041bcca</span></div>
 </div>
 <script src="layout.js"></script>
 <script src="qr-encoder.js"></script>

@@ -853,6 +853,25 @@ function stopMatrixTrace() {
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 }
 
+// Scroll the matrix into view without placing it underneath the fixed/sticky app header.
+function scrollMatrixBelowHeader(stageEl) {
+  if (!stageEl) return;
+  const header = document.querySelector('.cm-header');
+  const headerRect = header?.getBoundingClientRect();
+  const headerStyle = header ? window.getComputedStyle(header) : null;
+  const headerIsPinned = !!header && headerStyle &&
+    (headerStyle.position === 'fixed' || headerStyle.position === 'sticky');
+  const headerBottom = headerIsPinned && headerRect ? Math.max(0, headerRect.bottom) : 0;
+  const targetTop = headerBottom + 12;
+  const rect = stageEl.getBoundingClientRect();
+  if (rect.top < targetTop || rect.top > window.innerHeight - 80) {
+    window.scrollTo({
+      top: Math.max(0, window.scrollY + rect.top - targetTop),
+      behavior: 'smooth'
+    });
+  }
+}
+
 function playMatrixTrace() {
   lastPlayTrigger = 'recipe';
   const modeChanged = currentDisplayMode !== 'recipe';
@@ -867,12 +886,7 @@ function playMatrixTrace() {
   updateTraceButtonsUI('playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
   const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  if (stageEl) {
-    const r = stageEl.getBoundingClientRect();
-    if (r.top < -10 || r.top > 110) {
-      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
-    }
-  }
+  scrollMatrixBelowHeader(stageEl);
 
   const speed = Number(document.getElementById('sim-speed')?.value) || 500;
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
@@ -1707,12 +1721,7 @@ function playStrokeGestureTrace() {
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 
   const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  if (stageEl) {
-    const r = stageEl.getBoundingClientRect();
-    if (r.top < -10 || r.top > 110) {
-      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 8), behavior: 'smooth' });
-    }
-  }
+  scrollMatrixBelowHeader(stageEl);
 
   const site = document.getElementById('sim-site')?.value || '1Password';
   const designKey = getGestureDesignKey(site);
@@ -2177,10 +2186,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const parsed = JSON.parse(savedRecipe);
           if (parsed.cfg) {
             setRecipeConfig(parsed.cfg);
-            if (parsed.cqPinLen && document.getElementById('cq-pin-length')) document.getElementById('cq-pin-length').value = parsed.cqPinLen;
-            if (parsed.cqSymLen && document.getElementById('cq-symbol-length')) document.getElementById('cq-symbol-length').value = parsed.cqSymLen;
-            if (parsed.cqSymMode && document.getElementById('cq-symbol-mode')) document.getElementById('cq-symbol-mode').value = parsed.cqSymMode;
-            if (parsed.cqSymList && document.getElementById('cq-symbol-list')) document.getElementById('cq-symbol-list').value = parsed.cqSymList;
+            if (parsed.cqPinLen != null && document.getElementById('cq-pin-length')) document.getElementById('cq-pin-length').value = parsed.cqPinLen;
+            if (parsed.cqSymLen != null && document.getElementById('cq-symbol-length')) document.getElementById('cq-symbol-length').value = parsed.cqSymLen;
+            if (parsed.cqSymMode != null && document.getElementById('cq-symbol-mode')) document.getElementById('cq-symbol-mode').value = parsed.cqSymMode;
+            if (parsed.cqSymList != null && document.getElementById('cq-symbol-list')) document.getElementById('cq-symbol-list').value = parsed.cqSymList;
           } else {
             setRecipeConfig(parsed);
           }
@@ -2464,6 +2473,10 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAllBoundSeedBadges();
 
   seedInput?.addEventListener('input', () => {
+    // Apply each edit immediately; keep the existing deterministic engine unchanged.
+    updateMainMatrix(seedInput.value);
+    updateSimulationUI();
+    generateAndRenderSeedPhrase();
     saveStateToStorage();
     updateAllBoundSeedBadges();
   });
@@ -2471,6 +2484,25 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStateToStorage();
     updateAllBoundSeedBadges();
   });
+  const speedInput = document.getElementById('sim-speed');
+  const speedOutput = document.getElementById('sim-speed-value');
+  const refreshSpeedLabel = () => {
+    const ms = Number(speedInput?.value) || 500;
+    if (speedOutput) speedOutput.value = `${ms / 1000}秒/文字`;
+  };
+  speedInput?.addEventListener('input', () => {
+    refreshSpeedLabel();
+    // Adjust an active playback immediately, without restarting its current step.
+    if (traceTimer && traceStepRunner && !traceIsPaused) {
+      clearInterval(traceTimer);
+      const ms = Number(speedInput.value) || 500;
+      traceTimer = setInterval(() => {
+        const nextIdx = traceCurrentIndex + 1;
+        traceStepRunner(nextIdx);
+      }, ms);
+    }
+  });
+  refreshSpeedLabel();
 
   document.getElementById('bq-btn-sync-card-seed')?.addEventListener('click', () => {
     const curSeed = (document.getElementById('input-seed-number')?.value || '0').trim();
@@ -2483,25 +2515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('btn-update-matrix')?.addEventListener('click', () => {
-    updateMainMatrix(seedInput.value);
-    updateSimulationUI();
-    generateAndRenderSeedPhrase();
-    saveStateToStorage();
-    updateAllBoundSeedBadges();
-  });
 
-  document.getElementById('btn-random-matrix')?.addEventListener('click', () => {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const rnd = (arr[0] % 900000000) + 100000000;
-    seedInput.value = String(rnd);
-    updateMainMatrix(rnd);
-    updateSimulationUI();
-    generateAndRenderSeedPhrase();
-    saveStateToStorage();
-    updateAllBoundSeedBadges();
-  });
 
   document.querySelectorAll('.rc-input').forEach(el => {
     el.addEventListener('input', () => {
@@ -2539,6 +2553,24 @@ document.addEventListener('DOMContentLoaded', () => {
     generateAndRenderSeedPhrase();
     saveStateToStorage();
   });
+
+  // Persist every recipe control, including controls that do not carry .rc-input.
+  document.querySelectorAll('[id^="rc-"]').forEach(el => {
+    el.addEventListener('input', saveStateToStorage);
+    el.addEventListener('change', saveStateToStorage);
+  });
+
+  // Persist quick-generation settings immediately, including symbol mode "0".
+  ['cq-pin-length', 'cq-symbol-length', 'cq-symbol-mode', 'cq-symbol-list'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', saveStateToStorage);
+    el.addEventListener('change', saveStateToStorage);
+  });
+
+  // Flush the latest recipe state when the page is refreshed or navigated away.
+  window.addEventListener('pagehide', saveStateToStorage);
+  window.addEventListener('beforeunload', saveStateToStorage);
 
   function transferGeneratedPasswordToKeeWeb(sourceButton) {
     saveStateToStorage();
@@ -3428,17 +3460,17 @@ document.addEventListener('DOMContentLoaded', () => {
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
    const subMode=cfg.lenMode===5?'パスワード（英大小・数字・記号）':cfg.lenMode===4?'パスワード（英大小・数字）':'銀行などの暗証番号（数字のみ）';
-   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 文字種・長さからの理論値: ${ent.bits} bits（※文字種・長さから算出した理論値であり、実際の推測困難性を示すものではありません。決定論的生成ではシードや入力情報の探索空間が上限です）`;
+   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 理論値: 約${ent.bits} bits`;
    $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシードフレーズ：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さからの理論値 ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
+   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシード：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さからの理論値 ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
   else{
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 文字種・長さからの理論値: ${ent.bits} bits（※文字種・長さから算出した理論値であり、実際の推測困難性を示すものではありません。決定論的生成ではシードや入力情報の探索空間が上限です）`;
+   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 理論値: 約${ent.bits} bits`;
    setStatus('cq-status','【現在使用中のモード】1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）\n上の「銀行などの暗証番号（数字のみ）」または「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと、かんたん生成モードに切り替わります。');
   }
   const stickyPw=$('sticky-output-pw'),stickyMeta=$('sticky-output-meta');
@@ -4884,7 +4916,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-sticky-copy')?.addEventListener('click',()=>$('btn-copy-pw')?.click());
   $('btn-sticky-top')?.addEventListener('click',()=>{
    const stageEl=$('matrix-stage-box')||$('div-encrypto-matrix-main');
-   if(stageEl)window.scrollTo({top:Math.max(0,window.scrollY+stageEl.getBoundingClientRect().top-8),behavior:'smooth'});
+   scrollMatrixBelowHeader(stageEl);
   });
   const liveRow=$('live-result-row'),stickyBar=$('sticky-pw-bar'),pageFooter=$('page-footer');
   const btnStickyToggle=$('btn-sticky-toggle'),btnStickyMinPill=$('btn-sticky-min-pill');
@@ -5105,7 +5137,7 @@ document.addEventListener('DOMContentLoaded', () => {
    Object.keys(localStorage).filter(k=>k.startsWith('cm_')).forEach(k=>{try{localStorage.removeItem(k);}catch(_){}});
    if($('cq-pin-length'))$('cq-pin-length').value='4';
    if($('cq-symbol-length'))$('cq-symbol-length').value='20';
-   if($('cq-symbol-mode'))$('cq-symbol-mode').value='2';
+   if($('cq-symbol-mode'))$('cq-symbol-mode').value='0';
    if($('cq-symbol-list'))$('cq-symbol-list').value='-_!#';
    if($('chk-include-card-seed'))$('chk-include-card-seed').checked=true;
    if($('backup-kind'))$('backup-kind').value='settings';

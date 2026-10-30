@@ -232,29 +232,6 @@
     window.cmApplyPeekGuard = applyGuard;
     window.cmIsPeekGuardOn = function () { return guard; };
 
-    // クリップボード自動消去
-    var badge = document.createElement('div');
-    badge.className = 'cm-clip-badge';
-    badge.hidden = true;
-    document.body.appendChild(badge);
-    var timer;
-    var copyBtn = $('btn-copy-pw');
-    if (copyBtn) copyBtn.addEventListener('click', function () {
-      clearInterval(timer);
-      var left = 30;
-      badge.hidden = false;
-      badge.textContent = '📋 コピーしました · ' + left + '秒後にクリップボードを消去';
-      timer = setInterval(function () {
-        left--;
-        if (left > 0) { badge.textContent = '📋 コピーしました · ' + left + '秒後にクリップボードを消去'; return; }
-        clearInterval(timer);
-        navigator.clipboard.writeText('').then(
-          function () { badge.textContent = '🧹 クリップボードを消去しました'; },
-          function () { badge.textContent = '⚠ 自動消去できませんでした（画面を開いた状態で再度お試しください）'; }
-        ).then(function () { setTimeout(function () { badge.hidden = true; }, 2500); });
-      }, 1000);
-    });
-
     // 各パスワード欄の強度
     METER_TARGETS.forEach(function (sel) {
       var input = document.querySelector(sel);

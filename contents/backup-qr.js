@@ -4955,47 +4955,55 @@ function initBonusVault(){
 
  $('bv-restore-qr-img')?.addEventListener('change',async()=>{
 
-  const file=$('bv-restore-qr-img')?.files?.[0];
+  const files=Array.from($('bv-restore-qr-img')?.files||[]);
 
-  if(!file)return;
+  if(!files.length)return;
 
   bvStopCamera();
 
-  try{
+  const errors=[];
 
-   bvMessage('bv-decrypt-status','QR画像ファイルを解析しています…');
+  try{
 
    const decode=await getDecoder();
 
-   const image=await createImageBitmap(file);
+   for(const file of files){
 
-   try{
+    let image=null;
 
-    const scale=Math.min(1,1800/Math.max(image.width,image.height)),canvas=document.createElement('canvas');
+    try{
 
-    canvas.width=Math.max(1,Math.round(image.width*scale));
+     image=await createImageBitmap(file);
 
-    canvas.height=Math.max(1,Math.round(image.height*scale));
+     const scale=Math.min(1,1800/Math.max(image.width,image.height)),canvas=document.createElement('canvas');
 
-    canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+     canvas.width=Math.max(1,Math.round(image.width*scale));
 
-    const texts=await decode(canvas);
+     canvas.height=Math.max(1,Math.round(image.height*scale));
 
-    if(!texts.length)throw Error('QRコードが見つかりませんでした。明るくブレのないQR画像を選択してください。');
+     canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
 
-    let hit=false;
+     const texts=await decode(canvas);
 
-    for(const t of texts){
+     if(!texts.length)throw Error('QRコードが見つかりませんでした。');
 
-     if(await bvIngest(t))hit=true;
+     for(const t of texts)await bvIngest(t);
+
+    }catch(e){
+
+     errors.push(file.name+': '+(e.message||e));
+
+    }finally{
+
+     if(image)image.close();
 
     }
 
-   }finally{
-
-    image.close();
-
    }
+
+   if(errors.length)bvMessage('bv-decrypt-status','一部のQR画像を読み込めませんでした。'+errors.join(' / '),true);
+
+   else bvMessage('bv-decrypt-status',files.length>1?'複数のQR画像を読み込みました。必要なシェアが揃ったら復元を実行してください。':'QR画像を読み込みました。');
 
   }catch(e){
 
@@ -5008,6 +5016,7 @@ function initBonusVault(){
   }
 
  });
+
 
  document.addEventListener('cm-route-vault-text',event=>{
 

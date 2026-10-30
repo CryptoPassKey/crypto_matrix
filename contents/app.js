@@ -282,7 +282,56 @@
       return /\.(png|jpe?g|gif|webp|svg)$/.test(name);
     }
 
-    function setupDropzone(textareaId, fileInputId, imageInputId) {
+    function showDropFeedback(targetEl, msg, isError) {
+      if (!targetEl) return;
+      var statusEl = targetEl.parentElement ? targetEl.parentElement.querySelector('.status-msg, .bq-status') : null;
+      if (statusEl) {
+        statusEl.textContent = msg;
+        statusEl.className = isError ? 'status-msg err' : 'status-msg ok';
+      } else {
+        targetEl.title = msg;
+      }
+    }
+
+    // Section 2: テキストファイル（.txt, .asc, 24単語）のドロップ処理
+    var sec2Ta = $('input-restore-seed');
+    if (sec2Ta && !sec2Ta.dataset.cmDropWired) {
+      sec2Ta.dataset.cmDropWired = '1';
+      var sec2Card = sec2Ta.closest('.section-card') || sec2Ta.parentElement;
+      sec2Card.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        sec2Card.classList.add('cm-drag-over');
+      });
+      sec2Card.addEventListener('dragleave', function (e) {
+        if (!sec2Card.contains(e.relatedTarget)) {
+          sec2Card.classList.remove('cm-drag-over');
+        }
+      });
+      sec2Card.addEventListener('drop', function (e) {
+        e.preventDefault();
+        sec2Card.classList.remove('cm-drag-over');
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+        var file = files[0];
+        if (isImageFile(file)) {
+          showDropFeedback(sec2Ta, '⚠️ 画像ファイルは「3. 拡張バックアップ」または「4. セキュア保管庫」のQR読込へドロップしてください。', true);
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          sec2Ta.value = (evt.target.result || '').trim();
+          sec2Ta.dispatchEvent(new Event('input', { bubbles: true }));
+          showDropFeedback(sec2Ta, '✅ 復元フレーズファイルを読み込みました。「全ブロックを検証して復元」を押してください。', false);
+        };
+        reader.onerror = function () {
+          showDropFeedback(sec2Ta, '❌ ファイルの読み込みに失敗しました。', true);
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // Section 3 & 4: 各セクションのドロップ＆ペースト処理
+    function setupDropzone(textareaId, fileInputId, imageInputId, statusId) {
       var ta = $(textareaId);
       if (!ta || ta.dataset.cmDropWired) return;
       ta.dataset.cmDropWired = '1';
@@ -304,6 +353,11 @@
         var files = e.dataTransfer && e.dataTransfer.files;
         if (!files || !files.length) return;
 
+        if (typeof DataTransfer === 'undefined') {
+          showDropFeedback(ta, '⚠️ お使いのブラウザはドラッグ＆ドロップによるファイル転送に対応していません。手動でファイルを選択してください。', true);
+          return;
+        }
+
         var imgFiles = [];
         var otherFiles = [];
         for (var k = 0; k < files.length; k++) {
@@ -314,27 +368,44 @@
           }
         }
 
-        function dispatchTo(inputEl, fileList) {
-          if (!inputEl || !fileList.length || typeof DataTransfer === 'undefined') return;
+        // Section 3: bq-image は画像・.cmenc・.txt をすべてまとめて受け付ける設計
+        if (fileInputId === imageInputId) {
+          var targetInput = $(fileInputId);
+          if (targetInput) {
+            try {
+              var dtAll = new DataTransfer();
+              for (var i = 0; i < files.length; i++) dtAll.items.add(files[i]);
+              targetInput.files = dtAll.files;
+              targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (err) {
+              showDropFeedback(ta, '❌ ファイルの読み込み処理でエラーが発生しました: ' + (err.message || err), true);
+            }
+          }
+          return;
+        }
+
+        // Section 4: 画像 (bv-restore-qr-img) と一般ファイル (bv-restore-file) で入力欄が分離
+        if (imgFiles.length > 0 && otherFiles.length > 0) {
+          showDropFeedback(ta, '⚠️ 画像ファイルと暗号化ファイル（.cmenc等）は別々に入力してください。', true);
+          return;
+        }
+
+        var destInput = imgFiles.length > 0 ? $(imageInputId) : $(fileInputId);
+        var destFiles = imgFiles.length > 0 ? imgFiles : otherFiles;
+
+        if (destInput && destFiles.length > 0) {
           try {
             var dt = new DataTransfer();
-            for (var i = 0; i < fileList.length; i++) dt.items.add(fileList[i]);
-            inputEl.files = dt.files;
-            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
-          } catch (err) {}
-        }
-
-        var imageInput = imageInputId ? $(imageInputId) : null;
-        var fileInput = fileInputId ? $(fileInputId) : null;
-
-        if (imgFiles.length > 0) {
-          dispatchTo(imageInput || fileInput, imgFiles);
-        }
-        if (otherFiles.length > 0) {
-          dispatchTo(fileInput || imageInput, otherFiles);
+            for (var m = 0; m < destFiles.length; m++) dt.items.add(destFiles[m]);
+            destInput.files = dt.files;
+            destInput.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (err) {
+            showDropFeedback(ta, '❌ ファイルの読み込み処理でエラーが発生しました: ' + (err.message || err), true);
+          }
         }
       });
 
+      // Ctrl+V: クリップボードからの画像貼り付け（スクリーンショット等）
       ta.addEventListener('paste', function (e) {
         var items = e.clipboardData && e.clipboardData.items;
         if (!items) return;
@@ -347,21 +418,25 @@
         }
         if (imageFiles.length > 0) {
           e.preventDefault();
-          var imageInput = imageInputId ? $(imageInputId) : (fileInputId ? $(fileInputId) : null);
-          if (imageInput && typeof DataTransfer !== 'undefined') {
-            try {
-              var dt = new DataTransfer();
-              for (var j = 0; j < imageFiles.length; j++) dt.items.add(imageFiles[j]);
-              imageInput.files = dt.files;
-              imageInput.dispatchEvent(new Event('change', { bubbles: true }));
-            } catch (err) {}
+          var targetInput = imageInputId ? $(imageInputId) : $(fileInputId);
+          if (!targetInput || typeof DataTransfer === 'undefined') {
+            showDropFeedback(ta, '⚠️ クリップボード画像の直接読込に対応していません。画像ファイルを選択してください。', true);
+            return;
+          }
+          try {
+            var dt = new DataTransfer();
+            for (var j = 0; j < imageFiles.length; j++) dt.items.add(imageFiles[j]);
+            targetInput.files = dt.files;
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (err) {
+            showDropFeedback(ta, '❌ クリップボード画像の処理でエラーが発生しました: ' + (err.message || err), true);
           }
         }
       });
     }
 
-    setupDropzone('bq-import', 'bq-image', 'bq-image');
-    setupDropzone('bv-restore-text', 'bv-restore-file', 'bv-restore-qr-img');
+    setupDropzone('bq-import', 'bq-image', 'bq-image', 'bq-scan-status');
+    setupDropzone('bv-restore-text', 'bv-restore-file', 'bv-restore-qr-img', 'bv-decrypt-status');
   }
 
   /* ---------- 「どこに入力？」案内 ---------- */

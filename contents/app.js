@@ -216,19 +216,8 @@
         el.classList.toggle('cm-peek', guard);
         if (!el.dataset.cmPeekWired) {
           el.dataset.cmPeekWired = '1';
-          var startY = 0;
           var reveal = function (on) { el.classList.toggle('cm-reveal', on); };
-          el.addEventListener('touchstart', function (e) {
-            if (e.touches && e.touches[0]) startY = e.touches[0].clientY;
-            reveal(true);
-          }, { passive: true });
-          el.addEventListener('touchmove', function (e) {
-            if (e.touches && e.touches[0]) {
-              if (Math.abs(e.touches[0].clientY - startY) > 10) {
-                reveal(false);
-              }
-            }
-          }, { passive: true });
+          el.addEventListener('touchstart', function () { reveal(true); }, { passive: true });
           el.addEventListener('touchend', function () { reveal(false); });
           el.addEventListener('touchcancel', function () { reveal(false); });
           el.addEventListener('contextmenu', function (e) { if (guard) e.preventDefault(); });
@@ -254,7 +243,8 @@
     badge.hidden = true;
     document.body.appendChild(badge);
     var timer;
-    function startClipCountdown() {
+    var copyBtn = $('btn-copy-pw');
+    if (copyBtn) copyBtn.addEventListener('click', function () {
       clearInterval(timer);
       var left = 30;
       badge.hidden = false;
@@ -268,21 +258,6 @@
           function () { badge.textContent = '⚠ 自動消去できませんでした（画面を開いた状態で再度お試しください）'; }
         ).then(function () { setTimeout(function () { badge.hidden = true; }, 2500); });
       }, 1000);
-    }
-
-    var ALL_COPY_BTNS = [
-      '#btn-copy-pw', '#btn-sticky-copy', '#btn-copy-seed',
-      '#bq-copy', '#bv-copy-decrypted', '#tl-btn-copy', '#tl-copy-decrypted'
-    ];
-    ALL_COPY_BTNS.forEach(function (sel) {
-      var btn = document.querySelector(sel);
-      if (btn) btn.addEventListener('click', startClipCountdown);
-    });
-    document.body.addEventListener('click', function (e) {
-      var b = e.target && e.target.closest && e.target.closest('button');
-      if (b && b.id && ALL_COPY_BTNS.indexOf('#' + b.id) !== -1) {
-        startClipCountdown();
-      }
     });
 
     // 各パスワード欄の強度
@@ -305,6 +280,13 @@
 
   /* ---------- ファイルドラッグ＆ドロップ ＆ Ctrl+V 貼り付けサポート ---------- */
   function initDropAndPasteSupport() {
+    function isImageFile(file) {
+      if (!file) return false;
+      if (file.type && file.type.indexOf('image/') === 0) return true;
+      var name = (file.name || '').toLowerCase();
+      return /\.(png|jpe?g|gif|webp|svg)$/.test(name);
+    }
+
     function setupDropzone(textareaId, fileInputId, imageInputId) {
       var ta = $(textareaId);
       if (!ta || ta.dataset.cmDropWired) return;
@@ -327,17 +309,34 @@
         var files = e.dataTransfer && e.dataTransfer.files;
         if (!files || !files.length) return;
 
-        var imageInput = imageInputId ? $(imageInputId) : null;
-        var fileInput = fileInputId ? $(fileInputId) : null;
-        var targetInput = imageInput || fileInput;
+        var imgFiles = [];
+        var otherFiles = [];
+        for (var k = 0; k < files.length; k++) {
+          if (isImageFile(files[k])) {
+            imgFiles.push(files[k]);
+          } else {
+            otherFiles.push(files[k]);
+          }
+        }
 
-        if (targetInput && typeof DataTransfer !== 'undefined') {
+        function dispatchTo(inputEl, fileList) {
+          if (!inputEl || !fileList.length || typeof DataTransfer === 'undefined') return;
           try {
             var dt = new DataTransfer();
-            for (var i = 0; i < files.length; i++) dt.items.add(files[i]);
-            targetInput.files = dt.files;
-            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+            for (var i = 0; i < fileList.length; i++) dt.items.add(fileList[i]);
+            inputEl.files = dt.files;
+            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
           } catch (err) {}
+        }
+
+        var imageInput = imageInputId ? $(imageInputId) : null;
+        var fileInput = fileInputId ? $(fileInputId) : null;
+
+        if (imgFiles.length > 0) {
+          dispatchTo(imageInput || fileInput, imgFiles);
+        }
+        if (otherFiles.length > 0) {
+          dispatchTo(fileInput || imageInput, otherFiles);
         }
       });
 
@@ -346,9 +345,9 @@
         if (!items) return;
         var imageFiles = [];
         for (var i = 0; i < items.length; i++) {
-          if (items[i].kind === 'file' && items[i].type.indexOf('image/') !== -1) {
+          if (items[i].kind === 'file') {
             var f = items[i].getAsFile();
-            if (f) imageFiles.push(f);
+            if (f && isImageFile(f)) imageFiles.push(f);
           }
         }
         if (imageFiles.length > 0) {

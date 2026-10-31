@@ -1782,17 +1782,826 @@
   </div></section>
   <section aria-label="設定">
     <div class="cm-tablist" role="tablist">
-      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムロック</button>
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムロック</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button>
     </div>
     <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
     <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
     <div id="tab-backup" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
     <div id="tab-vault" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
     <div id="tab-timelock" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
+    <div id="tab-timesecret" class="cm-panel cm-legacy" role="tabpanel" hidden>
+      <div class="section-card" id="timesecret-section">
+        <div class="ts-header-row">
+          <h2 class="ts-title">
+            <img src="tab-timesecret.png" width="24" height="24" alt="" style="border-radius:4px;">
+            <span>タイムシークレット（チェックイン型・複数時限金庫）</span>
+          </h2>
+          <span id="ts-state-badge" class="ts-state-pill" data-state="UNINITIALIZED">登録なし（0件）</span>
+        </div>
+
+        <p class="ts-lead">
+          複数のタイムシークレットを独立管理できるチェックイン型時限金庫です。金庫ごとに<strong>暗号化（復号）・チェックイン（期限延長）・管理操作（削除・設定変更）の3つの認証ポリシー</strong>を分離して設定でき、カード配列シード連動・共通KeePassキーファイル（<code>.key</code>）・個別の非抽出可能デバイス鍵で保護されます。
+        </p>
+
+        <div id="ts-global-status" class="ts-status-bar" role="status" aria-live="polite" hidden></div>
+        <div id="ts-inapp-expiry-banner" class="ts-expiry-banner" role="alert" hidden></div>
+
+        <!-- ==================== VIEW 1: MULTI-VAULT LIST VIEW (一覧画面) ==================== -->
+        <div id="ts-list-view">
+          <div class="ts-subtoolbar">
+            <div class="ts-subtoolbar-title">📋 タイムシークレット一覧</div>
+            <button type="button" class="ts-btn ts-btn-primary ts-btn-sm" id="btn-ts-new-vault" style="flex:0 0 auto;">➕ 新規作成</button>
+          </div>
+
+          <div id="ts-list-empty" class="ts-empty-card">
+            <div class="ts-empty-title">まだタイムシークレットが作成されていません</div>
+            <p class="ts-empty-desc">
+              定期チェックインまたは指定日時まで維持したいテキストや任意のファイルを、用途ごとに自由な名前を付けて複数保管できます。チェックイン認証と復号・管理操作の認証は個別に設定可能です。
+            </p>
+            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-empty-new" style="flex:0 0 auto;">✨ 新しいタイムシークレットを作成</button>
+          </div>
+
+          <div id="ts-list-table-wrap" class="ts-table-wrap" hidden>
+            <table class="ts-list-table" aria-label="タイムシークレット一覧">
+              <thead>
+                <tr>
+                  <th scope="col">名前 / 認証構成</th>
+                  <th scope="col">状態</th>
+                  <th scope="col">最終チェックイン</th>
+                  <th scope="col">次の期限</th>
+                  <th scope="col">操作</th>
+                </tr>
+              </thead>
+              <tbody id="ts-vault-list-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW 2: UNIFIED CREATE VIEW (新規作成画面) ==================== -->
+        <div id="ts-create-view" hidden>
+          <div class="ts-nav-bar">
+            <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-create-back">← 一覧に戻る</button>
+            <h3 class="ts-view-heading">➕ 新規タイムシークレット作成</h3>
+          </div>
+
+          <!-- Step 1: Name & Unified Text/File Data Input (preset name chips removed) -->
+          <div class="ts-block-card">
+            <h3 class="ts-block-title">1. 名前と保管データ（テキスト・ファイル共通）</h3>
+            <div class="ts-field">
+              <label for="ts-vault-label">タイムシークレットの名前:</label>
+              <input type="text" id="ts-vault-label" maxlength="80" placeholder="用途がわかる名前を入力">
+            </div>
+
+            <div id="ts-unified-text-wrap" class="ts-field">
+              <label for="ts-secret-text">保管するデータ（テキストを直接入力、または下のファイル添付を選択）:</label>
+              <textarea id="ts-secret-text" placeholder="保護したいテキスト・緊急連絡メモ・引き継ぎ情報などを入力してください（内部で構造化コンテナに自動格納され、復号時はそのまま画面に表示されます）。"></textarea>
+            </div>
+
+            <div class="ts-file-attach-box">
+              <div class="ts-inline-row" style="justify-content:space-between;">
+                <label for="ts-secret-file" style="margin:0; font-size:0.8rem; font-weight:700;">📎 任意のファイルを保管する場合（元のファイル形式を保持・最大20MB）:</label>
+                <input type="file" id="ts-secret-file" style="max-width:100%;">
+              </div>
+              <div id="ts-attached-file-chip" class="ts-file-chip" hidden>
+                <span id="ts-attached-file-text"></span>
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-file">✕ 解除してテキスト入力へ戻す</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Deadline Settings (Relative / Absolute / Quick Presets) -->
+          <div class="ts-block-card">
+            <h3 class="ts-block-title">2. 期限設定（相対時間・絶対時刻・クイック設定）</h3>
+
+            <div class="ts-radio-row" role="radiogroup" aria-label="期限設定方式">
+              <label class="ts-radio-chip">
+                <input type="radio" name="ts-time-mode" id="ts-time-mode-rel" value="relative" checked>
+                <span>⏱️ 現在からの経過時間で指定（相対時間）</span>
+              </label>
+              <label class="ts-radio-chip">
+                <input type="radio" name="ts-time-mode" id="ts-time-mode-abs" value="absolute">
+                <span>📅 日時を直接指定（絶対時刻）</span>
+              </label>
+            </div>
+
+            <div class="ts-quick-preset-bar" aria-label="期限クイック設定">
+              <span class="ts-quick-preset-label">クイック設定：</span>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn ts-preset-test" data-sec="30">⚡ 30秒後（動作テスト用）</button>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="3600">🕐 1時間後</button>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="86400">📅 24時間後</button>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn is-active" data-sec="604800">🗓️ 7日後</button>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="2592000">📆 30日後</button>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="31536000">🎂 1年後</button>
+            </div>
+
+            <!-- Relative Duration Input -->
+            <div id="ts-time-rel-box" class="ts-inline-row" style="margin-bottom:8px;">
+              <label for="ts-rel-amount" style="margin:0; font-size:0.82rem; font-weight:700;">チェックインからの有効期間:</label>
+              <input type="number" id="ts-rel-amount" min="1" max="365000" value="7" style="max-width:120px;">
+              <select id="ts-rel-unit" style="max-width:150px;">
+                <option value="1000">秒後（テスト用）</option>
+                <option value="60000">分後</option>
+                <option value="3600000">時間後</option>
+                <option value="86400000" selected>日後</option>
+              </select>
+            </div>
+
+            <!-- Absolute Datetime Input -->
+            <div id="ts-time-abs-box" class="ts-inline-row" style="margin-bottom:8px;" hidden>
+              <label for="ts-datetime-input" style="margin:0; font-size:0.82rem; font-weight:700;">固定期限日時（チェックインしてもこの日時は変わりません）:</label>
+              <input type="datetime-local" id="ts-datetime-input" step="1" style="max-width:260px;">
+            </div>
+
+            <div id="ts-test-duration-warning" class="ts-test-warn-box" hidden>
+              🧪 <strong>動作確認用設定：</strong>1分未満（30秒後など）の設定は期限切れ処理の動作テスト専用です。通常の保管運用では十分な猶予期間を設定してください。
+            </div>
+            <div id="ts-initial-deadline-preview" class="ts-deadline-preview"></div>
+          </div>
+
+          <!-- Step 3: Separated 3-Layer Authentication & Seed Binding -->
+          <div class="ts-block-card">
+            <h3 class="ts-block-title">3. 認証方式の設定（暗号化・チェックイン・管理操作を独立管理）</h3>
+
+            <!-- Card Array Seed Binding Banner (Unified with Sections 3, 4, 5) -->
+            <div class="ts-seed-bind-banner">
+              <div class="ts-seed-bind-main">
+                <span class="ts-seed-bind-label">🔑 連動カード配列シード番号:</span>
+                <span id="ts-bound-seed-badge" class="ts-seed-badge">#0</span>
+              </div>
+              <div class="ts-seed-bind-note">
+                ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます（キーファイル設定とは独立して動作します）。
+              </div>
+            </div>
+
+            <!-- 3-1. Encryption Authentication -->
+            <div class="ts-auth-subcard">
+              <div class="ts-auth-subhead">
+                <span class="ts-auth-subtag ts-tag-enc">3-1. 暗号化の認証方式</span>
+                <span class="ts-auth-subcaption">データの復号に必要です（1つ以上選択・複数選択時はすべて必須）</span>
+              </div>
+
+              <label class="ts-chk-label">
+                <input type="checkbox" id="ts-opt-password" checked>
+                <span>🔑 パスワード（KDF鍵導出）</span>
+              </label>
+              <div id="ts-pw-panel" class="ts-factor-panel">
+                <div class="ts-field">
+                  <div class="ts-label-split">
+                    <label for="ts-password">暗号化パスワード（12文字以上）:</label>
+                    <button type="button" class="ts-toggle-pw" data-target="ts-password,ts-password-confirm">👁️ 表示</button>
+                  </div>
+                  <input type="password" id="ts-password" autocomplete="new-password" placeholder="12文字以上の強力なパスワードを入力">
+                </div>
+                <div class="ts-field">
+                  <label for="ts-password-confirm">暗号化パスワード（確認用再入力）:</label>
+                  <input type="password" id="ts-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
+                </div>
+                <div class="ts-field" style="margin-bottom:0;">
+                  <label for="ts-kdf-profile">鍵導出関数（KDF強度プロファイル）:</label>
+                  <select id="ts-kdf-profile">
+                    <option value="3" selected>Argon2id 標準（64MB / 3回 · PC・スマホ推奨）</option>
+                    <option value="4">Argon2id 高強度（128MB / 3回 · PC推奨）</option>
+                    <option value="5">Argon2id 最高強度（256MB / 4回 · PC限定）</option>
+                    <option value="1">PBKDF2-HMAC-SHA512（210万回）</option>
+                  </select>
+                </div>
+              </div>
+
+              <label class="ts-chk-label">
+                <input type="checkbox" id="ts-opt-keyfile">
+                <span>📄 キーファイル（他セクション共通 KeePass <code>.key</code> または任意ファイル）</span>
+              </label>
+              <div id="ts-kf-panel" class="ts-factor-panel" hidden>
+                <div class="ts-inline-row" style="margin-bottom:6px;">
+                  <input type="file" id="ts-keyfile" style="flex:1 1 200px;">
+                  <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                </div>
+                <div id="ts-keyfile-info" class="ts-kf-status">キーファイル未選択</div>
+              </div>
+
+              <label class="ts-chk-label" style="margin-bottom:0;">
+                <input type="checkbox" id="ts-opt-passkey">
+                <span>👤 パスキー（WebAuthn PRF 暗号鍵導出）</span>
+              </label>
+              <div id="ts-pk-panel" style="margin-top:6px;" hidden>
+                <div id="ts-passkey-slot" class="cm-passkey-manager-slot"></div>
+              </div>
+            </div>
+
+            <!-- 3-2. Check-In Authentication -->
+            <div class="ts-auth-subcard">
+              <div class="ts-auth-subhead">
+                <span class="ts-auth-subtag ts-tag-ci">3-2. チェックインの認証方式</span>
+                <span class="ts-auth-subcaption">期限の維持・延長に必要です（暗号化とは独立して専用検証情報で照合）</span>
+              </div>
+
+              <div class="ts-ci-grid">
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-ci-opt-none">
+                  <span>⚡ 認証なし（ワンクリックで期限延長）</span>
+                </label>
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-ci-opt-password" checked>
+                  <span>🔑 パスワード（チェックイン専用検証）</span>
+                </label>
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-ci-opt-keyfile">
+                  <span>📄 キーファイル（登録キーファイル照合）</span>
+                </label>
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-ci-opt-passkey">
+                  <span>👤 パスキー（チェックイン用パスキー独立検証）</span>
+                </label>
+              </div>
+
+              <div id="ts-ci-none-notice" class="ts-auth-none-box" hidden>
+                ⚡ <strong>簡易チェックイン（認証なし）：</strong>チェックイン時は認証ダイアログを表示せずワンクリックで期限を延長します。データの復号および金庫削除・設定変更にはそれぞれの認証が引き続き要求されます。
+              </div>
+
+              <!-- チェックイン用パスワード設定 -->
+              <div id="ts-ci-pw-panel" class="ts-factor-panel">
+                <div id="ts-ci-pw-source-wrap" class="ts-sub-radio-row" style="margin-bottom:8px;">
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-pw-source" id="ts-ci-pw-source-enc" value="encryption" checked>
+                    <span>🔐 暗号化用パスワードを再利用</span>
+                  </label>
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-pw-source" id="ts-ci-pw-source-custom" value="custom">
+                    <span>🔑 チェックイン専用パスワードを設定</span>
+                  </label>
+                </div>
+                <div id="ts-ci-pw-reuse-notice" class="ts-reuse-badge" style="margin-bottom:6px;">
+                  ✓ 暗号化用パスワードと同じ文字列でチェックインを照合します（チェックイン時に暗号化鍵は復元されず、独立した専用検証値で照合されます）。
+                </div>
+                <div id="ts-ci-pw-inputs-wrap" hidden>
+                  <div class="ts-field">
+                    <div class="ts-label-split">
+                      <label for="ts-ci-password">チェックイン専用パスワード（12文字以上）:</label>
+                      <button type="button" class="ts-toggle-pw" data-target="ts-ci-password,ts-ci-password-confirm">👁️ 表示</button>
+                    </div>
+                    <input type="password" id="ts-ci-password" autocomplete="new-password" placeholder="チェックイン時に検証する12文字以上の専用パスワード">
+                  </div>
+                  <div class="ts-field" style="margin-bottom:0;">
+                    <label for="ts-ci-password-confirm">チェックイン専用パスワード（確認用再入力）:</label>
+                    <input type="password" id="ts-ci-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
+                  </div>
+                </div>
+              </div>
+
+              <!-- チェックイン用キーファイル設定 -->
+              <div id="ts-ci-kf-panel" class="ts-factor-panel" hidden>
+                <div id="ts-ci-kf-source-wrap" class="ts-sub-radio-row" style="margin-bottom:8px;">
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-kf-source" id="ts-ci-kf-source-enc" value="encryption" checked>
+                    <span>📄 暗号化用キーファイルを再利用</span>
+                  </label>
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-kf-source" id="ts-ci-kf-source-custom" value="custom">
+                    <span>📄 チェックイン専用キーファイルを選択</span>
+                  </label>
+                </div>
+                <div id="ts-ci-kf-reuse-notice" class="ts-reuse-badge" style="margin-bottom:6px;">
+                  ✓ 暗号化用キーファイルと同じファイルでチェックインを照合します（暗号鍵は流用せず独立した検証値で照合されます）。
+                </div>
+                <div id="ts-ci-kf-inputs-wrap" hidden>
+                  <div class="ts-inline-row" style="margin-bottom:6px;">
+                    <input type="file" id="ts-ci-keyfile" style="flex:1 1 180px;">
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-ci-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                  </div>
+                  <div id="ts-ci-keyfile-info" class="ts-kf-status">専用キーファイル未選択</div>
+                </div>
+              </div>
+
+              <!-- チェックイン用パスキー設定 -->
+              <div id="ts-ci-pk-panel" class="ts-factor-panel" hidden>
+                <div class="ts-sub-radio-row" style="margin-bottom:8px;">
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-pk-source" id="ts-ci-pk-source-existing" value="existing" checked>
+                    <span>👤 既存／登録済みのパスキーを利用（推奨）</span>
+                  </label>
+                  <label class="ts-radio-chip ts-chip-sm">
+                    <input type="radio" name="ts-ci-pk-source" id="ts-ci-pk-source-custom" value="custom">
+                    <span>➕ チェックイン専用パスキーを新規登録</span>
+                  </label>
+                </div>
+                <div id="ts-ci-pk-status" class="ts-pk-reg-status" data-registered="false">
+                  ℹ️ 既存パスキー利用モード：端末に登録済みの生体認証器（WebAuthn PRF）をチェックイン用として利用します。
+                </div>
+                <div class="ts-inline-row" style="margin-top:6px;">
+                  <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-ci-reg-passkey">👤 パスキーの動作確認・登録（PRF検証）</button>
+                  <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-ci-clear-passkey" hidden>✕ 登録解除</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3-3. Management Authentication -->
+            <div class="ts-auth-subcard" style="margin-bottom:0;">
+              <div class="ts-auth-subhead">
+                <span class="ts-auth-subtag ts-tag-mgmt">3-3. 管理操作の認証方式</span>
+                <span class="ts-auth-subcaption">金庫の削除・認証設定変更・チェックイン用パスキー変更・期限設定変更を保護します</span>
+              </div>
+
+              <div class="ts-radio-row" role="radiogroup" aria-label="管理操作の認証設定">
+                <label class="ts-radio-chip">
+                  <input type="radio" name="ts-mgmt-mode" id="ts-mgmt-mode-same" value="same_as_encryption" checked>
+                  <span>🔒 暗号化と同じ強い認証要素を管理操作にも要求（推奨）</span>
+                </label>
+                <label class="ts-radio-chip">
+                  <input type="radio" name="ts-mgmt-mode" id="ts-mgmt-mode-custom" value="custom">
+                  <span>⚙️ 管理操作専用の認証方式を個別に設定</span>
+                </label>
+              </div>
+
+              <div id="ts-mgmt-custom-box" hidden>
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-mgmt-opt-password" checked>
+                  <span>🔑 管理用パスワード（12文字以上）</span>
+                </label>
+                <div id="ts-mgmt-pw-panel" class="ts-factor-panel">
+                  <div class="ts-field">
+                    <div class="ts-label-split">
+                      <label for="ts-mgmt-password">管理操作用パスワード:</label>
+                      <button type="button" class="ts-toggle-pw" data-target="ts-mgmt-password,ts-mgmt-password-confirm">👁️ 表示</button>
+                    </div>
+                    <input type="password" id="ts-mgmt-password" autocomplete="new-password" placeholder="削除・設定変更時に要求する12文字以上のパスワード">
+                  </div>
+                  <div class="ts-field" style="margin-bottom:0;">
+                    <label for="ts-mgmt-password-confirm">管理操作用パスワード（確認用再入力）:</label>
+                    <input type="password" id="ts-mgmt-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
+                  </div>
+                </div>
+
+                <label class="ts-chk-label">
+                  <input type="checkbox" id="ts-mgmt-opt-keyfile">
+                  <span>📄 管理用キーファイル</span>
+                </label>
+                <div id="ts-mgmt-kf-panel" class="ts-factor-panel" hidden>
+                  <div class="ts-inline-row" style="margin-bottom:6px;">
+                    <input type="file" id="ts-mgmt-keyfile" style="flex:1 1 180px;">
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-secondary" id="btn-ts-mgmt-use-enc-kf">🔄 暗号化のキーファイルを共用</button>
+                  </div>
+                  <div id="ts-mgmt-keyfile-info" class="ts-kf-status">キーファイル未選択</div>
+                </div>
+
+                <label class="ts-chk-label" style="margin-bottom:0;">
+                  <input type="checkbox" id="ts-mgmt-opt-passkey">
+                  <span>👤 管理用パスキー（WebAuthn PRF）</span>
+                </label>
+                <div id="ts-mgmt-pk-panel" class="ts-factor-panel" style="margin-top:6px;" hidden>
+                  <div id="ts-mgmt-pk-status" class="ts-pk-reg-status" data-registered="false">
+                    ⚠️ 未登録：下のボタンで管理用パスキーのPRF対応確認と登録を実行してください。
+                  </div>
+                  <div class="ts-inline-row" style="margin-top:6px;">
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-mgmt-reg-passkey">👤 管理用パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-clear-passkey" hidden>✕ 登録解除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Honest Guarantees & Device Key Acknowledgement -->
+          <div class="ts-block-card" id="ts-guarantees-box">
+            <h3 class="ts-block-title">4. デバイス鍵と保証範囲の確認（作成前に必ずご確認ください）</h3>
+            <ol class="ts-guarantees-list">
+              <li><strong>起動時判定：</strong>ブラウザを閉じている間は期限切れ処理が動作しません（次回起動・タブ復帰時に金庫ごとに判定・削除されます）。</li>
+              <li><strong>通知の補助性：</strong>PWA通知は補助機能であり、環境やバックグラウンド状態によって届かない場合があります。</li>
+              <li><strong>プロファイル復元：</strong>ブラウザのプロファイル全体をバックアップから復元すると、期限や試行回数を巻き戻せる可能性があります。</li>
+              <li><strong>時計検知の性質：</strong>時計巻き戻し検知（<code>lastSeen</code> より5分以上の逆行検知）は実際の経過時間を証明する仕組みではなく、海外旅行やOS時刻修正でも時計異常モードに入る場合があります（時計異常だけで鍵は破棄されず、通常と同じ復号操作でデータを取り出せます）。</li>
+              <li><strong>物理ストレージの制約：</strong>期限切れ時は該当する金庫の非抽出可能なデバイス鍵と暗号データのみを破棄して読み戻し検証しますが、SSD等の物理セクタやOSバックアップ上の全データ完全消去を保証するものではありません。</li>
+              <li><strong>デバイス鍵喪失時の復旧不可：</strong>各タイムシークレットはこのブラウザ内の専用デバイス鍵と結合されます。<strong>サイトデータ消去・端末紛失等でデバイス鍵を失うと、パスワード・キーファイル・パスキーが残っていても復号できません。</strong></li>
+            </ol>
+            <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="ts-ack-devicekey" style="margin-top:3px;">
+              <span>デバイス鍵を失った場合は復号不能になること、および上記6項目の保証範囲を確認・同意しました</span>
+            </label>
+          </div>
+
+          <div id="ts-create-progress" class="ts-status-bar" hidden></div>
+
+          <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-create-seal" style="width:100%; padding:13px 16px; font-size:0.94rem;">
+            🛡️ 事前往復検証を実行してタイムシークレットを封印・作成
+          </button>
+        </div>
+
+        <!-- ==================== VIEW 3: INDIVIDUAL DETAIL VIEW (個別詳細画面) ==================== -->
+        <div id="ts-detail-view" hidden>
+          <div class="ts-nav-bar">
+            <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-detail-back">← 一覧に戻る</button>
+            <h3 class="ts-view-heading" id="ts-detail-title">タイムシークレット詳細</h3>
+            <span id="ts-detail-state-badge" class="ts-state-pill" data-state="ACTIVE">ACTIVE</span>
+          </div>
+
+          <div class="ts-telemetry-grid">
+            <div class="ts-stat-card">
+              <div class="ts-stat-label">状態</div>
+              <div class="ts-stat-value" id="ts-disp-state">—</div>
+            </div>
+            <div class="ts-stat-card">
+              <div class="ts-stat-label">最終チェックイン</div>
+              <div class="ts-stat-value" id="ts-disp-last-checkin">—</div>
+            </div>
+            <div class="ts-stat-card">
+              <div class="ts-stat-label">次の期限</div>
+              <div class="ts-stat-value" id="ts-disp-deadline">—</div>
+            </div>
+            <div class="ts-stat-card">
+              <div class="ts-stat-label">期限までの残り時間</div>
+              <div class="ts-stat-value" id="ts-disp-remaining">—</div>
+            </div>
+          </div>
+
+          <div class="ts-meta-strip" id="ts-disp-meta"></div>
+
+          <!-- CLOCK_SUSPECT Alert Card (unified decryption directly available) -->
+          <div id="ts-clock-alert-panel" class="ts-alert-card ts-alert-clock" hidden>
+            <div style="font-weight:700; font-size:0.94rem; margin-bottom:6px;">
+              ⚠️ 時計異常・復旧待ち (CLOCK_SUSPECT)
+            </div>
+            <div id="ts-clock-alert-detail" style="font-family:var(--font-ui); font-size:0.78rem; margin-bottom:8px;"></div>
+            <div style="margin-bottom:10px;">
+              端末時計の巻き戻し（5分以上の逆行）を検知したため、<strong>この金庫のチェックインおよび期限延長を停止</strong>しています。<br>
+              ※誤検知でデータを失わないよう<strong>鍵は保持されています</strong>。デバイス鍵と作成時の暗号化認証情報が揃っていれば、下の「復号してデータを取り出す」から通常どおり復号・保存できます。
+            </div>
+            <div class="ts-action-row" style="margin-bottom:0;">
+              <button type="button" class="ts-btn ts-btn-warn" id="btn-ts-alert-decrypt">🔓 復号してデータを取り出す</button>
+            </div>
+          </div>
+
+          <!-- DELETE_FAILED Panel -->
+          <div id="ts-delete-failed-panel" class="ts-alert-card ts-alert-fail" hidden>
+            <div style="font-weight:700; font-size:0.95rem; margin-bottom:6px;">
+              🚨 削除失敗 (DELETE_FAILED) — 「消去済み」ではありません
+            </div>
+            <div id="ts-delete-failed-detail" style="font-family:var(--font-ui); font-size:0.79rem; margin-bottom:10px;"></div>
+            <div class="ts-action-row" style="margin-bottom:0;">
+              <button type="button" class="ts-btn ts-btn-danger" id="btn-ts-retry-delete">🔄 削除・破棄処理を再試行する</button>
+            </div>
+          </div>
+
+          <!-- DESTROYED Panel -->
+          <div id="ts-destroyed-panel" class="ts-alert-card ts-alert-destroyed" hidden>
+            <div style="font-weight:700; font-size:0.95rem; margin-bottom:6px;">
+              🛡️ 鍵の破棄を確認済み (DESTROYED)
+            </div>
+            <div id="ts-destroyed-detail" style="font-family:var(--font-ui); font-size:0.79rem; margin-bottom:8px;"></div>
+            <div style="font-size:0.77rem; color:var(--text-sub); margin-bottom:10px;">
+              ※この金庫の専用デバイス鍵と暗号化データのみがIndexedDBから削除されたことを読み戻し検証で確認済みです（他のタイムシークレットには影響ありません）。期限切れ金庫のチェックイン復活はできません。
+            </div>
+            <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-destroyed-clear">🗑️ この破棄履歴を一覧から消去する</button>
+          </div>
+
+          <!-- Primary Individual Actions -->
+          <div id="ts-primary-actions" class="ts-action-row">
+            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-detail-checkin">✅ チェックイン（期限を更新）</button>
+            <button type="button" class="ts-btn ts-btn-secondary" id="btn-ts-detail-decrypt-toggle">🔓 復号してデータを取り出す</button>
+          </div>
+
+          <!-- Unified Decryption & Recovery Drawer -->
+          <div id="ts-detail-decrypt-box" class="ts-block-card" hidden>
+            <h4 class="ts-block-title">🔓 復号・データ取り出し（暗号化認証ポリシーで検証）</h4>
+            <div id="ts-unlock-devkey-status" class="ts-devkey-banner"></div>
+
+            <!-- Card Array Seed Binding Input for Seed-Bound Vaults -->
+            <div id="ts-unlock-seed-wrap" class="ts-seed-bind-banner" style="margin-bottom:10px;">
+              <div class="ts-inline-row">
+                <label for="ts-unlock-seed-number" class="ts-seed-bind-label" style="margin:0;">🔑 連動カード配列シード番号 (seed):</label>
+                <input type="text" id="ts-unlock-seed-number" value="0" placeholder="0" style="width:120px; text-align:center; font-family:monospace; font-weight:700;">
+                <button type="button" class="ts-btn ts-btn-sm" id="ts-btn-sync-card-seed">現在のカード設定を反映</button>
+              </div>
+              <div class="ts-seed-bind-note">
+                ※カード配列シード連動：作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます。
+              </div>
+            </div>
+            <div id="ts-unlock-legacy-seed-note" class="ts-legacy-seed-note" hidden>
+              ℹ️ 旧バージョン互換金庫（カード配列シード非連動）：現在のカード配列シード番号を変更していても作成時の認証情報のみで復号できます。
+            </div>
+
+            <div id="ts-unlock-pw-wrap" class="ts-field">
+              <div class="ts-label-split">
+                <label for="ts-unlock-password">暗号化パスワード:</label>
+                <button type="button" class="ts-toggle-pw" data-target="ts-unlock-password">👁️ 表示</button>
+              </div>
+              <input type="password" id="ts-unlock-password" autocomplete="current-password" placeholder="作成時に設定した暗号化パスワードを入力">
+            </div>
+
+            <div id="ts-unlock-kf-wrap" class="ts-field" hidden>
+              <label for="ts-unlock-keyfile">暗号化キーファイル:</label>
+              <div class="ts-inline-row">
+                <input type="file" id="ts-unlock-keyfile" style="flex:1 1 200px;">
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-unlock-gen-keyfile">🔑 カードから.key再生成</button>
+              </div>
+              <div id="ts-unlock-kf-info" class="ts-kf-status" style="margin-top:4px;">キーファイル未選択</div>
+            </div>
+
+            <div id="ts-unlock-pk-wrap" class="ts-field" hidden>
+              <div style="font-size:0.79rem; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color);">
+                👤 <strong>暗号化パスキー認証必須：</strong>復号ボタンを押すと端末の生体認証／セキュリティキー確認が起動します。
+              </div>
+            </div>
+
+            <div class="ts-action-row" style="margin-top:10px; margin-bottom:8px;">
+              <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-unlock-exec">🔓 認証して復号する</button>
+              <button type="button" class="ts-btn" id="btn-ts-unlock-cancel">閉じる</button>
+            </div>
+
+            <div id="ts-unlock-status" class="ts-status-bar" hidden></div>
+
+            <div id="ts-decrypted-box" hidden>
+              <div id="ts-decrypted-meta" style="font-size:0.78rem; font-weight:700; margin-bottom:6px;"></div>
+
+              <!-- Text Output -> Direct Screen Display -->
+              <div id="ts-decrypted-text-wrap" hidden>
+                <pre id="ts-decrypted-view" class="ts-pre-box"></pre>
+                <div class="ts-action-row" style="margin-bottom:8px;">
+                  <button type="button" class="ts-btn" id="btn-ts-copy-decrypted">📋 コピー（30秒後に自動消去）</button>
+                  <button type="button" class="ts-btn ts-btn-secondary" id="btn-ts-export-text-file">💾 テキストファイル (.txt) で保存</button>
+                </div>
+              </div>
+
+              <!-- Binary File Output -> Original Format Preserved -->
+              <div id="ts-decrypted-file-card" class="ts-file-output-card" hidden>
+                <div id="ts-decrypted-file-desc" style="font-size:0.82rem; font-weight:700; margin-bottom:8px;"></div>
+                <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-dl-original-file">💾 元の形式で出力</button>
+              </div>
+
+              <div class="ts-action-row" style="margin-top:8px; margin-bottom:0;">
+                <button type="button" class="ts-btn ts-btn-danger" id="btn-ts-close-decrypted">🔒 閉じてメモリ消去</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Individual Settings & Policy Management (Protected by Management Auth) -->
+          <details id="ts-settings-details" class="ts-block-card">
+            <summary style="cursor:pointer; font-weight:700; font-size:0.88rem;">⚙️ 個別設定・認証管理（期限設定・チェックイン認証／パスキー変更・管理認証・PWA通知）</summary>
+            <div style="margin-top:12px;">
+
+              <!-- 1. Edit Deadline Settings -->
+              <div class="ts-auth-subcard">
+                <div class="ts-auth-subhead">
+                  <span class="ts-auth-subtag ts-tag-enc">① 期限設定の変更（管理操作認証で保護）</span>
+                  <span id="ts-current-deadline-policy-badge" class="ts-auth-subcaption"></span>
+                </div>
+
+                <div class="ts-radio-row" role="radiogroup" aria-label="期限設定方式の変更">
+                  <label class="ts-radio-chip">
+                    <input type="radio" name="ts-edit-time-mode" id="ts-edit-time-mode-rel" value="relative" checked>
+                    <span>⏱️ 相対時間（チェックインごとに延長）</span>
+                  </label>
+                  <label class="ts-radio-chip">
+                    <input type="radio" name="ts-edit-time-mode" id="ts-edit-time-mode-abs" value="absolute">
+                    <span>📅 絶対時刻（指定日時に固定）</span>
+                  </label>
+                </div>
+
+                <div class="ts-quick-preset-bar">
+                  <span class="ts-quick-preset-label">クイック：</span>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn ts-preset-test" data-sec="30">⚡ 30秒後（テスト用）</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn" data-sec="3600">🕐 1時間後</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn" data-sec="86400">📅 24時間後</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn" data-sec="604800">🗓️ 7日後</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn" data-sec="2592000">📆 30日後</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-edit-preset-time-btn" data-sec="31536000">🎂 1年後</button>
+                </div>
+
+                <div id="ts-edit-rel-box" class="ts-inline-row" style="margin-bottom:8px;">
+                  <input type="number" id="ts-edit-rel-amount" min="1" max="365000" value="7" style="max-width:110px;">
+                  <select id="ts-edit-rel-unit" style="max-width:145px;">
+                    <option value="1000">秒後（テスト用）</option>
+                    <option value="60000">分後</option>
+                    <option value="3600000">時間後</option>
+                    <option value="86400000" selected>日後</option>
+                  </select>
+                </div>
+
+                <div id="ts-edit-abs-box" class="ts-inline-row" style="margin-bottom:8px;" hidden>
+                  <input type="datetime-local" id="ts-edit-datetime-input" step="1" style="max-width:260px;">
+                </div>
+
+                <div id="ts-pending-interval-badge" style="font-size:0.77rem; margin-bottom:6px; color:var(--cyan);" hidden></div>
+                <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-apply-deadline">🛡️ 管理認証して期限設定を更新</button>
+              </div>
+
+              <!-- 2. Edit Check-In Authentication & Check-In Passkey Management -->
+              <div class="ts-auth-subcard">
+                <div class="ts-auth-subhead">
+                  <span class="ts-auth-subtag ts-tag-ci">② チェックイン認証・チェックイン用パスキーの変更（管理操作認証で保護）</span>
+                  <span id="ts-current-ci-policy-badge" class="ts-auth-subcaption"></span>
+                </div>
+
+                <div class="ts-ci-grid">
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-ci-opt-none">
+                    <span>⚡ 認証なし</span>
+                  </label>
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-ci-opt-password">
+                    <span>🔑 パスワード</span>
+                  </label>
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-ci-opt-keyfile">
+                    <span>📄 キーファイル</span>
+                  </label>
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-ci-opt-passkey">
+                    <span>👤 チェックイン用パスキー</span>
+                  </label>
+                </div>
+
+                <div id="ts-edit-ci-pw-panel" class="ts-factor-panel" hidden>
+                  <div class="ts-field">
+                    <div class="ts-label-split">
+                      <label for="ts-edit-ci-password">新しいチェックイン用パスワード（12文字以上）:</label>
+                      <button type="button" class="ts-toggle-pw" data-target="ts-edit-ci-password,ts-edit-ci-password-confirm">👁️ 表示</button>
+                    </div>
+                    <input type="password" id="ts-edit-ci-password" autocomplete="new-password" placeholder="12文字以上のチェックイン用パスワード">
+                  </div>
+                  <div class="ts-field" style="margin-bottom:0;">
+                    <label for="ts-edit-ci-password-confirm">確認用再入力:</label>
+                    <input type="password" id="ts-edit-ci-password-confirm" autocomplete="new-password" placeholder="もう一度入力">
+                  </div>
+                </div>
+
+                <div id="ts-edit-ci-kf-panel" class="ts-factor-panel" hidden>
+                  <div class="ts-inline-row" style="margin-bottom:6px;">
+                    <input type="file" id="ts-edit-ci-keyfile" style="flex:1 1 180px;">
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                  </div>
+                  <div id="ts-edit-ci-kf-info" class="ts-kf-status">キーファイル未選択</div>
+                </div>
+
+                <div id="ts-edit-ci-pk-panel" class="ts-factor-panel" hidden>
+                  <div id="ts-edit-ci-pk-status" class="ts-pk-reg-status" data-registered="false">
+                    ⚠️ 新しいチェックイン用パスキーを登録・検証してください（管理操作認証を通過するまで保存されません）。
+                  </div>
+                  <div class="ts-inline-row" style="margin-top:6px;">
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-ci-reg-passkey">👤 パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-clear-passkey" hidden>✕ 登録解除</button>
+                  </div>
+                </div>
+
+                <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-apply-ci-auth" style="margin-top:6px;">🛡️ 管理認証してチェックイン認証を更新</button>
+              </div>
+
+              <!-- 3. Edit Management Authentication -->
+              <div class="ts-auth-subcard">
+                <div class="ts-auth-subhead">
+                  <span class="ts-auth-subtag ts-tag-mgmt">③ 管理操作認証ポリシーの変更（再認証必須・認証なし不可）</span>
+                  <span id="ts-current-mgmt-policy-badge" class="ts-auth-subcaption"></span>
+                </div>
+
+                <div class="ts-ci-grid">
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-mgmt-opt-password" checked>
+                    <span>🔑 管理用パスワード</span>
+                  </label>
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-mgmt-opt-keyfile">
+                    <span>📄 管理用キーファイル</span>
+                  </label>
+                  <label class="ts-chk-label">
+                    <input type="checkbox" id="ts-edit-mgmt-opt-passkey">
+                    <span>👤 管理用パスキー</span>
+                  </label>
+                </div>
+
+                <div id="ts-edit-mgmt-pw-panel" class="ts-factor-panel">
+                  <div class="ts-field">
+                    <div class="ts-label-split">
+                      <label for="ts-edit-mgmt-password">新しい管理操作用パスワード（12文字以上）:</label>
+                      <button type="button" class="ts-toggle-pw" data-target="ts-edit-mgmt-password,ts-edit-mgmt-password-confirm">👁️ 表示</button>
+                    </div>
+                    <input type="password" id="ts-edit-mgmt-password" autocomplete="new-password" placeholder="12文字以上の管理用パスワード">
+                  </div>
+                  <div class="ts-field" style="margin-bottom:0;">
+                    <label for="ts-edit-mgmt-password-confirm">確認用再入力:</label>
+                    <input type="password" id="ts-edit-mgmt-password-confirm" autocomplete="new-password" placeholder="もう一度入力">
+                  </div>
+                </div>
+
+                <div id="ts-edit-mgmt-kf-panel" class="ts-factor-panel" hidden>
+                  <div class="ts-inline-row" style="margin-bottom:6px;">
+                    <input type="file" id="ts-edit-mgmt-keyfile" style="flex:1 1 180px;">
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                  </div>
+                  <div id="ts-edit-mgmt-kf-info" class="ts-kf-status">キーファイル未選択</div>
+                </div>
+
+                <div id="ts-edit-mgmt-pk-panel" class="ts-factor-panel" hidden>
+                  <div id="ts-edit-mgmt-pk-status" class="ts-pk-reg-status" data-registered="false">
+                    ⚠️ 新しい管理用パスキーを登録・PRF検証してください。
+                  </div>
+                  <div class="ts-inline-row" style="margin-top:6px;">
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-mgmt-reg-passkey">👤 管理用パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-clear-passkey" hidden>✕ 登録解除</button>
+                  </div>
+                </div>
+
+                <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-apply-mgmt-auth" style="margin-top:6px;">🛡️ 再認証して管理操作認証を更新</button>
+              </div>
+
+              <!-- 4. PWA Near-Expiry Notifications -->
+              <div class="ts-field" style="margin-bottom:0;">
+                <div style="font-size:0.8rem; font-weight:700; margin-bottom:4px;">🔔 PWA期限接近通知（期限の24時間前・1時間前）</div>
+                <div id="ts-notif-perm-badge" style="font-size:0.77rem; color:var(--text-sub); margin-bottom:6px;"></div>
+                <div class="ts-inline-row">
+                  <label style="display:inline-flex; align-items:center; gap:6px; font-weight:400; font-size:0.8rem; cursor:pointer; margin:0;">
+                    <input type="checkbox" id="ts-notif-enabled">
+                    可能な場合にOS／ブラウザ通知を送る（非対応・未許可時は画面内警告）
+                  </label>
+                  <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-request-notif">🔔 通知権限を許可</button>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Individual Deletion & Guarantees -->
+          <div class="ts-block-card" style="margin-bottom:6px;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+              <div>
+                <div style="font-size:0.83rem; font-weight:700;">🗑️ このタイムシークレットの個別削除（管理操作認証で保護）</div>
+                <div style="font-size:0.75rem; color:var(--text-sub);">管理操作認証ポリシーと対象確認のうえ、この金庫のみを削除します（他の金庫には影響しません）。</div>
+              </div>
+              <button type="button" class="ts-btn ts-btn-danger ts-btn-sm" id="btn-ts-detail-open-delete">🗑️ この金庫を削除する</button>
+            </div>
+            <details>
+              <summary style="cursor:pointer; font-size:0.76rem; color:var(--text-sub);">ℹ️ タイムシークレットの保証範囲・技術的注意事項（6項目）</summary>
+              <ol class="ts-guarantees-list">
+                <li>ブラウザを閉じている間は期限切れ処理が動作しません（次回起動・復帰時に金庫単位で判定・削除されます）。</li>
+                <li>PWA通知は補助機能であり、OS・ブラウザ環境やバックグラウンド制約により届かない場合があります。</li>
+                <li>ブラウザのプロファイル全体をバックアップから復元すると、期限や試行回数を巻き戻せる可能性があります。</li>
+                <li>時計巻き戻し検知（<code>lastSeen</code> 比較）は記録上の時刻逆行を検知するものであり、実際の経過時間を証明する仕組みではありません。</li>
+                <li>非抽出可能なデバイス鍵の破棄により復号不能化を目指しますが、SSD等の物理ストレージ上の全データ消去を保証するものではありません。</li>
+                <li>サイトデータ消去等でデバイス鍵を失った場合、パスワード・キーファイル・パスキーが残っていても復号できません。</li>
+              </ol>
+            </details>
+          </div>
+        </div>
+
+        <!-- ==================== SHARED AUTHENTICATION & MANAGEMENT MODAL ==================== -->
+        <div id="ts-auth-modal" class="ts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ts-modal-title" hidden>
+          <div class="ts-modal-dialog">
+            <div class="ts-modal-header">
+              <h3 id="ts-modal-title" class="ts-modal-title">認証確認</h3>
+              <button type="button" id="btn-ts-modal-close" class="ts-modal-close" aria-label="閉じる">✕</button>
+            </div>
+            <p id="ts-modal-desc" class="ts-modal-desc"></p>
+
+            <div id="ts-modal-recovery-wrap" class="ts-modal-recovery-box" hidden>
+              <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.78rem; cursor:pointer; margin:0;">
+                <input type="checkbox" id="ts-modal-use-enc-recovery" style="margin-top:2px;">
+                <span>🆘 管理専用認証情報を紛失した場合：作成時の<strong>暗号化認証（復号用認証情報＋デバイス鍵）</strong>で本人確認する</span>
+              </label>
+            </div>
+
+            <div id="ts-modal-pw-wrap" class="ts-field" hidden>
+              <div class="ts-label-split">
+                <label for="ts-modal-password" id="ts-modal-pw-label">パスワード:</label>
+                <button type="button" class="ts-toggle-pw" data-target="ts-modal-password">👁️ 表示</button>
+              </div>
+              <input type="password" id="ts-modal-password" autocomplete="current-password" placeholder="設定されたパスワードを入力">
+            </div>
+
+            <div id="ts-modal-kf-wrap" class="ts-field" hidden>
+              <label for="ts-modal-keyfile" id="ts-modal-kf-label">キーファイル:</label>
+              <div class="ts-inline-row">
+                <input type="file" id="ts-modal-keyfile" style="flex:1 1 180px;">
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-modal-gen-keyfile">🔑 カードから.key再生成</button>
+              </div>
+              <div id="ts-modal-kf-info" class="ts-kf-status" style="margin-top:4px;">キーファイル未選択</div>
+            </div>
+
+            <div id="ts-modal-pk-wrap" class="ts-field" hidden>
+              <div style="font-size:0.79rem; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color);">
+                👤 <strong id="ts-modal-pk-label">パスキー認証必須：</strong>実行ボタンを押すとパスキー認証（WebAuthn PRF）が起動します。
+              </div>
+            </div>
+
+            <div id="ts-modal-confirm-wrap" class="ts-modal-confirm-box" hidden>
+              <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.81rem; font-weight:700; cursor:pointer; margin:0;">
+                <input type="checkbox" id="ts-modal-confirm-chk" style="margin-top:3px;">
+                <span id="ts-modal-confirm-label">対象タイムシークレットの削除を確認しました</span>
+              </label>
+            </div>
+
+            <div id="ts-modal-status" class="ts-status-bar" hidden></div>
+
+            <div class="ts-action-row" style="margin-top:12px; margin-bottom:0;">
+              <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-modal-submit">実行する</button>
+              <button type="button" class="ts-btn" id="btn-ts-modal-cancel">キャンセル</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.9.9 <span>· build 041bcca</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.12.0 <span>· build timesecret-auth-sep</span></div>
 </div>
 <script src="layout.js"></script>
 <script src="qr-encoder.js"></script>
@@ -1801,6 +2610,7 @@
 <script src="index.js"></script>
 <script src="backup-qr.js"></script>
 <script src="timelock.js"></script>
+<script src="timesecret.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

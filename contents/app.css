@@ -80,7 +80,7 @@ html.light .cm-b-amber { border-color: rgba(245,158,11,.6); background: #fef3c7;
 
 /* tabs */
 .cm-tablist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 10px; background: var(--card); }
-@media (min-width: 768px) { .cm-tablist { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 640px) { .cm-tablist { grid-template-columns: repeat(3, 1fr); } }
 .cm-tab { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
 @media (min-width: 768px) { .cm-tab { flex-direction: column; gap: 4px; padding: 7px 2px; font-size: 11px; line-height: 1.25; text-align: center; } }
 .cm-tab .cm-tab-ico { transition: transform 0.15s ease, filter 0.15s ease; }

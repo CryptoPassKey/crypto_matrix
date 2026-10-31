@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.9.8-privacy-toggle-visible';
+const VERSION = 'cm-v2.12.0-timesecret';
 const FILES = [
   "./",
   "app.css",
@@ -10,14 +10,15 @@ const FILES = [
   "backup-qr.js",
   "emblem.png",
   "favicon.png",
-  "fonts/jetbrains-mono-latin-400-normal.woff2",
-  "fonts/jetbrains-mono-latin-700-normal.woff2",
+  "fonts/FiraCode-Bold.woff2",
+  "fonts/FiraCode-Regular.woff2",
   "index.html",
   "index.js",
   "tab-backup.png",
   "tab-capsule.png",
   "tab-quick.png",
   "tab-recipe.png",
+  "tab-timesecret.png",
   "tab-vault.png",
   "keeweb/404.html",
   "keeweb/browserconfig.xml",
@@ -52,6 +53,7 @@ const FILES = [
   "theme-init.js",
   "timelock.js",
   "timelock-recover.html",
+  "timesecret.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];
@@ -64,6 +66,23 @@ self.addEventListener('activate', (e) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k.startsWith('cm-') && k !== VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.postMessage({ type: 'CM_OPEN_TIMESECRET' });
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('./#timesecret');
+      }
+      return undefined;
+    })
   );
 });
 self.addEventListener('fetch', (e) => {

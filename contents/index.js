@@ -2461,9 +2461,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tlBadge = document.getElementById('tl-bound-seed-badge');
     const bqBadge = document.getElementById('bq-bound-seed-badge');
     const bvBadge = document.getElementById('bv-bound-seed-badge');
+    const tsBadge = document.getElementById('ts-bound-seed-badge');
     if (tlBadge) tlBadge.textContent = `#${seed}`;
     if (bqBadge) bqBadge.textContent = `#${seed}`;
     if (bvBadge) bvBadge.textContent = `#${seed}`;
+    if (tsBadge) tsBadge.textContent = `#${seed}`;
   }
 
   updateMainMatrix(seedInput ? seedInput.value : '0');
@@ -3089,6 +3091,94 @@ document.addEventListener('DOMContentLoaded', () => {
   downloadBlob(blob,finalName);
   return{filename:finalName,keyData};
  }
+
+ async function validateKeyfileBytes(rawBytes, filename = '') {
+  const bytes = rawBytes instanceof Uint8Array
+   ? rawBytes
+   : (rawBytes instanceof ArrayBuffer ? new Uint8Array(rawBytes) : (ArrayBuffer.isView(rawBytes) ? new Uint8Array(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength) : null));
+  if (!bytes || bytes.length === 0) {
+   throw new Error('キーファイルが空（0バイト）か読み込めません。有効なキーファイルを選択してください。');
+  }
+  if (bytes.length > 20 * 1024 * 1024) {
+   throw new Error('キーファイルのサイズが上限（20MB）を超えています。');
+  }
+  const lowerName = String(filename || '').trim().toLowerCase();
+  const isDotKey = lowerName.endsWith('.key') || lowerName.endsWith('.keyx');
+  let headText = '';
+  try {
+   headText = new TextDecoder('utf-8', { fatal: false }).decode(bytes.subarray(0, Math.min(bytes.length, 512))).replace(/^\uFEFF/, '').trimStart();
+  } catch (_) {}
+  const looksLikeKeePassXml = (/^<\?xml\b/i.test(headText) && /<KeyFile\b/i.test(headText)) || /^<KeyFile\b/i.test(headText);
+
+  if (isDotKey || looksLikeKeePassXml) {
+   let xmlText = '';
+   try {
+    xmlText = new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, '').trim();
+   } catch (_) {
+    throw new Error('キーファイル (.key) の文字コードまたはデータ構造が破損しています。');
+   }
+   if (!xmlText || typeof DOMParser === 'undefined') {
+    throw new Error('キーファイル (.key) を解析できません。');
+   }
+   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+   if (doc.querySelector('parsererror')) {
+    throw new Error('キーファイル (.key) のXML構造が不正または破損しています。');
+   }
+   const root = doc.documentElement;
+   if (!root || root.nodeName !== 'KeyFile') {
+    throw new Error('キーファイル (.key) に有効な <KeyFile> ルート要素がありません。');
+   }
+   const dataEl = root.querySelector('Key > Data');
+   if (!dataEl) {
+    throw new Error('キーファイル (.key) に <Key><Data> 要素が存在しません。');
+   }
+   const rawDataText = (dataEl.textContent || '').trim();
+   if (!rawDataText) {
+    throw new Error('キーファイル (.key) の鍵データ (<Data>) が空です。');
+   }
+   const hashAttr = (dataEl.getAttribute('Hash') || '').trim().toUpperCase();
+   const versionText = (root.querySelector('Meta > Version')?.textContent || '').trim();
+   if (hashAttr || versionText.startsWith('2.')) {
+    const cleanHex = rawDataText.replace(/\s+/g, '');
+    if (!/^[0-9a-fA-F]+$/.test(cleanHex) || cleanHex.length < 32 || cleanHex.length % 2 !== 0) {
+     throw new Error('KeePass 2.0 キーファイル (.key) の16進鍵データが不正または破損しています。');
+    }
+    const keyBytes = new Uint8Array(cleanHex.length / 2);
+    for (let i = 0; i < keyBytes.length; i++) {
+     keyBytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16);
+    }
+    if (hashAttr) {
+     if (!/^[0-9A-F]{8}$/.test(hashAttr)) {
+      throw new Error('キーファイル (.key) の Hash 属性形式が不正です。');
+     }
+     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', keyBytes));
+     const expectedHash = Array.from(digest.slice(0, 4), b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+     if (expectedHash !== hashAttr) {
+      throw new Error('キーファイル (.key) の整合性ハッシュ検証に失敗しました（ファイルが破損または改ざんされています）。');
+     }
+    }
+    return { valid: true, format: 'keepass-xml-v2', byteLength: bytes.length };
+   } else {
+    const compact = rawDataText.replace(/\s+/g, '');
+    let decodedLen = 0;
+    if (/^[0-9a-fA-F]{32,}$/.test(compact) && compact.length % 2 === 0) {
+     decodedLen = compact.length / 2;
+    } else {
+     try {
+      const bin = atob(compact);
+      decodedLen = bin.length;
+     } catch (_) {
+      throw new Error('キーファイル (.key) の Base64 鍵データが破損しています。');
+     }
+    }
+    if (decodedLen < 16) {
+     throw new Error('キーファイル (.key) の鍵データ長が不足しています。');
+    }
+    return { valid: true, format: 'keepass-xml-v1', byteLength: bytes.length };
+   }
+  }
+  return { valid: true, format: 'binary', byteLength: bytes.length };
+ }
  let activeKeyfileContext = null;
  let activeKeyfileCallback = null;
 
@@ -3300,6 +3390,7 @@ document.addEventListener('DOMContentLoaded', () => {
  window.MatrixCardPreset.closeKeyfileModal=closeKeyfileModal;
  window.MatrixCardPreset.generateKeePassXmlKeyfile=generateKeePassXmlKeyfile;
  window.MatrixCardPreset.exportKeePassXmlKeyfile=exportKeePassXmlKeyfile;
+ window.MatrixCardPreset.validateKeyfileBytes=validateKeyfileBytes;
 
  window.promptLegacyPK2Consent = function() {
   if (typeof window !== 'undefined' && window.__PROMPT_PK2_RESPONSE__ !== undefined) {
@@ -4104,11 +4195,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
  /* ===================================================================
   * Card Array Seed Bound Encryption (CMA1)
-  * Domain Separators for Section 3 (Backup), Section 4 (Vault), Section 5 (TimeLock)
+  * Domain Separators for Section 3 (Backup), Section 4 (Vault), Section 5 (TimeLock), Section 6 (TimeSecret)
   * =================================================================== */
  const CM_APP_DOMAIN_PEPPER = 'CryptoMatrix:TimeLock:AppDomainSecret:v1:2026';
  const CM_BACKUP_DOMAIN_PEPPER = 'CryptoMatrix:Backup:AppDomainSecret:v1:2026';
  const CM_VAULT_DOMAIN_PEPPER = 'CryptoMatrix:Vault:AppDomainSecret:v1:2026';
+ const CM_TIMESECRET_DOMAIN_PEPPER = 'CryptoMatrix:TimeSecret:AppDomainSecret:v1:2026';
 
  function bytesToHex(b) {
    return Array.from(b, v => v.toString(16).padStart(2, '0')).join('');
@@ -4119,6 +4211,7 @@ document.addEventListener('DOMContentLoaded', () => {
    let pepper = CM_APP_DOMAIN_PEPPER;
    if (domain === 'Backup') pepper = CM_BACKUP_DOMAIN_PEPPER;
    else if (domain === 'Vault') pepper = CM_VAULT_DOMAIN_PEPPER;
+   else if (domain === 'TimeSecret') pepper = CM_TIMESECRET_DOMAIN_PEPPER;
 
    const ivHash = iv instanceof Uint8Array ? await sha(iv) : new Uint8Array(32);
    const seedBytes = enc.encode(`${pepper}:seed=${cleanSeed}:${bytesToHex(ivHash)}`);
@@ -4151,7 +4244,7 @@ document.addEventListener('DOMContentLoaded', () => {
      try {
        return new Uint8Array(await cryptoAPI().decrypt({ name: 'AES-GCM', iv, additionalData: aad }, appKey, ciphertext));
      } catch (_) {
-       const targetName = domain === 'Backup' ? 'バックアップ' : domain === 'Vault' ? '保管庫データ' : 'カプセル';
+       const targetName = domain === 'Backup' ? 'バックアップ' : domain === 'Vault' ? '保管庫データ' : domain === 'TimeSecret' ? 'タイムシークレット' : 'カプセル';
        throw new Error(`本${targetName}はカード配列シード連動で暗号化されています。連動カード配列シード番号 (seed) が一致しません。作成時のシード番号（デフォルト: 0）をご確認ください。`);
      }
    }
@@ -4164,9 +4257,11 @@ document.addEventListener('DOMContentLoaded', () => {
    const tlBadge = document.getElementById('tl-bound-seed-badge');
    const bqBadge = document.getElementById('bq-bound-seed-badge');
    const bvBadge = document.getElementById('bv-bound-seed-badge');
+   const tsBadge = document.getElementById('ts-bound-seed-badge');
    if (tlBadge) tlBadge.textContent = `#${seed}`;
    if (bqBadge) bqBadge.textContent = `#${seed}`;
    if (bvBadge) bvBadge.textContent = `#${seed}`;
+   if (tsBadge) tsBadge.textContent = `#${seed}`;
  }
 
  async function encryptBodyCME3(plainBody,password,kdfProfile=1,factors={}){
@@ -5151,7 +5246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(len>0){try{el.value='0'.repeat(len);el.value='\u0000'.repeat(len);}catch(_){}}
     el.value='';
    }
-   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-restore-text','bv-keyfile','bv-restore-keyfile','tl-text-content','tl-password','tl-password-confirm','tl-restore-password','tl-restore-text','tl-keyfile','tl-restore-keyfile','tl-duress-pw','tl-duress-pw-conf','tl-duress-text','tl-manual-beacon-input','duress-modal-pw','duress-modal-pw-conf','duress-modal-seed','duress-modal-site','duress-modal-secret','duress-vault-pw','duress-vault-pw-conf','duress-vault-text','km-password','km-password-confirm','keyfile-modal-seed']){
+   for(const id of['sim-site','sim-secret','input-restore-seed','input-restore-password','input-restore-keyfile','bq-password','bq-password-confirm','bq-import','bq-restore-password','bq-keyfile','bq-restore-keyfile','bv-text-content','bv-password','bv-password-confirm','bv-restore-password','bv-restore-text','bv-keyfile','bv-restore-keyfile','tl-text-content','tl-password','tl-password-confirm','tl-restore-password','tl-restore-text','tl-keyfile','tl-restore-keyfile','tl-duress-pw','tl-duress-pw-conf','tl-duress-text','tl-manual-beacon-input','duress-modal-pw','duress-modal-pw-conf','duress-modal-seed','duress-modal-site','duress-modal-secret','duress-vault-pw','duress-vault-pw-conf','duress-vault-text','km-password','km-password-confirm','keyfile-modal-seed','ts-password','ts-password-confirm','ts-ci-password','ts-ci-password-confirm','ts-mgmt-password','ts-mgmt-password-confirm','ts-unlock-password','ts-edit-ci-password','ts-edit-ci-password-confirm','ts-edit-mgmt-password','ts-edit-mgmt-password-confirm','ts-modal-password']){
     scrubDOM($(id));
    }
    if($('bv-decrypted-content'))$('bv-decrypted-content').textContent='';
@@ -5295,6 +5390,7 @@ document.addEventListener('DOMContentLoaded', () => {
   getValidSeedOrPrompt:statusElId=>getValidSeedOrPrompt(statusElId),
   generateKeePassXmlKeyfile:opts=>generateKeePassXmlKeyfile(opts),
   exportKeePassXmlKeyfile:opts=>exportKeePassXmlKeyfile(opts),
+  validateKeyfileBytes:(rawBytes,filename)=>validateKeyfileBytes(rawBytes,filename),
   showKeyfileModal:(opts,cb)=>showKeyfileModal(opts,cb),
   closeKeyfileModal:()=>closeKeyfileModal(),
   derivePasskeyPrf:(salt32,credId,opts)=>derivePasskeyPrf(salt32,credId,opts),

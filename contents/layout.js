@@ -9,6 +9,7 @@
     'backup-qr': 'tab-backup',
     'bonus-vault': 'tab-vault',
     'timelock-section': 'tab-timelock',
+    'timesecret-section': 'tab-timesecret',
     'page-footer': 'cm-footer-slot'
   };
   Object.keys(slots).forEach(function (id) {

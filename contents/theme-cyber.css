@@ -1368,3 +1368,1107 @@ html.light .cm-legacy #btn-blind-mode.btn-blind-active {
   color: #ffffff !important;
   border-color: #166534 !important;
 }
+
+/* ===== Time Secret (タイムシークレット専用UI) ===== */
+#timesecret-section {
+  padding: 18px;
+}
+#timesecret-section [hidden] {
+  display: none !important;
+}
+#timesecret-section .ts-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+#timesecret-section .ts-title {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#timesecret-section .ts-lead {
+  font-size: 0.82rem;
+  color: var(--text-sub);
+  line-height: 1.55;
+  margin: 0 0 14px 0;
+}
+#timesecret-section .ts-state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.77rem;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  white-space: nowrap;
+  border: 1px solid #334155 !important;
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+#timesecret-section .ts-state-pill[data-state="ACTIVE"] {
+  background: rgba(22, 163, 74, 0.18) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+}
+#timesecret-section .ts-state-pill[data-state="WARNING"] {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: #f59e0b !important;
+  color: #fcd34d !important;
+}
+#timesecret-section .ts-state-pill[data-state="CLOCK_SUSPECT"] {
+  background: rgba(249, 115, 22, 0.22) !important;
+  border-color: #fb923c !important;
+  color: #fdba74 !important;
+}
+#timesecret-section .ts-state-pill[data-state="EXPIRED"],
+#timesecret-section .ts-state-pill[data-state="DELETE_FAILED"],
+#timesecret-section .ts-state-pill[data-state="CORRUPTED"] {
+  background: rgba(220, 38, 38, 0.24) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+#timesecret-section .ts-state-pill[data-state="DELETE_PENDING"] {
+  background: rgba(14, 165, 233, 0.2) !important;
+  border-color: #38bdf8 !important;
+  color: #7dd3fc !important;
+}
+#timesecret-section .ts-state-pill[data-state="DESTROYED"] {
+  background: rgba(100, 116, 139, 0.22) !important;
+  border-color: #94a3b8 !important;
+  color: #e2e8f0 !important;
+}
+
+#timesecret-section .ts-status-bar {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  border: 1px solid #334155 !important;
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+#timesecret-section .ts-status-bar.ts-status-ok {
+  border-color: #16a34a !important;
+  background: rgba(22, 163, 74, 0.14) !important;
+  color: #86efac !important;
+}
+#timesecret-section .ts-status-bar.ts-status-warn {
+  border-color: #d97706 !important;
+  background: rgba(217, 119, 6, 0.16) !important;
+  color: #fde68a !important;
+}
+#timesecret-section .ts-status-bar.ts-status-err {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.18) !important;
+  color: #fca5a5 !important;
+}
+
+#timesecret-section .ts-expiry-banner {
+  padding: 11px 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.5;
+  border: 1px solid #f59e0b !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #fde68a !important;
+}
+#timesecret-section .ts-expiry-banner[data-urgency="1h"] {
+  border-color: #ef4444 !important;
+  background: rgba(220, 38, 38, 0.2) !important;
+  color: #fecaca !important;
+}
+
+#timesecret-section .ts-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+@media (max-width: 560px) {
+  #timesecret-section .ts-telemetry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+#timesecret-section .ts-stat-card {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-sub);
+  min-width: 0;
+}
+#timesecret-section .ts-stat-label {
+  font-size: 0.74rem;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+}
+#timesecret-section .ts-stat-value {
+  font-size: 0.94rem;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+#timesecret-section .ts-meta-strip {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  background: rgba(15, 23, 42, 0.45);
+  font-size: 0.76rem;
+  color: var(--text-sub);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  overflow-wrap: anywhere;
+}
+
+#timesecret-section .ts-block-card {
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-sub);
+  margin-bottom: 14px;
+}
+#timesecret-section .ts-block-title {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+#timesecret-section .ts-alert-card {
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  line-height: 1.55;
+  font-size: 0.83rem;
+}
+#timesecret-section .ts-alert-clock {
+  border: 1px solid #f97316 !important;
+  background: rgba(249, 115, 22, 0.12) !important;
+}
+#timesecret-section .ts-alert-fail {
+  border: 2px solid #ef4444 !important;
+  background: rgba(220, 38, 38, 0.14) !important;
+}
+#timesecret-section .ts-alert-destroyed {
+  border: 1px solid #64748b !important;
+  background: rgba(71, 85, 105, 0.15) !important;
+}
+
+#timesecret-section .ts-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+#timesecret-section .ts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+#timesecret-section .ts-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+#timesecret-section .ts-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#timesecret-section .ts-btn-primary {
+  flex: 1 1 210px;
+  background: #16a34a !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+#timesecret-section .ts-btn-secondary {
+  flex: 1 1 160px;
+  background: #0f172a;
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
+#timesecret-section .ts-btn-warn {
+  background: #c2410c !important;
+  border-color: #fb923c !important;
+  color: #ffffff !important;
+}
+#timesecret-section .ts-btn-danger {
+  background: #b91c1c !important;
+  border-color: #f87171 !important;
+  color: #ffffff !important;
+}
+
+#timesecret-section .ts-field {
+  margin-bottom: 10px;
+}
+#timesecret-section .ts-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+#timesecret-section input[type="text"],
+#timesecret-section input[type="password"],
+#timesecret-section input[type="number"],
+#timesecret-section select,
+#timesecret-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+#timesecret-section textarea {
+  min-height: 96px;
+  resize: vertical;
+  font-family: var(--font-ui);
+}
+#timesecret-section .ts-pre-box {
+  margin: 8px 0 10px 0;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #070b14;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-height: 260px;
+  overflow-y: auto;
+}
+#timesecret-section .ts-guarantees-list {
+  margin: 6px 0 10px 0;
+  padding-left: 18px;
+  font-size: 0.77rem;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+#timesecret-section .ts-guarantees-list li {
+  margin-bottom: 3px;
+}
+#timesecret-section .ts-inline-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Light mode contrast overrides for Time Secret */
+html.light .cm-legacy #timesecret-section input[type="text"],
+html.light .cm-legacy #timesecret-section input[type="password"],
+html.light .cm-legacy #timesecret-section input[type="number"],
+html.light .cm-legacy #timesecret-section select,
+html.light .cm-legacy #timesecret-section textarea,
+html.light .cm-legacy #timesecret-section .ts-pre-box {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-meta-strip {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+html.light .cm-legacy #timesecret-section .ts-btn-secondary {
+  background: #e0f2fe !important;
+  color: #075985 !important;
+  border-color: #0284c7 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="ACTIVE"] {
+  background: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #166534 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="WARNING"] {
+  background: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #92400e !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="CLOCK_SUSPECT"] {
+  background: #ffedd5 !important;
+  border-color: #ea580c !important;
+  color: #9a3412 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="EXPIRED"],
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DELETE_FAILED"],
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="CORRUPTED"] {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DELETE_PENDING"] {
+  background: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #075985 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DESTROYED"] {
+  background: #f1f5f9 !important;
+  border-color: #64748b !important;
+  color: #334155 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-status-bar {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-ok {
+  background: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #166534 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-warn {
+  background: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #92400e !important;
+}
+html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-err {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
+}
+html.light .cm-legacy #timesecret-section .ts-expiry-banner {
+  background: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #92400e !important;
+}
+html.light .cm-legacy #timesecret-section .ts-expiry-banner[data-urgency="1h"] {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
+}
+
+/* ===== Time Secret v2 Multi-Vault List, Detail, Unified Input, & Auth Modal ===== */
+#timesecret-section .ts-btn-sm {
+  padding: 7px 12px;
+  font-size: 0.79rem;
+}
+#timesecret-section .ts-subtoolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+#timesecret-section .ts-subtoolbar-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+#timesecret-section .ts-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--border-color);
+}
+#timesecret-section .ts-view-heading {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-empty-card {
+  padding: 24px 18px;
+  border-radius: 12px;
+  border: 1px dashed var(--border-color);
+  background: var(--surface-sub);
+  text-align: center;
+}
+#timesecret-section .ts-empty-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+#timesecret-section .ts-empty-desc {
+  font-size: 0.81rem;
+  color: var(--text-sub);
+  line-height: 1.55;
+  max-width: 580px;
+  margin: 0 auto 14px auto;
+}
+
+/* Multi-Vault List Table (Desktop Table -> Mobile Cards) */
+#timesecret-section .ts-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-sub);
+  overflow: hidden;
+}
+#timesecret-section .ts-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+#timesecret-section .ts-list-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  background: rgba(15, 23, 42, 0.55);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+#timesecret-section .ts-list-table tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+#timesecret-section .ts-list-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+#timesecret-section .ts-row-name {
+  font-weight: 700;
+  font-size: 0.87rem;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-row-sub {
+  font-size: 0.74rem;
+  color: var(--text-sub);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-mono-cell {
+  font-family: var(--font-ui);
+  font-size: 0.79rem;
+  font-variant-numeric: tabular-nums;
+}
+#timesecret-section .ts-row-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#timesecret-section .ts-row-btns .ts-btn {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  #timesecret-section .ts-table-wrap {
+    border: 0;
+    background: transparent;
+  }
+  #timesecret-section .ts-list-table,
+  #timesecret-section .ts-list-table tbody {
+    display: block;
+    width: 100%;
+  }
+  #timesecret-section .ts-list-table thead {
+    display: none;
+  }
+  #timesecret-section .ts-list-table tbody tr.ts-list-row {
+    display: block;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--surface-sub);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  #timesecret-section .ts-list-table tbody td {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.2);
+  }
+  #timesecret-section .ts-list-table tbody td:last-child {
+    border-bottom: 0;
+    padding-top: 8px;
+  }
+  #timesecret-section .ts-list-table tbody td::before {
+    content: attr(data-label);
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin-right: 8px;
+  }
+  #timesecret-section .ts-row-btns {
+    width: 100%;
+  }
+  #timesecret-section .ts-row-btns .ts-btn {
+    flex: 1 1 120px;
+  }
+}
+
+/* Preset Name Chips & Unified File Attachment Chip */
+#timesecret-section .ts-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+#timesecret-section .ts-preset-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.65);
+  color: var(--text-main, #e2e8f0);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+#timesecret-section .ts-preset-chip:hover {
+  border-color: var(--accent, #22c55e);
+  color: #4ade80;
+}
+#timesecret-section .ts-file-attach-box {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  background: rgba(15, 23, 42, 0.35);
+}
+#timesecret-section .ts-file-chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid #0284c7;
+  background: rgba(14, 165, 233, 0.14);
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-auth-none-box {
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #fde68a;
+}
+#timesecret-section .ts-devkey-banner {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid #22c55e !important;
+  background: rgba(22, 163, 74, 0.12) !important;
+  color: #86efac !important;
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-devkey-banner[data-ok="false"] {
+  border-color: #ef4444 !important;
+  background: rgba(220, 38, 38, 0.16) !important;
+  color: #fca5a5 !important;
+}
+#timesecret-section .ts-file-output-card {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* Shared Authentication & Target Confirmation Modal */
+#timesecret-section .ts-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(2, 6, 23, 0.76);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+#timesecret-section .ts-modal-dialog {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #f8fafc;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+  box-sizing: border-box;
+}
+#timesecret-section .ts-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+#timesecret-section .ts-modal-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-modal-close {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+#timesecret-section .ts-modal-desc {
+  margin: 0 0 12px 0;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+#timesecret-section .ts-modal-confirm-box {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: rgba(220, 38, 38, 0.14);
+  margin-bottom: 10px;
+}
+
+/* Light mode overrides for Time Secret v2 */
+html.light .cm-legacy #timesecret-section .ts-list-table thead th {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-preset-chip {
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-file-attach-box {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-file-chip,
+html.light .cm-legacy #timesecret-section .ts-file-output-card {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0c4a6e;
+}
+html.light .cm-legacy #timesecret-section .ts-auth-none-box {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
+html.light .cm-legacy #timesecret-section .ts-devkey-banner {
+  background: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #166534 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-devkey-banner[data-ok="false"] {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
+}
+html.light .cm-legacy #timesecret-section .ts-modal-dialog {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-modal-desc {
+  color: #475569;
+}
+html.light .cm-legacy #timesecret-section .ts-modal-close {
+  color: #334155;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-modal-confirm-box {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+/* =====================================================================
+ * Time Secret v2.12.0 — Separated Auth Subcards, Quick Presets, & Seed Badge
+ * ===================================================================== */
+#timesecret-section [hidden] {
+  display: none !important;
+}
+#timesecret-section .ts-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+#timesecret-section .ts-radio-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.55);
+  font-size: 0.81rem;
+  font-weight: 700;
+  cursor: pointer;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-radio-chip input[type="radio"] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+#timesecret-section .ts-quick-preset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+#timesecret-section .ts-quick-preset-label {
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+#timesecret-section .ts-preset-time-btn.is-active,
+#timesecret-section .ts-edit-preset-time-btn.is-active {
+  border-color: #38bdf8 !important;
+  background: rgba(14, 165, 233, 0.22) !important;
+  color: #7dd3fc !important;
+}
+#timesecret-section .ts-preset-test {
+  border-style: dashed !important;
+  border-color: #f59e0b !important;
+  color: #fde68a !important;
+}
+#timesecret-section .ts-test-warn-box {
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.14);
+  color: #fde68a;
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+#timesecret-section .ts-deadline-preview {
+  font-size: 0.79rem;
+  color: var(--cyan, #38bdf8);
+  font-family: var(--font-ui);
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-seed-bind-banner {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #1e3a5f;
+  background: rgba(15, 23, 42, 0.7);
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+}
+#timesecret-section .ts-seed-bind-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#timesecret-section .ts-seed-bind-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+#timesecret-section .ts-seed-badge {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fbbf24;
+  background: #1f2937;
+  padding: 2px 9px;
+  border-radius: 5px;
+  border: 1px solid #374151;
+}
+#timesecret-section .ts-seed-bind-note {
+  font-size: 0.74rem;
+  color: var(--text-sub);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-legacy-seed-note {
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid #64748b;
+  background: rgba(100, 116, 139, 0.14);
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+#timesecret-section .ts-auth-subcard {
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.42);
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+#timesecret-section .ts-auth-subhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+#timesecret-section .ts-auth-subtag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+#timesecret-section .ts-tag-enc {
+  background: rgba(14, 165, 233, 0.18);
+  border: 1px solid #0284c7;
+  color: #7dd3fc;
+}
+#timesecret-section .ts-tag-ci {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid #16a34a;
+  color: #86efac;
+}
+#timesecret-section .ts-tag-mgmt {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid #9333ea;
+  color: #d8b4fe;
+}
+#timesecret-section .ts-auth-subcaption {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-chk-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-chk-label input[type="checkbox"] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+#timesecret-section .ts-ci-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 6px 12px;
+  margin-bottom: 6px;
+}
+#timesecret-section .ts-factor-panel {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: rgba(2, 6, 23, 0.35);
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+#timesecret-section .ts-label-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#timesecret-section .ts-toggle-pw {
+  background: none;
+  border: 0;
+  color: var(--cyan, #38bdf8);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+#timesecret-section .ts-kf-status {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-pk-reg-status {
+  font-size: 0.77rem;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.13);
+  color: #fde68a;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+#timesecret-section .ts-pk-reg-status[data-registered="true"] {
+  border-color: #22c55e;
+  background: rgba(22, 163, 74, 0.15);
+  color: #86efac;
+}
+#timesecret-section .ts-modal-recovery-box {
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px dashed #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  color: #bae6fd;
+  margin-bottom: 10px;
+}
+
+/* Light Mode Overrides for Time Secret v2.12.0 */
+html.light .cm-legacy #timesecret-section .ts-radio-chip {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+html.light .cm-legacy #timesecret-section .ts-preset-time-btn.is-active,
+html.light .cm-legacy #timesecret-section .ts-edit-preset-time-btn.is-active {
+  background: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #075985 !important;
+}
+html.light .cm-legacy #timesecret-section .ts-preset-test {
+  border-color: #d97706 !important;
+  color: #92400e !important;
+  background: #fffbeb !important;
+}
+html.light .cm-legacy #timesecret-section .ts-test-warn-box {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
+html.light .cm-legacy #timesecret-section .ts-deadline-preview {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+html.light .cm-legacy #timesecret-section .ts-seed-bind-banner {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+}
+html.light .cm-legacy #timesecret-section .ts-seed-bind-label {
+  color: #0369a1;
+}
+html.light .cm-legacy #timesecret-section .ts-seed-badge {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+html.light .cm-legacy #timesecret-section .ts-legacy-seed-note {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #334155;
+}
+html.light .cm-legacy #timesecret-section .ts-auth-subcard {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-factor-panel {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+html.light .cm-legacy #timesecret-section .ts-tag-enc {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #075985;
+}
+html.light .cm-legacy #timesecret-section .ts-tag-ci {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #166534;
+}
+html.light .cm-legacy #timesecret-section .ts-tag-mgmt {
+  background: #f3e8ff;
+  border-color: #9333ea;
+  color: #6b21a8;
+}
+html.light .cm-legacy #timesecret-section .ts-pk-reg-status {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
+html.light .cm-legacy #timesecret-section .ts-pk-reg-status[data-registered="true"] {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #166534;
+}
+html.light .cm-legacy #timesecret-section .ts-modal-recovery-box {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0c4a6e;
+}
+
+/* Sub-radio rows and reuse badges for authentication separation */
+.cm-legacy #timesecret-section .ts-sub-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cm-legacy #timesecret-section .ts-chip-sm {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+.cm-legacy #timesecret-section .ts-reuse-badge {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0, 255, 170, 0.08);
+  border: 1px solid rgba(0, 255, 170, 0.3);
+  color: #a7f3d0;
+  line-height: 1.45;
+}
+html.light .cm-legacy #timesecret-section .ts-reuse-badge {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+}
+

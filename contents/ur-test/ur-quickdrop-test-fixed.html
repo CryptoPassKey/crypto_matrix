@@ -11456,7 +11456,8 @@ function drawQrCanvas(text){
  if(senderCanvas.width!==size||senderCanvas.height!==size){senderCanvas.width=size;senderCanvas.height=size}
  const ctx=senderCanvas.getContext('2d',{alpha:false});
  ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);ctx.fillStyle='#000';
- // Draw contiguous dark runs per row to reduce Canvas calls.
+ // Batch all dark runs into one Canvas path and one paint operation.
+ ctx.beginPath();
  for(let r=0;r<modules;r++){
   let run=-1;
   for(let c=0;c<=modules;c++){
@@ -11465,10 +11466,11 @@ function drawQrCanvas(text){
    if(!dark&&run>=0){
     const x0=Math.floor((run+quiet)*size/total),x1=Math.ceil((c+quiet)*size/total);
     const y0=Math.floor((r+quiet)*size/total),y1=Math.ceil((r+1+quiet)*size/total);
-    ctx.fillRect(x0,y0,x1-x0,y1-y0);run=-1;
+    ctx.rect(x0,y0,x1-x0,y1-y0);run=-1;
    }
   }
  }
+ ctx.fill();
  return senderCanvas;
 }
 function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();drawQrCanvas(part);frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}

@@ -1,5 +1,5 @@
 
-import { UR, UREncoder, URDecoder } from 'https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle';
+import { UR, UREncoder, URDecoder } from 'https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle&target=es2022&deps=crc@3.8.0';
 import { Buffer } from 'https://esm.sh/buffer@6.0.3';
 (()=>{'use strict';
 const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0;

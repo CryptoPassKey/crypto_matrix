@@ -1,4 +1,4 @@
-QuickDrop — UR / BC-UR test page
+QuickDrop — UR / BC-UR test page v2
 
 Main page:
 - index.html redirects to ur-quickdrop-test-fixed.html
@@ -25,4 +25,4 @@ Protocol and performance settings:
 - This is UR-compatible at the `ur:bytes` transport level, but the inner QDP v1 envelope is CryptoMatrix-specific; other UR apps will not interpret the original payload automatically.
 - SHA-256 is checked after reconstruction. UR's own encoding/checksum handling is delegated to the library.
 - No encryption. Do not use real secrets in a shared/public environment.
-- The current environment cannot validate camera-to-camera performance; measure with the target phone and PC. BarcodeDetector availability varies by browser.
+- The current environment cannot validate camera-to-camera performance; measure with the target phone and PC. BarcodeDetector availability varies by browser. Versioning: each subsequent test-page update increments the visible title suffix (v2, v3, ...).

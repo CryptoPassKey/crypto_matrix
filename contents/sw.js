@@ -1,6 +1,7 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
 const VERSION = 'cm-v2.12.1-manual-update';
+const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
   "app.css",
@@ -59,8 +60,16 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  // Precache the complete new app, but keep it waiting until the user requests an update.
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)));
+  // Precache the complete new app. The first rollout upgrades older workers once,
+  // because those old app pages do not yet contain the manual-update controls.
+  // After this release is active, later updates wait for an explicit user request.
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => c.addAll(FILES))
+      .then(() => caches.open(MANUAL_UPDATE_MARKER))
+      .then((marker) => marker.match('./enabled'))
+      .then((enabled) => enabled ? undefined : self.skipWaiting())
+  );
 });
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'CM_SKIP_WAITING') self.skipWaiting();
@@ -68,7 +77,9 @@ self.addEventListener('message', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('cm-') && k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('cm-') && k !== VERSION && k !== MANUAL_UPDATE_MARKER).map((k) => caches.delete(k))))
+      .then(() => caches.open(MANUAL_UPDATE_MARKER))
+      .then((marker) => marker.put('./enabled', new Response('1')))
       .then(() => self.clients.claim())
   );
 });

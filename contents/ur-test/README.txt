@@ -1,13 +1,14 @@
 QuickDrop — UR / BC-UR test page
 
 Main page:
-- ur-quickdrop-test.html (self-contained QR encoder and jsQR scanner are embedded)
+- index.html redirects to ur-quickdrop-test-fixed.html
+- ur-quickdrop-test-fixed.html is the current BC-UR browser test page
 
 Other files:
 - qr-encoder.js and jsQR.js are kept separately for inspection/provenance; the HTML embeds their code and does not need these files alongside it.
 
 Run:
-1. Open ur-quickdrop-test.html. The BC-UR JS library and Buffer shim are loaded from esm.sh, so internet access is required for initial load.
+1. Open ur-quickdrop-test.html. The BC-UR JS library is loaded from esm.sh with crc@3.8.0 pinned explicitly; Buffer is loaded from esm.sh. Internet access is required for initial load.
 2. For camera reception, serve over HTTPS or localhost (camera permissions do not normally work from file://).
 3. On sender, enter text or choose a file, click "URを生成", then "再生".
 4. On receiver, click "カメラ開始" and scan the animated QR.

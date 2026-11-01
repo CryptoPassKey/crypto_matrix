@@ -10,7 +10,7 @@ Other files:
 Run:
 1. Open the folder URL (index.html) or ur-quickdrop-test-fixed.html. The BC-UR JS library is loaded from esm.sh with crc@3.8.0 pinned explicitly. The page loads the Buffer polyfill first, assigns the same constructor to globalThis.Buffer, and only then imports BC-UR; this is required by cbor-sync's instanceof Buffer check. Internet access is required for initial load.
 2. For camera reception, serve over HTTPS or localhost (camera permissions do not normally work from file://).
-3. On sender, enter text or choose a file, click "URを生成", then "再生". Sender QR frames are painted into a persistent Canvas rather than rebuilt as SVG.
+3. On sender, enter text or choose a file, click "URを生成", then "再生". Sender QR frames are painted into a persistent Canvas rather than rebuilt as SVG; dark module runs are batched into one path/fill per frame.
 4. On receiver, click "カメラ開始" and scan the animated QR. The page prefers the browser's native BarcodeDetector API when QR support is available; otherwise it falls back to the bundled jsQR scanner. Active scanner mode is shown below the camera controls.
 
 Protocol and performance settings:

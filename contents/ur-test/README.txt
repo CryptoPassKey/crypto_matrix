@@ -1,4 +1,4 @@
-QuickDrop — UR / BC-UR test page v4
+QuickDrop — UR / BC-UR test page v5
 
 Main page:
 - index.html redirects to ur-quickdrop-test-fixed.html

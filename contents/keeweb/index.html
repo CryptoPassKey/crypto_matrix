@@ -857,7 +857,8 @@ body.kw-generator-focus-mode .gen {
         '生成日時：' + formatDateTime(new Date())
       ].join('\n');
 
-      var randSuffix = Math.random().toString(36).slice(2, 8);
+      var randBytes = crypto.getRandomValues(new Uint8Array(6));
+      var randSuffix = Array.from(randBytes, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
       var entryPayload = {
         site: saveMeta.title,
         username: '',
@@ -1336,7 +1337,8 @@ body.kw-generator-focus-mode .gen {
     window.kw.applyToSelectedEntryDirectly = applyToSelectedEntryDirectly;
   }
 
-  var CM_KW_TAB_ID = 'kwtab_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  var tabRandBytes = crypto.getRandomValues(new Uint8Array(8));
+  var CM_KW_TAB_ID = 'kwtab_' + Date.now() + '_' + Array.from(tabRandBytes, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
   window.__cm_in_flight_transfers = window.__cm_in_flight_transfers || new Set();
   window.__cm_completed_transfers = window.__cm_completed_transfers || new Set();
   window.__cm_failed_transfers = window.__cm_failed_transfers || new Map();

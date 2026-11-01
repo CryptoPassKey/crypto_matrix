@@ -4,7 +4,10 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>QuickDrop — UR / BC-UR 試験</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light dark}body{max-width:1120px;margin:auto;padding:18px;line-height:1.5}h1{margin-bottom:.2rem}.note{border:1px solid #8888;border-radius:10px;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;margin-top:18px}section{border:1px solid #8888;border-radius:14px;padding:15px;min-width:0}label{display:block;margin:.7rem 0 .25rem}textarea,input,button,select{font:inherit;max-width:100%;box-sizing:border-box}textarea{width:100%;min-height:110px}button{padding:8px 12px;margin:5px 4px 5px 0;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.qrbox{background:#fff;color:#111;padding:8px;display:grid;place-items:center;min-height:280px;border-radius:8px}.qrbox svg{width:min(100%,390px);height:auto;shape-rendering:crispEdges}.status{min-height:1.5em;overflow-wrap:anywhere}.bar{height:8px;background:#8885;border-radius:9px;overflow:hidden}.bar>div{height:100%;width:0;background:#3288c8;transition:width .12s}video{width:100%;max-height:340px;background:#111;border-radius:8px}small{opacity:.8}.ok{color:#258b50}.err{color:#d65b55}.muted{opacity:.75}code{overflow-wrap:anywhere}#resultText{min-height:120px}.full #qrBox{position:fixed;inset:0;z-index:1000;border-radius:0;padding:2vh;background:#fff;min-height:0} .full #qrBox svg{width:min(94vw,94vh);height:min(94vw,94vh)}.full #exitFull{display:inline-block!important;position:fixed;z-index:1001;right:12px;top:12px;color:#111;background:#fff;border:1px solid #555;border-radius:8px}#exitFull{display:none}
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light dark}body{max-width:1120px;margin:auto;padding:18px;line-height:1.5}h1{margin-bottom:.2rem}.note{border:1px solid #8888;border-radius:10px;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;margin-top:18px}section{border:1px solid #8888;border-radius:14px;padding:15px;min-width:0}label{display:block;margin:.7rem 0 .25rem}textarea,input,button,select{font:inherit;max-width:100%;box-sizing:border-box}
+input[type="range"]{width:min(280px,72vw);vertical-align:middle}
+.range-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#fragmentSizeValue{font-variant-numeric:tabular-nums;font-weight:700;min-width:86px}textarea{width:100%;min-height:110px}button{padding:8px 12px;margin:5px 4px 5px 0;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.qrbox{background:#fff;color:#111;padding:8px;display:grid;place-items:center;min-height:280px;border-radius:8px}.qrbox svg{width:min(100%,390px);height:auto;shape-rendering:crispEdges}.status{min-height:1.5em;overflow-wrap:anywhere}.bar{height:8px;background:#8885;border-radius:9px;overflow:hidden}.bar>div{height:100%;width:0;background:#3288c8;transition:width .12s}video{width:100%;max-height:340px;background:#111;border-radius:8px}small{opacity:.8}.ok{color:#258b50}.err{color:#d65b55}.muted{opacity:.75}code{overflow-wrap:anywhere}#resultText{min-height:120px}.full #qrBox{position:fixed;inset:0;z-index:1000;border-radius:0;padding:2vh;background:#fff;min-height:0} .full #qrBox svg{width:min(94vw,94vh);height:min(94vw,94vh)}.full #exitFull{display:inline-block!important;position:fixed;z-index:1001;right:12px;top:12px;color:#111;background:#fff;border:1px solid #555;border-radius:8px}#exitFull{display:none}
 </style>
 </head>
 <body>
@@ -15,7 +18,7 @@
 <h2>送信</h2>
 <label for="sendText">テキスト</label><textarea id="sendText" placeholder="送信するテキストを入力"></textarea>
 <label for="sendFile">またはファイル（試験用・最大500KB）</label><input id="sendFile" type="file">
-<div class="row"><button id="prepare">URを生成</button><button id="play" disabled>再生</button><button id="pause" disabled>停止</button><button id="fullBtn" disabled>QR全画面</button><label>1フレームのデータ量 <select id="fragmentSize"><option value="180">180 bytes（読み取り優先）</option><option value="240">240 bytes（バランス）</option><option value="300" selected>300 bytes（高速）</option><option value="360">360 bytes（高密度）</option></select></label><label>速度 <select id="speed"><option value="200">5 fps（高速）</option><option value="250" selected>4 fps（標準）</option><option value="350">約2.9 fps</option><option value="500">2 fps（安定優先）</option><option value="750">約1.3 fps</option></select></label></div>
+<div class="row"><button id="prepare">URを生成</button><button id="play" disabled>再生</button><button id="pause" disabled>停止</button><button id="fullBtn" disabled>QR全画面</button><label class="range-control">1フレームのデータ量 <output id="fragmentSizeValue" for="fragmentSize">300 bytes</output><input id="fragmentSize" type="range" min="80" max="1400" step="20" value="300"></label><label>速度 <select id="speed"><option value="200">5 fps（高速）</option><option value="250" selected>4 fps（標準）</option><option value="350">約2.9 fps</option><option value="500">2 fps（安定優先）</option><option value="750">約1.3 fps</option></select></label></div>
 <div class="qrbox" id="qrBox"><span class="muted">URを生成するとQRコードが表示されます</span></div><button id="exitFull">全画面を終了</button>
 <p id="sendStatus" class="status" aria-live="polite">未生成</p><div class="bar"><div id="sendBar"></div></div><p><small id="frameInfo"></small></p><p><small>UR type: <code id="urType">—</code></small></p>
 </section>
@@ -11401,7 +11404,7 @@ import { Buffer } from 'https://esm.sh/buffer@6.0.3?bundle&target=es2022';
 globalThis.Buffer = Buffer;
 const { UR, UREncoder, URDecoder } = await import('https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle&target=es2022&deps=crc@3.8.0');
 (()=>{'use strict';
-const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set();
+const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0;
 const enc=new TextEncoder(),dec=new TextDecoder();
 async function sha256(bytes){const h=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 let fragmentLength=300;
@@ -11448,9 +11451,30 @@ async function parseEnvelope(data){
 }
 function qrSVG(text){const m=MatrixQRCode.matrix(text),n=m.length+8,ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${n} ${n}`);svg.setAttribute('shape-rendering','crispEdges');const bg=document.createElementNS(ns,'rect');bg.setAttribute('width',n);bg.setAttribute('height',n);bg.setAttribute('fill','#fff');svg.append(bg);let d='';for(let r=0;r<m.length;r++)for(let c=0;c<m.length;c++)if(m[r][c])d+=`M${c+4},${r+4}h1v1h-1z`;const p=document.createElementNS(ns,'path');p.setAttribute('d',d);p.setAttribute('fill','#000');svg.append(p);return svg}
 function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();$('qrBox').replaceChildren(qrSVG(part));frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
+function rebuildSender(){
+ if(!currentEnvelope)return;
+ stopPlay();
+ fragmentLength=Number($('fragmentSize').value);
+ try{
+  const ur=UR.fromBuffer(Buffer.from(currentEnvelope));
+  encoder=new UREncoder(ur,fragmentLength,0);
+  frameIndex=0;
+  sendParts=Math.max(1,Math.ceil(currentEnvelope.length/fragmentLength));
+  $('sendStatus').textContent=`準備完了：元データ ${currentPayloadSize.toLocaleString()} bytes、転送データ ${currentEnvelope.length.toLocaleString()} bytes。基本フレーム目安 ${sendParts} · 1フレーム ${fragmentLength} bytes。`;
+  $('sendStatus').className='status ok';
+  $('play').disabled=false;$('pause').disabled=true;$('fullBtn').disabled=false;
+  showFrame();
+ }catch(e){
+  encoder=null;$('play').disabled=true;$('pause').disabled=true;
+  $('sendStatus').textContent='このフレームサイズではQRを生成できません：'+e.message+'。スライダーを戻してください。';
+  $('sendStatus').className='status err';
+ }
+}
 function stopPlay(){if(playTimer)clearTimeout(playTimer);playTimer=null;$('play').disabled=!encoder;$('pause').disabled=true}
 function play(){if(!encoder)return;stopPlay();$('play').disabled=true;$('pause').disabled=false;const tick=()=>{if(!playTimer&&$('pause').disabled)return;showFrame();playTimer=setTimeout(tick,Number($('speed').value));};playTimer=setTimeout(tick,0)}
-$('prepare').onclick=async()=>{try{stopPlay();let bytes,name,mime,kind;if($('sendFile').files[0]){const f=$('sendFile').files[0];if(f.size>MAX)throw Error('試験ページのファイル上限は500KBです');bytes=new Uint8Array(await f.arrayBuffer());name=f.name;mime=f.type||'application/octet-stream';kind='file'}else{const text=$('sendText').value;if(!text)throw Error('テキストを入力するかファイルを選択してください');bytes=enc.encode(text);if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');name='message.txt';mime='text/plain;charset=utf-8';kind='text'}if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');const envelope=await buildEnvelope(bytes,name,mime,kind);fragmentLength=Number($('fragmentSize')?.value||300);const ur=UR.fromBuffer(Buffer.from(envelope));encoder=new UREncoder(ur,fragmentLength,0);frameIndex=0;sendParts=Math.max(1,Math.ceil(envelope.length/fragmentLength));$('urType').textContent='bytes';$('sendStatus').textContent=`準備完了：元データ ${bytes.length.toLocaleString()} bytes、転送データ ${envelope.length.toLocaleString()} bytes（バイナリヘッダー＋SHA-256）。UR分割目安 ${sendParts} · 1フレーム ${fragmentLength} bytes。`;$('sendStatus').className='status ok';$('play').disabled=false;$('pause').disabled=true;$('fullBtn').disabled=false;showFrame();}catch(e){encoder=null;$('sendStatus').textContent='生成失敗：'+e.message;$('sendStatus').className='status err'}};
+$('prepare').onclick=async()=>{try{stopPlay();let bytes,name,mime,kind;if($('sendFile').files[0]){const f=$('sendFile').files[0];if(f.size>MAX)throw Error('試験ページのファイル上限は500KBです');bytes=new Uint8Array(await f.arrayBuffer());name=f.name;mime=f.type||'application/octet-stream';kind='file'}else{const text=$('sendText').value;if(!text)throw Error('テキストを入力するかファイルを選択してください');bytes=enc.encode(text);if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');name='message.txt';mime='text/plain;charset=utf-8';kind='text'}if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');currentEnvelope=await buildEnvelope(bytes,name,mime,kind);currentPayloadSize=bytes.length;$('urType').textContent='bytes';rebuildSender();}catch(e){encoder=null;$('sendStatus').textContent='生成失敗：'+e.message;$('sendStatus').className='status err'}};
+$('fragmentSize').addEventListener('input',()=>{$('fragmentSizeValue').textContent=Number($('fragmentSize').value)+' bytes';});
+$('fragmentSize').addEventListener('change',()=>{if(currentEnvelope)rebuildSender();});
 $('play').onclick=play;$('pause').onclick=()=>{stopPlay();$('sendStatus').textContent='再生停止中'};$('speed').onchange=()=>{if(playTimer){clearTimeout(playTimer);playTimer=null;play()}};
 $('fullBtn').onclick=()=>{document.body.classList.add('full');};$('exitFull').onclick=()=>document.body.classList.remove('full');window.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('full')});
 function resetReceive(){decoder=new URDecoder();seenParts.clear();completed=null;$('recvBar').style.width='0%';$('recvInfo').textContent='';$('result').hidden=true;$('recvStatus').textContent='待機中';$('recvStatus').className='status'}

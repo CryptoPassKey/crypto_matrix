@@ -11536,7 +11536,7 @@ async function configureScanner(){
  if(scannerEngine==='native')$('scanMode').textContent='認識方式: Native BarcodeDetector';
  else if(scannerEngine==='wasm')$('scanMode').textContent='認識方式: WASM ZBar（@undecaf）';
  else $('scanMode').textContent='認識方式: jsQR（JavaScript）';
- resetScanMetrics();
+ resetScanMetrics();resetReceive();
 }
 async function scanTick(){
  if(!stream)return;

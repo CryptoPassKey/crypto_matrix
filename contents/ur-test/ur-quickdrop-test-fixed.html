@@ -7,7 +7,7 @@
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light dark}body{max-width:1120px;margin:auto;padding:18px;line-height:1.5}h1{margin-bottom:.2rem}.note{border:1px solid #8888;border-radius:10px;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;margin-top:18px}section{border:1px solid #8888;border-radius:14px;padding:15px;min-width:0}label{display:block;margin:.7rem 0 .25rem}textarea,input,button,select{font:inherit;max-width:100%;box-sizing:border-box}
 input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 .range-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-#fragmentSizeValue{font-variant-numeric:tabular-nums;font-weight:700;min-width:86px}textarea{width:100%;min-height:110px}button{padding:8px 12px;margin:5px 4px 5px 0;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.qrbox{background:#fff;color:#111;padding:8px;display:grid;place-items:center;min-height:280px;border-radius:8px}.qrbox svg{width:min(100%,390px);height:auto;shape-rendering:crispEdges}.status{min-height:1.5em;overflow-wrap:anywhere}.bar{height:8px;background:#8885;border-radius:9px;overflow:hidden}.bar>div{height:100%;width:0;background:#3288c8;transition:width .12s}video{width:100%;max-height:340px;background:#111;border-radius:8px}small{opacity:.8}.ok{color:#258b50}.err{color:#d65b55}.muted{opacity:.75}code{overflow-wrap:anywhere}#resultText{min-height:120px}.full #qrBox{position:fixed;inset:0;z-index:1000;border-radius:0;padding:2vh;background:#fff;min-height:0} .full #qrBox svg{width:min(94vw,94vh);height:min(94vw,94vh)}.full #exitFull{display:inline-block!important;position:fixed;z-index:1001;right:12px;top:12px;color:#111;background:#fff;border:1px solid #555;border-radius:8px}#exitFull{display:none}
+#fragmentSizeValue{font-variant-numeric:tabular-nums;font-weight:700;min-width:86px}textarea{width:100%;min-height:110px}button{padding:8px 12px;margin:5px 4px 5px 0;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.qrbox{background:#fff;color:#111;padding:8px;display:grid;place-items:center;min-height:280px;border-radius:8px}.qrbox canvas{display:block;width:min(100%,420px);height:auto;aspect-ratio:1/1;image-rendering:pixelated}.status{min-height:1.5em;overflow-wrap:anywhere}.bar{height:8px;background:#8885;border-radius:9px;overflow:hidden}.bar>div{height:100%;width:0;background:#3288c8;transition:width .12s}video{width:100%;max-height:340px;background:#111;border-radius:8px}small{opacity:.8}.ok{color:#258b50}.err{color:#d65b55}.muted{opacity:.75}code{overflow-wrap:anywhere}#resultText{min-height:120px}.full #qrBox{position:fixed;inset:0;z-index:1000;border-radius:0;padding:2vh;background:#fff;min-height:0} .full #qrBox canvas{width:min(94vw,94vh);height:min(94vw,94vh)}.full #exitFull{display:inline-block!important;position:fixed;z-index:1001;right:12px;top:12px;color:#111;background:#fff;border:1px solid #555;border-radius:8px}#exitFull{display:none}
 </style>
 </head>
 <body>
@@ -26,6 +26,7 @@ input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 <h2>受信</h2><p class="muted">QRをカメラに映してください。URの連番フレームとFountain Codeを使って再構成します。</p>
 <div class="row"><button id="startCamera">カメラ開始</button><button id="stopCamera" disabled>カメラ停止</button><label><input id="facing" type="checkbox" checked> 背面カメラ優先</label></div>
 <video id="video" playsinline muted hidden></video><canvas id="scanCanvas" hidden></canvas>
+<p><small id="scanMode">認識方式: 未選択</small></p>
 <p id="recvStatus" class="status" aria-live="polite">待機中</p><div class="bar"><div id="recvBar"></div></div><p><small id="recvInfo"></small></p>
 <label for="manualFrame">手動入力（URフレームを貼り付け）</label><textarea id="manualFrame" placeholder="ur:bytes/1-.../..." spellcheck="false"></textarea><button id="addManual">フレームを追加</button><button id="resetRecv">受信をリセット</button>
 <div id="result" hidden><h3>復元結果</h3><p id="resultMeta"></p><label for="resultText">テキスト（テキストとして解釈できる場合）</label><textarea id="resultText" readonly></textarea><div class="row"><button id="copyResult">テキストをコピー</button><button id="saveResult">ファイルとして保存</button></div></div>
@@ -11404,7 +11405,7 @@ import { Buffer } from 'https://esm.sh/buffer@6.0.3?bundle&target=es2022';
 globalThis.Buffer = Buffer;
 const { UR, UREncoder, URDecoder } = await import('https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle&target=es2022&deps=crc@3.8.0');
 (()=>{'use strict';
-const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0;
+const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0,senderCanvas=null,barcodeDetector=null;
 const enc=new TextEncoder(),dec=new TextDecoder();
 async function sha256(bytes){const h=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 let fragmentLength=300;
@@ -11449,8 +11450,28 @@ async function parseEnvelope(data){
  if(diff!==0)throw Error('SHA-256不一致：データが破損しています');
  return {bytes:payload,name:name||'received.bin',mime:mime||'application/octet-stream',kind:kind===0?'text':'file'};
 }
-function qrSVG(text){const m=MatrixQRCode.matrix(text),n=m.length+8,ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${n} ${n}`);svg.setAttribute('shape-rendering','crispEdges');const bg=document.createElementNS(ns,'rect');bg.setAttribute('width',n);bg.setAttribute('height',n);bg.setAttribute('fill','#fff');svg.append(bg);let d='';for(let r=0;r<m.length;r++)for(let c=0;c<m.length;c++)if(m[r][c])d+=`M${c+4},${r+4}h1v1h-1z`;const p=document.createElementNS(ns,'path');p.setAttribute('d',d);p.setAttribute('fill','#000');svg.append(p);return svg}
-function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();$('qrBox').replaceChildren(qrSVG(part));frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
+function drawQrCanvas(text){
+ const matrix=MatrixQRCode.matrix(text),modules=matrix.length,quiet=4,total=modules+quiet*2,size=960;
+ if(!senderCanvas){senderCanvas=document.createElement('canvas');senderCanvas.id='senderQrCanvas';senderCanvas.setAttribute('role','img');senderCanvas.setAttribute('aria-label','送信中のQRコード');$('qrBox').replaceChildren(senderCanvas)}
+ if(senderCanvas.width!==size||senderCanvas.height!==size){senderCanvas.width=size;senderCanvas.height=size}
+ const ctx=senderCanvas.getContext('2d',{alpha:false});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);ctx.fillStyle='#000';
+ // Draw contiguous dark runs per row to reduce Canvas calls.
+ for(let r=0;r<modules;r++){
+  let run=-1;
+  for(let c=0;c<=modules;c++){
+   const dark=c<modules&&matrix[r][c];
+   if(dark&&run<0)run=c;
+   if(!dark&&run>=0){
+    const x0=Math.floor((run+quiet)*size/total),x1=Math.ceil((c+quiet)*size/total);
+    const y0=Math.floor((r+quiet)*size/total),y1=Math.ceil((r+1+quiet)*size/total);
+    ctx.fillRect(x0,y0,x1-x0,y1-y0);run=-1;
+   }
+  }
+ }
+ return senderCanvas;
+}
+function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();drawQrCanvas(part);frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
 function rebuildSender(){
  if(!currentEnvelope)return;
  stopPlay();
@@ -11481,9 +11502,62 @@ function resetReceive(){decoder=new URDecoder();seenParts.clear();completed=null
 function updateProgress(){if(!decoder)return;let p=0;try{p=decoder.estimatedPercentComplete?.()??decoder.getProgress?.()??0}catch{}p=Math.max(0,Math.min(1,Number(p)||0));$('recvBar').style.width=`${p*100}%`;let details='';try{details=`進捗推定 ${(p*100).toFixed(1)}% · 受信パーツ ${decoder.processedPartsCount??'—'}`}catch{}$('recvInfo').textContent=details}
 async function ingest(raw){const part=String(raw||'').trim();if(!/^ur:[a-z0-9-]+\//i.test(part))return false;try{if(seenParts.has(part))return true;if(!decoder)decoder=new URDecoder();decoder.receivePart(part);seenParts.add(part);updateProgress();$('recvStatus').textContent='URフレームを受信中';$('recvStatus').className='status';if(decoder.isComplete()){if(!decoder.isSuccess())throw Error(String(decoder.resultError?.()||'UR復元に失敗しました'));const ur=decoder.resultUR();if(ur.type!=='bytes')throw Error('未対応のUR type: '+String(ur.type));const decoded=ur.decodeCBOR();const transportBytes=toPayloadBytes(decoded);completed=await parseEnvelope(transportBytes);$('result').hidden=false;$('resultMeta').textContent=`${completed.name} · ${completed.bytes.length.toLocaleString()} bytes · UR type: ${ur.type||'bytes'} · SHA-256一致`;$('resultText').value=completed.kind==='text'?dec.decode(completed.bytes):'(ファイルデータです。ファイルとして保存してください)';$('copyResult').disabled=completed.kind!=='text';$('recvStatus').textContent='復元完了・SHA-256一致';$('recvStatus').className='status ok';$('recvBar').style.width='100%';return true}return true}catch(e){$('recvStatus').textContent='読み取りエラー：'+e.message;$('recvStatus').className='status err';return false}}
 $('addManual').onclick=async()=>{const ok=await ingest($('manualFrame').value);if(!ok){$('recvStatus').textContent='URフレームとして認識できないか、復元処理でエラーが発生しました';$('recvStatus').className='status err'}};$('resetRecv').onclick=resetReceive;resetReceive();
-async function scanTick(){if(!stream)return;try{const v=$('video'),c=$('scanCanvas');if(v.readyState>=2&&v.videoWidth&&!scanBusy){scanBusy=true;const scale=Math.min(1,1200/v.videoWidth);c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(v,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),r=jsQR(im.data,im.width,im.height,{inversionAttempts:'attemptBoth'});if(r)await ingest(r.data);scanBusy=false}}catch(e){scanBusy=false;$('recvStatus').textContent=e.message;$('recvStatus').className='status err'}if(stream)scanTimer=setTimeout(scanTick,90)}
-$('startCamera').onclick=async()=>{try{if(!navigator.mediaDevices?.getUserMedia)throw Error('カメラにはHTTPSまたはlocalhostが必要です');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:$('facing').checked?'environment':'user'},audio:false});$('video').srcObject=stream;$('video').hidden=false;await $('video').play();$('startCamera').disabled=true;$('stopCamera').disabled=false;$('recvStatus').textContent='カメラ読み取り中';scanTick()}catch(e){stream=null;$('recvStatus').textContent='カメラ開始失敗：'+e.message;$('recvStatus').className='status err'}};
-function stopCamera(){if(scanTimer)clearTimeout(scanTimer);scanTimer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').pause();$('video').srcObject=null;$('video').hidden=true;$('startCamera').disabled=false;$('stopCamera').disabled=true}$('stopCamera').onclick=stopCamera;
+async function scanTick(){
+ if(!stream)return;
+ try{
+  const v=$('video'),c=$('scanCanvas');
+  if(v.readyState>=2&&v.videoWidth&&!scanBusy){
+   scanBusy=true;
+   let rawValue=null;
+   if(barcodeDetector){
+    try{
+     const results=await barcodeDetector.detect(v);
+     const hit=results.find(x=>typeof x.rawValue==='string'&&/^ur:/i.test(x.rawValue));
+     if(hit)rawValue=hit.rawValue;
+    }catch(nativeError){
+     // If native detection fails at runtime, fall back once to jsQR.
+     barcodeDetector=null;
+     $('scanMode').textContent='認識方式: jsQR（ネイティブ認識でエラーのため切替）';
+    }
+   }
+   if(!barcodeDetector){
+    const scale=Math.min(1,1440/v.videoWidth),w=Math.max(1,Math.round(v.videoWidth*scale)),h=Math.max(1,Math.round(v.videoHeight*scale));
+    if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+    const ctx=c.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(v,0,0,w,h);
+    const im=ctx.getImageData(0,0,w,h),result=jsQR(im.data,im.width,im.height,{inversionAttempts:'attemptBoth'});
+    if(result)rawValue=result.data;
+   }
+   if(rawValue)await ingest(rawValue);
+   scanBusy=false;
+  }
+ }catch(e){
+  scanBusy=false;$('recvStatus').textContent=e.message;$('recvStatus').className='status err';
+ }
+ if(stream)scanTimer=setTimeout(scanTick,barcodeDetector?50:80);
+}
+$('startCamera').onclick=async()=>{
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw Error('カメラにはHTTPSまたはlocalhostが必要です');
+  barcodeDetector=null;
+  if('BarcodeDetector' in window){
+   try{
+    const supported=typeof BarcodeDetector.getSupportedFormats==='function'?await BarcodeDetector.getSupportedFormats():['qr_code'];
+    if(supported.includes('qr_code'))barcodeDetector=new BarcodeDetector({formats:['qr_code']});
+   }catch(_){barcodeDetector=null}
+  }
+  const videoConstraints={facingMode:$('facing').checked?'environment':'user',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
+  stream=await navigator.mediaDevices.getUserMedia({video:videoConstraints,audio:false});
+  $('video').srcObject=stream;$('video').hidden=false;await $('video').play();
+  $('startCamera').disabled=true;$('stopCamera').disabled=false;
+  $('scanMode').textContent=barcodeDetector?'認識方式: BarcodeDetector（ブラウザネイティブ）':'認識方式: jsQR（互換フォールバック）';
+  $('recvStatus').textContent='カメラ読み取り中';scanTick();
+ }catch(e){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  $('recvStatus').textContent='カメラ開始失敗：'+e.message;$('recvStatus').className='status err';
+ }
+};
+function stopCamera(){if(scanTimer)clearTimeout(scanTimer);scanTimer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}barcodeDetector=null;$('video').pause();$('video').srcObject=null;$('video').hidden=true;$('startCamera').disabled=false;$('stopCamera').disabled=true;$('scanMode').textContent='認識方式: 未選択'}$('stopCamera').onclick=stopCamera;
 $('copyResult').onclick=async()=>{if(!completed||completed.kind!=='text')return;try{await navigator.clipboard.writeText(dec.decode(completed.bytes));$('recvStatus').textContent='コピーしました'}catch{$('recvStatus').textContent='コピーできません。テキスト欄から手動でコピーしてください'}};$('saveResult').onclick=()=>{if(!completed)return;const url=URL.createObjectURL(new Blob([completed.bytes],{type:completed.mime||'application/octet-stream'})),a=document.createElement('a');a.href=url;a.download=completed.name||'received.bin';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 window.addEventListener('pagehide',stopCamera);if(!window.isSecureContext)$('recvStatus').textContent='注意：カメラにはHTTPSまたはlocalhostが必要です。';
 })().catch(e=>{document.getElementById('sendStatus').textContent='URライブラリの読み込みに失敗しました：'+e.message;document.getElementById('sendStatus').className='status err'});

@@ -111,8 +111,9 @@
             <label for="sim-secret">合言葉<button type="button" class="help-btn" aria-label="説明を表示" data-help="あなただけが知っている秘密の言葉（マスターキー）です。サイト名と合言葉の組み合わせによって、サイトごとに推測不可能な全く異なる強力なパスワードがカードから作られます。">?</button></label>
             <input type="text" id="sim-secret" value="KeePass" placeholder="例: KeePass">
             <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px; line-height:1.4;">
-              💡 合言葉作りに困ったら？ <a href="keeweb/index.html#generator" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline;" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能を開きます">KeePassの生成機能を使う</a>
+              💡 合言葉作りに困ったら？ <a href="keeweb/index.html#generator&amp;cmTarget=passphrase" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline;" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能を開きます">KeePassの生成機能を使う</a>
             </div>
+            <div id="sim-secret-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:var(--accent); margin-top:4px; padding:4px 8px; background:rgba(2,132,199,0.1); border:1px solid var(--accent); border-radius:4px;"></div>
           </div>
           <div>
             <label for="sim-speed">再生スピード（1文字あたり）<button type="button" class="help-btn" aria-label="説明を表示" data-help="読み取りガイドのアニメーション速度を調整します。カードを手元で確認しながら操作するのに適した速さに設定してください。">?</button></label>
@@ -731,7 +732,7 @@
      <button type="button" class="btn-toggle-pw-visibility" data-target="bq-password,bq-password-confirm" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
    </div>
    <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-     💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bq" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+     💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bq" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
    </div>
    <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
      <div class="duress-field">
@@ -777,6 +778,7 @@
     </div>
     <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
   </div>
+
   <div class="bq-row">
    <button type="button" class="btn btn-outline" id="bq-create">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
    <button type="button" class="btn btn-secondary" id="bq-copy" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>暗号化フレーズをコピー（30秒後自動消去）</button>
@@ -786,6 +788,7 @@
    <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePass(KeeWeb)に保存</button>
     <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1affbe; border-color:#1affb8; background:#192922;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>復元テスト欄へ転記</button>
     <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムロックタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
+            <button type="button" class="btn btn-outline" id="bq-transfer-timesecret" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムシークレットタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
    <button type="button" class="btn btn-secondary" id="bq-clear"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>表示消去</button>
   </div>
   <div class="bq-status" id="bq-status" role="status" aria-live="polite"></div>
@@ -945,7 +948,7 @@
         <button type="button" class="btn-toggle-pw-visibility" data-target="bv-password,bv-password-confirm" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
       </div>
       <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-        💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bv" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+        💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bv" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
       </div>
       <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
         <div class="duress-field">
@@ -1288,7 +1291,7 @@
             </div>
           </div>
           <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-            💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=tl" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+            💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=tl" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
           </div>
           <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
             <div class="duress-field">
@@ -1680,6 +1683,53 @@
     </div>
   </div>
 
+  <!-- セクション2〜5 重要事項・リスク同意確認ポップアップモーダル -->
+  <div id="cm-consent-modal" class="duress-modal-backdrop no-print" hidden>
+    <div class="duress-modal-dialog" style="max-width:560px;">
+      <div class="duress-modal-header" style="background:#192329; border-bottom:1px solid #00527d;">
+        <h3 id="cm-consent-modal-title" style="margin:0; font-size:1.02rem; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:8px;">
+          <span>⚠️ 重要事項とリスクの確認・同意</span>
+        </h3>
+        <button type="button" class="duress-modal-close" id="btn-cm-consent-close" aria-label="閉じる">✕</button>
+      </div>
+
+      <div class="duress-modal-body">
+        <div id="cm-consent-modal-intro" style="font-size:0.86rem; color:#6d87ac; line-height:1.6; margin-bottom:12px;">
+          暗号化・生成を実行する前に、以下の重要事項および保証範囲をご確認ください。
+        </div>
+
+        <div id="cm-consent-modal-error" style="display:none; color:#ef4444; background:#291919; border:1px solid #7f1d1d; padding:8px 12px; border-radius:6px; font-size:0.82rem; margin-bottom:12px; font-weight:700;"></div>
+
+        <div style="background:rgba(15, 23, 42, 0.7); border:1.5px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:12px 14px; margin-bottom:14px;">
+          <ol id="cm-consent-modal-list" style="margin:0 0 0 18px; padding:0; font-size:0.82rem; line-height:1.6; color:var(--text-color);">
+            <!-- 動的挿入 -->
+          </ol>
+        </div>
+
+        <div style="margin-bottom:12px; padding:8px 10px; background:#192029; border-radius:6px; border:1px solid #004ca0;">
+          <label id="cm-consent-modal-ack-label" style="display:flex; align-items:flex-start; gap:8px; font-size:0.84rem; font-weight:700; cursor:pointer; color:var(--text-color);">
+            <input type="checkbox" id="cm-consent-modal-ack" style="margin-top:3px;">
+            <span id="cm-consent-modal-ack-text">上記の重要事項と復元鍵・データの自己管理原則を確認・同意しました</span>
+          </label>
+        </div>
+
+        <div style="margin-bottom:16px; padding:4px 6px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text-sub); cursor:pointer;">
+            <input type="checkbox" id="cm-consent-modal-skip" checked>
+            <span>次回からこの確認を表示しない（同意をこのブラウザに記憶する）</span>
+          </label>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:center;">
+          <button type="button" class="btn btn-secondary" id="btn-cm-consent-cancel" style="padding:8px 16px;">キャンセル</button>
+          <button type="button" class="btn" id="btn-cm-consent-confirm" style="padding:8px 20px; font-weight:700; background:linear-gradient(135deg, #0284c7, #0369a1); border-color:#0284c7; color:#fff;">
+            同意して続行する
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KeePass キーファイル作成・復元オプション ポップアップモーダル -->
   <div id="keyfile-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog">
@@ -1752,7 +1802,7 @@
               <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#1ab1ff; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
             <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #304257; border-radius:4px; background:#1b2027;">
-            <div style="font-size:0.75rem; color:#7488a5; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
+            <div style="font-size:0.75rem; color:#7488a5; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
             <div style="font-size:0.74rem; color:#7889a1; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>
@@ -1795,6 +1845,7 @@
           <h2 class="ts-title">
             <img src="tab-timesecret.png" width="24" height="24" alt="" style="border-radius:4px;">
             <span>タイムシークレット（チェックイン型・複数時限金庫）</span>
+            <button type="button" class="help-btn" id="btn-ts-help" aria-label="タイムシークレットの解説を表示" data-help="一定期間ごとにチェックインすることでデータを維持・保護する時限金庫です。期限切れ時は非抽出可能な専用デバイス鍵を破棄して復号不能化します。暗号化・チェックイン・管理操作の3系統独立認証に対応。クリックで詳細解説を表示します。">?</button>
           </h2>
           <span id="ts-state-badge" class="ts-state-pill" data-state="UNINITIALIZED">登録なし（0件）</span>
         </div>
@@ -1844,27 +1895,59 @@
             <h3 class="ts-view-heading">➕ 新規タイムシークレット作成</h3>
           </div>
 
-          <!-- Step 1: Name & Unified Text/File Data Input (preset name chips removed) -->
+          <!-- Step 1: Name & Unified Payload Selection (Text / File / Transfer from Sec 3/4) -->
           <div class="ts-block-card">
-            <h3 class="ts-block-title">1. 名前と保管データ（テキスト・ファイル共通）</h3>
+            <h3 class="ts-block-title">1. 名前と保護対象データ（ペイロード）の選択</h3>
             <div class="ts-field">
               <label for="ts-vault-label">タイムシークレットの名前:</label>
-              <input type="text" id="ts-vault-label" maxlength="80" placeholder="用途がわかる名前を入力">
+              <input type="text" id="ts-vault-label" maxlength="80" placeholder="用途がわかる名前を入力（例：非常用シークレット、家族への連絡メモ）">
             </div>
 
-            <div id="ts-unified-text-wrap" class="ts-field">
-              <label for="ts-secret-text">保管するデータ（テキストを直接入力、または下のファイル添付を選択）:</label>
-              <textarea id="ts-secret-text" placeholder="保護したいテキスト・緊急連絡メモ・引き継ぎ情報などを入力してください（内部で構造化コンテナに自動格納され、復号時はそのまま画面に表示されます）。"></textarea>
-            </div>
-
-            <div class="ts-file-attach-box">
-              <div class="ts-inline-row" style="justify-content:space-between;">
-                <label for="ts-secret-file" style="margin:0; font-size:0.8rem; font-weight:700;">📎 任意のファイルを保管する場合（元のファイル形式を保持・最大20MB）:</label>
-                <input type="file" id="ts-secret-file" style="max-width:100%;">
+            <div class="ts-field">
+              <label style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:6px;">封入する保護対象データ（ペイロード）を選択:</label>
+              <div class="ts-radio-row" role="radiogroup" aria-label="封入ペイロード種別" style="margin-bottom:8px;">
+                <label class="ts-radio-chip">
+                  <input type="radio" name="ts-payload-type" id="ts-type-text" value="text" checked>
+                  <span>📝 テキスト（パスワード・メモ・秘密鍵など）</span>
+                </label>
+                <label class="ts-radio-chip">
+                  <input type="radio" name="ts-payload-type" id="ts-type-file" value="file">
+                  <span>📁 ファイル（画像・PDF・ZIP・.cmenc・.kdbxなど）</span>
+                </label>
+                <label class="ts-radio-chip">
+                  <input type="radio" name="ts-payload-type" id="ts-type-transferred" value="transferred" disabled>
+                  <span id="ts-type-transferred-label">🔗 セクション3・4から転記（既存暗号化データ）</span>
+                </label>
               </div>
-              <div id="ts-attached-file-chip" class="ts-file-chip" hidden>
+            </div>
+
+            <!-- テキスト入力エリア -->
+            <div id="ts-input-text-area" class="ts-field">
+              <label for="ts-secret-text">保管するテキスト:</label>
+              <textarea id="ts-secret-text" placeholder="保護したいテキスト・パスワード・緊急連絡メモ・引き継ぎ情報などを入力してください（内部で構造化コンテナに格納され、復号時はそのまま画面に表示されます）。"></textarea>
+            </div>
+
+            <!-- ファイル入力エリア -->
+            <div id="ts-input-file-area" class="ts-field" hidden style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border:1.5px dashed var(--border-color, #304257);">
+              <label for="ts-secret-file" style="margin:0 0 6px; font-size:0.82rem; font-weight:700; display:block;">
+                📎 封入するファイルを選択（最大20MB）:
+              </label>
+              <input type="file" id="ts-secret-file" style="max-width:100%;">
+              <div id="ts-attached-file-chip" class="ts-file-chip" hidden style="margin-top:6px;">
                 <span id="ts-attached-file-text"></span>
-                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-file">✕ 解除してテキスト入力へ戻す</button>
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-file">✕ ファイルを解除してテキスト入力に戻す</button>
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-sub); margin-top:6px;">
+                ※元のファイル名・MIMEタイプ・バイナリ内容が暗号化コンテナ内にそのまま保持され、復号時に元のファイルとしてダウンロードできます。
+              </div>
+            </div>
+
+            <!-- 転記データ表示エリア -->
+            <div id="ts-input-transferred-area" class="ts-field" hidden style="background:#292119; padding:12px; border-radius:8px; border:1.5px solid #f59e0b;">
+              <div id="ts-transferred-summary"></div>
+              <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-transferred">✕ 転記データを解除してテキスト入力に戻す</button>
+                <span id="ts-transferred-notice" style="font-size:0.75rem; color:#93c5fd;">※既存の暗号化データは復号・再暗号化されず、元の形式のまま安全に封入されます。</span>
               </div>
             </div>
           </div>
@@ -1945,6 +2028,9 @@
                 <span>🔑 パスワード（KDF鍵導出）</span>
               </label>
               <div id="ts-pw-panel" class="ts-factor-panel">
+                <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
+                  💡 強力な暗号化用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=ts-enc" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に自動生成し、暗号化用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+                </div>
                 <div class="ts-field">
                   <div class="ts-label-split">
                     <label for="ts-password">暗号化パスワード（12文字以上）:</label>
@@ -2034,6 +2120,9 @@
                   ✓ 暗号化用パスワードと同じ文字列でチェックインを照合します（チェックイン時に暗号化鍵は復元されず、独立した専用検証値で照合されます）。
                 </div>
                 <div id="ts-ci-pw-inputs-wrap" hidden>
+                  <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
+                    💡 強力なチェックイン専用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=ts-ci" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に自動生成し、チェックイン専用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+                  </div>
                   <div class="ts-field">
                     <div class="ts-label-split">
                       <label for="ts-ci-password">チェックイン専用パスワード（12文字以上）:</label>
@@ -2118,6 +2207,9 @@
                   <span>🔑 管理用パスワード（12文字以上）</span>
                 </label>
                 <div id="ts-mgmt-pw-panel" class="ts-factor-panel">
+                  <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
+                    💡 強力な管理操作用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=ts-mgmt" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に自動生成し、管理操作用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+                  </div>
                   <div class="ts-field">
                     <div class="ts-label-split">
                       <label for="ts-mgmt-password">管理操作用パスワード:</label>
@@ -2164,19 +2256,28 @@
 
           <!-- Step 4: Honest Guarantees & Device Key Acknowledgement -->
           <div class="ts-block-card" id="ts-guarantees-box">
-            <h3 class="ts-block-title">4. デバイス鍵と保証範囲の確認（作成前に必ずご確認ください）</h3>
-            <ol class="ts-guarantees-list">
-              <li><strong>起動時判定：</strong>ブラウザを閉じている間は期限切れ処理が動作しません（次回起動・タブ復帰時に金庫ごとに判定・削除されます）。</li>
-              <li><strong>通知の補助性：</strong>PWA通知は補助機能であり、環境やバックグラウンド状態によって届かない場合があります。</li>
-              <li><strong>プロファイル復元：</strong>ブラウザのプロファイル全体をバックアップから復元すると、期限や試行回数を巻き戻せる可能性があります。</li>
-              <li><strong>時計検知の性質：</strong>時計巻き戻し検知（<code>lastSeen</code> より5分以上の逆行検知）は実際の経過時間を証明する仕組みではなく、海外旅行やOS時刻修正でも時計異常モードに入る場合があります（時計異常だけで鍵は破棄されず、通常と同じ復号操作でデータを取り出せます）。</li>
-              <li><strong>物理ストレージの制約：</strong>期限切れ時は該当する金庫の非抽出可能なデバイス鍵と暗号データのみを破棄して読み戻し検証しますが、SSD等の物理セクタやOSバックアップ上の全データ完全消去を保証するものではありません。</li>
-              <li><strong>デバイス鍵喪失時の復旧不可：</strong>各タイムシークレットはこのブラウザ内の専用デバイス鍵と結合されます。<strong>サイトデータ消去・端末紛失等でデバイス鍵を失うと、パスワード・キーファイル・パスキーが残っていても復号できません。</strong></li>
-            </ol>
-            <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
-              <input type="checkbox" id="ts-ack-devicekey" style="margin-top:3px;">
-              <span>デバイス鍵を失った場合は復号不能になること、および上記6項目の保証範囲を確認・同意しました</span>
-            </label>
+            <h3 class="ts-block-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span>4. デバイス鍵と保証範囲の確認</span>
+              <span id="ts-consent-status-badge" class="ts-state-pill" data-state="ACTIVE" style="display:none; font-size:0.72rem;">✅ 確認・同意済み</span>
+            </h3>
+            <div id="ts-guarantees-body">
+              <ol class="ts-guarantees-list">
+                <li><strong>起動時判定：</strong>ブラウザを閉じている間は期限切れ処理が動作しません（次回起動・タブ復帰時に金庫ごとに判定・削除されます）。</li>
+                <li><strong>通知の補助性：</strong>PWA通知は補助機能であり、環境やバックグラウンド状態によって届かない場合があります。</li>
+                <li><strong>プロファイル復元：</strong>ブラウザのプロファイル全体をバックアップから復元すると、期限や試行回数を巻き戻せる可能性があります。</li>
+                <li><strong>時計検知の性質：</strong>時計巻き戻し検知（<code>lastSeen</code> より5分以上の逆行検知）は実際の経過時間を証明する仕組みではなく、海外旅行やOS時刻修正でも時計異常モードに入る場合があります（時計異常だけで鍵は破棄されず、通常と同じ復号操作でデータを取り出せます）。</li>
+                <li><strong>物理ストレージの制約：</strong>期限切れ時は該当する金庫の非抽出可能なデバイス鍵と暗号データのみを破棄して読み戻し検証しますが、SSD等の物理セクタやOSバックアップ上の全データ完全消去を保証するものではありません。</li>
+                <li><strong>デバイス鍵喪失時の復旧不可：</strong>各タイムシークレットはこのブラウザ内の専用デバイス鍵と結合されます。<strong>サイトデータ消去・端末紛失等でデバイス鍵を失うと、パスワード・キーファイル・パスキーが残っていても復号できません。</strong></li>
+              </ol>
+              <label id="ts-ack-devicekey-label" style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                <input type="checkbox" id="ts-ack-devicekey" style="margin-top:3px;">
+                <span>デバイス鍵を失った場合は復号不能になること、および上記6項目の保証範囲を確認・同意しました</span>
+              </label>
+            </div>
+            <div id="ts-guarantees-agreed-box" style="display:none; font-size:0.8rem; color:var(--text-sub); padding:6px 0;">
+              <span>✅ デバイス鍵の復号制約および保証範囲（6項目）に同意済みです。</span>
+              <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-toggle-guarantees" style="margin-left:8px; padding:2px 8px; font-size:0.74rem;">内容を再確認する</button>
+            </div>
           </div>
 
           <div id="ts-create-progress" class="ts-status-bar" hidden></div>
@@ -2539,6 +2640,50 @@
                 <li>サイトデータ消去等でデバイス鍵を失った場合、パスワード・キーファイル・パスキーが残っていても復号できません。</li>
               </ol>
             </details>
+          </div>
+        </div>
+
+        <!-- ==================== TIME SECRET EXPLANATION / HELP MODAL ==================== -->
+        <div id="ts-help-modal" class="ts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ts-help-modal-title" hidden>
+          <div class="ts-modal-dialog" style="max-width:680px; max-height:90vh; overflow-y:auto;">
+            <div class="ts-modal-header">
+              <h3 id="ts-help-modal-title" class="ts-modal-title">ℹ️ タイムシークレット（時限金庫）の解説</h3>
+              <button type="button" id="btn-ts-help-close" class="ts-modal-close" aria-label="閉じる">✕</button>
+            </div>
+            <div style="font-size:0.86rem; line-height:1.65; color:var(--text-main, #e2e8f0); display:flex; flex-direction:column; gap:14px; padding:4px 0 12px;">
+              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #38bdf8;">
+                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#38bdf8;">1. タイムシークレットの仕組みとチェックインの必要性</h4>
+                <p style="margin:0;">
+                  タイムシークレットは、定期的な<strong>「チェックイン（期限延長）」</strong>によって安全を維持する時限金庫です。設定した期限までにチェックインが行われない場合、次回起動・タブ復帰時に金庫内の非抽出可能デバイス鍵が物理削除され、秘匿データが安全に復号不能化されます。万一の長期不在時や定期生存確認の途絶に備えた機密保護に最適です。
+                </p>
+              </div>
+
+              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #10b981;">
+                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#10b981;">2. 3系統の独立認証ポリシーの違い</h4>
+                <ul style="margin:0; padding-left:20px;">
+                  <li><strong>暗号化（復号）認証：</strong>金庫内の秘匿データを取り出すための認証です（パスワード、キーファイル、パスキーPRF）。</li>
+                  <li><strong>チェックイン認証：</strong>日常的な期限延長のみを行うための認証です。暗号化パスワードとは異なる独立パスワードやパスキー、あるいは「認証なし（1クリック即時延長）」を設定可能です。<strong>チェックイン権限だけでは暗号文を復号することは暗号論的にできません。</strong></li>
+                  <li><strong>管理操作認証：</strong>金庫の削除や期限・認証ポリシー変更を行うための特権認証です。</li>
+                </ul>
+              </div>
+
+              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #f59e0b;">
+                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#f59e0b;">3. デバイス鍵を失った場合の復旧上の制約（重要）</h4>
+                <p style="margin:0;">
+                  各金庫は、この端末・ブラウザ内に生成される<strong>非抽出可能な専用デバイス鍵（DeviceKey）</strong>と強固に結合されています。そのため、ブラウザのサイトデータ消去や端末の故障・紛失等でデバイス鍵を失った場合、<strong>正しいパスワードやキーファイルがあっても二度と復号できません。</strong>
+                </p>
+              </div>
+
+              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #a855f7;">
+                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#a855f7;">4. データの保存先とブラウザデータ消去・端末移行時の注意点</h4>
+                <p style="margin:0;">
+                  すべてのデータはお使いの端末のブラウザストレージ（IndexedDB および localStorage）にのみ保管され、<strong>外部サーバーへの自動送信は一切行われません（完全オフライン・ゼロ送信）</strong>。端末移行や「閲覧履歴・Cookie・サイトデータの全消去」を行うと金庫データも消去されるため、永久保管したい重要なデータはセクション3（バックアップQR）やセクション4等で別媒体にもバックアップしてください。
+                </p>
+              </div>
+            </div>
+            <div style="text-align:right; margin-top:8px;">
+              <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-help-ok" style="min-width:100px;">理解しました</button>
+            </div>
           </div>
         </div>
 

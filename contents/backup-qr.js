@@ -14,18 +14,12 @@
 
 const $=id=>document.getElementById(id), enc=new TextEncoder(), ITER_LEGACY=310000, MAX=40000, CHUNK=420, MAXPARTS=48;
 
-function openKeeWeb() {
-
- try {
-
-  return window.openKeeWeb ? window.openKeeWeb() : null;
-
- } catch (_) {
-
-  return null;
-
- }
-
+function openKeeWeb(transferId = '') {
+  try {
+    return window.openKeeWeb ? window.openKeeWeb(transferId) : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 const AAD_LEGACY='MCBK1:E:PBKDF2-SHA256:310000:AES-256-GCM';
@@ -186,6 +180,7 @@ function clearArtifact(note=''){
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=true;
  if($('bq-test-restore'))$('bq-test-restore').disabled=true;
  if($('bq-transfer-timelock'))$('bq-transfer-timelock').disabled=true;
+  if($('bq-transfer-timesecret'))$('bq-transfer-timesecret').disabled=true;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=true;
 
@@ -618,6 +613,7 @@ function updateSec3Display(format,isInitial=false){
  if($('bq-transfer-keeweb'))$('bq-transfer-keeweb').disabled=false;
  if($('bq-test-restore'))$('bq-test-restore').disabled=false;
  if($('bq-transfer-timelock'))$('bq-transfer-timelock').disabled=false;
+  if($('bq-transfer-timesecret'))$('bq-transfer-timesecret').disabled=false;
 
  if($('bq-save-xml'))$('bq-save-xml').disabled=false;
 
@@ -899,7 +895,10 @@ async function createBackup(){
 
  clearArtifact();const token=createToken;
 
-
+ if(window.CMConsent && !window.CMConsent.hasConsent(3)){
+  window.CMConsent.requestConsent(3, () => void createBackup());
+  return;
+ }
 
  const kdfProfile=Number($('bq-kdf')?.value??1);
 
@@ -1064,6 +1063,7 @@ async function createBackup(){
   artifact={activeFormat,armoredText,phraseText,armoredShares,isMulti,total,signature,encrypted:isEncrypted,extended,texts,groups,shares,kdfProfile:isEncrypted?kdfProfile:null,shamirM,shamirN,combo,usePass,useKeyfile,usePasskey,factorLabel,rawBytes,rawShareBytes,autoVerifyPassed,autoVerifyMsg,createdPassword:password};
 
   $('backup-qr').dataset.ready='true';
+  if(window.CMConsent) window.CMConsent.recordConsent(3);
 
   $('bq-copy').disabled=false;if($('bq-print'))$('bq-print').disabled=false;
 
@@ -2779,6 +2779,11 @@ function initBonusVault(){
 
   bvMessage('bv-encrypt-status','');
 
+  if(window.CMConsent && !window.CMConsent.hasConsent(4)){
+   window.CMConsent.requestConsent(4, () => $('bv-btn-encrypt')?.click());
+   return;
+  }
+
   const isFile=$('bv-type-file')?.checked;
 
   const usePass=$('bv-opt-password')?.checked??true;
@@ -3247,132 +3252,116 @@ function initBonusVault(){
 
 
      container.querySelectorAll('.bv-btn-kw-share').forEach(btn=>{
-
       btn.addEventListener('click',async()=>{
-
+       if(btn.dataset.kwBusy==='1')return;
        const idx=Number(btn.dataset.index);
-
        const s=shares.find(x=>x.index===idx);
-
        if(!s)return;
+       btn.dataset.kwBusy='1';
+       btn.disabled=true;
+       const origLabel=btn.innerHTML;
+       try {
+        const shareText = (s.activeFormat === 'armored' ? s.arm : s.phrase);
+        if (!shareText || !s.bytes || !s.bytes.length) {
+         throw new Error('シェアデータが不足しているため添付を作成できません。');
+        }
+        const title = `CryptoPassKey - 保管庫 - 秘密分散シェア #${s.index}/${shamirN} (${baseName})`;
+        const attachments = [];
 
-       const shareText=(s.activeFormat==='armored'?s.arm:s.phrase);
-
-       const title=`${baseName} (シェア ${s.index}/${shamirN})`;
-
-       const attachments=[];
-
-       const svg=container.querySelectorAll('.bv-qr-figure svg')?.[idx-1];
-
-       if(svg&&window.MatrixCardPreset?.svgToPngBase64){
-
-        try{
-
-         const qrB64=await window.MatrixCardPreset.svgToPngBase64(svg,640);
-
-         if(qrB64){
-
-          attachments.push({
-
-           filename:`${baseName}.share${idx}-qr.png`,
-
-           base64:qrB64,
-
-           mime:'image/png'
-
-          });
-
-         }
-
-        }catch(_){}
-
-       }
-
-       if(s.bytes){
-
-        try{
-
-         let bin='';const bytes=s.bytes,chunk=8192;
-
-         for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-
+        // 1. QR Code PNG
+        const svg = container.querySelectorAll('.bv-qr-figure svg')?.[idx - 1];
+        if (svg) {
+         if (!window.MatrixCardPreset?.svgToPngBase64) throw new Error('QR画像変換モジュールが利用できません。');
+         const qrB64 = await window.MatrixCardPreset.svgToPngBase64(svg, 640);
+         if (!qrB64) throw new Error('シェアQRコード画像(PNG)の生成に失敗しました。');
          attachments.push({
-
-          filename:`${baseName}.share${idx}.cmenc`,
-
-          base64:btoa(bin),
-
-          mime:'application/octet-stream'
-
+          filename: `${baseName}.share${idx}-qr.png`,
+          base64: qrB64,
+          mime: 'image/png'
          });
+        }
 
-        }catch(_){}
+        // 2. Binary (.cmenc)
+        let bin = ''; const bytes = s.bytes, chunk = 8192;
+        for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        const cmencB64 = btoa(bin);
+        if (!cmencB64) throw new Error('暗号化シェアバイナリ(.cmenc)のエンコードに失敗しました。');
+        attachments.push({
+         filename: `${baseName}.share${idx}.cmenc`,
+         base64: cmencB64,
+         mime: 'application/octet-stream'
+        });
 
+        // 3. Share text (TXT)
+        attachments.push({
+         filename: `${baseName}.share${idx}.txt`,
+         text: shareText,
+         mime: 'text/plain;charset=utf-8'
+        });
+
+        // 4. Keyfile (.key)
+        const curSeed = $('input-seed-number')?.value || '0';
+        if (!window.MatrixCardPreset?.generateKeePassXmlKeyfile) throw new Error('キーファイル生成モジュールが利用できません。');
+        const keyData = await window.MatrixCardPreset.generateKeePassXmlKeyfile({
+         seedNum: (typeof parseSeedValue === 'function' ? parseSeedValue(curSeed) : (parseInt(curSeed, 10) || 0))
+        });
+        if (!keyData || !keyData.xml) throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
+        attachments.push({
+         filename: `matrix-card-${curSeed}.key`,
+         text: keyData.xml,
+         mime: 'application/x-kdbx-keyfile'
+        });
+
+        const notes = [
+         `【CryptoPassKey 保管庫 秘密分散シェア ${s.index}/${shamirN}】`,
+         `■ 復元条件: 全${shamirN}シェア中、任意の${shamirM}シェアで復元可能`,
+         `■ ブロック数: ${s.blocksCount}`,
+         `■ カード配列シード番号: #${curSeed}`,
+         ...(password ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
+         '',
+         '【シェアデータ】',
+         shareText,
+         '',
+         '【添付ファイルのご案内（原則全ファイル完全添付）】',
+         ...(svg ? [`1. QRコード画像: ${baseName}.share${idx}-qr.png`] : []),
+         `2. 暗号化シェアバイナリ: ${baseName}.share${idx}.cmenc`,
+         `3. シェアテキスト: ${baseName}.share${idx}.txt`,
+         `4. KeePassキーファイル: matrix-card-${curSeed}.key`,
+         '',
+         '【復元方法】',
+         '任意の必要シェア分のテキストまたは添付QRコード/.cmencファイルをCryptoMatrix保管庫の復元タブに入力してください。'
+        ].join('\n');
+
+        const baseAppUrl = window.location.href.split(/[?#]/)[0];
+        const isHttp1 = /^https?:\/\//i.test(baseAppUrl);
+        const activeSecret = ($('sim-secret')?.value || '').trim();
+
+        const transferId = (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
+         site: title,
+         password: password || '',
+         passphrase: activeSecret,
+         username: `Shamir-Share#${s.index}`,
+         url: isHttp1 ? `${baseAppUrl}#bonus-vault` : '',
+         notes: notes,
+         attachments: attachments,
+         timestamp: Date.now()
+        });
+
+        btn.innerHTML='✅ 自動保存転送完了！';
+        setTimeout(()=>{
+         btn.innerHTML=origLabel;
+         btn.dataset.kwBusy='0';
+         btn.disabled=false;
+        },1500);
+        openKeeWeb(transferId);
+       } catch (err) {
+        btn.innerHTML=origLabel;
+        btn.dataset.kwBusy='0';
+        btn.disabled=false;
+        bvMessage('bv-encrypt-status', `KeePass保存データの準備に失敗しました: ${err?.message || err}`, true);
        }
-
-       const notes=[
-
-        `【CryptoMatrix 秘密分散シェア ${s.index}/${shamirN}】`,
-
-        `■ 復元条件: 全${shamirN}シェア中、任意の${shamirM}シェアで復元可能`,
-
-        `■ ブロック数: ${s.blocksCount}`,
-
-        '',
-
-        '【シェアデータ】',
-
-        shareText,
-
-        '',
-
-        '【添付ファイルのご案内】',
-
-        ...(svg?[`1. QRコード画像: ${baseName}.share${idx}-qr.png`]:[]),
-
-        `2. 暗号化ファイル (.cmenc): ${baseName}.share${idx}.cmenc`,
-
-        '',
-
-        '【復元方法】',
-
-        '任意の必要シェア分のテキストまたは添付QRコード/.cmencファイルをCryptoMatrix保管庫の復元タブに入力してください。'
-
-       ].join('\n');
-
-
-
-       const baseAppUrl = window.location.href.split(/[?#]/)[0];
-
-       (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
-
-        site:title,
-
-        password:password||'',
-
-        username:`Shamir-Share#${s.index}`,
-
-        url:`${baseAppUrl}#bonus-vault`,
-
-        notes:notes,
-
-        attachments:attachments,
-
-        timestamp:Date.now()
-
-       });
-
-       btn.innerHTML='✅ 転送完了！';
-
-       setTimeout(()=>{ btn.innerHTML='📥 KeePassに保存'; },2500);
-
-       openKeeWeb();
-
       });
-
      });
-
-
 
      container.querySelectorAll('.bv-btn-txt-share').forEach(btn=>{
 
@@ -3635,6 +3624,30 @@ function initBonusVault(){
      });
      actions.appendChild(tlAllBtn);
 
+     const tsAllBtn=document.createElement('button');
+     tsAllBtn.id='bv-btn-ts-all';
+     tsAllBtn.type='button';tsAllBtn.className='btn btn-outline bv-no-print';
+     tsAllBtn.style.cssText='font-size:0.78rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;';
+     tsAllBtn.textContent='🛡️ 全シェアをタイムシークレットへ転記';
+     tsAllBtn.addEventListener('click',()=>{
+      if(window.TimeSecretApp?.receiveTransferredPayload){
+       const allArmored=shares.map(s=>s.arm).join('\n\n');
+       window.TimeSecretApp.receiveTransferredPayload({
+        source:'sec4',
+        label:`セクション4 保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
+        bytes:enc.encode(allArmored),
+        armoredText:allArmored,
+        factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
+        shamirM,
+        shamirN,
+        createdPassword:password,
+        filename:`${baseName}-${shamirM}of${shamirN}.txt`
+       });
+       document.querySelector('[aria-controls="tab-timesecret"]')?.click();
+      }
+     });
+     actions.appendChild(tsAllBtn);
+
 
 
      bvMessage('bv-encrypt-status',`秘密分散データ（${shamirM}-of-${shamirN}）を作成しました。全${shamirN}個のシェア（QRコード／ファイル）を別々に保管してください。任意の${shamirM}個で復元できます。`);
@@ -3727,6 +3740,7 @@ function initBonusVault(){
 
               <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
               <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムロックタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-ts-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" title="この暗号化データを復号・削除せずそのままタイムシークレットタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
 
              ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>表示切替（PGP ⇄ BIP39）</button>`:''}
 
@@ -3808,6 +3822,22 @@ function initBonusVault(){
        });
       }
      });
+     $('bv-btn-ts-single')?.addEventListener('click',()=>{
+      if(window.TimeSecretApp?.receiveTransferredPayload){
+       window.TimeSecretApp.receiveTransferredPayload({
+        source:'sec4',
+        label:isFile?`セクション4 暗号化ファイル (${name})`:'セクション4 保管庫暗号化データ',
+        bytes:singleBytesCopy.slice(),
+        armoredText:armored,
+        factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
+        shamirM:1,
+        shamirN:1,
+        createdPassword:password,
+        filename:outFileName
+       });
+       document.querySelector('[aria-controls="tab-timesecret"]')?.click();
+      }
+     });
 
 
 
@@ -3846,194 +3876,128 @@ function initBonusVault(){
 
 
      $('bv-btn-kw-single')?.addEventListener('click',async()=>{
+      const btn=$('bv-btn-kw-single');
+      if(btn&&btn.dataset.kwBusy==='1')return;
+      if(btn){btn.dataset.kwBusy='1';btn.disabled=true;}
+      const origText=btn?btn.innerHTML:'';
+      try {
+       const textToSave=(singleFormat==='armored'?armored:vPhrase);
+       if(!textToSave||!bodyToShare||!bodyToShare.length){
+        throw new Error('暗号化データが不足しているため添付ファイルを作成できません。');
+       }
+       const displayName = name || outFileName || '';
+       const title = displayName
+        ? `CryptoPassKey - 保管庫 - 復元パスワード (${displayName})`
+        : 'CryptoPassKey - 保管庫 - 復元パスワード';
 
-      const textToSave=(singleFormat==='armored'?armored:vPhrase);
+       const attachments=[];
 
-      const title=isFile?`Vault - ${name}`:'Vault - 暗号化保管データ';
-
-      const attachments=[];
-
-      const svg=container.querySelector('.bv-qr-figure svg');
-
-      if(svg&&window.MatrixCardPreset?.svgToPngBase64){
-
-       try{
-
+       // 1. QR Code PNG
+       const svg=container.querySelector('.bv-qr-figure svg');
+       if(svg){
+        if(!window.MatrixCardPreset?.svgToPngBase64)throw new Error('QR画像変換モジュールが利用できません。');
         const qrB64=await window.MatrixCardPreset.svgToPngBase64(svg,640);
-
-        if(qrB64){
-
-         attachments.push({
-
-          filename:isFile?`${name}-qr.png`:'vault-secret-qr.png',
-
-          base64:qrB64,
-
-          mime:'image/png'
-
-         });
-
-        }
-
-       }catch(_){}
-
-      }
-
-
-
-      const seedNum=$('input-seed-number')?.value||'0';
-
-      if(window.MatrixCardPreset?.generateKeePassXmlKeyfile){
-
-       try{
-
-        const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
-
-         seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0))
-
-        });
-
-        if(keyData&&keyData.xml){
-
-         attachments.push({
-
-          filename:`matrix-card-${seedNum}.key`,
-
-          text:keyData.xml,
-
-          mime:'application/x-kdbx-keyfile'
-
-         });
-
-        }
-
-       }catch(_){}
-
-      }
-
-
-
-      if(bodyToShare){
-
-       try{
-
-        let bin='';const bytes=bodyToShare,chunk=8192;
-
-        for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-
+        if(!qrB64)throw new Error('QRコード画像(PNG)の生成に失敗しました。');
         attachments.push({
-
-         filename:outFileName,
-
-         base64:btoa(bin),
-
-         mime:'application/octet-stream'
-
+         filename:isFile?`${name}-qr.png`:'vault-secret-qr.png',
+         base64:qrB64,
+         mime:'image/png'
         });
-
-       }catch(_){}
-
-      }
-
-
-
-      const notes=[
-
-       '【CryptoMatrix 暗号化保管庫 (Bonus Vault) エントリー】',
-
-       `■ 種別: ${isFile?'ファイル暗号化':'テキスト/パスワード暗号化'}`,
-
-       `■ ファイル名: ${name || 'N/A'}`,
-
-       `■ サイズ: ${bodyToShare.length} bytes`,
-
-       `■ ブロック数: ${vBlocks.length}`,
-
-       '',
-
-       '【暗号化データ】',
-
-       textToSave,
-
-       '',
-
-       '【添付ファイルのご案内（全形式添付・安心保管）】',
-
-       ...(svg?['1. QRコード画像 (.png): 読み取るだけで一発復号できます。']:[]),
-
-       `2. KeePassキーファイル (.key): matrix-card-${seedNum}.key`,
-
-       `3. 暗号化ファイル (.cmenc): ${outFileName}（画面にドラッグ＆ドロップで一発復号可能）`,
-
-       '',
-
-       '【復号方法】',
-
-       'CryptoMatrixの「4. 汎用セキュア保管庫」の復号タブに上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
-
-      ].join('\n');
-
-
-
-      const baseAppUrl = window.location.href.split(/[?#]/)[0];
-
-      (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
-
-       site:title,
-
-       password:password||'',
-
-       username:isFile?'Vault-File':'Vault-Secret',
-
-       url:`${baseAppUrl}#bonus-vault`,
-
-       notes:notes,
-
-       attachments:attachments,
-
-       timestamp:Date.now()
-
-      });
-
-
-
-       const btn=$('bv-btn-kw-single');
-
-       if(btn){
-
-        const origText=btn.innerHTML;
-
-        btn.innerHTML='✅ KeeWeb転送準備完了！ <a href="keeweb/index.html" target="_blank" style="color:#15803d; text-decoration:underline;">[🔑 KeeWebを開く]</a>';
-
-        btn.style.background='#dcfce7';
-
-        btn.style.borderColor='#86efac';
-
-        btn.style.color='#15803d';
-
-        setTimeout(()=>{
-
-         btn.innerHTML=origText;
-
-         btn.style.background='#f0f9ff';
-
-         btn.style.borderColor='#0284c7';
-
-         btn.style.color='#0369a1';
-
-        },3500);
-
        }
 
-       bvMessage('bv-encrypt-status','✅ KeeWeb転送データを準備しました。');
+       // 2. Text data (TXT)
+       attachments.push({
+        filename: `${outFileName}.txt`,
+        text: textToSave,
+        mime: 'text/plain;charset=utf-8'
+       });
 
-       {const _el=$('bv-encrypt-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
+       // 3. Binary (.cmenc)
+       let bin='';const bytes=bodyToShare,chunk=8192;
+       for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+       const cmencB64=btoa(bin);
+       if(!cmencB64)throw new Error('暗号化ファイル(.cmenc)のエンコードに失敗しました。');
+       attachments.push({
+        filename:outFileName,
+        base64:cmencB64,
+        mime:'application/octet-stream'
+       });
 
-       openKeeWeb();
+       // 4. Keyfile (.key)
+       const seedNum=$('input-seed-number')?.value||'0';
+       if(!window.MatrixCardPreset?.generateKeePassXmlKeyfile)throw new Error('キーファイル生成モジュールが利用できません。');
+       const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
+        seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0))
+       });
+       if(!keyData||!keyData.xml)throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
+       attachments.push({
+        filename:`matrix-card-${seedNum}.key`,
+        text:keyData.xml,
+        mime:'application/x-kdbx-keyfile'
+       });
 
+       const notes=[
+        '【CryptoPassKey 保管庫 (Vault) エントリー情報】',
+        `■ 種別: ${isFile?'ファイル暗号化':'テキスト/パスワード暗号化'}`,
+        `■ ファイル名: ${name || 'N/A'}`,
+        `■ サイズ: ${bodyToShare ? bodyToShare.length : 0} bytes`,
+        `■ ブロック数: ${vBlocks ? vBlocks.length : 0}`,
+        `■ カード配列シード番号: #${seedNum}`,
+        ...(password ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
+        '',
+        '【暗号化データ】',
+        textToSave,
+        '',
+        '【添付ファイルのご案内（原則全ファイル完全添付）】',
+        ...(svg?[`1. QRコード画像: ${isFile ? `${name}-qr.png` : 'vault-secret-qr.png'}`]:[]),
+        `2. 暗号化テキスト: ${outFileName}.txt`,
+        `3. 暗号化バイナリ: ${outFileName}`,
+        `4. KeePassキーファイル: matrix-card-${seedNum}.key`,
+        '',
+        '【復元方法】',
+        'CryptoMatrixの「4. 汎用セキュア保管庫」の復号タブに上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
+       ].join('\n');
+
+       const baseAppUrl = window.location.href.split(/[?#]/)[0];
+       const isHttp2 = /^https?:\/\//i.test(baseAppUrl);
+       const activeSecret = ($('sim-secret')?.value || '').trim();
+
+       const transferId = (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
+        site:title,
+        password:password||'',
+        passphrase:activeSecret,
+        username:isFile?'Vault-File':'Vault-Secret',
+        url:isHttp2 ? `${baseAppUrl}#bonus-vault` : '',
+        notes:notes,
+        attachments:attachments,
+        timestamp:Date.now()
+       });
+
+       if(btn){
+        btn.innerHTML='✅ KeeWebで自動作成・保存中！';
+        btn.style.background='#dcfce7';
+        btn.style.borderColor='#86efac';
+        btn.style.color='#15803d';
+        setTimeout(()=>{
+         btn.innerHTML=origText;
+         btn.style.background='#f0f9ff';
+         btn.style.borderColor='#0284c7';
+         btn.style.color='#0369a1';
+         btn.dataset.kwBusy='0';
+         btn.disabled=false;
+        },1500);
+       }
+       bvMessage('bv-encrypt-status','✅ KeeWebで新規エントリーの自動作成・保存を開始しました。');
+       openKeeWeb(transferId);
+      } catch (err) {
+       if(btn){
+        btn.innerHTML=origText;
+        btn.dataset.kwBusy='0';
+        btn.disabled=false;
+       }
+       bvMessage('bv-encrypt-status', `KeePass保存データの準備に失敗しました: ${err?.message || err}`, true);
+      }
      });
-
-
 
      $('bv-btn-xml-single')?.addEventListener('click',async()=>{
 
@@ -4140,6 +4104,7 @@ function initBonusVault(){
      $('bv-encrypt-result').hidden=false;
 
      $('bv-encrypt-result').style.display='';
+     if(window.CMConsent) window.CMConsent.recordConsent(4);
 
      // 暗号化結果は動的に生成されるため、表示直後に現在の覗き見防止設定を適用する。
      if (typeof window.cmApplyPeekGuard === 'function') window.cmApplyPeekGuard();
@@ -5288,234 +5253,188 @@ document.addEventListener('DOMContentLoaded',()=>{
    message('bq-status','⏳ 作成された暗号化バックアップを復号・削除せず「⏳ タイムロック」タブへ転記しました。');
   });
 
- $('bq-transfer-keeweb')?.addEventListener('click',async()=>{
-
-  if(!artifact)return;
-
-  const siteVal=($('sim-site')?.value||'').trim();
-
-  const cardPw=($('sim-output-pw')?.textContent||'').trim();
-
-  const existingBqPw=($('bq-password')?.value||'').trim();
-
-  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
-
-  if(artifact.usePass&&!restorePw){message('bq-status','KeeWeb転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);return;}
-
-  const pw=artifact.usePass?restorePw:cardPw||'';
-
-  const seedNum=$('input-seed-number')?.value||'0';
-
-  const isArmored=(artifact.activeFormat==='armored');
-
-  const textToSave=$('bq-output')?.value||artifact.packet||(isArmored?artifact.armoredText:artifact.phraseText)||'';
-
-
-
-  // Synchronously request window open during active user gesture on touch devices / iOS Safari
-
-  let pendingWin = openKeeWeb();
-
-
-
-  const attachments=[];
-
-  const qrSvgs=Array.from($('bq-qr-list')?.querySelectorAll('svg')||[]);
-
-  if(window.MatrixCardPreset?.svgToPngBase64){
-
-   for(let i=0;i<qrSvgs.length;i++){
-
-    try{
-
-     const qrBase64=await window.MatrixCardPreset.svgToPngBase64(qrSvgs[i],640);
-
-     if(qrBase64)attachments.push({filename:qrSvgs.length>1?`cryptomatrix-encrypted-share${i+1}-qr.png`:'cryptomatrix-encrypted-qr.png',base64:qrBase64,mime:'image/png'});
-
-    }catch(_){}
-
-   }
-
-  }
-
-
-
-  if(window.MatrixCardPreset?.generateKeePassXmlKeyfile){
-
-   try{
-
-    const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
-
-     seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0)),
-
-     password:cardPw||pw
-
-    });
-
-    if(keyData&&keyData.xml){
-
-     attachments.push({
-
-      filename:`matrix-card-${seedNum}.key`,
-
-      text:keyData.xml,
-
-      mime:'application/x-kdbx-keyfile'
-
-     });
-
-    }
-
-   }catch(_){}
-
-  }
-
-
-
-  if(artifact.rawBytes){
-
-   try{
-
-    let bin='';const bytes=artifact.rawBytes,chunk=8192;
-
-    for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-
-    attachments.push({
-
-     filename:'cryptomatrix-encrypted-backup.cmenc',
-
-     base64:btoa(bin),
-
-     mime:'application/octet-stream'
-
-    });
-
-   }catch(_){}
-
-  }
-
-  if(artifact.rawShareBytes?.length){
-
-   for(const share of artifact.rawShareBytes){
-
-    try{
-
-     let bin='';const bytes=share.bytes,chunk=8192;
-
-     for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-
-     attachments.push({filename:`cryptomatrix-encrypted-share${share.index}.cmenc`,base64:btoa(bin),mime:'application/octet-stream'});
-
-    }catch(_){}
-
-   }
-
-  }
-
-
-
-  const title=siteVal?`${siteVal} (CryptoMatrix暗号化バックアップ)`:'CryptoMatrix 暗号化バックアップ';
-
-  const notes=[
-
-   '【CryptoMatrix 暗号化バックアップ情報】',
-
-   `■ 保護方式: ${artifact.factorLabel}`,
-
-   `■ カード配列シード番号 (seed): ${seedNum}`,
-
-   `■ 復元形式: ${isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式'}`,
-
-   `■ 秘密分散: ${artifact.shamirN>1?`${artifact.shamirM}-of-${artifact.shamirN} 秘密分散`:'なし（単一暗号化）'}`,
-
-   ...(siteVal?[`■ 対象サイト/サービス: ${siteVal}`]:[]),
-
-   '■ 復元用パスワード: KeePassの保護された「パスワード」欄にのみ保存（このメモには記録しません）',
-
-   '',
-
-   '【暗号化バックアップデータ】',
-
-   textToSave,
-
-   '',
-
-   '【添付ファイルのご案内（全形式添付・安心保管）】',
-
-   '1. cryptomatrix-encrypted-qr.png: 暗号化QRコード画像（スマホ・PCカメラで読み取り可能）',
-
-   `2. matrix-card-${seedNum}.key: KeePassキーファイル（データベースの認証鍵としても使用可能）`,
-
-   ...(artifact.rawBytes?['3. cryptomatrix-encrypted-backup.cmenc: 二重暗号化バイナリファイル（画面にドラッグ＆ドロップで一発復元可能）']:[]),
-
-   '',
-
-   '【復元方法】',
-
-   'CryptoMatrixの「復元」欄に上記の暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませて復元用パスワードを入力するだけで、設定・合言葉を完全に復元できます。'
-
-  ].join('\n');
-
-
-
-  const baseAppUrl = window.location.href.split(/[?#]/)[0];
-
-  localStorage.setItem('cm_active_seed',seedNum);
-
-  (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry',{
-
-   site:title,
-
-   password:pw,
-
-   username:`Protected-${artifact.factorLabel}`,
-
-   url:`${baseAppUrl}#seed=${seedNum}${siteVal?'&site='+encodeURIComponent(siteVal):''}`,
-
-   notes:notes,
-
-   attachments:attachments,
-
-   timestamp:Date.now()
-
+  $('bq-transfer-timesecret')?.addEventListener('click',()=>{
+   if(!artifact||!window.TimeSecretApp?.receiveTransferredPayload)return;
+   const payloadStr=artifact.armoredText||artifact.phraseText||'';
+   const payloadBytes=artifact.shamirN>1
+    ?enc.encode(payloadStr)
+    :(artifact.rawBytes?artifact.rawBytes.slice():enc.encode(payloadStr));
+   window.TimeSecretApp.receiveTransferredPayload({
+    source:'sec3',
+    label:artifact.extended?'セクション3 拡張暗号化バックアップ':'セクション3 暗号化バックアップ',
+    bytes:payloadBytes,
+    armoredText:payloadStr,
+    factorLabel:artifact.factorLabel||'暗号化済み',
+    shamirM:artifact.shamirM||1,
+    shamirN:artifact.shamirN||1,
+    createdPassword:artifact.createdPassword||'',
+    filename:artifact.shamirN>1?`cryptomatrix-backup-${artifact.shamirM}of${artifact.shamirN}.txt`:'cryptomatrix-encrypted-backup.cmenc'
+   });
+   document.querySelector('[aria-controls="tab-timesecret"]')?.click();
+   message('bq-status','🛡️ 作成された暗号化バックアップを復号・削除せず「🛡️ タイムシークレット」タブへ転記しました。');
   });
 
-
-
+ $('bq-transfer-keeweb')?.addEventListener('click',async()=>{
+  if(!artifact)return;
   const btn=$('bq-transfer-keeweb');
+  if(btn&&btn.dataset.kwBusy==='1')return;
 
-  if(btn){
-
-   const origText=btn.innerHTML;
-
-   btn.innerHTML='✅ KeeWeb転送準備完了！';
-
-   btn.style.background='#dcfce7';
-
-   btn.style.borderColor='#86efac';
-
-   btn.style.color='#15803d';
-
-   setTimeout(()=>{
-
-    btn.innerHTML=origText;
-
-    btn.style.background='#f0f9ff';
-
-    btn.style.borderColor='#0284c7';
-
-    btn.style.color='#0369a1';
-
-   },3500);
-
+  const siteVal=($('sim-site')?.value||'').trim();
+  const cardPw=($('sim-output-pw')?.textContent||'').trim();
+  const existingBqPw=($('bq-password')?.value||'').trim();
+  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
+  if(artifact.usePass&&!restorePw){
+   message('bq-status','KeeWeb転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);
+   return;
   }
 
-  message('bq-status','✅ KeeWeb転送データを準備しました。');
+  if(btn){btn.dataset.kwBusy='1';btn.disabled=true;}
+  const origText=btn?btn.innerHTML:'';
+  try {
+   const pw=artifact.usePass?restorePw:cardPw||'';
+   const seedNum=$('input-seed-number')?.value||'0';
+   const isArmored=(artifact.activeFormat==='armored');
+   const textToSave=$('bq-output')?.value||artifact.packet||(isArmored?artifact.armoredText:artifact.phraseText)||'';
+   if(!textToSave)throw new Error('バックアップテキストが空です。');
 
-  {const _el=$('bq-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
+   const attachments=[];
+   const qrSvgs=Array.from($('bq-qr-list')?.querySelectorAll('svg')||[]);
+   if(qrSvgs.length>0){
+    if(!window.MatrixCardPreset?.svgToPngBase64)throw new Error('QR画像変換モジュールが利用できません。');
+    for(let i=0;i<qrSvgs.length;i++){
+     const qrBase64=await window.MatrixCardPreset.svgToPngBase64(qrSvgs[i],640);
+     if(!qrBase64)throw new Error('バックアップQRコード画像(PNG)の生成に失敗しました。');
+     attachments.push({
+      filename:qrSvgs.length>1?`cryptomatrix-encrypted-share${i+1}-qr.png`:'cryptomatrix-encrypted-qr.png',
+      base64:qrBase64,
+      mime:'image/png'
+     });
+    }
+   }
 
-  if(!pendingWin) openKeeWeb();
+   if(!window.MatrixCardPreset?.generateKeePassXmlKeyfile)throw new Error('キーファイル生成モジュールが利用できません。');
+   const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
+    seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0)),
+    password:cardPw||pw
+   });
+   if(!keyData||!keyData.xml)throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
+   attachments.push({
+    filename:`matrix-card-${seedNum}.key`,
+    text:keyData.xml,
+    mime:'application/x-kdbx-keyfile'
+   });
 
+   if(artifact.rawBytes){
+    let bin='';const bytes=artifact.rawBytes,chunk=8192;
+    for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+    const cmencB64=btoa(bin);
+    if(!cmencB64)throw new Error('暗号化バックアップファイル(.cmenc)のエンコードに失敗しました。');
+    attachments.push({
+     filename:'cryptomatrix-encrypted-backup.cmenc',
+     base64:cmencB64,
+     mime:'application/octet-stream'
+    });
+   }
+
+   if(artifact.rawShareBytes?.length){
+    for(const share of artifact.rawShareBytes){
+     let bin='';const bytes=share.bytes,chunk=8192;
+     for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+     const shB64=btoa(bin);
+     if(!shB64)throw new Error(`暗号化シェア #${share.index} (.cmenc) のエンコードに失敗しました。`);
+     attachments.push({
+      filename:`cryptomatrix-encrypted-share${share.index}.cmenc`,
+      base64:shB64,
+      mime:'application/octet-stream'
+     });
+    }
+   }
+
+   attachments.push({
+    filename: 'cryptomatrix-encrypted-backup.txt',
+    text: textToSave,
+    mime: 'text/plain;charset=utf-8'
+   });
+
+   if (artifact.shares && artifact.shares.length > 1) {
+    for (const sh of artifact.shares) {
+     const shTxt = isArmored ? sh.armored : sh.phrase;
+     if (!shTxt) throw new Error(`暗号化シェア #${sh.index} のテキストデータが空です。`);
+     attachments.push({
+      filename: `cryptomatrix-encrypted-share${sh.index}.txt`,
+      text: shTxt,
+      mime: 'text/plain;charset=utf-8'
+     });
+    }
+   }
+
+   const title = siteVal
+    ? `CryptoPassKey - バックアップ - 復元パスワード (${siteVal})`
+    : 'CryptoPassKey - バックアップ - 復元パスワード';
+
+   const notes = [
+    '【CryptoPassKey 暗号化バックアップ情報】',
+    `■ 保護方式: ${artifact.factorLabel}`,
+    `■ カード配列シード番号 (seed): #${seedNum}`,
+    `■ 復元形式: ${isArmored ? 'PGPアーマード形式' : 'BIP39 24単語ブロック形式'}`,
+    `■ 秘密分散: ${artifact.shamirN > 1 ? `${artifact.shamirM}-of-${artifact.shamirN} 秘密分散` : 'なし（単一暗号化）'}`,
+    ...(siteVal ? [`■ 対象サイト/サービス: ${siteVal}`] : []),
+    '■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）',
+    '',
+    '【暗号化バックアップデータ】',
+    textToSave,
+    '',
+    '【添付ファイルのご案内（原則全ファイル完全添付）】',
+    '1. QRコード画像: cryptomatrix-encrypted-qr.png',
+    '2. 暗号化テキスト: cryptomatrix-encrypted-backup.txt',
+    `3. KeePassキーファイル: matrix-card-${seedNum}.key`,
+    ...(artifact.rawBytes ? ['4. 二重暗号化バイナリ: cryptomatrix-encrypted-backup.cmenc'] : []),
+    '',
+    '【復元方法】',
+    'CryptoMatrixの「復元」欄に上記の暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませて復元用パスワードを入力するだけで、設定・合言葉を完全に復元できます。'
+   ].join('\n');
+
+   const baseAppUrl = window.location.href.split(/[?#]/)[0];
+   const isHttp3 = /^https?:\/\//i.test(baseAppUrl);
+   const activeSecret = ($('sim-secret')?.value || '').trim();
+
+   localStorage.setItem('cm_active_seed', seedNum);
+
+   const transferId = (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
+    site: title,
+    password: pw,
+    passphrase: activeSecret,
+    username: `Protected-${artifact.factorLabel}`,
+    url: isHttp3 ? `${baseAppUrl}#seed=${seedNum}${siteVal ? '&site=' + encodeURIComponent(siteVal) : ''}` : '',
+    notes: notes,
+    attachments: attachments,
+    timestamp: Date.now()
+   });
+
+   if(btn){
+    btn.innerHTML='✅ KeeWebで自動作成・保存中！';
+    btn.style.background='#dcfce7';
+    btn.style.borderColor='#86efac';
+    btn.style.color='#15803d';
+    setTimeout(()=>{
+     btn.innerHTML=origText;
+     btn.style.background='';
+     btn.style.borderColor='';
+     btn.style.color='';
+     btn.dataset.kwBusy='0';
+     btn.disabled=false;
+    },1500);
+   }
+   message('bq-status','✅ KeeWebで新規エントリーの自動作成・保存を開始しました。');
+   openKeeWeb(transferId);
+  } catch (err) {
+   if(btn){
+    btn.innerHTML=origText;
+    btn.dataset.kwBusy='0';
+    btn.disabled=false;
+   }
+   message('bq-status', `KeePass保存データの準備に失敗しました: ${err?.message || err}`, true);
+  }
  });
 
  $('bq-save-xml')?.addEventListener('click',async()=>{

@@ -1477,6 +1477,12 @@
     // Execute Time Lock Encryption
     $('tl-btn-encrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
+
+      if (window.CMConsent && !window.CMConsent.hasConsent(5)) {
+        window.CMConsent.requestConsent(5, () => $('tl-btn-encrypt')?.click());
+        return;
+      }
+
       tlMessage('tl-encrypt-status', '⏳ タイムロック・カプセルを作成しています…');
       if ($('tl-encrypt-result')) $('tl-encrypt-result').hidden = true;
 
@@ -1721,141 +1727,171 @@
 
     $('tl-btn-transfer-keeweb')?.addEventListener('click', async () => {
       if (!tlLastArtifact) return;
-      const Preset = getPreset();
-      const meta = tlLastArtifact.meta;
-      const unlockDateStr = formatLocalDateTime(meta.unlockTimeMs);
-      const isShamir = tlLastArtifact.shamirN > 1;
+      const btn = $('tl-btn-transfer-keeweb');
+      if (btn && btn.dataset.kwBusy === '1') return;
+      if (btn) { btn.dataset.kwBusy = '1'; btn.disabled = true; }
+      const origText = btn ? btn.innerHTML : '';
 
-      // 1. Prepare attachments
-      const attachments = [];
+      try {
+        const Preset = getPreset();
+        const meta = tlLastArtifact.meta;
+        const unlockDateStr = formatLocalDateTime(meta.unlockTimeMs);
+        const isShamir = tlLastArtifact.shamirN > 1;
 
-      // 1a. QR Code Image (PNG)
-      const qrSvgs = Array.from($('tl-qr-container')?.querySelectorAll('svg') || []);
-      if (Preset.svgToPngBase64) {
-        for (let i = 0; i < qrSvgs.length; i++) {
-          try {
-            const qrBase64 = await Preset.svgToPngBase64(qrSvgs[i], 640);
-            if (qrBase64) {
-              const fname = qrSvgs.length > 1
-                ? `${tlLastArtifact.baseName}-share${i + 1}-qr.png`
-                : `${tlLastArtifact.baseName}-qr.png`;
-              attachments.push({ filename: fname, base64: qrBase64, mime: 'image/png' });
-            }
-          } catch (_) {}
+        if (!tlLastArtifact.cmtl1Bytes || !tlLastArtifact.armoredText) {
+          throw new Error('タイムロックカプセルデータが不足しているため添付を作成できません。');
         }
-      }
 
-      // 1b. Time Lock Capsule (.cmtl) binary
-      if (tlLastArtifact.cmtl1Bytes) {
-        try {
+        const attachments = [];
+
+        // 1a. QR Code Image (PNG)
+        const qrSvgs = Array.from($('tl-qr-container')?.querySelectorAll('svg') || []);
+        if (qrSvgs.length > 0) {
+          if (!Preset.svgToPngBase64) throw new Error('QR画像変換モジュールが利用できません。');
+          for (let i = 0; i < qrSvgs.length; i++) {
+            const qrBase64 = await Preset.svgToPngBase64(qrSvgs[i], 640);
+            if (!qrBase64) throw new Error('タイムロックQRコード画像(PNG)の生成に失敗しました。');
+            const fname = qrSvgs.length > 1
+              ? `${tlLastArtifact.baseName}-share${i + 1}-qr.png`
+              : `${tlLastArtifact.baseName}-qr.png`;
+            attachments.push({ filename: fname, base64: qrBase64, mime: 'image/png' });
+          }
+        }
+
+        // 1b. Time Lock Capsule (.cmtl) binary
+        {
           let bin = '';
           const bytes = tlLastArtifact.cmtl1Bytes;
           const chunk = 8192;
           for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+          const cmtlB64 = btoa(bin);
+          if (!cmtlB64) throw new Error('タイムロックカプセル(.cmtl)のエンコードに失敗しました。');
           attachments.push({
             filename: `${tlLastArtifact.baseName}.cmtl`,
-            base64: btoa(bin),
+            base64: cmtlB64,
             mime: 'application/octet-stream'
           });
-        } catch (_) {}
-      }
+        }
 
-      // 1c. Individual share .cmtl files if Shamir
-      if (tlLastArtifact.shares && tlLastArtifact.shares.length > 1) {
-        for (const s of tlLastArtifact.shares) {
-          try {
+        // 1c. Armored text file (.txt)
+        attachments.push({
+          filename: `${tlLastArtifact.baseName}.txt`,
+          text: tlLastArtifact.armoredText,
+          mime: 'text/plain;charset=utf-8'
+        });
+
+        // 1d. Individual share .cmtl & .txt files if Shamir
+        if (tlLastArtifact.shares && tlLastArtifact.shares.length > 1) {
+          for (const s of tlLastArtifact.shares) {
             let bin = '';
             const bytes = s.bytes;
             const chunk = 8192;
             for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+            const shB64 = btoa(bin);
+            if (!shB64 || !s.armored) throw new Error(`タイムロックシェア #${s.index} の添付変換に失敗しました。`);
             attachments.push({
               filename: `${tlLastArtifact.baseName}.share${s.index}.cmtl`,
-              base64: btoa(bin),
+              base64: shB64,
               mime: 'application/octet-stream'
             });
-          } catch (_) {}
+            attachments.push({
+              filename: `${tlLastArtifact.baseName}.share${s.index}.txt`,
+              text: s.armored,
+              mime: 'text/plain;charset=utf-8'
+            });
+          }
         }
-      }
 
-      // 1d. Recovery Guide (.txt)
-      try {
+        // 1e. Recovery Guide (.txt)
         const guideTxt = generateRecoveryGuideText(tlLastArtifact);
+        if (!guideTxt) throw new Error('リカバリーガイド(.txt)の生成に失敗しました。');
         attachments.push({
           filename: `${tlLastArtifact.baseName}-recovery-guide.txt`,
           text: guideTxt,
           mime: 'text/plain;charset=utf-8'
         });
-      } catch (_) {}
 
-      // 1e. Keyfile if created
-      if (tlCreationKeyfileBytes) {
-        try {
+        // 1f. Keyfile if created
+        if (tlCreationKeyfileBytes) {
           let bin = '';
           const bytes = tlCreationKeyfileBytes;
           const chunk = 8192;
           for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+          const kfB64 = btoa(bin);
+          if (!kfB64) throw new Error('キーファイル(.key)の添付エンコードに失敗しました。');
           attachments.push({
             filename: tlCreationKeyfileName || 'timelock.key',
-            base64: btoa(bin),
+            base64: kfB64,
             mime: 'application/x-kdbx-keyfile'
           });
-        } catch (_) {}
-      }
+        }
 
-      // 2. Prepare notes & entry fields
-      const pw = tlLastArtifact.createdPassword || '';
-      const modeLabel = meta.mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : 'パスワード付きタイムカプセル';
-      const title = `CryptoMatrix タイムロックカプセル (${unlockDateStr} 解禁)`;
-      const baseAppUrl = window.location.href.split(/[?#]/)[0];
+        const pw = tlLastArtifact.createdPassword || '';
+        const modeLabel = meta.mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : 'パスワード付きタイムカプセル';
+        const title = `CryptoPassKey - タイムロック - カプセル (${unlockDateStr} 解禁)`;
+        const baseAppUrl = window.location.href.split(/[?#]/)[0];
+        const isHttp = /^https?:\/\//i.test(baseAppUrl);
+        const activeSecret = ($('sim-secret')?.value || '').trim();
 
-      const notes = [
-        '【CryptoMatrix タイムロックカプセル情報】',
-        `■ 保護タイプ: ${modeLabel}`,
-        `■ 連動カード配列シード番号: #${tlLastArtifact.seedNum || '0'} (復元時に必要)`,
-        `■ 解禁予定日時: ${unlockDateStr}`,
-        `■ drand対象ラウンド: Round #${meta.round}`,
-        `■ ネットワーク: ${meta.net || 'quicknet'}`,
-        `■ 秘密分散: ${isShamir ? `${tlLastArtifact.shamirM}-of-${tlLastArtifact.shamirN} 秘密分散` : 'なし（単一カプセル）'}`,
-        ...(pw ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（このメモには記録しません）'] : []),
-        '',
-        '【タイムロック・アーマード文字列】',
-        tlLastArtifact.armoredText,
-        '',
-        '【添付ファイル（全形式自動添付・安心保管）】',
-        '1. .cmtl: タイムロック暗号化カプセル（画面にドラッグ＆ドロップで一発復元可能）',
-        '2. -qr.png: タイムロックQRコード画像（カメラでスキャン可能）',
-        '3. -recovery-guide.txt: 長期保管用リカバリーガイド（オフライン復旧手順記載）',
-        ...(tlCreationKeyfileBytes ? ['4. .key: KeePassキーファイル（復元用）'] : []),
-        '',
-        '【復元方法】',
-        '解禁予定時刻以降にCryptoMatrixの「⏳ タイムロック」タブ→「🔓 タイムロック解禁・復元」を開き、上記のアーマード文字列を貼り付けるか添付の.cmtl/QR画像を読み込ませてください。'
-      ].join('\n');
+        const notes = [
+          '【CryptoPassKey タイムロックカプセル情報】',
+          `■ 保護タイプ: ${modeLabel}`,
+          `■ 連動カード配列シード番号: #${tlLastArtifact.seedNum || '0'} (復元時に必要)`,
+          `■ 解禁予定日時: ${unlockDateStr}`,
+          `■ drand対象ラウンド: Round #${meta.round}`,
+          `■ ネットワーク: ${meta.net || 'quicknet'}`,
+          `■ 秘密分散: ${isShamir ? `${tlLastArtifact.shamirM}-of-${tlLastArtifact.shamirN} 秘密分散` : 'なし（単一カプセル）'}`,
+          ...(pw ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
+          '',
+          '【タイムロック・アーマード文字列】',
+          tlLastArtifact.armoredText,
+          '',
+          '【添付ファイルのご案内（原則全ファイル完全添付）】',
+          `1. 暗号化カプセルバイナリ: ${tlLastArtifact.baseName}.cmtl`,
+          `2. アーマードテキスト: ${tlLastArtifact.baseName}.txt`,
+          ...(qrSvgs.length ? ['3. タイムロックQRコード画像 (.png)'] : []),
+          `4. リカバリーガイド: ${tlLastArtifact.baseName}-recovery-guide.txt`,
+          ...(tlCreationKeyfileBytes ? [`5. KeePassキーファイル: ${tlCreationKeyfileName || 'timelock.key'}`] : []),
+          '',
+          '【復元方法】',
+          '解禁予定時刻以降にCryptoMatrixの「⏳ タイムロック」タブ→「🔓 タイムロック解禁・復元」を開き、上記のアーマード文字列を貼り付けるか添付の.cmtl/QR画像を読み込ませてください。'
+        ].join('\n');
 
-      const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
-      if (transferFn) {
-        transferFn('cm_pending_entry', {
+        const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
+        if (!transferFn) throw new Error('KeeWeb連携モジュールが初期化されていません。');
+        const transferId = transferFn('cm_pending_entry', {
           site: title,
           password: pw,
+          passphrase: activeSecret,
           username: `TimeLock-Round#${meta.round}`,
-          url: `${baseAppUrl}#timelock`,
+          url: isHttp ? `${baseAppUrl}#timelock` : '',
           notes: notes,
           attachments: attachments,
           timestamp: Date.now()
         });
+
+        if (btn) {
+          btn.innerHTML = '✅ KeePass自動保存開始！';
+          setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.dataset.kwBusy = '0';
+            btn.disabled = false;
+          }, 1500);
+        }
+
+        const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
+        if (openFn) openFn(transferId);
+        else window.open('keeweb/index.html', 'CryptoPassKeyKeeWeb');
+
+        tlMessage('tl-encrypt-status', '📥 KeePass(KeeWeb)で新規エントリーの自動作成・保存を開始しました。');
+      } catch (err) {
+        if (btn) {
+          btn.innerHTML = origText;
+          btn.dataset.kwBusy = '0';
+          btn.disabled = false;
+        }
+        tlMessage('tl-encrypt-status', `KeePass保存データの準備に失敗しました: ${err?.message || err}`, true);
       }
-
-      const btn = $('tl-btn-transfer-keeweb');
-      if (btn) {
-        const origText = btn.innerHTML;
-        btn.innerHTML = '✅ KeePass転送準備完了！';
-        setTimeout(() => { btn.innerHTML = origText; }, 2500);
-      }
-
-      const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
-      if (openFn) openFn();
-      else window.open('keeweb/index.html', '_blank');
-
-      tlMessage('tl-encrypt-status', '📥 KeePass(KeeWeb)に新規エントリーとして保存準備を行い、KeeWebを開きました。');
     });
 
     $('tl-btn-clear')?.addEventListener('click', () => {
@@ -2239,6 +2275,7 @@
     const resBox = $('tl-encrypt-result');
     if (!resBox) return;
     resBox.hidden = false;
+    if (window.CMConsent) window.CMConsent.recordConsent(5);
 
     if ($('tl-verification-box')) {
       $('tl-verification-box').innerHTML = `
@@ -2314,72 +2351,138 @@
         });
         sharesBox.querySelectorAll('.tl-btn-kw-share').forEach((btn) => {
           btn.addEventListener('click', async () => {
+            if (btn.dataset.kwBusy === '1') return;
             const idx = Number(btn.dataset.idx);
             const target = art.shares.find((x) => x.index === idx);
             if (!target) return;
-            const meta = art.meta;
-            const unlockDateStr = formatLocalDateTime(meta.unlockTimeMs);
-            const attachments = [];
+            btn.dataset.kwBusy = '1';
+            btn.disabled = true;
+            const origLabel = btn.innerHTML;
 
             try {
-              let bin = '';
-              const bytes = target.bytes;
-              const chunk = 8192;
-              for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+              if (!target.bytes || !target.bytes.length || !target.armored) {
+                throw new Error('タイムロックシェアデータが不足しています。');
+              }
+              const meta = art.meta;
+              const unlockDateStr = formatLocalDateTime(meta.unlockTimeMs);
+              const attachments = [];
+
+              // 1. Binary (.cmtl)
+              {
+                let bin = '';
+                const bytes = target.bytes;
+                const chunk = 8192;
+                for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                const shB64 = btoa(bin);
+                if (!shB64) throw new Error('タイムロックシェア(.cmtl)のエンコードに失敗しました。');
+                attachments.push({
+                  filename: `${art.baseName}.share${idx}.cmtl`,
+                  base64: shB64,
+                  mime: 'application/octet-stream'
+                });
+              }
+
+              // 2. Share text (.txt)
               attachments.push({
-                filename: `${art.baseName}.share${idx}.cmtl`,
-                base64: btoa(bin),
-                mime: 'application/octet-stream'
+                filename: `${art.baseName}.share${idx}.txt`,
+                text: target.armored,
+                mime: 'text/plain;charset=utf-8'
               });
-            } catch (_) {}
 
-            const qrSvgs = Array.from($('tl-qr-container')?.querySelectorAll('svg') || []);
-            const shareSvg = qrSvgs[idx - 1];
-            if (shareSvg && getPreset().svgToPngBase64) {
-              try {
+              // 3. QR Code (PNG)
+              const qrSvgs = Array.from($('tl-qr-container')?.querySelectorAll('svg') || []);
+              const shareSvg = qrSvgs[idx - 1];
+              if (shareSvg) {
+                if (!getPreset().svgToPngBase64) throw new Error('QR画像変換モジュールが利用できません。');
                 const qrBase64 = await getPreset().svgToPngBase64(shareSvg, 640);
-                if (qrBase64) {
-                  attachments.push({
-                    filename: `${art.baseName}-share${idx}-qr.png`,
-                    base64: qrBase64,
-                    mime: 'image/png'
-                  });
-                }
-              } catch (_) {}
-            }
+                if (!qrBase64) throw new Error('シェアQRコード画像(PNG)の生成に失敗しました。');
+                attachments.push({
+                  filename: `${art.baseName}-share${idx}-qr.png`,
+                  base64: qrBase64,
+                  mime: 'image/png'
+                });
+              }
 
-            const title = `CryptoMatrix タイムロック シェア #${idx}/${art.shamirN} (${unlockDateStr} 解禁)`;
-            const baseAppUrl = window.location.href.split(/[?#]/)[0];
-            const notes = [
-              `【CryptoMatrix タイムロック 秘密分散シェア #${idx}/${art.shamirN}】`,
-              `■ 解禁予定日時: ${unlockDateStr}`,
-              `■ 復元条件: 全${art.shamirN}シェア中 任意の${art.shamirM}シェアが必要`,
-              `■ drand対象ラウンド: Round #${meta.round}`,
-              '',
-              '【シェア・アーマード文字列】',
-              target.armored,
-              '',
-              '【復元方法】',
-              `他の${art.shamirM - 1}個のシェアと一緒にCryptoMatrixタイムロック復元タブに貼り付けて復号してください。`
-            ].join('\n');
+              // 4. Recovery Guide (.txt)
+              const guideTxt = generateRecoveryGuideText(art);
+              if (!guideTxt) throw new Error('リカバリーガイド(.txt)の生成に失敗しました。');
+              attachments.push({
+                filename: `${art.baseName}-recovery-guide.txt`,
+                text: guideTxt,
+                mime: 'text/plain;charset=utf-8'
+              });
 
-            const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
-            if (transferFn) {
-              transferFn('cm_pending_entry', {
+              // 5. Keyfile if created
+              if (tlCreationKeyfileBytes) {
+                let bin = '';
+                const bytes = tlCreationKeyfileBytes;
+                const chunk = 8192;
+                for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                const kfB64 = btoa(bin);
+                if (!kfB64) throw new Error('キーファイル(.key)のエンコードに失敗しました。');
+                attachments.push({
+                  filename: tlCreationKeyfileName || 'timelock.key',
+                  base64: kfB64,
+                  mime: 'application/x-kdbx-keyfile'
+                });
+              }
+
+              const title = `CryptoPassKey - タイムロック - 秘密分散シェア #${idx}/${art.shamirN} (${unlockDateStr} 解禁)`;
+              const baseAppUrl = window.location.href.split(/[?#]/)[0];
+              const isHttpShare = /^https?:\/\//i.test(baseAppUrl);
+              const activeSecret = ($('sim-secret')?.value || '').trim();
+
+              const notes = [
+                `【CryptoPassKey タイムロック 秘密分散シェア #${idx}/${art.shamirN}】`,
+                `■ 解禁予定日時: ${unlockDateStr}`,
+                `■ 復元条件: 全${art.shamirN}シェア中 任意の${art.shamirM}シェアが必要`,
+                `■ 連動カード配列シード番号: #${art.seedNum || '0'}`,
+                `■ drand対象ラウンド: Round #${meta.round}`,
+                ...(art.createdPassword ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
+                '',
+                '【シェア・アーマード文字列】',
+                target.armored,
+                '',
+                '【添付ファイルのご案内（原則全ファイル完全添付）】',
+                `1. タイムロックシェアバイナリ: ${art.baseName}.share${idx}.cmtl`,
+                `2. タイムロックシェアテキスト: ${art.baseName}.share${idx}.txt`,
+                ...(shareSvg ? [`3. タイムロックQRコード画像: ${art.baseName}-share${idx}-qr.png`] : []),
+                `4. リカバリーガイド: ${art.baseName}-recovery-guide.txt`,
+                ...(tlCreationKeyfileBytes ? [`5. KeePassキーファイル: ${tlCreationKeyfileName || 'timelock.key'}`] : []),
+                '',
+                '【復元方法】',
+                `他の${art.shamirM - 1}個のシェアと一緒にCryptoMatrixタイムロック復元タブに貼り付けて復号してください。`
+              ].join('\n');
+
+              const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
+              if (!transferFn) throw new Error('KeeWeb連携モジュールが初期化されていません。');
+              const transferId = transferFn('cm_pending_entry', {
                 site: title,
                 password: art.createdPassword || '',
+                passphrase: activeSecret,
                 username: `TimeLock-Share#${idx}`,
-                url: `${baseAppUrl}#timelock`,
+                url: isHttpShare ? `${baseAppUrl}#timelock` : '',
                 notes: notes,
                 attachments: attachments,
                 timestamp: Date.now()
               });
+
+              btn.innerHTML = '✅ 自動保存開始！';
+              setTimeout(() => {
+                btn.innerHTML = origLabel;
+                btn.dataset.kwBusy = '0';
+                btn.disabled = false;
+              }, 1500);
+
+              const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
+              if (openFn) openFn(transferId);
+              else window.open('keeweb/index.html', 'CryptoPassKeyKeeWeb');
+            } catch (err) {
+              btn.innerHTML = origLabel;
+              btn.dataset.kwBusy = '0';
+              btn.disabled = false;
+              tlMessage('tl-encrypt-status', `KeePass保存データの準備に失敗しました: ${err?.message || err}`, true);
             }
-            btn.innerHTML = '✅ 転送完了！';
-            setTimeout(() => { btn.innerHTML = '📥 KeePassに保存'; }, 2000);
-            const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
-            if (openFn) openFn();
-            else window.open('keeweb/index.html', '_blank');
           });
         });
       } else {

@@ -2086,6 +2086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'cm_pending_generated_password'
   ]);
 
+  const KEEWEB_WINDOW_NAME = 'CryptoPassKeyKeeWeb';
   function trackKeeWebWindow(win) {
     if (!win || (typeof win !== 'object' && typeof win !== 'function')) return null;
     try { if (win.window !== win || win.closed) return null; } catch (_) { return null; }
@@ -2093,10 +2094,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return win;
   }
   function openKeeWeb(transferId = '') {
-    // A changing query string also refreshes an already-open KeeWeb tab, so it
-    // rechecks the newly-created short-lived transfer without user intervention.
-    const suffix = transferId ? `?cmTransfer=${encodeURIComponent(transferId)}` : '';
-    const win = trackKeeWebWindow(window.open(`keeweb/index.html${suffix}`, 'keeweb_app'));
+    // Reuse an already-open KeeWeb tab without reloading it so any unlocked
+    // KDBX database stays open in memory and auto-creates the entry immediately.
+    if (_activeKeeWebWindow && !_activeKeeWebWindow.closed) {
+      try {
+        const loc = _activeKeeWebWindow.location;
+        if (loc && loc.origin === window.location.origin &&
+            /\/keeweb\/(?:index\.html)?$/i.test(loc.pathname)) {
+          try { window.open('', KEEWEB_WINDOW_NAME); } catch (_) {}
+          try { _activeKeeWebWindow.focus(); } catch (_) {}
+          try {
+            _activeKeeWebWindow.postMessage({
+              type: 'cm_pending_entry_ready',
+              transferId: transferId || ''
+            }, window.location.origin);
+          } catch (_) {}
+          return _activeKeeWebWindow;
+        }
+      } catch (_) {}
+    }
+    const win = trackKeeWebWindow(window.open('keeweb/index.html', KEEWEB_WINDOW_NAME));
     try { win?.focus(); } catch (_) {}
     return win;
   }
@@ -2108,14 +2125,39 @@ document.addEventListener('DOMContentLoaded', () => {
     window.MatrixCardPreset.openKeeWeb = openKeeWeb;
   }
   const _transferIds = Object.create(null);
+  let _lastEntryTransferFp = '';
+  let _lastEntryTransferAt = 0;
+  let _lastEntryTransferId = '';
+  function computeEntryTransferFingerprint(d) {
+    if (!d || typeof d !== 'object') return '';
+    const attSig = Array.isArray(d.attachments)
+      ? d.attachments.map(a => `${a?.filename || ''}:${(a?.base64 || a?.text || '').length}`).join(',')
+      : '';
+    return [d.site || '', d.username || d.user || '', d.password || '', d.passphrase || '', d.url || '', (d.notes || '').length, attSig].join('|');
+  }
   function setPendingKeeWebTransfer(key, data, ttlMs = 60000) {
     if (!ALLOWED_TRANSFER_KEYS.has(key)) throw new Error('許可されていない転送キーです。');
     if (!Number.isFinite(ttlMs) || ttlMs <= 0 || ttlMs > 60000) throw new Error('転送有効期間は0秒超・60秒以内で指定してください。');
+    const isObj = !!(data && typeof data === 'object' && !Array.isArray(data));
+    const forceNew = isObj && !!data._forceNewTransfer;
+    if (key === 'cm_pending_entry' && isObj && !forceNew) {
+      const fp = computeEntryTransferFingerprint(data);
+      const now = Date.now();
+      if (fp && fp === _lastEntryTransferFp && (now - _lastEntryTransferAt) < 1500 && _lastEntryTransferId) {
+        return _lastEntryTransferId;
+      }
+      _lastEntryTransferFp = fp;
+      _lastEntryTransferAt = now;
+    }
     const bytes = crypto.getRandomValues(new Uint8Array(16));
     const transferId = 'xfer_' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    if (key === 'cm_pending_entry') {
+      _lastEntryTransferId = transferId;
+    }
     const metadata = { _transferId: transferId, _expiresAt: Date.now() + ttlMs };
-    const payload = data && typeof data === 'object' && !Array.isArray(data)
-      ? Object.assign({}, data, metadata) : Object.assign({data}, metadata);
+    const cleanData = isObj ? Object.assign({}, data) : { data };
+    delete cleanData._forceNewTransfer;
+    const payload = Object.assign(cleanData, metadata);
     localStorage.setItem(key, JSON.stringify(payload));
     if (_transferTimers[key]) clearTimeout(_transferTimers[key]);
     _transferIds[key] = transferId;
@@ -2324,28 +2366,135 @@ document.addEventListener('DOMContentLoaded', () => {
     parseAndApplyUrlParams();
   });
 
+  function activateTsTabAndCreate() {
+    const tabBtn = document.getElementById('cm-tab-timesecret');
+    if (tabBtn && !tabBtn.classList.contains('active')) tabBtn.click();
+    const openCreateBtn = document.getElementById('btn-ts-open-create');
+    if (openCreateBtn && !document.getElementById('ts-view-create')?.offsetHeight) openCreateBtn.click();
+  }
+
+  const KEEWEB_TARGET_CONFIG = {
+    'passphrase': {
+      title: 'CryptoPassKey - パスワード - 合言葉',
+      label: '合言葉',
+      inputs: ['sim-secret'],
+      statusId: 'sim-secret-status',
+      onApply: () => {
+        if (typeof updateSimulationUI === 'function') updateSimulationUI();
+      }
+    },
+    'ts-enc': {
+      title: 'CryptoPassKey - 暗号化用パスワード',
+      label: '暗号化用パスワード',
+      inputs: ['ts-password', 'ts-password-confirm'],
+      statusId: 'ts-create-progress',
+      onApply: () => {
+        activateTsTabAndCreate();
+        const chk = document.getElementById('ts-opt-password');
+        if (chk && !chk.checked) {
+          chk.checked = true;
+          chk.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      }
+    },
+    'ts-ci': {
+      title: 'CryptoPassKey - チェックイン専用パスワード',
+      label: 'チェックイン専用パスワード',
+      inputs: ['ts-ci-password', 'ts-ci-password-confirm'],
+      statusId: 'ts-create-progress',
+      onApply: () => {
+        activateTsTabAndCreate();
+        const chkCiPw = document.getElementById('ts-ci-opt-password');
+        if (chkCiPw && !chkCiPw.checked) {
+          chkCiPw.checked = true;
+          chkCiPw.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+        const radioCustom = document.getElementById('ts-ci-pw-source-custom');
+        if (radioCustom && !radioCustom.checked) {
+          radioCustom.checked = true;
+          radioCustom.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      }
+    },
+    'ts-mgmt': {
+      title: 'CryptoPassKey - 管理操作用パスワード',
+      label: '管理操作用パスワード',
+      inputs: ['ts-mgmt-password', 'ts-mgmt-password-confirm'],
+      statusId: 'ts-create-progress',
+      onApply: () => {
+        activateTsTabAndCreate();
+        const radioMgmtCustom = document.getElementById('ts-mgmt-mode-custom');
+        if (radioMgmtCustom && !radioMgmtCustom.checked) {
+          radioMgmtCustom.checked = true;
+          radioMgmtCustom.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+        const chkMgmtPw = document.getElementById('ts-mgmt-opt-password');
+        if (chkMgmtPw && !chkMgmtPw.checked) {
+          chkMgmtPw.checked = true;
+          chkMgmtPw.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      }
+    },
+    'ts': {
+      title: 'CryptoPassKey - 暗号化用パスワード',
+      label: '暗号化用パスワード',
+      inputs: ['ts-password', 'ts-password-confirm'],
+      statusId: 'ts-create-progress',
+      onApply: () => {
+        activateTsTabAndCreate();
+        const chk = document.getElementById('ts-opt-password');
+        if (chk && !chk.checked) {
+          chk.checked = true;
+          chk.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      }
+    },
+    'bq': {
+      title: 'CryptoPassKey - バックアップ - 復元パスワード',
+      label: 'バックアップ用の復元パスワード',
+      inputs: ['bq-password', 'bq-password-confirm'],
+      statusId: 'bq-status'
+    },
+    'bv': {
+      title: 'CryptoPassKey - 保管庫 - 復元パスワード',
+      label: '保管庫用の復元パスワード',
+      inputs: ['bv-password', 'bv-password-confirm'],
+      statusId: 'bv-encrypt-status'
+    },
+    'km': {
+      title: 'CryptoPassKey - キーファイル - 保護パスワード',
+      label: 'キーファイル用の復元パスワード',
+      inputs: ['km-password'],
+      statusId: 'km-generated-password-status'
+    },
+    'tl': {
+      title: 'CryptoPassKey - タイムロック - 復元用パスワード',
+      label: 'タイムロック用の復元パスワード',
+      inputs: ['tl-password', 'tl-password-confirm'],
+      statusId: 'tl-encrypt-status'
+    }
+  };
+
   function applyGeneratedPasswordFromKeeWeb() {
     const key = 'cm_pending_generated_password';
     let raw = '';
     try {
       raw = localStorage.getItem(key) || '';
       const data = JSON.parse(raw);
-      const validTargets = new Set(['bq', 'bv', 'km', 'tl']);
       if (!data || typeof data !== 'object' || Array.isArray(data) ||
-          !validTargets.has(data.target) || typeof data.password !== 'string' || !data.password ||
+          !KEEWEB_TARGET_CONFIG[data.target] || typeof data.password !== 'string' || !data.password ||
           !Number.isFinite(data._expiresAt) || data._expiresAt <= Date.now() ||
           typeof data._transferId !== 'string' || !data._transferId) {
         if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
         return false;
       }
-      const inputIds = data.target === 'bq'
-        ? ['bq-password', 'bq-password-confirm']
-        : data.target === 'bv'
-          ? ['bv-password', 'bv-password-confirm']
-          : data.target === 'tl'
-            ? ['tl-password', 'tl-password-confirm']
-            : ['km-password'];
-      const inputs = inputIds.map(id => document.getElementById(id)).filter(Boolean);
+
+      const cfg = KEEWEB_TARGET_CONFIG[data.target];
+      if (typeof cfg.onApply === 'function') {
+        cfg.onApply();
+      }
+
+      const inputs = cfg.inputs.map(id => document.getElementById(id)).filter(Boolean);
       if (!inputs.length) return false;
       inputs.forEach(input => {
         input.value = data.password;
@@ -2353,12 +2502,15 @@ document.addEventListener('DOMContentLoaded', () => {
         input.dispatchEvent(new Event('change', {bubbles:true}));
       });
       if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
-      const labels = {bq:'バックアップ用の復元パスワード', bv:'保管庫用の復元パスワード', km:'キーファイル用の復元パスワード', tl:'タイムロック用の復元パスワード'};
-      const statusId = data.target === 'bq' ? 'bq-status' : data.target === 'bv' ? 'bv-encrypt-status' : data.target === 'tl' ? 'tl-encrypt-status' : 'km-generated-password-status';
+
+      const statusId = cfg.statusId;
       const status = document.getElementById(statusId);
       if (status) {
-        if (statusId === 'km-generated-password-status') status.style.display = 'block';
-        status.textContent = '✅ KeeWebで生成したパスワードを' + labels[data.target] + 'に反映しました。';
+        if (statusId === 'km-generated-password-status' || statusId === 'ts-create-progress' || statusId === 'sim-secret-status') {
+          status.style.display = 'block';
+          status.removeAttribute('hidden');
+        }
+        status.textContent = '✅ KeeWebで生成したパスワードを' + cfg.label + '（' + cfg.title + '）に反映しました。';
       }
       return true;
     } catch (_) {
@@ -2377,6 +2529,136 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (e.key === 'cm_pending_generated_password' && e.newValue) applyGeneratedPasswordFromKeeWeb();
   });
+
+  const CMConsent = {
+    VERSIONS: { 2: 'v1', 3: 'v1', 4: 'v1', 5: 'v1' },
+    KEYS: {
+      2: 'cm_consent_section2_v1',
+      3: 'cm_consent_section3_v1',
+      4: 'cm_consent_section4_v1',
+      5: 'cm_consent_section5_v1'
+    },
+    ITEMS: {
+      2: {
+        title: '⚠️ セクション2：シード・レシピ管理の重要事項と同意確認',
+        intro: 'シードフレーズの再生成や復元を実行する前に、以下の決定論的導出の原則と自己管理リスクをご確認ください。',
+        ack: 'シード番号やレシピ設定を失うと同じパスワードを再現不能になること、および安全な自己保管が必要であることを確認・同意しました',
+        list: [
+          '<strong>決定論的導出の原則：</strong>CryptoMatrixは、カード配列シード番号と設定されたレシピ（文字種・抽出・角の拾い出し）からパスワードを一意に導出します。',
+          '<strong>紛失時の完全再現不能：</strong><strong>シード番号またはレシピ設定を忘れたり失ったりした場合、開発者や第三者でも二度と同じカードやパスワードを再現・復元することは不可能です。</strong>',
+          '<strong>オフライン自己保管の必須性：</strong>生成されたシード番号やレシピは外部サーバーへ送信・保存されません。必ず紙の印刷・暗号化バックアップ・KeePass等で安全に自ら保管してください。'
+        ]
+      },
+      3: {
+        title: '⚠️ セクション3：暗号化バックアップ作成前の同意確認',
+        intro: '暗号化バックアップを作成する前に、復元鍵の管理と暗号学的不可逆性をご確認ください。',
+        ack: 'バックアップデータまたは復元鍵を失った場合は一切復元不能になること、および分散保管の重要性を確認・同意しました',
+        list: [
+          '<strong>復元鍵の必須性：</strong>バックアップデータは強力な暗号化（CME3 / AES-GCM / Argon2id等）で保護されています。',
+          '<strong>復元不能リスク：</strong><strong>バックアップデータ本体または復元用パスワード・キーファイル・秘密分散シェアのいずれかを失うと、暗号学的に完全に復元不可能となります。</strong>',
+          '<strong>オフライン自己管理：</strong>バックアップはローカル環境でのみ生成され、外部送信されません。バックアップファイル/QRと復元用パスワードは別々に安全保管してください。'
+        ]
+      },
+      4: {
+        title: '⚠️ セクション4：保管庫（Vault）暗号化作成前の同意確認',
+        intro: '保管庫の暗号化を実行する前に、ゼロ知識暗号化と復号救出不能の原則をご確認ください。',
+        ack: '復元鍵（パスワード・キーファイル・パスキー等）を失った場合は一切復号救出できないことを確認・同意しました',
+        list: [
+          '<strong>ゼロ知識・完全ローカル暗号化：</strong>保管庫（Vault）内のデータはブラウザ内でのみ暗号化（AES-GCM / Argon2id / おとり暗号化等）されます。',
+          '<strong>救出不能リスク：</strong><strong>設定した復元用パスワード、キーファイル、パスキー、または秘密分散の閾値シェアを紛失した場合、いかなるバックドアも存在せず、開発者でも復号救出できません。</strong>',
+          '<strong>おとり暗号化の性質：</strong>おとりパスワードを設定している場合、どちらのパスワードを入力しても正常に見えるため、実パスワードを忘れないよう厳重に管理してください。'
+        ]
+      },
+      5: {
+        title: '⚠️ セクション5：タイムロック・カプセル作成前の同意確認',
+        intro: 'タイムロックを作成する前に、時間暗号化（drand）の不可逆性とデータ保管をご確認ください。',
+        ack: '指定時刻まで開封不能であること、およびカプセルデータと復元鍵の自己保管が必要であることを確認・同意しました',
+        list: [
+          '<strong>解禁時刻までの絶対不可逆性：</strong>タイムロックカプセルはdrand分散ランダムビーコン等の時間暗号化技術により、<strong>指定日時が到来するまで世界中の誰も開封できません。</strong>',
+          '<strong>カプセルデータの保管：</strong>解禁日時が到来しても、カプセルデータ（.tlock / JSON）本体、または設定した復元用パスワードを失うと開封できません。',
+          '<strong>ネットワーク依存性：</strong>解禁時のビーコン鍵取得にはネットワーク通信が必要です（復元用パスワードを設定した二重保護カプセルの場合はオフラインパスワード救出も可能）。'
+        ]
+      }
+    },
+    hasConsent(sec) {
+      try {
+        if (typeof localStorage === 'undefined') return false;
+        return localStorage.getItem(this.KEYS[sec]) === this.VERSIONS[sec];
+      } catch (_) {
+        return false;
+      }
+    },
+    recordConsent(sec) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(this.KEYS[sec], this.VERSIONS[sec]);
+        }
+      } catch (_) {}
+    },
+    requestConsent(sec, onConfirmed) {
+      if (this.hasConsent(sec)) {
+        if (typeof onConfirmed === 'function') onConfirmed();
+        return;
+      }
+
+      const modal = document.getElementById('cm-consent-modal');
+      const item = this.ITEMS[sec];
+      if (!modal || !item) {
+        if (typeof onConfirmed === 'function') onConfirmed();
+        return;
+      }
+
+      const titleEl = document.getElementById('cm-consent-modal-title');
+      const introEl = document.getElementById('cm-consent-modal-intro');
+      const ackTextEl = document.getElementById('cm-consent-modal-ack-text');
+      const listEl = document.getElementById('cm-consent-modal-list');
+      const chkAck = document.getElementById('cm-consent-modal-ack');
+      const chkSkip = document.getElementById('cm-consent-modal-skip');
+      const errBox = document.getElementById('cm-consent-modal-error');
+      const btnConfirm = document.getElementById('btn-cm-consent-confirm');
+      const btnCancel = document.getElementById('btn-cm-consent-cancel');
+      const btnClose = document.getElementById('btn-cm-consent-close');
+
+      if (titleEl) titleEl.innerHTML = item.title;
+      if (introEl) introEl.textContent = item.intro;
+      if (ackTextEl) ackTextEl.textContent = item.ack;
+      if (listEl) listEl.innerHTML = item.list.map(li => `<li>${li}</li>`).join('');
+      if (chkAck) chkAck.checked = false;
+      if (chkSkip) chkSkip.checked = true;
+      if (errBox) errBox.style.display = 'none';
+
+      modal.hidden = false;
+
+      const cleanup = () => {
+        modal.hidden = true;
+        if (btnConfirm) btnConfirm.onclick = null;
+        if (btnCancel) btnCancel.onclick = null;
+        if (btnClose) btnClose.onclick = null;
+      };
+
+      if (btnConfirm) {
+        btnConfirm.onclick = () => {
+          if (!chkAck || !chkAck.checked) {
+            if (errBox) {
+              errBox.textContent = '⚠️ 続行するには、重要事項の確認チェックを入れてください。';
+              errBox.style.display = 'block';
+            }
+            return;
+          }
+          if (chkSkip && chkSkip.checked) {
+            this.recordConsent(sec);
+          }
+          cleanup();
+          if (typeof onConfirmed === 'function') onConfirmed();
+        };
+      }
+
+      if (btnCancel) btnCancel.onclick = cleanup;
+      if (btnClose) btnClose.onclick = cleanup;
+    },
+    init() {}
+  };
+  window.CMConsent = CMConsent;
 
   window.addEventListener('focus', () => {
     applyGeneratedPasswordFromKeeWeb();
@@ -2587,16 +2869,21 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('cm_active_seed', seed);
     // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
 
+    let transferId = '';
     if (isMaster) {
-      setPendingKeeWebTransfer('cm_pending_master_pass', pw);
+      transferId = setPendingKeeWebTransfer('cm_pending_master_pass', pw);
     } else {
       const baseAppUrl = window.location.href.split(/[?#]/)[0];
+      const isHttp = /^https?:\/\//i.test(baseAppUrl);
       const curSeed = $('input-seed-number')?.value || '0';
-      setPendingKeeWebTransfer('cm_pending_entry', {
-        site: siteVal || '新規エントリー',
+      const entryTitle = siteVal
+        ? `CryptoPassKey - 暗号マトリックス - 生成パスワード (${siteVal})`
+        : 'CryptoPassKey - 暗号マトリックス - 生成パスワード';
+      transferId = setPendingKeeWebTransfer('cm_pending_entry', {
+        site: entryTitle,
         password: pw,
         passphrase: (document.getElementById('sim-secret')?.value || '').trim(),
-        url: `${baseAppUrl}#seed=${curSeed}${siteVal ? '&site=' + encodeURIComponent(siteVal) : ''}`,
+        url: isHttp ? `${baseAppUrl}#seed=${curSeed}${siteVal ? '&site=' + encodeURIComponent(siteVal) : ''}` : '',
         timestamp: Date.now()
       });
     }
@@ -2608,7 +2895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (buttons.length) {
       if (transferFeedbackTimer) clearTimeout(transferFeedbackTimer);
       buttons.forEach((btn) => {
-        btn.innerHTML = isMaster ? '✅ マスターPWをKeeWebへ転送' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeeWebへ転送`;
+        btn.innerHTML = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebで自動作成・保存';
         btn.style.background = '#dcfce7';
         btn.style.borderColor = '#86efac';
         btn.style.color = '#15803d';
@@ -2618,7 +2905,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTransferButtonsUI();
       }, 2500);
     }
-    if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!openKeeWeb(transferId)) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
   }
 
   document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', (event) => {
@@ -2721,13 +3008,29 @@ document.addEventListener('DOMContentLoaded', () => {
     generateAndRenderSeedPhrase();
   });
 
-  document.getElementById('btn-generate-seed')?.addEventListener('click', generateAndRenderSeedPhrase);
+  document.getElementById('btn-generate-seed')?.addEventListener('click', () => {
+    if (window.CMConsent) {
+      window.CMConsent.requestConsent(2, () => {
+        generateAndRenderSeedPhrase();
+      });
+    } else {
+      generateAndRenderSeedPhrase();
+    }
+  });
   document.getElementById('btn-copy-seed')?.addEventListener('click', () => {
     if (currentMnemonicWords.length === 24) {
       navigator.clipboard.writeText(currentMnemonicWords.join(' '));
     }
   });
-  document.getElementById('btn-restore-seed')?.addEventListener('click', restoreRecipeFromSeedInput);
+  document.getElementById('btn-restore-seed')?.addEventListener('click', () => {
+    if (window.CMConsent) {
+      window.CMConsent.requestConsent(2, () => {
+        restoreRecipeFromSeedInput();
+      });
+    } else {
+      restoreRecipeFromSeedInput();
+    }
+  });
 });
 
 /* CARD READING v2 + EXTENDED BIP39 BACKUP v2 + CME2 ENCRYPTION + SHAMIR SECRET SHARING (CMS3) + BLIND MODE
@@ -4902,11 +5205,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // This handler intentionally lives in the later, independent initializer.
   // The generated-password controls must continue to work even if an optional
   // UI setup step in the earlier initializer fails.
+  let _sec1TransferCooldownUntil = 0;
   const transferVisiblePasswordToKeeWeb = (event) => {
    event.preventDefault();
    event.stopImmediatePropagation();
+   if (Date.now() < _sec1TransferCooldownUntil) return;
    const pw = ($('sim-output-pw')?.textContent || '').trim();
    if (!pw) { alert('転送するパスワードがありません。先にパスワードを生成してください。'); return; }
+   _sec1TransferCooldownUntil = Date.now() + 1200;
    const site = ($('sim-site')?.value || '').trim();
    const seed = ($('input-seed-number')?.value || '0').trim();
    const baseAppUrl = window.location.href.split(/[?#]/)[0];
@@ -4917,24 +5223,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isMaster) {
      transferId = window.setPendingKeeWebTransfer('cm_pending_master_pass', pw);
     } else {
+     const isHttp = /^https?:\/\//i.test(baseAppUrl);
+     const entryTitle = site
+       ? `CryptoPassKey - 暗号マトリックス - 生成パスワード (${site})`
+       : 'CryptoPassKey - 暗号マトリックス - 生成パスワード';
      transferId = window.setPendingKeeWebTransfer('cm_pending_entry', {
-      site: site || 'CryptoMatrix 生成パスワード',
+      site: entryTitle,
       password: pw,
       passphrase: ($('sim-secret')?.value || '').trim(),
-      username: 'CryptoMatrix',
-      url: `${baseAppUrl}#seed=${encodeURIComponent(seed)}${site ? '&site=' + encodeURIComponent(site) : ''}`,
-      notes: 'CryptoMatrixで生成したパスワードです。',
+      username: 'CryptoPassKey',
+      url: isHttp ? `${baseAppUrl}#seed=${encodeURIComponent(seed)}${site ? '&site=' + encodeURIComponent(site) : ''}` : '',
+      notes: [
+        '【CryptoPassKey 暗号マトリックス 生成パスワード】',
+        `■ サイト/サービス名: ${site || 'N/A'}`,
+        `■ カード配列シード番号: #${seed}`,
+        '■ パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'
+      ].join('\n'),
       timestamp: Date.now()
      });
     }
     const btns = [$('btn-transfer-to-keeweb'), $('btn-sticky-transfer')].filter(Boolean);
     btns.forEach((btn) => {
-      btn.textContent = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebを開いて追加';
+      btn.textContent = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebで自動作成・保存';
       btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d';
     });
     setTimeout(() => updateTransferButtonsUI(), 2500);
     if (!window.openKeeWeb(transferId)) throw new Error('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
    } catch (error) {
+    _sec1TransferCooldownUntil = 0;
     alert(`KeePassへの転送を開始できませんでした。${error?.message || 'もう一度お試しください。'}`);
    }
   };
@@ -5107,90 +5423,104 @@ document.addEventListener('DOMContentLoaded', () => {
    setStatus('backup-summary',`🖼️ QRコード画像（${filename}）を保存しました。`);
   });
   $('btn-sec2-transfer-keeweb')?.addEventListener('click',async()=>{
+   const btn=$('btn-sec2-transfer-keeweb');
+   if(btn&&btn.dataset.kwBusy==='1')return;
    if(!currentMnemonicWords.length){
     alert('転送する復元データがありません。先にシード番号を入力してフレーズを生成してください。');
     return;
    }
-   const words=currentMnemonicWords.slice();
-   const isArmored=(activeSec2Format==='armored'&&sec2ArmoredText);
-   const text=isArmored?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
-   const seedNum=$('input-seed-number')?.value||'0';
-   const siteVal=($('sim-site')?.value||'').trim();
-   const pw=($('sim-output-pw')?.textContent||'').trim();
-
-   const attachments=[];
-   const qrSvg=$('seed-qr-list')?.querySelector('svg');
-   if(qrSvg){
-    try{
-     const qrBase64=await svgToPngBase64(qrSvg,640);
-     if(qrBase64){
-      attachments.push({
-       filename:isArmored?'cryptomatrix-backup-pgp-qr.png':'cryptomatrix-backup-seed-qr.png',
-       base64:qrBase64,
-       mime:'image/png'
-      });
-     }
-    }catch(_){}
-   }
-
+   if(btn){btn.dataset.kwBusy='1';btn.disabled=true;}
    try{
-    const keyData=await generateKeePassXmlKeyfile({seedNum:parseSeedValue(seedNum),password:pw});
-    if(keyData&&keyData.xml){
+    const words=currentMnemonicWords.slice();
+    const isArmored=(activeSec2Format==='armored'&&sec2ArmoredText);
+    const text=isArmored?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
+    if(!text)throw new Error('レシピ復元テキストが空です。');
+    const seedNum=$('input-seed-number')?.value||'0';
+    const siteVal=($('sim-site')?.value||'').trim();
+    const pw=($('sim-output-pw')?.textContent||'').trim();
+
+    const attachments=[];
+    const qrSvg=$('seed-qr-list')?.querySelector('svg');
+    if(qrSvg){
+     const qrBase64=await svgToPngBase64(qrSvg,640);
+     if(!qrBase64)throw new Error('QRコード画像(PNG)の変換に失敗しました。');
      attachments.push({
-      filename:`matrix-card-${seedNum}.key`,
-      text:keyData.xml,
-      mime:'application/x-kdbx-keyfile'
+      filename:isArmored?'cryptomatrix-backup-pgp-qr.png':'cryptomatrix-backup-seed-qr.png',
+      base64:qrBase64,
+      mime:'image/png'
      });
     }
-   }catch(_){}
 
-   const title=siteVal?`${siteVal} (CryptoMatrix設定)`:'CryptoMatrix 復元設定・キー';
-   const notes=[
-    '【CryptoMatrix 復元・バックアップ情報】',
-    `■ カード配列シード番号 (seed): ${seedNum}`,
-    `■ 復元形式: ${isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式'}`,
-    ...(siteVal?[`■ 対象サイト/サービス: ${siteVal}`]:[]),
-    '',
-    '【復元データ】',
-    text,
-    '',
-    '【添付ファイルのご案内（両方添付・安心保管）】',
-    '1. QRコード画像 (.png): 読み取るだけで一発復元できます。',
-    `2. KeePassキーファイル (.key): matrix-card-${seedNum}.key （データベースの鍵ファイルとしても活用可能）`,
-    '',
-    '【復元方法】',
-    'CryptoMatrixの「復元」欄に上記テキストを貼り付けるか、添付のQRコード画像を読み取らせるだけで、カード配列・合言葉・レシピ設定を100%復元できます。'
-   ].join('\n');
+    attachments.push({
+     filename:'cryptomatrix-recipe-backup.txt',
+     text:text,
+     mime:'text/plain;charset=utf-8'
+    });
 
-   const baseAppUrl = window.location.href.split(/[?#]/)[0];
-   localStorage.setItem('cm_active_seed',seedNum);
-   // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
-   setPendingKeeWebTransfer('cm_pending_entry', {
-    site:title,
-    password:pw,
-    passphrase:($('sim-secret')?.value||'').trim(),
-    username:`CryptoMatrix-Seed#${seedNum}`,
-    url:`${baseAppUrl}#seed=${seedNum}${siteVal?'&site='+encodeURIComponent(siteVal):''}`,
-    notes:notes,
-    attachments:attachments,
-    timestamp:Date.now()
-   });
+    const keyData=await generateKeePassXmlKeyfile({seedNum:parseSeedValue(seedNum),password:pw});
+    if(!keyData||!keyData.xml)throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
+    attachments.push({
+     filename:`matrix-card-${seedNum}.key`,
+     text:keyData.xml,
+     mime:'application/x-kdbx-keyfile'
+    });
 
-   const btn=$('btn-sec2-transfer-keeweb');
-   if(btn){
-    const origText=btn.innerHTML;
-    btn.innerHTML='✅ KeeWebへ転送完了！KeeWebを開く…';
-    btn.style.background='#dcfce7';
-    btn.style.borderColor='#86efac';
-    btn.style.color='#15803d';
-    setTimeout(()=>{
-     btn.innerHTML=origText;
-     btn.style.background='#f0f9ff';
-     btn.style.borderColor='#0284c7';
-     btn.style.color='#0369a1';
-    },2500);
+    const displayTag = siteVal || `Seed #${seedNum}`;
+    const title = `CryptoPassKey - 暗号マトリックス - レシピ設定 (${displayTag})`;
+    const notes=[
+     '【CryptoPassKey 暗号マトリックス レシピ設定情報】',
+     `■ カード配列シード番号 (seed): #${seedNum}`,
+     `■ 復元形式: ${isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式'}`,
+     ...(siteVal?[`■ 対象サイト/サービス: ${siteVal}`]:[]),
+     ...(pw ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
+     '',
+     '【復元データ】',
+     text,
+     '',
+     '【添付ファイルのご案内（原則全ファイル完全添付）】',
+     `1. QRコード画像: ${isArmored?'cryptomatrix-backup-pgp-qr.png':'cryptomatrix-backup-seed-qr.png'}`,
+     '2. レシピテキスト: cryptomatrix-recipe-backup.txt',
+     `3. KeePassキーファイル: matrix-card-${seedNum}.key`,
+     '',
+     '【復元方法】',
+     'CryptoMatrixの「復元」欄に上記テキストを貼り付けるか、添付のQRコード画像を読み取らせるだけで、カード配列・合言葉・レシピ設定を100%復元できます。'
+    ].join('\n');
+
+    const baseAppUrl = window.location.href.split(/[?#]/)[0];
+    const isHttp = /^https?:\/\//i.test(baseAppUrl);
+    localStorage.setItem('cm_active_seed',seedNum);
+    const transferId = setPendingKeeWebTransfer('cm_pending_entry', {
+     site:title,
+     password:pw,
+     passphrase:($('sim-secret')?.value||'').trim(),
+     username:`CryptoMatrix-Seed#${seedNum}`,
+     url:isHttp ? `${baseAppUrl}#seed=${seedNum}${siteVal?'&site='+encodeURIComponent(siteVal):''}` : '',
+     notes:notes,
+     attachments:attachments,
+     timestamp:Date.now()
+    });
+
+    if(btn){
+     const origText=btn.innerHTML;
+     btn.innerHTML='✅ KeeWebで自動作成・保存中…';
+     btn.style.background='#dcfce7';
+     btn.style.borderColor='#86efac';
+     btn.style.color='#15803d';
+     setTimeout(()=>{
+      btn.innerHTML=origText;
+      btn.style.background='';
+      btn.style.borderColor='';
+      btn.style.color='';
+      btn.dataset.kwBusy='0';
+      btn.disabled=false;
+     },1500);
+    }
+    if (!openKeeWeb(transferId)) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+   }catch(err){
+    if(btn){btn.dataset.kwBusy='0';btn.disabled=false;}
+    setStatus('backup-summary',`KeePass保存データの準備に失敗しました: ${err?.message||err}`,true);
+    alert(`KeePassへの保存準備に失敗しました: ${err?.message||err}`);
    }
-   if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
   });
 
   $('btn-sec2-transfer-timelock')?.addEventListener('click', () => {
@@ -5403,7 +5733,7 @@ document.addEventListener('DOMContentLoaded', () => {
    return res;
   },
   setPendingKeeWebTransfer:(key,data,ttlMs=60000)=>setPendingKeeWebTransfer(key,data,ttlMs),
-  openKeeWeb:()=>window.openKeeWeb(),
+  openKeeWeb:(id='')=>window.openKeeWeb(id),
   promptLegacyPK2Consent:()=>window.promptLegacyPK2Consent()
  });
 })();

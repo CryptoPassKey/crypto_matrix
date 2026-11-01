@@ -495,7 +495,7 @@ body.kw-generator-focus-mode .gen {
       completePendingTransfer('cm_pending_keyfile', data);
       if (statusEl) {
         statusEl.style.display = 'block';
-        statusEl.textContent = '✅ キーファイル「' + data.filename + '」をKeeWebにセットしました。';
+        statusEl.textContent = '✅ キーファイル「' + data.filename + '」をKeePassにセットしました。';
       }
       var btn = document.getElementById('kw-btn-apply-cm-keyfile');
       if (btn) btn.style.display = 'none';
@@ -531,7 +531,7 @@ body.kw-generator-focus-mode .gen {
       e.preventDefault();
       var applied = applyStoredPendingKeyfile();
       if (!applied) {
-        banner.innerHTML = `<span>⚠️ KeeWebの設定画面でキーファイルを選択するか、「ファイル設定」を開いてセットしてください。ダウンロードされた「${escapeHtml(data.filename)}」もご利用いただけます。</span><button type="button" id="kw-btn-banner-close-kf2" style="background:transparent; border:none; font-size:1.1rem; cursor:pointer; color:#15803d; padding:0 4px;">✕</button>`;
+        banner.innerHTML = `<span>⚠️ KeePassの設定画面でキーファイルを選択するか、「ファイル設定」を開いてセットしてください。ダウンロードされた「${escapeHtml(data.filename)}」もご利用いただけます。</span><button type="button" id="kw-btn-banner-close-kf2" style="background:transparent; border:none; font-size:1.1rem; cursor:pointer; color:#15803d; padding:0 4px;">✕</button>`;
         document.getElementById('kw-btn-banner-close-kf2')?.addEventListener('click', function() { banner.remove(); });
         setTimeout(function() { banner.remove(); }, 4000);
       }
@@ -569,8 +569,8 @@ body.kw-generator-focus-mode .gen {
         オープンソースKeePassの乱数生成アルゴリズムで強力なパスワードを即座に作成できます
       </div>
       <div>
-        <button type="button" id="kw-btn-exit-gen-mode" style="padding:5px 14px; font-size:0.76rem; font-weight:600; color:var(--text-color); background:rgba(255,255,255,0.08); border:1px solid var(--light-border-color); border-radius:20px; cursor:pointer;" title="KeeWebの通常のデータベース管理画面へ戻ります">
-          📂 通常のKeeWeb管理画面（データベースを開く・新規作成）へ戻る
+        <button type="button" id="kw-btn-exit-gen-mode" style="padding:5px 14px; font-size:0.76rem; font-weight:600; color:var(--text-color); background:rgba(255,255,255,0.08); border:1px solid var(--light-border-color); border-radius:20px; cursor:pointer;" title="KeePassのデータベース管理画面へ戻ります">
+          📂 KeePassの管理画面（データベースを開く・新規作成）へ戻る
         </button>
       </div>
     `;
@@ -817,7 +817,7 @@ body.kw-generator-focus-mode .gen {
 
       var saveMeta = targetMeta || {
         tab: 'パスワード生成',
-        feature: 'KeeWebパスワード生成',
+        feature: 'KeePassパスワード生成',
         targetLabel: '自動生成パスワード',
         title: 'CryptoPassKey - パスワード生成 - 自動生成パスワード',
         usage: 'パスワード自動生成・保管',
@@ -913,6 +913,13 @@ body.kw-generator-focus-mode .gen {
           };
           var rawPayload = JSON.stringify(payload);
           localStorage.setItem('cm_pending_generated_password', rawPayload);
+          // Prefer a direct same-origin message; localStorage remains the fallback
+          // for browser cases where the opener is unavailable or background-throttled.
+          try {
+            if (window.opener && !window.opener.closed) {
+              window.opener.postMessage({ type: 'CM_APPLY_GENERATED_PASSWORD', payload: payload }, window.location.origin);
+            }
+          } catch (_) {}
           setTimeout(function() {
             try { if (localStorage.getItem('cm_pending_generated_password') === rawPayload) localStorage.removeItem('cm_pending_generated_password'); } catch (_) {}
           }, 60000);
@@ -930,73 +937,35 @@ body.kw-generator-focus-mode .gen {
         // Give that event time to run, then return only when the destination is
         // reasonably identifiable. Never navigate away if the target is unknown.
         if (cmTarget && targetMeta) {
-          setTimeout(function() {
-            var sameOriginReferrer = false;
-            try {
-              if (document.referrer) {
-                var ref = new URL(document.referrer);
-                sameOriginReferrer = ref.origin === window.location.origin &&
-                  /(?:^|\/)contents\/index\.html$/.test(ref.pathname);
-              }
-            } catch (_) {}
-
-            try {
-              if (window.opener && !window.opener.closed && window.opener.location.origin === window.location.origin) {
-                window.opener.focus();
-                // close() succeeds only for script-opened windows; if blocked,
-                // keep this page usable and show the manual return control below.
+          // Do not close KeeWeb merely because localStorage.setItem succeeded.
+          // Wait for CryptoPassKey to confirm that the intended input fields were
+          // actually populated; otherwise leave the window open and explain retry.
+          var ackStartedAt = Date.now();
+          var ackTimer = setInterval(function() {
+            var ack = null;
+            try { ack = JSON.parse(localStorage.getItem('cm_generated_password_ack') || 'null'); } catch (_) {}
+            if (ack && ack.transferId === transferId) {
+              clearInterval(ackTimer);
+              if (ack.ok) {
+                try {
+                  if (window.opener && !window.opener.closed && window.opener.location.origin === window.location.origin) window.opener.focus();
+                } catch (_) {}
                 window.close();
-                if (window.closed) return;
+                if (!window.closed && st) st.textContent = '✅ CryptoPassKeyへの反映を確認しました。元のタブに戻ってください。';
+              } else if (st) {
+                st.style.color = '#dc2626';
+                st.textContent = '❌ CryptoPassKeyへの反映を確認できませんでした。画面を閉じず、元のタブを表示して再試行してください。' + (ack.error ? ' (' + ack.error + ')' : '');
               }
-            } catch (_) {}
-
-            if (sameOriginReferrer && window.history.length > 1) {
-              window.history.back();
               return;
             }
-
-            if (st) {
-              st.textContent = '✅ パスワードを反映しました。元のCryptoPassKeyタブへ戻ってください。';
-              if (!st.querySelector('button')) {
-                var backBtn = document.createElement('button');
-                backBtn.type = 'button';
-                backBtn.textContent = '元の画面に戻る';
-                backBtn.style.cssText = 'display:block; margin:8px auto 0; max-width:100%; white-space:normal; padding:8px 14px; border:1px solid #0284c7; border-radius:6px; background:#f0f9ff; color:#0369a1; font-weight:700; cursor:pointer;';
-                backBtn.addEventListener('click', function() {
-                  // First try to close this popup. Browsers normally return to
-                  // the previously active CryptoPassKey tab after a script-opened
-                  // window closes, even if window.opener was severed by an older
-                  // noopener launch.
-                  try {
-                    window.close();
-                    if (window.closed) return;
-                  } catch (_) {}
-
-                  // If closing is blocked, explicitly focus the opener when available.
-                  try {
-                    if (window.opener && !window.opener.closed &&
-                        window.opener.location.origin === window.location.origin) {
-                      window.opener.focus();
-                      return;
-                    }
-                  } catch (_) {}
-
-                  // Last resort: keep the control usable and open the app screen
-                  // in this tab rather than leaving a permanently disabled button.
-                  try {
-                    var ref = document.referrer ? new URL(document.referrer) : null;
-                    if (ref && ref.origin === window.location.origin &&
-                        ref.pathname.endsWith('/contents/index.html')) {
-                      window.location.href = ref.href;
-                      return;
-                    }
-                  } catch (_) {}
-                  window.location.href = new URL('../index.html', window.location.href).href;
-                });
-                st.appendChild(backBtn);
+            if (Date.now() - ackStartedAt > 3000) {
+              clearInterval(ackTimer);
+              if (st) {
+                st.style.color = '#b45309';
+                st.textContent = '⚠️ 反映確認の応答がありません。CryptoPassKeyの元タブを表示し、入力欄に反映されたか確認してから閉じてください。';
               }
             }
-          }, 350);
+          }, 100);
         }
       }
     });
@@ -1283,7 +1252,7 @@ body.kw-generator-focus-mode .gen {
       var activeEntry = activeFile && activeId ? activeFile.getEntry(activeId) : null;
 
       if (!activeEntry) {
-        return cb(new Error('適用先のエントリーが選択されていません。KeeWeb画面でエントリーを選択してください。'));
+        return cb(new Error('適用先のエントリーが選択されていません。KeePass画面でエントリーを選択してください。'));
       }
 
       var destinationUrl = (data.url || '').trim();

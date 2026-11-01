@@ -16,7 +16,7 @@ Run:
 Protocol and current performance settings:
 - Uses @ngraveio/bc-ur 1.1.13, UREncoder/URDecoder, and standard UR type `bytes`.
 - Payload is wrapped in a compact private QDP v1 binary envelope, not a JSON numeric array. It stores kind, filename, MIME type, payload length, original bytes, and a SHA-256 digest.
-- UR fragment payload length is selectable: 180 / 240 / 300 / 360 bytes (default 300). Larger fragments reduce the number of frames but create denser QR codes that may be harder for some cameras to scan.
+- UR fragment payload length is adjustable with a continuous slider from 80 to 1400 bytes (step 20, default 300). Changing the slider after preparation regenerates the UR stream immediately. Larger fragments reduce the number of frames but create denser QR codes; the page reports when QR generation exceeds the encoder's capacity.
 - Default display interval: 250 ms (4 frames/second); UI options range from 200 ms (5 fps) to 750 ms (about 1.3 fps).
 - Repeated identical camera-read frames are ignored before passing them to URDecoder.
 - Max original payload: 500 KiB (test limit).

@@ -1056,7 +1056,7 @@ async function createBackup(){
   }
   const activeFormat=isMulti?'armored':'words';
 
-  // Passwords are intentionally not retained in the result object. KeeWeb export
+  // Passwords are intentionally not retained in the result object. KeePass export
 
   // asks for it again only at the moment the user explicitly transfers an entry.
 
@@ -3159,7 +3159,7 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline bv-btn-qr-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;" ${s.arm.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePass(KeeWeb)に保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
 
              ${(isMulti&&s.hasWords)?`<button type="button" class="btn btn-outline bv-btn-toggle-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替</button>`:''}
 
@@ -3455,7 +3455,7 @@ function initBonusVault(){
 
 2. matrix-backup.txt: シェア${idx}のテキスト（${s.activeFormat==='armored'?'PGPアーマード形式':'BIP39形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
 
 
 
@@ -3479,7 +3479,7 @@ function initBonusVault(){
 
          });
 
-         bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、シェアQRやデータが添付ファイルとして登録されます。`);
+         bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、シェアQRやデータが添付ファイルとして登録されます。`);
 
         }catch(e){
 
@@ -3738,7 +3738,7 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePassに新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
               <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムロックタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
               <button type="button" class="btn btn-outline" id="bv-btn-ts-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" title="この暗号化データを復号・削除せずそのままタイムシークレットタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
 
@@ -3974,7 +3974,7 @@ function initBonusVault(){
        });
 
        if(btn){
-        btn.innerHTML='✅ KeeWebで自動作成・保存中！';
+        btn.innerHTML='✅ KeePassで自動作成・保存中！';
         btn.style.background='#dcfce7';
         btn.style.borderColor='#86efac';
         btn.style.color='#15803d';
@@ -3987,7 +3987,7 @@ function initBonusVault(){
          btn.disabled=false;
         },1500);
        }
-       bvMessage('bv-encrypt-status','✅ KeeWebで新規エントリーの自動作成・保存を開始しました。');
+       bvMessage('bv-encrypt-status','✅ KeePassで新規エントリーの自動作成・保存を開始しました。');
        openKeeWeb(transferId);
       } catch (err) {
        if(btn){
@@ -4027,7 +4027,7 @@ function initBonusVault(){
 
 2. matrix-backup.txt: 暗号化テキスト（${singleFormat==='armored'?'PGPアーマード形式':'BIP39形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
 
 
 
@@ -4051,7 +4051,7 @@ function initBonusVault(){
 
         });
 
-        bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
+        bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
 
        }catch(e){
 
@@ -5282,9 +5282,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   const siteVal=($('sim-site')?.value||'').trim();
   const cardPw=($('sim-output-pw')?.textContent||'').trim();
   const existingBqPw=($('bq-password')?.value||'').trim();
-  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
+  // セクション3のKeePass保存ではブラウザ標準promptを使わず、生成済み／入力済みの値を自動転送する。
+  const restorePw=artifact.usePass?(existingBqPw||String(artifact.createdPassword||'').trim()||cardPw||''):'';
   if(artifact.usePass&&!restorePw){
-   message('bq-status','KeeWeb転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);
+   message('bq-status','KeePass転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);
    return;
   }
 
@@ -5412,7 +5413,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    });
 
    if(btn){
-    btn.innerHTML='✅ KeeWebで自動作成・保存中！';
+    btn.innerHTML='✅ KeePassで自動作成・保存中！';
     btn.style.background='#dcfce7';
     btn.style.borderColor='#86efac';
     btn.style.color='#15803d';
@@ -5425,7 +5426,7 @@ document.addEventListener('DOMContentLoaded',()=>{
      btn.disabled=false;
     },1500);
    }
-   message('bq-status','✅ KeeWebで新規エントリーの自動作成・保存を開始しました。');
+   message('bq-status','✅ KeePassで新規エントリーの自動作成・保存を開始しました。');
    openKeeWeb(transferId);
   } catch (err) {
    if(btn){
@@ -5471,7 +5472,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 2. matrix-backup.txt: 暗号化バックアップテキスト（${artifact.activeFormat==='armored'?'PGPアーマード形式':'BIP39 24単語ブロック形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを表示・取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを表示・取り出しできます。`;
 
 
 
@@ -5495,7 +5496,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     });
 
-    message('bq-status',`📦 KeePass用インポートファイル（${filename}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
+    message('bq-status',`📦 KeePass用インポートファイル（${filename}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
 
    }catch(e){
 

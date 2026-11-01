@@ -1514,7 +1514,7 @@ body.blind-mode #seed-qr-list:hover {
             <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）">⏸ 一時停止</button>
             <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します">⏹ 停止</button>
             <button type="button" class="btn btn-secondary" id="btn-copy-pw">コピー（30秒後自動消去）</button>
-            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送します">📥 KeePassエントリーに追加</button>
+            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送します">📥 KeePassエントリーに追加</button>
           </div>
         </div>
 
@@ -1980,7 +1980,7 @@ body.blind-mode #seed-qr-list:hover {
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
         </div>
-        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
 
       <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;" class="no-print">
@@ -1992,7 +1992,7 @@ body.blind-mode #seed-qr-list:hover {
         <button type="button" class="btn btn-secondary" id="btn-copy-seed">復元フレーズを全てコピー（30秒後自動消去）</button>
         <button type="button" class="btn btn-outline" id="btn-save-seed-txt" style="padding:6px 10px; font-size:0.8rem;">💾 テキスト保存 (.txt)</button>
         <button type="button" class="btn btn-outline" id="btn-save-seed-qr" style="padding:6px 10px; font-size:0.8rem;">🖼️ QR画像保存 (PNG)</button>
-        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
+        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePassに保存</button>
       </div>
 
       <div class="cloud-warning">
@@ -2092,7 +2092,7 @@ body.blind-mode #seed-qr-list:hover {
   <div class="bq-row" id="bq-password-row">
    <label for="bq-password">復元用パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップデータを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button></label>
    <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-     💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bq" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+     💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bq" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、この復元用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
    </div>
    <input type="password" id="bq-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
    <label for="bq-password-confirm">再入力<button type="button" class="help-btn" aria-label="説明を表示" data-help="入力ミスを防ぐため、同じ復元用パスワードをもう一度入力してください。">?</button></label>
@@ -2128,7 +2128,7 @@ body.blind-mode #seed-qr-list:hover {
       <span>💡</span>
       <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
     </div>
-    <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+    <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
   </div>
   <div class="bq-row">
    <button type="button" class="btn btn-outline" id="bq-create">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
@@ -2136,7 +2136,7 @@ body.blind-mode #seed-qr-list:hover {
    <button type="button" class="btn btn-outline" id="bq-save-txt" style="padding:6px 10px; font-size:0.8rem;" disabled>💾 テキスト保存 (.txt)</button>
    <button type="button" class="btn btn-outline" id="bq-save-qr" style="padding:6px 10px; font-size:0.8rem;" disabled>🖼️ QR画像保存 (PNG)</button>
    <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled>📁 暗号化ファイル保存 (.cmenc)</button>
-   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" disabled title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePass(KeeWeb)に保存</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" disabled title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）">📥 KeePassに保存</button>
     <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#047857; border-color:#059669; background:#ecfdf5;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します">🧪 復元テスト欄へ転記</button>
    <button type="button" class="btn btn-secondary" id="bq-print" disabled>カードと暗号化QRを印刷</button>
    <button type="button" class="btn btn-secondary" id="bq-clear">暗号化バックアップ表示を消去</button>
@@ -2270,7 +2270,7 @@ body.blind-mode #seed-qr-list:hover {
     <div class="bq-row" id="bv-password-row">
       <label for="bv-password">復元用パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを暗号化するパスワードです。12文字以上・英大小数字記号を混ぜた16文字以上を推奨します。このパスワードを忘れると復元できなくなります。">?</button></label>
       <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-        💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bv" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeeWebで安全に生成し、この復元用パスワード欄へ反映します">KeePass（KeeWeb）で安全に自動生成・保管する</a>
+        💡 強力な復元用パスワードをお持ちでない場合：<a href="keeweb/index.html#generator&amp;cmTarget=bv" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、この復元用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
       </div>
       <input type="password" id="bv-password" autocomplete="new-password" placeholder="12文字以上（16文字以上の高エントロピーパスフレーズ推奨）">
       <label for="bv-password-confirm">再入力<button type="button" class="help-btn" aria-label="説明を表示" data-help="入力ミスを防ぐため、同じ復元用パスワードをもう一度入力してください。">?</button></label>
@@ -2311,7 +2311,7 @@ body.blind-mode #seed-qr-list:hover {
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
         </div>
-        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass (KeeWeb) エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
       <div id="bv-result-shares-container"></div>
     </div>
@@ -2396,7 +2396,7 @@ body.blind-mode #seed-qr-list:hover {
       <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; border-color:#d97706; color:#b45309; background:#fffbeb; font-weight:700;" title="一時停止／再開">⏸ 一時停止</button>
       <button type="button" class="btn btn-danger" id="btn-sticky-stop" style="padding:5px 10px; font-size:0.78rem; display:none;" title="停止">⏹ 停止</button>
       <button type="button" class="btn btn-secondary" id="btn-sticky-copy" style="padding:5px 10px; font-size:0.78rem;">コピー</button>
-      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeeWebマスターパスワードに転送">📥 KeePass追加</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#0284c7; color:#0369a1; background:#f0f9ff; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送">📥 KeePass追加</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-top" style="padding:5px 10px; font-size:0.78rem;">▲ マトリックスへ</button>
     </div>
   </div>
@@ -2573,7 +2573,7 @@ body.blind-mode #seed-qr-list:hover {
       </div>
       <div class="duress-modal-body">
         <div style="font-size:0.86rem; color:#334155; line-height:1.6; margin-bottom:12px;">
-          カードの配列シードから、KeePass 2.x / KeePassXC / KeeWeb で使える暗号キーファイル（.key）を書き出します。<br>
+          カードの配列シードから、KeePass 2.x / KeePassXC / KeePass で使える暗号キーファイル（.key）を書き出します。<br>
           万が一の紛失や再発行時に、<strong>どのようにキーファイルを復元（再生成）するか</strong>を選択してください。
         </div>
 
@@ -2634,7 +2634,7 @@ body.blind-mode #seed-qr-list:hover {
               <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#0284c7; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
             <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #cbd5e1; border-radius:4px; background:#fff;">
-            <div style="font-size:0.75rem; color:#475569; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#0284c7; font-weight:700; text-decoration:underline;">KeePass（KeeWeb）で安全に自動生成・保管する</a></div>
+            <div style="font-size:0.75rem; color:#475569; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="_blank" rel="noopener noreferrer" style="color:#0284c7; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#065f46; margin-top:6px; padding:5px 7px; background:#dcfce7; border:1px solid #86efac; border-radius:4px;"></div>
             <div style="font-size:0.74rem; color:#64748b; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>
@@ -4555,11 +4555,11 @@ function updateTransferButtonsUI() {
   const mainBtn = document.getElementById('btn-transfer-to-keeweb');
   if (mainBtn) {
     if (isMaster) {
-      mainBtn.innerHTML = '🔑 KeeWebマスターパスワードに転送';
-      mainBtn.title = '算出したパスワードをKeeWebのマスターパスワード入力欄に転送して自動設定します';
+      mainBtn.innerHTML = '🔑 KeePassマスターパスワードに転送';
+      mainBtn.title = '算出したパスワードをKeePassのマスターパスワード入力欄に転送して自動設定します';
     } else {
       mainBtn.innerHTML = siteVal ? `📥 KeePassエントリーに追加 「${escapeHtml(siteVal)}」` : '📥 KeePassエントリーに追加';
-      mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeeWebのエントリーに転送・追加します` : '算出したパスワードをKeeWebのエントリーに転送・追加します';
+      mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeePassのエントリーに転送・追加します` : '算出したパスワードをKeePassのエントリーに転送・追加します';
     }
     mainBtn.style.background = '';
     mainBtn.style.borderColor = '';
@@ -4570,7 +4570,7 @@ function updateTransferButtonsUI() {
   if (stickyBtn) {
     if (isMaster) {
       stickyBtn.innerHTML = '🔑 マスターPW転送';
-      stickyBtn.title = 'KeeWebマスターパスワードに転送';
+      stickyBtn.title = 'KeePassマスターパスワードに転送';
     } else {
       stickyBtn.innerHTML = '📥 KeePass追加';
       stickyBtn.title = siteVal ? `「${siteVal}」をKeePassエントリーに追加` : 'KeePassエントリーに追加';
@@ -5996,7 +5996,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
   }
 
-  // Security Hardening (A04): Unified KeeWeb Transfer Storage with auto-expiry TTL (default 60s) & transfer ID tracking
+  // Security Hardening (A04): Unified KeePass Transfer Storage with auto-expiry TTL (default 60s) & transfer ID tracking
   const _transferTimers = {};
   let _activeKeeWebWindow = null;
   const ALLOWED_TRANSFER_KEYS = new Set([
@@ -6013,7 +6013,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return win;
   }
   function openKeeWeb(transferId = '') {
-    // A changing query string also refreshes an already-open KeeWeb tab, so it
+    // A changing query string also refreshes an already-open KeePass tab, so it
     // rechecks the newly-created short-lived transfer without user intervention.
     const suffix = transferId ? `?cmTransfer=${encodeURIComponent(transferId)}` : '';
     const win = trackKeeWebWindow(window.open(`keeweb/index.html${suffix}`, 'keeweb_app'));
@@ -6276,7 +6276,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const status = document.getElementById(statusId);
       if (status) {
         if (statusId === 'km-generated-password-status') status.style.display = 'block';
-        status.textContent = '✅ KeeWebで生成したパスワードを' + labels[data.target] + 'に反映しました。';
+        status.textContent = '✅ KeePassで生成したパスワードを' + labels[data.target] + 'に反映しました。';
       }
       return true;
     } catch (_) {
@@ -6466,7 +6466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (buttons.length) {
       if (transferFeedbackTimer) clearTimeout(transferFeedbackTimer);
       buttons.forEach((btn) => {
-        btn.innerHTML = isMaster ? '✅ マスターPWをKeeWebへ転送' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeeWebへ転送`;
+        btn.innerHTML = isMaster ? '✅ マスターPWをKeePassへ転送' : `✅ 「${escapeHtml(siteVal || 'エントリー')}」をKeePassへ転送`;
         btn.style.background = '#dcfce7';
         btn.style.borderColor = '#86efac';
         btn.style.color = '#15803d';
@@ -6476,7 +6476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTransferButtonsUI();
       }, 2500);
     }
-    if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!openKeeWeb()) alert('KeePassを開けませんでした。ポップアップの許可を確認してください。');
   }
 
   document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', (event) => {
@@ -6485,7 +6485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-sticky-transfer')?.addEventListener('click', (event) => {
     // Call directly from this trusted click. Re-dispatching a synthetic click can
-    // make browsers block the KeeWeb window as a popup.
+    // make browsers block the KeePass window as a popup.
     transferGeneratedPasswordToKeeWeb(event.currentTarget);
   });
 
@@ -8469,11 +8469,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const btns = [$('btn-transfer-to-keeweb'), $('btn-sticky-transfer')].filter(Boolean);
     btns.forEach((btn) => {
-      btn.textContent = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebを開いて追加';
+      btn.textContent = isMaster ? '✅ マスターPWをKeePassへ転送' : '✅ KeePassを開いて追加';
       btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d';
     });
     setTimeout(() => updateTransferButtonsUI(), 2500);
-    if (!window.openKeeWeb(transferId)) throw new Error('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!window.openKeeWeb(transferId)) throw new Error('KeePassを開けませんでした。ポップアップの許可を確認してください。');
    } catch (error) {
     alert(`KeePassへの転送を開始できませんでした。${error?.message || 'もう一度お試しください。'}`);
    }
@@ -8716,7 +8716,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const btn=$('btn-sec2-transfer-keeweb');
    if(btn){
     const origText=btn.innerHTML;
-    btn.innerHTML='✅ KeeWebへ転送完了！KeeWebを開く…';
+    btn.innerHTML='✅ KeePassへ転送完了！KeePassを開く…';
     btn.style.background='#dcfce7';
     btn.style.borderColor='#86efac';
     btn.style.color='#15803d';
@@ -8727,7 +8727,7 @@ document.addEventListener('DOMContentLoaded', () => {
      btn.style.color='#0369a1';
     },2500);
    }
-   if (!openKeeWeb()) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+   if (!openKeeWeb()) alert('KeePassを開けませんでした。ポップアップの許可を確認してください。');
   });
   initKeyfileModalEvents();
 
@@ -9957,7 +9957,7 @@ async function createBackup(){
   }
   const activeFormat=isMulti?'armored':'words';
 
-  // Passwords are intentionally not retained in the result object. KeeWeb export
+  // Passwords are intentionally not retained in the result object. KeePass export
 
   // asks for it again only at the moment the user explicitly transfers an entry.
 
@@ -12027,7 +12027,7 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline bv-btn-qr-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;" ${s.arm.length>2200?'disabled':''}>🖼️ QR画像保存 (PNG)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePass(KeeWeb)に保存">📥 KeePassに保存</button>
+             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePassに保存">📥 KeePassに保存</button>
 
              ${(isMulti&&s.hasWords)?`<button type="button" class="btn btn-outline bv-btn-toggle-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替</button>`:''}
 
@@ -12339,7 +12339,7 @@ function initBonusVault(){
 
 2. matrix-backup.txt: シェア${idx}のテキスト（${s.activeFormat==='armored'?'PGPアーマード形式':'BIP39形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
 
 
 
@@ -12363,7 +12363,7 @@ function initBonusVault(){
 
          });
 
-         bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、シェアQRやデータが添付ファイルとして登録されます。`);
+         bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、シェアQRやデータが添付ファイルとして登録されます。`);
 
         }catch(e){
 
@@ -12597,7 +12597,7 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}>🖼️ QR画像保存 (PNG)</button>
 
-              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePass(KeeWeb)に新規エントリーとして保存（QR画像・キーファイルを両方自動添付）">📥 KeePassに保存</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePassに新規エントリーとして保存（QR画像・キーファイルを両方自動添付）">📥 KeePassに保存</button>
 
              ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替（PGP ⇄ BIP39）</button>`:''}
 
@@ -12857,7 +12857,7 @@ function initBonusVault(){
 
         const origText=btn.innerHTML;
 
-        btn.innerHTML='✅ KeeWeb転送準備完了！ <a href="keeweb/index.html" target="_blank" style="color:#15803d; text-decoration:underline;">[🔑 KeeWebを開く]</a>';
+        btn.innerHTML='✅ KeePass転送準備完了！ <a href="keeweb/index.html" target="_blank" style="color:#15803d; text-decoration:underline;">[🔑 KeePassを開く]</a>';
 
         btn.style.background='#dcfce7';
 
@@ -12879,9 +12879,9 @@ function initBonusVault(){
 
        }
 
-       bvMessage('bv-encrypt-status','✅ KeeWeb転送データを準備しました。');
+       bvMessage('bv-encrypt-status','✅ KeePass転送データを準備しました。');
 
-       {const _el=$('bv-encrypt-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
+       {const _el=$('bv-encrypt-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeePassを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
 
        openKeeWeb();
 
@@ -12917,7 +12917,7 @@ function initBonusVault(){
 
 2. matrix-backup.txt: 暗号化テキスト（${singleFormat==='armored'?'PGPアーマード形式':'BIP39形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを取り出しできます。`;
 
 
 
@@ -12941,7 +12941,7 @@ function initBonusVault(){
 
         });
 
-        bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
+        bvMessage('bv-encrypt-status',`📦 KeePass用インポートファイル（${outXmlName}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
 
        }catch(e){
 
@@ -14142,9 +14142,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   const existingBqPw=($('bq-password')?.value||'').trim();
 
-  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
+  const restorePw=artifact.usePass?(existingBqPw||window.prompt('KeePassの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。','')||''):'';
 
-  if(artifact.usePass&&!restorePw){message('bq-status','KeeWeb転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);return;}
+  if(artifact.usePass&&!restorePw){message('bq-status','KeePass転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);return;}
 
   const pw=artifact.usePass?restorePw:cardPw||'';
 
@@ -14332,7 +14332,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
    const origText=btn.innerHTML;
 
-   btn.innerHTML='✅ KeeWeb転送準備完了！';
+   btn.innerHTML='✅ KeePass転送準備完了！';
 
    btn.style.background='#dcfce7';
 
@@ -14354,9 +14354,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   }
 
-  message('bq-status','✅ KeeWeb転送データを準備しました。');
+  message('bq-status','✅ KeePass転送データを準備しました。');
 
-  {const _el=$('bq-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeeWebを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
+  {const _el=$('bq-status');if(_el){const _a=document.createElement('a');_a.href='keeweb/index.html';_a.target='_blank';_a.textContent='[🔑 KeePassを開く]';_a.style.cssText='color:#0284c7;font-weight:700;text-decoration:underline;margin-left:6px;';_el.appendChild(_a);}}
 
   if(!pendingWin) openKeeWeb();
 
@@ -14396,7 +14396,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 2. matrix-backup.txt: 暗号化バックアップテキスト（${artifact.activeFormat==='armored'?'PGPアーマード形式':'BIP39 24単語ブロック形式'}）
 
-※ KeePass / KeeWeb内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを表示・取り出しできます。`;
+※ KeePass / KeePass内で添付ファイルをダブルクリックすると、いつでもQR画像やテキストを表示・取り出しできます。`;
 
 
 
@@ -14420,7 +14420,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     });
 
-    message('bq-status',`📦 KeePass用インポートファイル（${filename}）を出力しました！KeePassやKeeWebにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
+    message('bq-status',`📦 KeePass用インポートファイル（${filename}）を出力しました！KeePassやKeePassにドラッグ＆ドロップすると、暗号化QRやデータが添付ファイルとして登録されます。`);
 
    }catch(e){
 

@@ -7,7 +7,7 @@
   var isLight = function () { return html.classList.contains('light'); };
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
-  /* ---------- テーマ（KeeWeb とも連動） ---------- */
+  /* ---------- テーマ（KeePass とも連動） ---------- */
   function syncKeeWebTheme(light) {
     try {
       var cfg = {};
@@ -332,8 +332,9 @@
     });
   }
   function initMaskedPasswordPrompt() {
+    // セクション3のKeePass保存では追加のパスワード入力ポップアップを出さない。
+    // インポート用XML保存の確認プロンプトだけを維持する。
     var targets = {
-      'bq-transfer-keeweb': 'KeeWebの保護された「パスワード」欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。',
       'bq-save-xml': 'KeePassインポート用の保護されたパスワード欄へ保存する復元用パスワードを入力してください（メモ欄には保存しません）。'
     };
     Object.keys(targets).forEach(function (id) {

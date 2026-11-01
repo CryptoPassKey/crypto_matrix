@@ -1858,7 +1858,7 @@
         ].join('\n');
 
         const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
-        if (!transferFn) throw new Error('KeeWeb連携モジュールが初期化されていません。');
+        if (!transferFn) throw new Error('KeePass連携モジュールが初期化されていません。');
         const transferId = transferFn('cm_pending_entry', {
           site: title,
           password: pw,
@@ -1883,7 +1883,7 @@
         if (openFn) openFn(transferId);
         else window.open('keeweb/index.html', 'CryptoPassKeyKeeWeb');
 
-        tlMessage('tl-encrypt-status', '📥 KeePass(KeeWeb)で新規エントリーの自動作成・保存を開始しました。');
+        tlMessage('tl-encrypt-status', '📥 KeePassで新規エントリーの自動作成・保存を開始しました。');
       } catch (err) {
         if (btn) {
           btn.innerHTML = origText;
@@ -2455,7 +2455,7 @@
               ].join('\n');
 
               const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
-              if (!transferFn) throw new Error('KeeWeb連携モジュールが初期化されていません。');
+              if (!transferFn) throw new Error('KeePass連携モジュールが初期化されていません。');
               const transferId = transferFn('cm_pending_entry', {
                 site: title,
                 password: art.createdPassword || '',

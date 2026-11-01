@@ -627,11 +627,11 @@ function updateTransferButtonsUI() {
   const mainBtn = document.getElementById('btn-transfer-to-keeweb');
   if (mainBtn) {
     if (isMaster) {
-      mainBtn.innerHTML = '🔑 KeeWebマスターパスワードに転送';
-      mainBtn.title = '算出したパスワードをKeeWebのマスターパスワード入力欄に転送して自動設定します';
+      mainBtn.innerHTML = '🔑 KeePassマスターパスワードに転送';
+      mainBtn.title = '算出したパスワードをKeePassのマスターパスワード入力欄に転送して自動設定します';
     } else {
       mainBtn.innerHTML = siteVal ? `📥 KeePassエントリーに追加 「${escapeHtml(siteVal)}」` : '📥 KeePassエントリーに追加';
-      mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeeWebのエントリーに転送・追加します` : '算出したパスワードをKeeWebのエントリーに転送・追加します';
+      mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeePassのエントリーに転送・追加します` : '算出したパスワードをKeePassのエントリーに転送・追加します';
     }
     mainBtn.style.background = '';
     mainBtn.style.borderColor = '';
@@ -642,7 +642,7 @@ function updateTransferButtonsUI() {
   if (stickyBtn) {
     if (isMaster) {
       stickyBtn.innerHTML = '🔑 マスターPW転送';
-      stickyBtn.title = 'KeeWebマスターパスワードに転送';
+      stickyBtn.title = 'KeePassマスターパスワードに転送';
     } else {
       stickyBtn.innerHTML = '📥 KeePass追加';
       stickyBtn.title = siteVal ? `「${siteVal}」をKeePassエントリーに追加` : 'KeePassエントリーに追加';
@@ -2076,7 +2076,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
   }
 
-  // Security Hardening (A04): Unified KeeWeb Transfer Storage with auto-expiry TTL (default 60s) & transfer ID tracking
+  // Security Hardening (A04): Unified KeePass Transfer Storage with auto-expiry TTL (default 60s) & transfer ID tracking
   const _transferTimers = {};
   let _activeKeeWebWindow = null;
   const ALLOWED_TRANSFER_KEYS = new Set([
@@ -2094,7 +2094,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return win;
   }
   function openKeeWeb(transferId = '') {
-    // Reuse an already-open KeeWeb tab without reloading it so any unlocked
+    // Reuse an already-open KeePass tab without reloading it so any unlocked
     // KDBX database stays open in memory and auto-creates the entry immediately.
     if (_activeKeeWebWindow && !_activeKeeWebWindow.closed) {
       try {
@@ -2475,46 +2475,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  function applyGeneratedPasswordFromKeeWeb() {
+  function applyGeneratedPasswordFromKeeWeb(suppliedData, sourceWindow) {
     const key = 'cm_pending_generated_password';
     let raw = '';
+    let data = suppliedData || null;
     try {
-      raw = localStorage.getItem(key) || '';
-      const data = JSON.parse(raw);
+      if (!data) {
+        raw = localStorage.getItem(key) || '';
+        data = JSON.parse(raw);
+      }
       if (!data || typeof data !== 'object' || Array.isArray(data) ||
           !KEEWEB_TARGET_CONFIG[data.target] || typeof data.password !== 'string' || !data.password ||
           !Number.isFinite(data._expiresAt) || data._expiresAt <= Date.now() ||
           typeof data._transferId !== 'string' || !data._transferId) {
-        if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
+        if (!suppliedData && raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
         return false;
       }
 
       const cfg = KEEWEB_TARGET_CONFIG[data.target];
-      if (typeof cfg.onApply === 'function') {
-        cfg.onApply();
-      }
+      const ack = (ok, error) => {
+        try {
+          localStorage.setItem('cm_generated_password_ack', JSON.stringify({
+            transferId: data._transferId, ok: !!ok, error: error || '', ts: Date.now()
+          }));
+        } catch (_) {}
+        try {
+          if (sourceWindow && !sourceWindow.closed) sourceWindow.postMessage({
+            type: 'CM_GENERATED_PASSWORD_APPLIED', transferId: data._transferId,
+            target: data.target, ok: !!ok, error: error || ''
+          }, window.location.origin);
+        } catch (_) {}
+      };
 
-      const inputs = cfg.inputs.map(id => document.getElementById(id)).filter(Boolean);
-      if (!inputs.length) return false;
-      inputs.forEach(input => {
-        input.value = data.password;
-        input.dispatchEvent(new Event('input', {bubbles:true}));
-        input.dispatchEvent(new Event('change', {bubbles:true}));
-      });
-      if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
+      if (typeof cfg.onApply === 'function') cfg.onApply();
 
-      const statusId = cfg.statusId;
-      const status = document.getElementById(statusId);
-      if (status) {
-        if (statusId === 'km-generated-password-status' || statusId === 'ts-create-progress' || statusId === 'sim-secret-status') {
-          status.style.display = 'block';
-          status.removeAttribute('hidden');
+      // Some target views are activated asynchronously. Retry briefly rather than
+      // dropping the transfer or letting KeePass close before the destination is ready.
+      const applyAttempt = (attempt) => {
+        const inputs = cfg.inputs.map(id => document.getElementById(id)).filter(Boolean);
+        if (!inputs.length) {
+          if (attempt < 20) {
+            setTimeout(() => applyAttempt(attempt + 1), 50);
+            return;
+          }
+          ack(false, '反映先の入力欄が見つかりません。CryptoPassKeyの対象タブを開いて再試行してください。');
+          return;
         }
-        status.textContent = '✅ KeeWebで生成したパスワードを' + cfg.label + '（' + cfg.title + '）に反映しました。';
-      }
+        try {
+          inputs.forEach(input => {
+            input.value = data.password;
+            input.dispatchEvent(new Event('input', {bubbles:true}));
+            input.dispatchEvent(new Event('change', {bubbles:true}));
+          });
+          const statusId = cfg.statusId;
+          const status = document.getElementById(statusId);
+          if (status) {
+            if (statusId === 'km-generated-password-status' || statusId === 'ts-create-progress' || statusId === 'sim-secret-status') {
+              status.style.display = 'block';
+              status.removeAttribute('hidden');
+            }
+            status.textContent = '✅ KeePassで生成したパスワードを' + cfg.label + '（' + cfg.title + '）に反映しました。';
+          }
+          if (!suppliedData && raw && localStorage.getItem(key) === raw) localStorage.removeItem(key);
+          ack(true, '');
+        } catch (error) {
+          ack(false, error && error.message ? error.message : '入力欄への反映に失敗しました。');
+        }
+      };
+      applyAttempt(0);
       return true;
     } catch (_) {
-      try { if (raw && localStorage.getItem(key) === raw) localStorage.removeItem(key); } catch (__) {}
+      try { if (!suppliedData && raw && localStorage.getItem(key) === raw) localStorage.removeItem(key); } catch (__) {}
       return false;
     }
   }
@@ -2528,6 +2559,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     if (e.key === 'cm_pending_generated_password' && e.newValue) applyGeneratedPasswordFromKeeWeb();
+  });
+
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (event.origin !== window.location.origin || !data || typeof data !== 'object' ||
+        data.type !== 'CM_APPLY_GENERATED_PASSWORD') return;
+    if (!data.payload || typeof data.payload._transferId !== 'string' || !data.payload._transferId) return;
+    applyGeneratedPasswordFromKeeWeb(data.payload, event.source);
+  });
+  window.addEventListener('focus', () => applyGeneratedPasswordFromKeeWeb());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') applyGeneratedPasswordFromKeeWeb();
   });
 
   const CMConsent = {
@@ -2895,7 +2938,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (buttons.length) {
       if (transferFeedbackTimer) clearTimeout(transferFeedbackTimer);
       buttons.forEach((btn) => {
-        btn.innerHTML = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebで自動作成・保存';
+        btn.innerHTML = isMaster ? '✅ マスターPWをKeePassへ転送' : '✅ KeePassで自動作成・保存';
         btn.style.background = '#dcfce7';
         btn.style.borderColor = '#86efac';
         btn.style.color = '#15803d';
@@ -2905,7 +2948,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTransferButtonsUI();
       }, 2500);
     }
-    if (!openKeeWeb(transferId)) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!openKeeWeb(transferId)) alert('KeePassを開けませんでした。ポップアップの許可を確認してください。');
   }
 
   document.getElementById('btn-transfer-to-keeweb')?.addEventListener('click', (event) => {
@@ -2914,7 +2957,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-sticky-transfer')?.addEventListener('click', (event) => {
     // Call directly from this trusted click. Re-dispatching a synthetic click can
-    // make browsers block the KeeWeb window as a popup.
+    // make browsers block the KeePass window as a popup.
     transferGeneratedPasswordToKeeWeb(event.currentTarget);
   });
 
@@ -5244,11 +5287,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const btns = [$('btn-transfer-to-keeweb'), $('btn-sticky-transfer')].filter(Boolean);
     btns.forEach((btn) => {
-      btn.textContent = isMaster ? '✅ マスターPWをKeeWebへ転送' : '✅ KeeWebで自動作成・保存';
+      btn.textContent = isMaster ? '✅ マスターPWをKeePassへ転送' : '✅ KeePassで自動作成・保存';
       btn.style.background='#dcfce7'; btn.style.borderColor='#86efac'; btn.style.color='#15803d';
     });
     setTimeout(() => updateTransferButtonsUI(), 2500);
-    if (!window.openKeeWeb(transferId)) throw new Error('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!window.openKeeWeb(transferId)) throw new Error('KeePassを開けませんでした。ポップアップの許可を確認してください。');
    } catch (error) {
     _sec1TransferCooldownUntil = 0;
     alert(`KeePassへの転送を開始できませんでした。${error?.message || 'もう一度お試しください。'}`);
@@ -5502,7 +5545,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(btn){
      const origText=btn.innerHTML;
-     btn.innerHTML='✅ KeeWebで自動作成・保存中…';
+     btn.innerHTML='✅ KeePassで自動作成・保存中…';
      btn.style.background='#dcfce7';
      btn.style.borderColor='#86efac';
      btn.style.color='#15803d';
@@ -5515,7 +5558,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled=false;
      },1500);
     }
-    if (!openKeeWeb(transferId)) alert('KeeWebを開けませんでした。ポップアップの許可を確認してください。');
+    if (!openKeeWeb(transferId)) alert('KeePassを開けませんでした。ポップアップの許可を確認してください。');
    }catch(err){
     if(btn){btn.dataset.kwBusy='0';btn.disabled=false;}
     setStatus('backup-summary',`KeePass保存データの準備に失敗しました: ${err?.message||err}`,true);

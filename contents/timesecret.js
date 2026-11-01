@@ -80,6 +80,128 @@
    * Secondary State Anchor (localStorage High-Water Mark for Rollback & Re-injection Defense)
    * ===================================================================== */
   const STORAGE_HW_PREFIX = 'cm_ts_hw_anchor_';
+  const CONSENT_STORAGE_KEY = 'cm_timesecret_consent_version';
+  const CURRENT_CONSENT_VERSION = 'timesecret_consent_v1';
+
+  function hasValidConsent() {
+    try {
+      if (typeof localStorage === 'undefined') return false;
+      return localStorage.getItem(CONSENT_STORAGE_KEY) === CURRENT_CONSENT_VERSION;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function recordConsent() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(CONSENT_STORAGE_KEY, CURRENT_CONSENT_VERSION);
+      }
+    } catch (_) {}
+  }
+
+  let tsTransferredPayload = null; // { source: 'sec3'|'sec4', label, bytes, armoredText, factorLabel, shamirM, shamirN, createdPassword, filename }
+
+  function updateConsentUI() {
+    const agreed = hasValidConsent();
+    const badge = $('ts-consent-status-badge');
+    const body = $('ts-guarantees-body');
+    const agreedBox = $('ts-guarantees-agreed-box');
+    const chk = $('ts-ack-devicekey');
+
+    if (agreed) {
+      if (badge) badge.style.display = 'inline-block';
+      if (body) body.style.display = 'none';
+      if (agreedBox) agreedBox.style.display = 'block';
+      if (chk) chk.checked = true;
+    } else {
+      if (badge) badge.style.display = 'none';
+      if (body) body.style.display = 'block';
+      if (agreedBox) agreedBox.style.display = 'none';
+      if (chk) chk.checked = false;
+    }
+  }
+
+  function openHelpModal() {
+    const modal = $('ts-help-modal');
+    if (!modal) return;
+    modal.hidden = false;
+    $('btn-ts-help-ok')?.focus();
+  }
+
+  function closeHelpModal() {
+    const modal = $('ts-help-modal');
+    if (!modal) return;
+    modal.hidden = true;
+  }
+
+  function syncPayloadUI() {
+    const isText = $('ts-type-text')?.checked;
+    const isFile = $('ts-type-file')?.checked;
+    const isTransferred = $('ts-type-transferred')?.checked;
+
+    if ($('ts-input-text-area')) $('ts-input-text-area').hidden = !isText;
+    if ($('ts-input-file-area')) $('ts-input-file-area').hidden = !isFile;
+    if ($('ts-input-transferred-area')) $('ts-input-transferred-area').hidden = !isTransferred;
+
+    if (isTransferred && tsTransferredPayload && $('ts-transferred-summary')) {
+      const p = tsTransferredPayload;
+      $('ts-transferred-summary').innerHTML = `
+        <div style="font-weight:700; color:#fbbf24; margin-bottom:4px;">🔗 転記済みデータ：${escapeHtml(p.label)}</div>
+        <div style="font-size:0.8rem; color:#d1d5db; line-height:1.5;">
+          ・データサイズ：<strong>${p.bytes.length.toLocaleString()} bytes</strong>（元ファイル名：<code>${escapeHtml(p.filename)}</code>）<br>
+          ・転記元の保護：<strong>${escapeHtml(p.factorLabel)}</strong>${p.shamirN > 1 ? ` ＋ 秘密分散 (${p.shamirM}-of-${p.shamirN})` : ''}<br>
+          ・<strong>保護構造：</strong>転記元の暗号化データは復号・再暗号化されず、元のバイナリ形式のままタイムシークレット内に安全に封入されます。<br>
+          　→ 復号時はそのまま <code>${escapeHtml(p.filename)}</code> としてダウンロード・保存できます。
+        </div>
+      `;
+    }
+  }
+
+  function openCreateView() {
+    closeAuthModal();
+    clearOpenedSecret();
+    clearCreateInputs();
+    currentView = 'create';
+    renderUI();
+    updateConsentUI();
+    syncPayloadUI();
+  }
+
+  function receiveTransferredPayload(info) {
+    if (!info || (!info.bytes && !info.armoredText)) return;
+    const rawBytes = info.bytes instanceof Uint8Array ? info.bytes.slice() : enc.encode(info.armoredText);
+
+    const tsTabBtn = document.querySelector('[data-tab="timesecret"]');
+    if (tsTabBtn && typeof tsTabBtn.click === 'function') {
+      tsTabBtn.click();
+    }
+
+    openCreateView();
+
+    tsTransferredPayload = {
+      source: info.source || 'sec4',
+      label: info.label || '既存の暗号化データ',
+      bytes: rawBytes,
+      armoredText: info.armoredText || '',
+      factorLabel: info.factorLabel || '暗号化済み',
+      shamirM: info.shamirM || 1,
+      shamirN: info.shamirN || 1,
+      createdPassword: info.createdPassword || '',
+      filename: info.filename || (info.source === 'sec3' ? 'cryptomatrix-backup.cmenc' : 'vault-secret.cmenc')
+    };
+
+    const radioTrans = $('ts-type-transferred');
+    if (radioTrans) {
+      radioTrans.disabled = false;
+      radioTrans.checked = true;
+    }
+    if ($('ts-vault-label')) {
+      $('ts-vault-label').value = tsTransferredPayload.label;
+    }
+    syncPayloadUI();
+    setStatusMsg('ts-create-progress', `🔗 ${tsTransferredPayload.label}（${rawBytes.length.toLocaleString()} bytes）を転記しました。元のデータは消去・変更されていません。`, 'ok');
+  }
 
   function getHighWaterAnchor(vaultId) {
     if (!vaultId) return null;
@@ -2739,6 +2861,7 @@
       const updatedRecord = {
         ...latestVault,
         id: vaultId,
+        vaultId,
         rev: nextRev,
         state: nextState,
         lastCheckInAt: postAuthNow,
@@ -2764,7 +2887,19 @@
         readback.lastCheckInAt !== postAuthNow ||
         readback.rev !== nextRev
       ) {
-        throw new Error('チェックイン結果のIndexedDB読み戻し検証に失敗しました。期限は更新されていません。');
+        const diag = {
+          hasReadback: !!readback,
+          readbackId: readback?.id,
+          readbackVaultId: readback?.vaultId,
+          targetVaultId: vaultId,
+          readbackDeadline: readback?.deadlineAt,
+          expectedDeadline: nextDeadlineAt,
+          readbackLastCheckIn: readback?.lastCheckInAt,
+          expectedLastCheckIn: postAuthNow,
+          readbackRev: readback?.rev,
+          expectedRev: nextRev
+        };
+        throw new Error(`チェックイン結果のIndexedDB読み戻し検証に失敗しました。期限は更新されていません。 (diag: ${JSON.stringify(diag)})`);
       }
 
       setHighWaterAnchor(vaultId, { lastSeen: nextLastSeen, policyRev: readback.policyRev });
@@ -3388,6 +3523,14 @@
     );
 
     syncUnifiedInputFileState();
+
+    if (tsTransferredPayload?.bytes) zeroizeBuf(tsTransferredPayload.bytes);
+    tsTransferredPayload = null;
+    if ($('ts-type-transferred')) $('ts-type-transferred').disabled = true;
+    if ($('ts-type-text')) $('ts-type-text').checked = true;
+
+    updateConsentUI();
+    syncPayloadUI();
   }
 
   function clearDetailEditInputs() {
@@ -4462,12 +4605,9 @@
 
     // View Navigation: List <-> Create <-> Detail
     const goCreate = () => {
-      clearOpenedSecret();
-      clearCreateInputs();
+      openCreateView();
       setStatusMsg('ts-create-progress', '', 'info');
       setStatusMsg('ts-global-status', '', 'info');
-      currentView = 'create';
-      renderUI();
     };
     $('btn-ts-new-vault')?.addEventListener('click', goCreate);
     $('btn-ts-empty-new')?.addEventListener('click', goCreate);
@@ -4557,6 +4697,39 @@
     $('ts-rel-unit')?.addEventListener('change', updateInitialDeadlinePreview);
     $('ts-datetime-input')?.addEventListener('input', updateInitialDeadlinePreview);
     $('ts-datetime-input')?.addEventListener('change', updateInitialDeadlinePreview);
+
+    // Payload Type Radios
+    for (const id of ['ts-type-text', 'ts-type-file', 'ts-type-transferred']) {
+      $(id)?.addEventListener('change', syncPayloadUI);
+    }
+
+    // Clear Transferred Payload
+    $('btn-ts-clear-transferred')?.addEventListener('click', () => {
+      if (tsTransferredPayload?.bytes) zeroizeBuf(tsTransferredPayload.bytes);
+      tsTransferredPayload = null;
+      if ($('ts-type-transferred')) $('ts-type-transferred').disabled = true;
+      if ($('ts-type-text')) $('ts-type-text').checked = true;
+      syncPayloadUI();
+    });
+
+    // Help Modal Triggers
+    $('btn-ts-help')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      openHelpModal();
+    });
+    $('btn-ts-help-close')?.addEventListener('click', closeHelpModal);
+    $('btn-ts-help-ok')?.addEventListener('click', closeHelpModal);
+    $('ts-help-modal')?.addEventListener('click', (e) => {
+      if (e.target === $('ts-help-modal')) closeHelpModal();
+    });
+
+    // Toggle Guarantees Details
+    $('btn-ts-toggle-guarantees')?.addEventListener('click', () => {
+      const body = $('ts-guarantees-body');
+      if (body) {
+        body.style.display = body.style.display === 'none' ? 'block' : 'none';
+      }
+    });
 
     section.querySelectorAll('.ts-preset-time-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -4915,17 +5088,25 @@
       const btn = $('btn-ts-create-seal');
       setStatusMsg('ts-create-progress', '', 'info');
       try {
-        if (!$('ts-ack-devicekey')?.checked) {
+        if (!hasValidConsent() && !$('ts-ack-devicekey')?.checked) {
           throw new Error('作成前に「デバイス鍵の喪失リスクおよび保証範囲（6項目）」の確認チェックを入れてください。');
         }
         const label = ($('ts-vault-label')?.value || '').trim() || `タイムシークレット #${vaultsMap.size + 1}`;
-        const hasFile = Boolean(selectedSecretFile && selectedSecretFileBytes?.length);
+
+        const isTransferred = Boolean($('ts-type-transferred')?.checked && tsTransferredPayload);
+        const isFile = Boolean($('ts-type-file')?.checked && selectedSecretFile && selectedSecretFileBytes?.length);
+
         let kind = 'text';
         let name = 'timesecret.txt';
         let mime = 'text/plain;charset=utf-8';
         let plainBytes = null;
 
-        if (hasFile) {
+        if (isTransferred) {
+          kind = 'binary';
+          name = tsTransferredPayload.filename || 'vault-secret.cmenc';
+          mime = 'application/octet-stream';
+          plainBytes = tsTransferredPayload.bytes.slice();
+        } else if (isFile) {
           kind = 'binary';
           name = selectedSecretFile.name || 'timesecret.bin';
           mime = selectedSecretFile.type || 'application/octet-stream';
@@ -5079,10 +5260,12 @@
             managementAuth: managementAuthSpec,
             onProgress: (msg) => setStatusMsg('ts-create-progress', `⏳ ${msg}`, 'info')
           });
+          recordConsent();
           clearCreateInputs();
           setStatusMsg('ts-create-progress', '', 'info');
           currentView = 'list';
           renderUI();
+          updateConsentUI();
           setStatusMsg('ts-global-status', `✅ タイムシークレット「${created.label}」を作成・封印しました（3種認証分離・シード連動・事前往復検証・IndexedDB読み戻し確認済み）。`, 'ok');
         } finally {
           zeroizeBuf(plainBytes);
@@ -5606,13 +5789,7 @@
     decryptVault: (vaultId, opts) => decryptVault(vaultId, opts),
     deleteVault: (vaultId, mgmtCreds, confirmed) => deleteSingleTimeSecret(vaultId, mgmtCreds, confirmed),
     clearAllForReset: () => clearAllTimeSecretsForReset(),
-    openCreateView: () => {
-      closeAuthModal();
-      clearOpenedSecret();
-      clearCreateInputs();
-      currentView = 'create';
-      renderUI();
-    },
+    openCreateView: () => openCreateView(),
     openDetailView: (vaultId) => {
       closeAuthModal();
       selectedVaultId = vaultId;
@@ -5624,6 +5801,15 @@
       selectedVaultId = null;
       currentView = 'list';
       renderUI();
+    },
+    receiveTransferredPayload: (info) => receiveTransferredPayload(info),
+    openHelpModal: () => openHelpModal(),
+    closeHelpModal: () => closeHelpModal(),
+    hasValidConsent: () => hasValidConsent(),
+    recordConsent: () => recordConsent(),
+    clearConsent: () => {
+      try { localStorage.removeItem(CONSENT_STORAGE_KEY); } catch (_) {}
+      updateConsentUI();
     }
   });
 

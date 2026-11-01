@@ -28,8 +28,8 @@ function toPayloadBytes(value){
  if(value&&typeof value==='object'){
   if(value.type==='Buffer'&&Array.isArray(value.data))return Uint8Array.from(value.data);
   if(Array.isArray(value.data)&&value.data.every(x=>Number.isInteger(x)&&x>=0&&x<=255))return Uint8Array.from(value.data);
-  const keys=Object.keys(value);
-  if(keys.length&&keys.every(k=>/^(0|[1-9]\\d*)$/.test(k))&&keys.every(k=>Number.isInteger(value[k])&&value[k]>=0&&value[k]<=255))
+  const keys=Object.keys(value),isIndex=k=>k.length>0&&Array.from(k).every(ch=>ch>='0'&&ch<='9');
+  if(keys.length&&keys.every(isIndex)&&keys.every(k=>Number.isInteger(value[k])&&value[k]>=0&&value[k]<=255))
    return Uint8Array.from(keys.sort((a,b)=>Number(a)-Number(b)).map(k=>value[k]));
  }
  throw Error('URのCBOR payloadをバイト列として取り出せません: '+Object.prototype.toString.call(value));

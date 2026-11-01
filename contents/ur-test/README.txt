@@ -13,10 +13,13 @@ Run:
 3. On sender, enter text or choose a file, click "URを生成", then "再生".
 4. On receiver, click "カメラ開始" and scan the animated QR.
 
-Protocol:
-- Uses @ngraveio/bc-ur 1.1.13 (MIT), UREncoder/URDecoder, UR type `bytes`.
-- Arbitrary data is placed inside a JSON envelope and then encoded as UR bytes, so this test is not a custom registered UR type and is not yet a final QuickDrop wire format.
-- Max original payload: 500 KiB (test limit). Envelope is JSON and expands binary files.
+Protocol and current performance settings:
+- Uses @ngraveio/bc-ur 1.1.13, UREncoder/URDecoder, and standard UR type `bytes`.
+- Payload is wrapped in a compact private QDP v1 binary envelope, not a JSON numeric array. It stores kind, filename, MIME type, payload length, original bytes, and a SHA-256 digest.
+- UR fragment payload length: 180 bytes. Default display interval: 350 ms (about 2.9 frames/second); UI options range from 250 ms to 1000 ms.
+- Repeated identical camera-read frames are ignored before passing them to URDecoder.
+- Max original payload: 500 KiB (test limit).
+- This is UR-compatible at the `ur:bytes` transport level, but the inner QDP v1 envelope is CryptoMatrix-specific; other UR apps will not interpret the original payload automatically.
 - SHA-256 is checked after reconstruction. UR's own encoding/checksum handling is delegated to the library.
 - No encryption. Do not use real secrets in a shared/public environment.
 - Camera-to-camera end-to-end testing has not been performed in this environment.

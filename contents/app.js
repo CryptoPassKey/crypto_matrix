@@ -598,14 +598,14 @@
 
     async function cmCheckForUpdate() {
       if (cmUpdateRunning) return;
-      if (cmControllerChangedSinceLoad) {
-        cmShowUpdateStatus('最新版に切り替えています…', 'checking', 0);
-        window.location.reload();
-        return;
-      }
       var blockReason = cmUpdateBlockReason();
       if (blockReason) {
         cmShowUpdateStatus(blockReason, 'error', 3500);
+        return;
+      }
+      if (cmControllerChangedSinceLoad) {
+        cmShowUpdateStatus('最新版に切り替えています…', 'checking', 0);
+        window.location.reload();
         return;
       }
       if (!navigator.onLine) {
@@ -669,6 +669,7 @@
     // and nested scroll panels are excluded so existing controls remain unaffected.
     var cmPullStartX = 0;
     var cmPullStartY = 0;
+    var cmPullArmed = false;
     var cmPullTracking = false;
     var cmPullDistance = 0;
     var cmPullThreshold = 82;
@@ -692,15 +693,17 @@
     }
 
     document.addEventListener('touchstart', function (event) {
+      cmPullArmed = false;
       cmPullTracking = false;
       cmPullDistance = 0;
       if (event.touches.length !== 1 || !cmIsPageAtTop() || cmIsExcludedPullTarget(event.target)) return;
+      cmPullArmed = true;
       cmPullStartX = event.touches[0].clientX;
       cmPullStartY = event.touches[0].clientY;
     }, { passive: true });
 
     document.addEventListener('touchmove', function (event) {
-      if (event.touches.length !== 1 || !cmIsPageAtTop()) return;
+      if (!cmPullArmed || event.touches.length !== 1 || !cmIsPageAtTop()) return;
       var touch = event.touches[0];
       var dx = touch.clientX - cmPullStartX;
       var dy = touch.clientY - cmPullStartY;
@@ -714,6 +717,7 @@
     function cmFinishPull() {
       if (!cmPullTracking) return;
       var shouldUpdate = cmPullDistance >= cmPullThreshold;
+      cmPullArmed = false;
       cmPullTracking = false;
       cmPullDistance = 0;
       if (shouldUpdate) cmCheckForUpdate();
@@ -721,6 +725,7 @@
     }
     document.addEventListener('touchend', cmFinishPull, { passive: true });
     document.addEventListener('touchcancel', function () {
+      cmPullArmed = false;
       cmPullTracking = false;
       cmPullDistance = 0;
       cmHideUpdateStatus();

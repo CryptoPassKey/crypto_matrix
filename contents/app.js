@@ -655,6 +655,18 @@
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
         cmSwRegistration = reg;
+
+        // An update downloaded during a previous session is activated on this launch.
+        // Updates discovered by this registration check remain waiting until the next launch
+        // (or an explicit logo/pull-down action).
+        if (reg.waiting && reg.waiting !== reg.active) {
+          cmShowUpdateStatus('前回取得したアップデートを適用しています…', 'checking', 0);
+          cmActivateWaitingWorker(reg.waiting);
+          return;
+        }
+        // Check for a newer release in the background. A newly installed worker is
+        // intentionally left waiting; it will be applied on the next launch.
+        reg.update().catch(function () {});
       }).catch(function () {
         cmShowUpdateStatus('アプリの更新機能を初期化できませんでした', 'error', 4500);
       });

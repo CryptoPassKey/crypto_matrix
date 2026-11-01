@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.12.0-timesecret';
+const VERSION = 'cm-v2.12.1-manual-update';
 const FILES = [
   "./",
   "app.css",
@@ -59,7 +59,11 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // Precache the complete new app, but keep it waiting until the user requests an update.
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)));
+});
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'CM_SKIP_WAITING') self.skipWaiting();
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(

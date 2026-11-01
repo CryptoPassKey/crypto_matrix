@@ -27,6 +27,8 @@ input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 <div class="row"><button id="startCamera">カメラ開始</button><button id="stopCamera" disabled>カメラ停止</button><label><input id="facing" type="checkbox" checked> 背面カメラ優先</label></div>
 <video id="video" playsinline muted hidden></video><canvas id="scanCanvas" hidden></canvas>
 <p><small id="scanMode">認識方式: 未選択</small></p>
+<div class="row"><label>比較方式 <select id="scannerSelect"><option value="auto">自動（Native → WASM → jsQR）</option><option value="native">Native BarcodeDetector</option><option value="wasm" selected>WASM ZBar</option><option value="jsqr">現行 jsQR</option></select></label><button id="applyScanner">方式を適用</button></div>
+<p><small id="scanMetrics">計測: まだ開始していません</small></p>
 <p id="recvStatus" class="status" aria-live="polite">待機中</p><div class="bar"><div id="recvBar"></div></div><p><small id="recvInfo"></small></p>
 <label for="manualFrame">手動入力（URフレームを貼り付け）</label><textarea id="manualFrame" placeholder="ur:bytes/1-.../..." spellcheck="false"></textarea><button id="addManual">フレームを追加</button><button id="resetRecv">受信をリセット</button>
 <div id="result" hidden><h3>復元結果</h3><p id="resultMeta"></p><label for="resultText">テキスト（テキストとして解釈できる場合）</label><textarea id="resultText" readonly></textarea><div class="row"><button id="copyResult">テキストをコピー</button><button id="saveResult">ファイルとして保存</button></div></div>
@@ -11405,7 +11407,7 @@ import { Buffer } from 'https://esm.sh/buffer@6.0.3?bundle&target=es2022';
 globalThis.Buffer = Buffer;
 const { UR, UREncoder, URDecoder } = await import('https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle&target=es2022&deps=crc@3.8.0');
 (()=>{'use strict';
-const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0,senderCanvas=null,barcodeDetector=null;
+const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0,senderCanvas=null,barcodeDetector=null,wasmDetectorClass=null,scannerEngine="jsqr",scanAttempts=0,scanHits=0,scanTotalMs=0,scanLastMs=0;
 const enc=new TextEncoder(),dec=new TextDecoder();
 async function sha256(bytes){const h=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 let fragmentLength=300;
@@ -11504,6 +11506,38 @@ function resetReceive(){decoder=new URDecoder();seenParts.clear();completed=null
 function updateProgress(){if(!decoder)return;let p=0;try{p=decoder.estimatedPercentComplete?.()??decoder.getProgress?.()??0}catch{}p=Math.max(0,Math.min(1,Number(p)||0));$('recvBar').style.width=`${p*100}%`;let details='';try{details=`進捗推定 ${(p*100).toFixed(1)}% · 受信パーツ ${decoder.processedPartsCount??'—'}`}catch{}$('recvInfo').textContent=details}
 async function ingest(raw){const part=String(raw||'').trim();if(!/^ur:[a-z0-9-]+\//i.test(part))return false;try{if(seenParts.has(part))return true;if(!decoder)decoder=new URDecoder();decoder.receivePart(part);seenParts.add(part);updateProgress();$('recvStatus').textContent='URフレームを受信中';$('recvStatus').className='status';if(decoder.isComplete()){if(!decoder.isSuccess())throw Error(String(decoder.resultError?.()||'UR復元に失敗しました'));const ur=decoder.resultUR();if(ur.type!=='bytes')throw Error('未対応のUR type: '+String(ur.type));const decoded=ur.decodeCBOR();const transportBytes=toPayloadBytes(decoded);completed=await parseEnvelope(transportBytes);$('result').hidden=false;$('resultMeta').textContent=`${completed.name} · ${completed.bytes.length.toLocaleString()} bytes · UR type: ${ur.type||'bytes'} · SHA-256一致`;$('resultText').value=completed.kind==='text'?dec.decode(completed.bytes):'(ファイルデータです。ファイルとして保存してください)';$('copyResult').disabled=completed.kind!=='text';$('recvStatus').textContent='復元完了・SHA-256一致';$('recvStatus').className='status ok';$('recvBar').style.width='100%';return true}return true}catch(e){$('recvStatus').textContent='読み取りエラー：'+e.message;$('recvStatus').className='status err';return false}}
 $('addManual').onclick=async()=>{const ok=await ingest($('manualFrame').value);if(!ok){$('recvStatus').textContent='URフレームとして認識できないか、復元処理でエラーが発生しました';$('recvStatus').className='status err'}};$('resetRecv').onclick=resetReceive;resetReceive();
+function resetScanMetrics(){scanAttempts=0;scanHits=0;scanTotalMs=0;scanLastMs=0;$('scanMetrics').textContent='計測: 0 frames';}
+function updateScanMetrics(){const avg=scanAttempts?scanTotalMs/scanAttempts:0;$('scanMetrics').textContent=`計測: ${scanAttempts} frames · QR検出 ${scanHits}回 · 平均 ${avg.toFixed(1)} ms/frame · 直近 ${scanLastMs.toFixed(1)} ms`;}
+async function configureScanner(){
+ const requested=$('scannerSelect').value;
+ barcodeDetector=null;scannerEngine='jsqr';
+ const nativeAvailable=typeof window.BarcodeDetector==='function';
+ if((requested==='native'||requested==='auto')&&nativeAvailable){
+  try{
+   const formats=typeof BarcodeDetector.getSupportedFormats==='function'?await BarcodeDetector.getSupportedFormats():['qr_code'];
+   if(formats.includes('qr_code')){barcodeDetector=new BarcodeDetector({formats:['qr_code']});scannerEngine='native';}
+   else if(requested==='native')throw Error('Native BarcodeDetectorはQRコードに対応していません');
+  }catch(e){if(requested==='native')throw e;}
+ }else if(requested==='native')throw Error('このブラウザはNative BarcodeDetectorに対応していません');
+ if(!barcodeDetector&&(requested==='wasm'||requested==='auto')){
+  try{
+   if(!wasmDetectorClass){
+    const module=await import('https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9.23/dist/main.js');
+    wasmDetectorClass=module.BarcodeDetectorPolyfill;
+   }
+   barcodeDetector=new wasmDetectorClass({formats:['qr_code']});
+   scannerEngine='wasm';
+  }catch(e){
+   if(requested==='wasm')throw Error('WASM ZBarの初期化に失敗しました: '+e.message);
+   wasmDetectorClass=null;
+  }
+ }
+ if(requested==='jsqr')scannerEngine='jsqr';
+ if(scannerEngine==='native')$('scanMode').textContent='認識方式: Native BarcodeDetector';
+ else if(scannerEngine==='wasm')$('scanMode').textContent='認識方式: WASM ZBar（@undecaf）';
+ else $('scanMode').textContent='認識方式: jsQR（JavaScript）';
+ resetScanMetrics();
+}
 async function scanTick(){
  if(!stream)return;
  try{
@@ -11511,18 +11545,12 @@ async function scanTick(){
   if(v.readyState>=2&&v.videoWidth&&!scanBusy){
    scanBusy=true;
    let rawValue=null;
-   if(barcodeDetector){
-    try{
-     const results=await barcodeDetector.detect(v);
-     const hit=results.find(x=>typeof x.rawValue==='string'&&/^ur:/i.test(x.rawValue));
-     if(hit)rawValue=hit.rawValue;
-    }catch(nativeError){
-     // If native detection fails at runtime, fall back once to jsQR.
-     barcodeDetector=null;
-     $('scanMode').textContent='認識方式: jsQR（ネイティブ認識でエラーのため切替）';
-    }
-   }
-   if(!barcodeDetector){
+   const scanStarted=performance.now();
+   if(scannerEngine==='native'||scannerEngine==='wasm'){
+    const results=await barcodeDetector.detect(v);
+    const hit=results.find(x=>typeof x.rawValue==='string'&&/^ur:/i.test(x.rawValue));
+    if(hit)rawValue=hit.rawValue;
+   }else{
     const scale=Math.min(1,1440/v.videoWidth),w=Math.max(1,Math.round(v.videoWidth*scale)),h=Math.max(1,Math.round(v.videoHeight*scale));
     if(c.width!==w||c.height!==h){c.width=w;c.height=h}
     const ctx=c.getContext('2d',{willReadFrequently:true});
@@ -11530,6 +11558,7 @@ async function scanTick(){
     const im=ctx.getImageData(0,0,w,h),result=jsQR(im.data,im.width,im.height,{inversionAttempts:'attemptBoth'});
     if(result)rawValue=result.data;
    }
+   scanLastMs=performance.now()-scanStarted;scanAttempts++;scanTotalMs+=scanLastMs;if(rawValue)scanHits++;updateScanMetrics();
    if(rawValue)await ingest(rawValue);
    scanBusy=false;
   }
@@ -11541,18 +11570,11 @@ async function scanTick(){
 $('startCamera').onclick=async()=>{
  try{
   if(!navigator.mediaDevices?.getUserMedia)throw Error('カメラにはHTTPSまたはlocalhostが必要です');
-  barcodeDetector=null;
-  if('BarcodeDetector' in window){
-   try{
-    const supported=typeof BarcodeDetector.getSupportedFormats==='function'?await BarcodeDetector.getSupportedFormats():['qr_code'];
-    if(supported.includes('qr_code'))barcodeDetector=new BarcodeDetector({formats:['qr_code']});
-   }catch(_){barcodeDetector=null}
-  }
+  await configureScanner();
   const videoConstraints={facingMode:$('facing').checked?'environment':'user',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
   stream=await navigator.mediaDevices.getUserMedia({video:videoConstraints,audio:false});
   $('video').srcObject=stream;$('video').hidden=false;await $('video').play();
   $('startCamera').disabled=true;$('stopCamera').disabled=false;
-  $('scanMode').textContent=barcodeDetector?'認識方式: BarcodeDetector（ブラウザネイティブ）':'認識方式: jsQR（互換フォールバック）';
   $('recvStatus').textContent='カメラ読み取り中';scanTick();
  }catch(e){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
@@ -11560,6 +11582,7 @@ $('startCamera').onclick=async()=>{
  }
 };
 function stopCamera(){if(scanTimer)clearTimeout(scanTimer);scanTimer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}barcodeDetector=null;$('video').pause();$('video').srcObject=null;$('video').hidden=true;$('startCamera').disabled=false;$('stopCamera').disabled=true;$('scanMode').textContent='認識方式: 未選択'}$('stopCamera').onclick=stopCamera;
+$('applyScanner').onclick=()=>{if(stream){stopCamera();$('startCamera').click()}else{$('scanMode').textContent='選択方式: '+$('scannerSelect').selectedOptions[0].textContent+'（カメラ開始時に適用）'}};
 $('copyResult').onclick=async()=>{if(!completed||completed.kind!=='text')return;try{await navigator.clipboard.writeText(dec.decode(completed.bytes));$('recvStatus').textContent='コピーしました'}catch{$('recvStatus').textContent='コピーできません。テキスト欄から手動でコピーしてください'}};$('saveResult').onclick=()=>{if(!completed)return;const url=URL.createObjectURL(new Blob([completed.bytes],{type:completed.mime||'application/octet-stream'})),a=document.createElement('a');a.href=url;a.download=completed.name||'received.bin';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 window.addEventListener('pagehide',stopCamera);if(!window.isSecureContext)$('recvStatus').textContent='注意：カメラにはHTTPSまたはlocalhostが必要です。';
 })().catch(e=>{document.getElementById('sendStatus').textContent='URライブラリの読み込みに失敗しました：'+e.message;document.getElementById('sendStatus').className='status err'});

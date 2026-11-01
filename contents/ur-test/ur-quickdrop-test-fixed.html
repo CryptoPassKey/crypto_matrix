@@ -28,6 +28,12 @@ input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 <video id="video" playsinline muted hidden></video><canvas id="scanCanvas" hidden></canvas>
 <p><small id="scanMode">認識方式: 未選択</small></p><div class="row"><label>受信コード形式 <select id="receiveFormat"><option value="QRCode" selected>QR Code</option><option value="Aztec">Aztec Code</option><option value="DataMatrix">Data Matrix</option></select></label><small>送信画面と同じコード形式を選んでください。</small></div>
 <div class="row"><label>比較方式 <select id="scannerSelect"><option value="auto">自動（Native → ZXing → ZBar → jsQR）</option><option value="native">Native BarcodeDetector</option><option value="wasm">WASM ZBar</option><option value="zxing" selected>ZXing-C++ WASM</option><option value="jsqr">現行 jsQR</option></select></label><button id="applyScanner">方式を適用</button></div>
+<div class="speed-panel">
+ <h3>Data Matrix 単体読み取りテスト</h3>
+ <p class="muted">カメラ・UR復元を介さず、ZXing-C++ WASMで Data Matrix「HELLO-123」を生成し、生成画像をそのまま読み取ります。</p>
+ <div class="row"><button id="dmSelfTestBtn" type="button">単体テストを実行</button><span id="dmSelfTestStatus" class="status" role="status">未実行</span></div>
+ <img id="dmSelfTestPreview" alt="Data Matrix HELLO-123" hidden style="display:none;max-width:220px;max-height:220px;image-rendering:pixelated;background:#fff;padding:8px;border:1px solid #8888;border-radius:8px">
+</div>
 <div class="speed-panel"><div class="muted">実測読み込み速度（重複QRを除外）</div><div class="speed-main"><span id="uniqueRate">0.00</span> <small>新規コードフレーム/秒</small></div><div id="uniqueStats">新規フレーム 0 · 検出率 0%</div><p><small id="scanMetrics">計測: まだ開始していません</small></p></div>
 <div class="speed-panel"><h3>テスト条件・記録</h3><p class="muted">以下は送信側で実際に使った設定を入力してください。受信側から別端末の送信設定は自動取得できません。</p><div class="row"><label>送信側フレームサイズ <input id="benchFragmentSize" type="number" min="80" max="1400" step="20" value="300" style="width:100px"> bytes</label><label>送信側速度 <select id="benchSenderFps"><option value="200">5 fps</option><option value="250" selected>4 fps</option><option value="350">約2.9 fps</option><option value="500">2 fps</option><option value="750">約1.3 fps</option></select></label></div><p id="benchBest" class="best-line">最速設定: まだ記録がありません</p><div class="row"><button id="exportBench">計測履歴をCSV出力</button><button id="clearBench">履歴を消去</button></div><div class="bench-scroll"><table class="bench-table"><thead><tr><th>日時</th><th>方式</th><th>形式</th><th>データ量</th><th>送信フラグメント</th><th>送信速度</th><th>初回QR</th><th>完了時間</th><th>新規コード/秒</th><th>平均処理</th></tr></thead><tbody id="benchRows"><tr><td colspan="10">記録なし</td></tr></tbody></table></div><small>履歴はこのブラウザのlocalStorageに保存されます。同じデータ量の成功記録を完了時間で比較します。</small></div>
 <p id="recvStatus" class="status" aria-live="polite">待機中</p><div class="bar"><div id="recvBar"></div></div><p><small id="recvInfo"></small></p>
@@ -11532,6 +11538,66 @@ function saveBenchmarkRun(){if(benchmarkSaved||!scanSessionStartedAt||!completed
 $('exportBench').onclick=()=>{const rows=readBenchmarkRuns();if(!rows.length)return;const keys=['timestamp','scanner','barcodeFormat','payloadBytes','fragmentBytes','senderFps','firstQrMs','seconds','uniqueFrames','uniqueRate','avgMs','attempts','hits','cameraWidth','cameraHeight'];const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='quickdrop-benchmark.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('clearBench').onclick=()=>{if(confirm('このブラウザに保存したQuickDrop計測履歴を消去しますか？')){localStorage.removeItem(BENCH_KEY);renderBenchmarkRuns()}};
 renderBenchmarkRuns();
+async function runDataMatrixSelfTest(){
+ const button=$('dmSelfTestBtn'),status=$('dmSelfTestStatus'),preview=$('dmSelfTestPreview');
+ button.disabled=true;status.textContent='WASM初期化・生成・読み取り中…';status.className='status';
+ let nextUrl=null;
+ try{
+  if(!zxingWriteBarcode){
+   const writer=await import('https://esm.sh/zxing-wasm@3.1.6/writer?bundle&target=es2022');
+   zxingWriteBarcode=writer.writeBarcode;
+  }
+  if(!zxingReadBarcodes){
+   const reader=await import('https://esm.sh/zxing-wasm@3.1.6/reader?bundle&target=es2022');
+   zxingReadBarcodes=reader.readBarcodes;
+  }
+
+  const expected='HELLO-123';
+  const output=await zxingWriteBarcode(expected,{format:'DataMatrix',scale:8,addQuietZones:true});
+  if(!output?.image)throw Error('Data Matrix画像を生成できませんでした');
+
+  // Exercise the same ImageData input path used by the live camera scanner.
+  const bitmap=await createImageBitmap(output.image);
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  const context=canvas.getContext('2d',{willReadFrequently:true});
+  context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+  context.drawImage(bitmap,0,0);bitmap.close();
+  const imageData=context.getImageData(0,0,canvas.width,canvas.height);
+
+  const results=await zxingReadBarcodes(imageData,{
+   formats:['DataMatrix'],
+   tryHarder:true,
+   tryRotate:true,
+   tryInvert:true,
+   tryDownscale:false,
+   isPure:true,
+   maxNumberOfSymbols:1,
+   textMode:'Plain',
+   returnErrors:true
+  });
+  const hit=results.find(item=>item?.text===expected);
+  if(!hit){
+   const details=results.length
+    ? results.map(item=>`format=${item.format||'?'} text=${JSON.stringify(item.text||'')} error=${item.error||'none'}`).join(' / ')
+    : 'ZXingから検出結果なし';
+   throw Error(`生成画像 ${canvas.width}×${canvas.height}px を読み取れません: ${details}`);
+  }
+
+  if(preview.dataset.objectUrl)URL.revokeObjectURL(preview.dataset.objectUrl);
+  nextUrl=URL.createObjectURL(output.image);
+  preview.src=nextUrl;preview.hidden=false;preview.style.display='block';preview.dataset.objectUrl=nextUrl;
+  status.textContent=`成功：${hit.text}（Data Matrix / ${canvas.width}×${canvas.height}px）`;
+  status.className='status ok';
+ }catch(error){
+  status.textContent='失敗：'+(error?.message||String(error));
+  status.className='status err';
+ }finally{
+  button.disabled=false;
+ }
+}
+$('dmSelfTestBtn').addEventListener('click',runDataMatrixSelfTest);
+
 async function configureScanner(){
  const wantedFormat=$('receiveFormat').value;
  const nativeFormatMap={QRCode:'qr_code',Aztec:'aztec',DataMatrix:'data_matrix'};
@@ -11602,7 +11668,14 @@ async function scanTick(){
     const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(v,0,0,w,h);
     const imageData=ctx.getImageData(0,0,w,h);
     const formats={QRCode:'QRCode',Aztec:'Aztec',DataMatrix:'DataMatrix'};
-    const hits=await zxingReadBarcodes(imageData,{formats:[formats[$('receiveFormat').value]],tryHarder:false,maxNumberOfSymbols:1});
+    const selectedFormat=$('receiveFormat').value;
+    const hits=await zxingReadBarcodes(imageData,{
+     formats:[formats[selectedFormat]],
+     // Data Matrix benefits from ZXing's accuracy-first search; QR/Aztec keep the faster benchmark setting.
+     tryHarder:selectedFormat==='DataMatrix',
+     maxNumberOfSymbols:1,
+     textMode:'Plain'
+    });
     const hit=hits.find(x=>typeof x.text==='string'&&/^ur:/i.test(x.text));if(hit)rawValue=hit.text;
    }
    if(scannerEngine==='jsqr'){

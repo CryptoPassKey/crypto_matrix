@@ -1,4 +1,4 @@
-QuickDrop — UR / BC-UR test page v3
+QuickDrop — UR / BC-UR test page v4
 
 Main page:
 - index.html redirects to ur-quickdrop-test-fixed.html
@@ -11,7 +11,7 @@ Run:
 1. Open the folder URL (index.html) or ur-quickdrop-test-fixed.html. The BC-UR JS library is loaded from esm.sh with crc@3.8.0 pinned explicitly. The page loads the Buffer polyfill first, assigns the same constructor to globalThis.Buffer, and only then imports BC-UR; this is required by cbor-sync's instanceof Buffer check. Internet access is required for initial load.
 2. For camera reception, serve over HTTPS or localhost (camera permissions do not normally work from file://).
 3. On sender, enter text or choose a file, click "URを生成", then "再生". Sender QR frames are painted into a persistent Canvas rather than rebuilt as SVG; dark module runs are batched into one path/fill per frame.
-4. On receiver, select a scanner mode and click "カメラ開始". Choices: Auto (Native → WASM → jsQR), Native BarcodeDetector, WASM ZBar, and the existing jsQR baseline. WASM dynamically loads `@undecaf/barcode-detector-polyfill@0.9.23` from jsDelivr; its ZBar WebAssembly runtime is also loaded externally. Internet access is required.
+4. On receiver, select a scanner mode and click "カメラ開始". Choices: Auto (Native → WASM → jsQR), Native BarcodeDetector, WASM ZBar, and the existing jsQR baseline. WASM ZBar dynamically loads `@undecaf/barcode-detector-polyfill@0.9.23` from jsDelivr. ZXing-C++ WASM uses `zxing-wasm@3.1.6` reader/writer modules from esm.sh; its matching WebAssembly binary is loaded from jsDelivr. Internet access is required for first use.
 
 Protocol and performance settings:
 - Uses @ngraveio/bc-ur 1.1.13, UREncoder/URDecoder, and standard UR type `bytes`.

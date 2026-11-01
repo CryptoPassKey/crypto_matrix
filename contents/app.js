@@ -525,8 +525,11 @@
     }
 
     function cmUpdateBlockReason() {
-      if (document.querySelector('dialog[open], [aria-modal="true"], [aria-busy="true"], [data-cm-busy="true"]')) {
-        return 'ダイアログまたは処理中の画面を閉じてから更新してください';
+      var blocked = document.querySelectorAll('dialog[open], [aria-modal="true"], [aria-busy="true"], [data-cm-busy="true"]');
+      for (var b = 0; b < blocked.length; b++) {
+        if (!blocked[b].hidden && blocked[b].getClientRects().length > 0) {
+          return 'ダイアログまたは処理中の画面を閉じてから更新してください';
+        }
       }
       var videos = document.querySelectorAll('video');
       for (var i = 0; i < videos.length; i++) {
@@ -620,9 +623,11 @@
           return;
         }
         await cmSwRegistration.update();
-        var worker = cmSwRegistration.waiting;
-        if (!worker && cmSwRegistration.installing) {
+        var worker = null;
+        if (cmSwRegistration.installing) {
           worker = await cmWaitForInstalled(cmSwRegistration, cmSwRegistration.installing);
+        } else {
+          worker = cmSwRegistration.waiting;
         }
         if (cmSwRegistration.waiting) worker = cmSwRegistration.waiting;
         if (worker && worker !== cmSwRegistration.active) {

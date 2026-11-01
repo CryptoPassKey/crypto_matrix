@@ -11488,7 +11488,7 @@ function drawQrCanvas(text){
  return senderCanvas;
 }
 async function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();await drawBarcodeCanvas(part);frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
-function rebuildSender(){
+async function rebuildSender(){
  if(!currentEnvelope)return;
  stopPlay();
  fragmentLength=Number($('fragmentSize').value);
@@ -11521,7 +11521,7 @@ $('addManual').onclick=async()=>{const ok=await ingest($('manualFrame').value);i
 function resetScanMetrics(){scanAttempts=0;scanHits=0;scanTotalMs=0;scanLastMs=0;scanSessionStartedAt=0;scanFirstQrAt=0;scanCompletedMs=0;benchmarkSaved=false;$('scanMetrics').textContent='計測: 0 frames';$('uniqueRate').textContent='0.00';$('uniqueStats').textContent='新規フレーム 0 · 検出率 0%';}
 function updateScanMetrics(){const avg=scanAttempts?scanTotalMs/scanAttempts:0,elapsed=scanSessionStartedAt?Math.max(.001,(performance.now()-scanSessionStartedAt)/1000):0,rate=elapsed?seenParts.size/elapsed:0,hitRate=scanAttempts?scanHits/scanAttempts*100:0;$('scanMetrics').textContent=`解析 ${scanAttempts}回 · QR検出 ${scanHits}回 · 平均 ${avg.toFixed(1)} ms/frame · 直近 ${scanLastMs.toFixed(1)} ms`;$('uniqueRate').textContent=rate.toFixed(2);$('uniqueStats').textContent=`新規URフレーム ${seenParts.size} · QR検出率 ${hitRate.toFixed(1)}% · 経過 ${elapsed.toFixed(1)}秒`;}
 function readBenchmarkRuns(){try{const v=JSON.parse(localStorage.getItem(BENCH_KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}}
-function renderBenchmarkRuns(){const runs=readBenchmarkRuns(),body=$('benchRows');body.replaceChildren();if(!runs.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=9;td.textContent='記録なし';tr.append(td);body.append(tr);$('benchBest').textContent='最速設定: まだ記録がありません';return}
+function renderBenchmarkRuns(){const runs=readBenchmarkRuns(),body=$('benchRows');body.replaceChildren();if(!runs.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=10;td.textContent='記録なし';tr.append(td);body.append(tr);$('benchBest').textContent='最速設定: まだ記録がありません';return}
  const groups=new Map();for(const r of runs){const key=String(r.payloadBytes)+'|'+(r.barcodeFormat||'QRCode');const old=groups.get(key);if(!old||r.seconds<old.seconds)groups.set(key,r)}
  const best=[...groups.values()].sort((a,b)=>a.payloadBytes-b.payloadBytes).map(r=>`${r.payloadBytes.toLocaleString()} bytes: ${r.scanner} / ${r.fragmentBytes} bytes / ${r.senderFps} fps / ${r.seconds.toFixed(2)}秒`);
  $('benchBest').textContent='同じデータ量で最速: '+best.join(' ｜ ');
@@ -11551,6 +11551,7 @@ async function configureScanner(){
   catch(e){if(requested==='zxing')throw Error('ZXing-C++ WASMの初期化に失敗しました: '+e.message);}
  }
  if(!barcodeDetector&&!zxingReadBarcodes&&(requested==='wasm'||requested==='auto')){
+  if(wantedFormat!=='QRCode'&&requested==='auto')throw Error('この形式ではZXing-C++ WASMが必要ですが、読み込みに失敗しました');
   if(wantedFormat!=='QRCode'&&requested==='wasm')throw Error('WASM ZBar試験版はQR形式のみです。Aztec/Data MatrixはZXing-C++ WASMを選択してください');
   try{
    if(!wasmDetectorClass){
@@ -11588,9 +11589,10 @@ async function scanTick(){
      if(hit)rawValue=hit.rawValue;
     }catch(detectError){
      const failed=scannerEngine;
-     barcodeDetector=null;scannerEngine='jsqr';
-     $('scanMode').textContent=`認識方式: jsQR（${failed}の実行エラーで切替）`;
-     $('recvStatus').textContent=`${failed}スキャナーエラー。jsQRに切り替えました: ${detectError.message}`;
+     barcodeDetector=null;
+     try{if(!zxingReadBarcodes){const z=await import('https://esm.sh/zxing-wasm@3.1.6/reader?bundle&target=es2022');zxingReadBarcodes=z.readBarcodes;}scannerEngine='zxing';$('scanMode').textContent=`認識方式: ZXing-C++ WASM（${failed}から切替）`;}
+     catch(fallbackError){if($('receiveFormat').value!=='QRCode')throw Error(`${failed}失敗、ZXing WASMも読み込めません: ${fallbackError.message}`);scannerEngine='jsqr';$('scanMode').textContent=`認識方式: jsQR（${failed}失敗で切替）`;}
+     $('recvStatus').textContent=`${failed}スキャナーエラー。代替エンジンへ切り替えました: ${detectError.message}`;
     }
    }
    if(scannerEngine==='zxing'){

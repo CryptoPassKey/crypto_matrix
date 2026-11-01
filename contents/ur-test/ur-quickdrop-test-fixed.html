@@ -28,7 +28,7 @@
 <div id="result" hidden><h3>復元結果</h3><p id="resultMeta"></p><label for="resultText">テキスト（テキストとして解釈できる場合）</label><textarea id="resultText" readonly></textarea><div class="row"><button id="copyResult">テキストをコピー</button><button id="saveResult">ファイルとして保存</button></div></div>
 </section>
 </div>
-<p class="note"><strong>試験範囲：</strong>任意データをJSONエンベロープに入れて <code>ur:bytes</code> として伝送します。URの標準的なmultipart形式とFountain Codeはライブラリに委ねます。この試験はUR互換性の初期確認用であり、セキュリティ監査済み・本番用の実装ではありません。QRデータには暗号化を施しません。</p>
+<p class="note"><strong>試験範囲：</strong>任意データをQDP v1の小さなバイナリエンベロープに入れ、<code>ur:bytes</code> として伝送します。元データは数値配列やJSONに展開せず、そのまま格納し、SHA-256で検証します。UR multipart形式とFountain Codeはライブラリに委ねます。この試験はUR互換性の初期確認用であり、セキュリティ監査済み・本番用の実装ではありません。QRデータには暗号化を施しません。</p>
 <script>
 /* Bundled QR encoder from the earlier QuickDrop test prototype. */
 /* Local QRCode encoder: Kazuhiko Arase, MIT; source notices retained below. */

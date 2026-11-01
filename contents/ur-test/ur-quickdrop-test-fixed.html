@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>QuickDrop — UR / BC-UR 試験 v3</title>
+<title>QuickDrop — UR / BC-UR 試験 v4</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light dark}body{max-width:1120px;margin:auto;padding:18px;line-height:1.5}h1{margin-bottom:.2rem}.note{border:1px solid #8888;border-radius:10px;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;margin-top:18px}section{border:1px solid #8888;border-radius:14px;padding:15px;min-width:0}label{display:block;margin:.7rem 0 .25rem}textarea,input,button,select{font:inherit;max-width:100%;box-sizing:border-box}
 input[type="range"]{width:min(280px,72vw);vertical-align:middle}
@@ -11,14 +11,14 @@ input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 </style>
 </head>
 <body>
-<h1>QuickDrop — UR / BC-UR 試験 v3</h1>
+<h1>QuickDrop — UR / BC-UR 試験 v4</h1>
 <p class="note">UR形式のアニメーションQR送受信を試す独立ページです。UR実装は <code>@ngraveio/bc-ur@1.1.13</code> をCDNから読み込みます。そのため初回起動時はインターネット接続が必要です。送受信データはこのページから外部サーバーへ送信しません。カメラ利用にはHTTPSまたはlocalhostが必要です。</p>
 <div class="grid">
 <section>
 <h2>送信</h2>
 <label for="sendText">テキスト</label><textarea id="sendText" placeholder="送信するテキストを入力"></textarea>
 <label for="sendFile">またはファイル（試験用・最大500KB）</label><input id="sendFile" type="file">
-<div class="row"><button id="prepare">URを生成</button><button id="play" disabled>再生</button><button id="pause" disabled>停止</button><button id="fullBtn" disabled>QR全画面</button><label class="range-control">1フレームのデータ量 <output id="fragmentSizeValue" for="fragmentSize">300 bytes</output><input id="fragmentSize" type="range" min="80" max="1400" step="20" value="300"></label><label>速度 <select id="speed"><option value="200">5 fps（高速）</option><option value="250" selected>4 fps（標準）</option><option value="350">約2.9 fps</option><option value="500">2 fps（安定優先）</option><option value="750">約1.3 fps</option></select></label></div>
+<div class="row"><button id="prepare">URを生成</button><button id="play" disabled>再生</button><button id="pause" disabled>停止</button><button id="fullBtn" disabled>QR全画面</button><label>送信コード形式 <select id="sendFormat"><option value="QRCode" selected>QR Code</option><option value="Aztec">Aztec Code</option><option value="DataMatrix">Data Matrix</option></select></label><label class="range-control">1フレームのデータ量 <output id="fragmentSizeValue" for="fragmentSize">300 bytes</output><input id="fragmentSize" type="range" min="80" max="1400" step="20" value="300"></label><label>速度 <select id="speed"><option value="200">5 fps（高速）</option><option value="250" selected>4 fps（標準）</option><option value="350">約2.9 fps</option><option value="500">2 fps（安定優先）</option><option value="750">約1.3 fps</option></select></label></div>
 <div class="qrbox" id="qrBox"><span class="muted">URを生成するとQRコードが表示されます</span></div><button id="exitFull">全画面を終了</button>
 <p id="sendStatus" class="status" aria-live="polite">未生成</p><div class="bar"><div id="sendBar"></div></div><p><small id="frameInfo"></small></p><p><small>UR type: <code id="urType">—</code></small></p>
 </section>
@@ -26,10 +26,10 @@ input[type="range"]{width:min(280px,72vw);vertical-align:middle}
 <h2>受信</h2><p class="muted">QRをカメラに映してください。URの連番フレームとFountain Codeを使って再構成します。</p>
 <div class="row"><button id="startCamera">カメラ開始</button><button id="stopCamera" disabled>カメラ停止</button><label><input id="facing" type="checkbox" checked> 背面カメラ優先</label></div>
 <video id="video" playsinline muted hidden></video><canvas id="scanCanvas" hidden></canvas>
-<p><small id="scanMode">認識方式: 未選択</small></p>
-<div class="row"><label>比較方式 <select id="scannerSelect"><option value="auto">自動（Native → WASM → jsQR）</option><option value="native">Native BarcodeDetector</option><option value="wasm" selected>WASM ZBar</option><option value="jsqr">現行 jsQR</option></select></label><button id="applyScanner">方式を適用</button></div>
+<p><small id="scanMode">認識方式: 未選択</small></p><div class="row"><label>受信コード形式 <select id="receiveFormat"><option value="QRCode" selected>QR Code</option><option value="Aztec">Aztec Code</option><option value="DataMatrix">Data Matrix</option></select></label></div>
+<div class="row"><label>比較方式 <select id="scannerSelect"><option value="auto">自動（Native → WASM → jsQR）</option><option value="native">Native BarcodeDetector</option><option value="wasm">WASM ZBar</option><option value="zxing" selected>ZXing-C++ WASM</option><option value="jsqr">現行 jsQR</option></select></label><button id="applyScanner">方式を適用</button></div>
 <div class="speed-panel"><div class="muted">実測読み込み速度（重複QRを除外）</div><div class="speed-main"><span id="uniqueRate">0.00</span> <small>新規QRフレーム/秒</small></div><div id="uniqueStats">新規フレーム 0 · 検出率 0%</div><p><small id="scanMetrics">計測: まだ開始していません</small></p></div>
-<div class="speed-panel"><h3>テスト条件・記録</h3><p class="muted">以下は送信側で実際に使った設定を入力してください。受信側から別端末の送信設定は自動取得できません。</p><div class="row"><label>送信側フレームサイズ <input id="benchFragmentSize" type="number" min="80" max="1400" step="20" value="300" style="width:100px"> bytes</label><label>送信側速度 <select id="benchSenderFps"><option value="200">5 fps</option><option value="250" selected>4 fps</option><option value="350">約2.9 fps</option><option value="500">2 fps</option><option value="750">約1.3 fps</option></select></label></div><p id="benchBest" class="best-line">最速設定: まだ記録がありません</p><div class="row"><button id="exportBench">計測履歴をCSV出力</button><button id="clearBench">履歴を消去</button></div><div class="bench-scroll"><table class="bench-table"><thead><tr><th>日時</th><th>方式</th><th>データ量</th><th>送信フラグメント</th><th>送信速度</th><th>初回QR</th><th>完了時間</th><th>新規QR/秒</th><th>平均処理</th></tr></thead><tbody id="benchRows"><tr><td colspan="8">記録なし</td></tr></tbody></table></div><small>履歴はこのブラウザのlocalStorageに保存されます。同じデータ量の成功記録を完了時間で比較します。</small></div>
+<div class="speed-panel"><h3>テスト条件・記録</h3><p class="muted">以下は送信側で実際に使った設定を入力してください。受信側から別端末の送信設定は自動取得できません。</p><div class="row"><label>送信側フレームサイズ <input id="benchFragmentSize" type="number" min="80" max="1400" step="20" value="300" style="width:100px"> bytes</label><label>送信側速度 <select id="benchSenderFps"><option value="200">5 fps</option><option value="250" selected>4 fps</option><option value="350">約2.9 fps</option><option value="500">2 fps</option><option value="750">約1.3 fps</option></select></label></div><p id="benchBest" class="best-line">最速設定: まだ記録がありません</p><div class="row"><button id="exportBench">計測履歴をCSV出力</button><button id="clearBench">履歴を消去</button></div><div class="bench-scroll"><table class="bench-table"><thead><tr><th>日時</th><th>方式</th><th>形式</th><th>データ量</th><th>送信フラグメント</th><th>送信速度</th><th>初回QR</th><th>完了時間</th><th>新規QR/秒</th><th>平均処理</th></tr></thead><tbody id="benchRows"><tr><td colspan="8">記録なし</td></tr></tbody></table></div><small>履歴はこのブラウザのlocalStorageに保存されます。同じデータ量の成功記録を完了時間で比較します。</small></div>
 <p id="recvStatus" class="status" aria-live="polite">待機中</p><div class="bar"><div id="recvBar"></div></div><p><small id="recvInfo"></small></p>
 <label for="manualFrame">手動入力（URフレームを貼り付け）</label><textarea id="manualFrame" placeholder="ur:bytes/1-.../..." spellcheck="false"></textarea><button id="addManual">フレームを追加</button><button id="resetRecv">受信をリセット</button>
 <div id="result" hidden><h3>復元結果</h3><p id="resultMeta"></p><label for="resultText">テキスト（テキストとして解釈できる場合）</label><textarea id="resultText" readonly></textarea><div class="row"><button id="copyResult">テキストをコピー</button><button id="saveResult">ファイルとして保存</button></div></div>
@@ -11408,7 +11408,7 @@ import { Buffer } from 'https://esm.sh/buffer@6.0.3?bundle&target=es2022';
 globalThis.Buffer = Buffer;
 const { UR, UREncoder, URDecoder } = await import('https://esm.sh/@ngraveio/bc-ur@1.1.13?bundle&target=es2022&deps=crc@3.8.0');
 (()=>{'use strict';
-const $=id=>document.getElementById(id),MAX=500*1024;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0,senderCanvas=null,barcodeDetector=null,wasmDetectorClass=null,scannerEngine="jsqr",scanAttempts=0,scanHits=0,scanTotalMs=0,scanLastMs=0,scanSessionStartedAt=0,scanFirstQrAt=0,scanCompletedMs=0,benchmarkSaved=false;const BENCH_KEY='quickdropBenchmarkRunsV3';
+const $=id=>document.getElementById(id),MAX=500*1024;let zxingReadBarcodes=null,zxingWriteBarcode=null;let encoder=null,playTimer=null,frameIndex=0,stream=null,scanTimer=null,scanBusy=false,decoder=null,completed=null,sendParts=0,seenParts=new Set(),currentEnvelope=null,currentPayloadSize=0,senderCanvas=null,barcodeDetector=null,wasmDetectorClass=null,scannerEngine="jsqr",scanAttempts=0,scanHits=0,scanTotalMs=0,scanLastMs=0,scanSessionStartedAt=0,scanFirstQrAt=0,scanCompletedMs=0,benchmarkSaved=false;const BENCH_KEY='quickdropBenchmarkRunsV4';
 const enc=new TextEncoder(),dec=new TextDecoder();
 async function sha256(bytes){const h=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 let fragmentLength=300;
@@ -11453,6 +11453,17 @@ async function parseEnvelope(data){
  if(diff!==0)throw Error('SHA-256不一致：データが破損しています');
  return {bytes:payload,name:name||'received.bin',mime:mime||'application/octet-stream',kind:kind===0?'text':'file'};
 }
+async function drawBarcodeCanvas(text){
+ const format=$('sendFormat').value;
+ if(format==='QRCode'){drawQrCanvas(text);return}
+ if(!zxingWriteBarcode){const z=await import('https://esm.sh/zxing-wasm@3.1.6/writer?bundle&target=es2022');zxingWriteBarcode=z.writeBarcode;}
+ const output=await zxingWriteBarcode(new TextEncoder().encode(text),{format,scale:4,addQuietZones:true});
+ if(!output.image)throw Error('ZXingの画像生成結果がありません');
+ const bitmap=await createImageBitmap(output.image);
+ if(!senderCanvas){senderCanvas=document.createElement('canvas');senderCanvas.id='senderQrCanvas';senderCanvas.setAttribute('role','img');senderCanvas.setAttribute('aria-label','送信中のバーコード');$('qrBox').replaceChildren(senderCanvas)}
+ senderCanvas.width=bitmap.width;senderCanvas.height=bitmap.height;
+ const ctx=senderCanvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,bitmap.width,bitmap.height);ctx.drawImage(bitmap,0,0);bitmap.close();
+}
 function drawQrCanvas(text){
  const matrix=MatrixQRCode.matrix(text),modules=matrix.length,quiet=4,total=modules+quiet*2,size=960;
  if(!senderCanvas){senderCanvas=document.createElement('canvas');senderCanvas.id='senderQrCanvas';senderCanvas.setAttribute('role','img');senderCanvas.setAttribute('aria-label','送信中のQRコード');$('qrBox').replaceChildren(senderCanvas)}
@@ -11476,7 +11487,7 @@ function drawQrCanvas(text){
  ctx.fill();
  return senderCanvas;
 }
-function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();drawQrCanvas(part);frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
+async function showFrame(){if(!encoder)return;try{const part=encoder.nextPart();await drawBarcodeCanvas(part);frameIndex++;$('frameInfo').textContent=`表示フレーム ${frameIndex}（Fountain Codeのため総フレーム数は固定ではありません）`;$('sendBar').style.width=`${Math.min(100,frameIndex/Math.max(1,sendParts)*100)}%`;$('sendStatus').textContent=`送信中：URフレームを生成しています`;}catch(e){$('sendStatus').textContent='フレーム生成エラー：'+e.message;$('sendStatus').className='status err';stopPlay()}}
 function rebuildSender(){
  if(!currentEnvelope)return;
  stopPlay();
@@ -11489,7 +11500,7 @@ function rebuildSender(){
   $('sendStatus').textContent=`準備完了：元データ ${currentPayloadSize.toLocaleString()} bytes、転送データ ${currentEnvelope.length.toLocaleString()} bytes。基本フレーム目安 ${sendParts} · 1フレーム ${fragmentLength} bytes。`;
   $('sendStatus').className='status ok';
   $('play').disabled=false;$('pause').disabled=true;$('fullBtn').disabled=false;
-  showFrame();
+  await showFrame();
  }catch(e){
   encoder=null;$('play').disabled=true;$('pause').disabled=true;
   $('sendStatus').textContent='このフレームサイズではQRを生成できません：'+e.message+'。スライダーを戻してください。';
@@ -11497,7 +11508,7 @@ function rebuildSender(){
  }
 }
 function stopPlay(){if(playTimer)clearTimeout(playTimer);playTimer=null;$('play').disabled=!encoder;$('pause').disabled=true}
-function play(){if(!encoder)return;stopPlay();$('play').disabled=true;$('pause').disabled=false;const tick=()=>{if(!playTimer&&$('pause').disabled)return;showFrame();playTimer=setTimeout(tick,Number($('speed').value));};playTimer=setTimeout(tick,0)}
+function play(){if(!encoder)return;stopPlay();$('play').disabled=true;$('pause').disabled=false;const tick=async()=>{if(!playTimer&&$('pause').disabled)return;await showFrame();if(!$('pause').disabled)playTimer=setTimeout(tick,Number($('speed').value));};playTimer=setTimeout(tick,0)}
 $('prepare').onclick=async()=>{try{stopPlay();let bytes,name,mime,kind;if($('sendFile').files[0]){const f=$('sendFile').files[0];if(f.size>MAX)throw Error('試験ページのファイル上限は500KBです');bytes=new Uint8Array(await f.arrayBuffer());name=f.name;mime=f.type||'application/octet-stream';kind='file'}else{const text=$('sendText').value;if(!text)throw Error('テキストを入力するかファイルを選択してください');bytes=enc.encode(text);if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');name='message.txt';mime='text/plain;charset=utf-8';kind='text'}if(bytes.length>MAX)throw Error('試験ページのデータ上限は500KBです');currentEnvelope=await buildEnvelope(bytes,name,mime,kind);currentPayloadSize=bytes.length;$('urType').textContent='bytes';rebuildSender();}catch(e){encoder=null;$('sendStatus').textContent='生成失敗：'+e.message;$('sendStatus').className='status err'}};
 $('fragmentSize').addEventListener('input',()=>{$('fragmentSizeValue').textContent=Number($('fragmentSize').value)+' bytes';});
 $('fragmentSize').addEventListener('change',()=>{if(currentEnvelope)rebuildSender();});
@@ -11511,27 +11522,36 @@ function resetScanMetrics(){scanAttempts=0;scanHits=0;scanTotalMs=0;scanLastMs=0
 function updateScanMetrics(){const avg=scanAttempts?scanTotalMs/scanAttempts:0,elapsed=scanSessionStartedAt?Math.max(.001,(performance.now()-scanSessionStartedAt)/1000):0,rate=elapsed?seenParts.size/elapsed:0,hitRate=scanAttempts?scanHits/scanAttempts*100:0;$('scanMetrics').textContent=`解析 ${scanAttempts}回 · QR検出 ${scanHits}回 · 平均 ${avg.toFixed(1)} ms/frame · 直近 ${scanLastMs.toFixed(1)} ms`;$('uniqueRate').textContent=rate.toFixed(2);$('uniqueStats').textContent=`新規URフレーム ${seenParts.size} · QR検出率 ${hitRate.toFixed(1)}% · 経過 ${elapsed.toFixed(1)}秒`;}
 function readBenchmarkRuns(){try{const v=JSON.parse(localStorage.getItem(BENCH_KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}}
 function renderBenchmarkRuns(){const runs=readBenchmarkRuns(),body=$('benchRows');body.replaceChildren();if(!runs.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=9;td.textContent='記録なし';tr.append(td);body.append(tr);$('benchBest').textContent='最速設定: まだ記録がありません';return}
- const groups=new Map();for(const r of runs){const key=String(r.payloadBytes);const old=groups.get(key);if(!old||r.seconds<old.seconds)groups.set(key,r)}
+ const groups=new Map();for(const r of runs){const key=String(r.payloadBytes)+'|'+(r.barcodeFormat||'QRCode');const old=groups.get(key);if(!old||r.seconds<old.seconds)groups.set(key,r)}
  const best=[...groups.values()].sort((a,b)=>a.payloadBytes-b.payloadBytes).map(r=>`${r.payloadBytes.toLocaleString()} bytes: ${r.scanner} / ${r.fragmentBytes} bytes / ${r.senderFps} fps / ${r.seconds.toFixed(2)}秒`);
  $('benchBest').textContent='同じデータ量で最速: '+best.join(' ｜ ');
- for(const r of runs.slice(0,12)){const tr=document.createElement('tr');const values=[new Date(r.timestamp).toLocaleString(),r.scanner,r.payloadBytes.toLocaleString()+' B',r.fragmentBytes+' B',r.senderFps+' fps',r.firstQrMs==null?'—':(r.firstQrMs/1000).toFixed(2)+' s',r.seconds.toFixed(2)+' s',r.uniqueRate.toFixed(2),r.avgMs.toFixed(1)+' ms'];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td)}body.append(tr)}
+ for(const r of runs.slice(0,12)){const tr=document.createElement('tr');const values=[new Date(r.timestamp).toLocaleString(),r.scanner,r.barcodeFormat||'QRCode',r.payloadBytes.toLocaleString()+' B',r.fragmentBytes+' B',r.senderFps+' fps',r.firstQrMs==null?'—':(r.firstQrMs/1000).toFixed(2)+' s',r.seconds.toFixed(2)+' s',r.uniqueRate.toFixed(2),r.avgMs.toFixed(1)+' ms'];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td)}body.append(tr)}
 }
-function saveBenchmarkRun(){if(benchmarkSaved||!scanSessionStartedAt||!completed)return;benchmarkSaved=true;const track=stream?.getVideoTracks?.()[0],settings=track?.getSettings?.()||{},elapsed=Math.max(.001,scanCompletedMs/1000);const run={timestamp:new Date().toISOString(),scanner:scannerEngine,payloadBytes:completed.bytes.length,firstQrMs:scanFirstQrAt&&scanSessionStartedAt?scanFirstQrAt-scanSessionStartedAt:null,fragmentBytes:Math.max(80,Math.min(1400,Number($('benchFragmentSize').value)||300)),senderFps:1000/(Number($('benchSenderFps').value)||250),seconds:elapsed,uniqueFrames:seenParts.size,uniqueRate:seenParts.size/elapsed,avgMs:scanAttempts?scanTotalMs/scanAttempts:0,attempts:scanAttempts,hits:scanHits,cameraWidth:settings.width||0,cameraHeight:settings.height||0};try{const runs=readBenchmarkRuns();runs.unshift(run);localStorage.setItem(BENCH_KEY,JSON.stringify(runs.slice(0,100)));renderBenchmarkRuns();}catch(e){$('benchBest').textContent='記録保存に失敗: '+e.message}}
-$('exportBench').onclick=()=>{const rows=readBenchmarkRuns();if(!rows.length)return;const keys=['timestamp','scanner','payloadBytes','fragmentBytes','senderFps','firstQrMs','seconds','uniqueFrames','uniqueRate','avgMs','attempts','hits','cameraWidth','cameraHeight'];const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='quickdrop-benchmark.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+function saveBenchmarkRun(){if(benchmarkSaved||!scanSessionStartedAt||!completed)return;benchmarkSaved=true;const track=stream?.getVideoTracks?.()[0],settings=track?.getSettings?.()||{},elapsed=Math.max(.001,scanCompletedMs/1000);const run={timestamp:new Date().toISOString(),scanner:scannerEngine,barcodeFormat:$('receiveFormat').value,payloadBytes:completed.bytes.length,firstQrMs:scanFirstQrAt&&scanSessionStartedAt?scanFirstQrAt-scanSessionStartedAt:null,fragmentBytes:Math.max(80,Math.min(1400,Number($('benchFragmentSize').value)||300)),senderFps:1000/(Number($('benchSenderFps').value)||250),seconds:elapsed,uniqueFrames:seenParts.size,uniqueRate:seenParts.size/elapsed,avgMs:scanAttempts?scanTotalMs/scanAttempts:0,attempts:scanAttempts,hits:scanHits,cameraWidth:settings.width||0,cameraHeight:settings.height||0};try{const runs=readBenchmarkRuns();runs.unshift(run);localStorage.setItem(BENCH_KEY,JSON.stringify(runs.slice(0,100)));renderBenchmarkRuns();}catch(e){$('benchBest').textContent='記録保存に失敗: '+e.message}}
+$('exportBench').onclick=()=>{const rows=readBenchmarkRuns();if(!rows.length)return;const keys=['timestamp','scanner','barcodeFormat','payloadBytes','fragmentBytes','senderFps','firstQrMs','seconds','uniqueFrames','uniqueRate','avgMs','attempts','hits','cameraWidth','cameraHeight'];const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='quickdrop-benchmark.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('clearBench').onclick=()=>{if(confirm('このブラウザに保存したQuickDrop計測履歴を消去しますか？')){localStorage.removeItem(BENCH_KEY);renderBenchmarkRuns()}};
 renderBenchmarkRuns();
 async function configureScanner(){
+ const wantedFormat=$('receiveFormat').value;
+ const nativeFormatMap={QRCode:'qr_code',Aztec:'aztec',DataMatrix:'data_matrix'};
+ let wasmFormat='qr_code';
  const requested=$('scannerSelect').value;
  barcodeDetector=null;scannerEngine='jsqr';
  const nativeAvailable=typeof window.BarcodeDetector==='function';
  if((requested==='native'||requested==='auto')&&nativeAvailable){
   try{
    const formats=typeof BarcodeDetector.getSupportedFormats==='function'?await BarcodeDetector.getSupportedFormats():['qr_code'];
-   if(formats.includes('qr_code')){barcodeDetector=new BarcodeDetector({formats:['qr_code']});scannerEngine='native';}
-   else if(requested==='native')throw Error('Native BarcodeDetectorはQRコードに対応していません');
+   const nativeName=nativeFormatMap[wantedFormat];
+   if(formats.includes(nativeName)){barcodeDetector=new BarcodeDetector({formats:[nativeName]});scannerEngine='native';}
+   else if(requested==='native')throw Error('Native BarcodeDetectorは'+wantedFormat+'に対応していません');
   }catch(e){if(requested==='native')throw e;}
  }else if(requested==='native')throw Error('このブラウザはNative BarcodeDetectorに対応していません');
- if(!barcodeDetector&&(requested==='wasm'||requested==='auto')){
+ if(!barcodeDetector&&(requested==='zxing'||requested==='auto')){
+  try{if(!zxingReadBarcodes){const z=await import('https://esm.sh/zxing-wasm@3.1.6/reader?bundle&target=es2022');zxingReadBarcodes=z.readBarcodes;}scannerEngine='zxing';}
+  catch(e){if(requested==='zxing')throw Error('ZXing-C++ WASMの初期化に失敗しました: '+e.message);}
+ }
+ if(!barcodeDetector&&!zxingReadBarcodes&&(requested==='wasm'||requested==='auto')){
+  if(wantedFormat!=='QRCode'&&requested==='wasm')throw Error('WASM ZBar試験版はQR形式のみです。Aztec/Data MatrixはZXing-C++ WASMを選択してください');
   try{
    if(!wasmDetectorClass){
     const module=await import('https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9.23/dist/main.js');
@@ -11544,9 +11564,12 @@ async function configureScanner(){
    wasmDetectorClass=null;
   }
  }
+ if(requested==='wasm'&&wantedFormat!=='QRCode')throw Error('WASM ZBar試験版はQR形式のみです');
+ if(requested==='jsqr'&&wantedFormat!=='QRCode')throw Error('jsQRはQR形式のみです');
  if(requested==='jsqr')scannerEngine='jsqr';
  if(scannerEngine==='native')$('scanMode').textContent='認識方式: Native BarcodeDetector';
  else if(scannerEngine==='wasm')$('scanMode').textContent='認識方式: WASM ZBar（@undecaf）';
+ else if(scannerEngine==='zxing')$('scanMode').textContent='認識方式: ZXing-C++ WASM';
  else $('scanMode').textContent='認識方式: jsQR（JavaScript）';
  resetScanMetrics();resetReceive();
 }
@@ -11569,6 +11592,15 @@ async function scanTick(){
      $('scanMode').textContent=`認識方式: jsQR（${failed}の実行エラーで切替）`;
      $('recvStatus').textContent=`${failed}スキャナーエラー。jsQRに切り替えました: ${detectError.message}`;
     }
+   }
+   if(scannerEngine==='zxing'){
+    const scale=Math.min(1,1440/v.videoWidth),w=Math.max(1,Math.round(v.videoWidth*scale)),h=Math.max(1,Math.round(v.videoHeight*scale));
+    if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+    const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(v,0,0,w,h);
+    const imageData=ctx.getImageData(0,0,w,h);
+    const formats={QRCode:'QRCode',Aztec:'Aztec',DataMatrix:'DataMatrix'};
+    const hits=await zxingReadBarcodes(imageData,{formats:[formats[$('receiveFormat').value]],tryHarder:false,maxNumberOfSymbols:1});
+    const hit=hits.find(x=>typeof x.text==='string'&&/^ur:/i.test(x.text));if(hit)rawValue=hit.text;
    }
    if(scannerEngine==='jsqr'){
     const scale=Math.min(1,1440/v.videoWidth),w=Math.max(1,Math.round(v.videoWidth*scale)),h=Math.max(1,Math.round(v.videoHeight*scale));

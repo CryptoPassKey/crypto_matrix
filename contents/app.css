@@ -139,3 +139,33 @@ html:not(.light) .cm-board #div-encrypto-matrix-main .square.fallback-tile {
 /* Light mode: keep original pale inline boxes (overrides stale cached dark rule) */
 html.light .cm-legacy [style*="background:#f1f5f9"], html.light .cm-legacy [style*="background: #f1f5f9"] { background: #f1f5f9 !important; }
 html.light .cm-legacy [style*="background:#f8fafc"], html.light .cm-legacy [style*="background: #f8fafc"] { background: #f8fafc !important; }
+
+
+/* ===== PWA manual update: logo tap + pull-down ===== */
+.cm-logo { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cm-logo:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.cm-update-status {
+  position: fixed;
+  z-index: 9999;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: 50%;
+  max-width: calc(100vw - 28px);
+  width: max-content;
+  padding: 9px 15px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--background) 94%, var(--primary));
+  color: var(--foreground);
+  box-shadow: 0 8px 28px #0005;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -150%);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.cm-update-status.is-visible { opacity: 1; transform: translate(-50%, 0); }
+.cm-update-status[data-state="error"] { border-color: #d65b55; }
+.cm-update-status[data-state="success"] { border-color: #258b50; }
+.cm-update-status[data-state="pull"] { border-color: var(--primary); }

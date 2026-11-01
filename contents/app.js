@@ -484,18 +484,263 @@
     }, 300);
   });
 
-  /* ---------- オフライン対応（Service Worker） ---------- */
+  /* ---------- PWA 手動更新（ロゴタップ／プルダウン） ---------- */
   if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').then(function (reg) {
-        // 新しい版が入ったら次回起動から自動で切り替わる
-        reg.addEventListener('updatefound', function () {
-          var nw = reg.installing;
-          if (nw) nw.addEventListener('statechange', function () {
-            if (nw.state === 'activated' && navigator.serviceWorker.controller) console.info('Crypto Matrix: 新しい版を読み込みました（次回の再読み込みで反映）');
-          });
-        });
-      }).catch(function () {});
+    var cmSwRegistration = null;
+    var cmUpdateRunning = false;
+    var cmReloadAfterControllerChange = false;
+    var cmControllerChangedSinceLoad = false;
+    var cmHadControllerAtLoad = !!navigator.serviceWorker.controller;
+    var cmUpdateToast = null;
+    var cmUpdateToastTimer = 0;
+
+    function cmGetUpdateToast() {
+      if (cmUpdateToast) return cmUpdateToast;
+      cmUpdateToast = document.createElement('div');
+      cmUpdateToast.className = 'cm-update-status';
+      cmUpdateToast.setAttribute('role', 'status');
+      cmUpdateToast.setAttribute('aria-live', 'polite');
+      document.body.appendChild(cmUpdateToast);
+      return cmUpdateToast;
+    }
+
+    function cmShowUpdateStatus(message, state, duration) {
+      var el = cmGetUpdateToast();
+      if (cmUpdateToastTimer) clearTimeout(cmUpdateToastTimer);
+      el.textContent = message;
+      el.dataset.state = state || 'info';
+      el.classList.add('is-visible');
+      if (duration > 0) {
+        cmUpdateToastTimer = setTimeout(function () {
+          el.classList.remove('is-visible');
+          cmUpdateToastTimer = 0;
+        }, duration);
+      }
+    }
+
+    function cmHideUpdateStatus() {
+      if (cmUpdateToastTimer) clearTimeout(cmUpdateToastTimer);
+      cmUpdateToastTimer = 0;
+      if (cmUpdateToast) cmUpdateToast.classList.remove('is-visible');
+    }
+
+    function cmUpdateBlockReason() {
+      var blocked = document.querySelectorAll('dialog[open], [aria-modal="true"], [aria-busy="true"], [data-cm-busy="true"]');
+      for (var b = 0; b < blocked.length; b++) {
+        if (!blocked[b].hidden && blocked[b].getClientRects().length > 0) {
+          return 'ダイアログまたは処理中の画面を閉じてから更新してください';
+        }
+      }
+      var videos = document.querySelectorAll('video');
+      for (var i = 0; i < videos.length; i++) {
+        var media = videos[i].srcObject;
+        if (media && typeof media.getVideoTracks === 'function' &&
+            media.getVideoTracks().some(function (track) { return track.readyState === 'live'; })) {
+          return 'カメラを停止してから更新してください';
+        }
+      }
+      return '';
+    }
+
+    function cmWaitForInstalled(reg, worker) {
+      return new Promise(function (resolve, reject) {
+        if (!worker) { resolve(null); return; }
+        if (worker.state === 'installed') {
+          resolve(reg.waiting || (worker !== reg.active ? worker : null));
+          return;
+        }
+        if (worker.state === 'redundant') {
+          reject(new Error('アップデートのインストールに失敗しました'));
+          return;
+        }
+        var timer = setTimeout(function () {
+          finish(null, new Error('アップデートの準備がタイムアウトしました'));
+        }, 90000);
+        function finish(value, error) {
+          clearTimeout(timer);
+          worker.removeEventListener('statechange', onStateChange);
+          if (error) reject(error);
+          else resolve(value);
+        }
+        function onStateChange() {
+          if (worker.state === 'installed') {
+            finish(reg.waiting || (worker !== reg.active ? worker : null));
+          } else if (worker.state === 'redundant') {
+            finish(null, new Error('アップデートのインストールに失敗しました'));
+          }
+        }
+        worker.addEventListener('statechange', onStateChange);
+        onStateChange();
+      });
+    }
+
+    function cmActivateWaitingWorker(worker) {
+      if (!worker) {
+        cmShowUpdateStatus('最新版です', 'success', 2200);
+        return;
+      }
+      var blockReason = cmUpdateBlockReason();
+      if (blockReason) {
+        cmShowUpdateStatus('更新を準備しました。' + blockReason, 'info', 5000);
+        return;
+      }
+      cmReloadAfterControllerChange = true;
+      cmShowUpdateStatus('アップデートを適用しています…', 'checking', 0);
+      worker.postMessage({ type: 'CM_SKIP_WAITING' });
+      // A few browsers may not dispatch controllerchange to an already-controlled page.
+      setTimeout(function () {
+        if (cmReloadAfterControllerChange) {
+          cmReloadAfterControllerChange = false;
+          window.location.reload();
+        }
+      }, 10000);
+    }
+
+    async function cmCheckForUpdate() {
+      if (cmUpdateRunning) return;
+      var blockReason = cmUpdateBlockReason();
+      if (blockReason) {
+        cmShowUpdateStatus(blockReason, 'error', 3500);
+        return;
+      }
+      if (cmControllerChangedSinceLoad) {
+        cmShowUpdateStatus('最新版に切り替えています…', 'checking', 0);
+        window.location.reload();
+        return;
+      }
+      if (!navigator.onLine) {
+        cmShowUpdateStatus('オフラインのため更新を確認できません', 'error', 3500);
+        return;
+      }
+      cmUpdateRunning = true;
+      cmShowUpdateStatus('最新版を確認しています…', 'checking', 0);
+      try {
+        if (!cmSwRegistration) {
+          cmSwRegistration = await navigator.serviceWorker.getRegistration();
+        }
+        if (!cmSwRegistration) {
+          cmShowUpdateStatus('更新機能を利用できません。ページを再読み込みしてください', 'error', 4500);
+          return;
+        }
+        await cmSwRegistration.update();
+        var worker = null;
+        if (cmSwRegistration.installing) {
+          worker = await cmWaitForInstalled(cmSwRegistration, cmSwRegistration.installing);
+        } else {
+          worker = cmSwRegistration.waiting;
+        }
+        if (cmSwRegistration.waiting) worker = cmSwRegistration.waiting;
+        if (worker && worker !== cmSwRegistration.active) {
+          cmActivateWaitingWorker(worker);
+        } else {
+          cmShowUpdateStatus('最新版です', 'success', 2200);
+        }
+      } catch (error) {
+        cmShowUpdateStatus('更新確認に失敗しました：' + (error && error.message ? error.message : String(error)), 'error', 5000);
+      } finally {
+        cmUpdateRunning = false;
+      }
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (cmReloadAfterControllerChange) {
+        cmReloadAfterControllerChange = false;
+        window.location.reload();
+        return;
+      }
+      // Other open tabs are not forcibly reloaded; their next manual refresh switches them.
+      if (cmHadControllerAtLoad) cmControllerChangedSinceLoad = true;
     });
+
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+        cmSwRegistration = reg;
+
+        // An update downloaded during a previous session is activated on this launch.
+        // Updates discovered by this registration check remain waiting until the next launch
+        // (or an explicit logo/pull-down action).
+        if (reg.waiting && reg.waiting !== reg.active) {
+          cmShowUpdateStatus('前回取得したアップデートを適用しています…', 'checking', 0);
+          cmActivateWaitingWorker(reg.waiting);
+          return;
+        }
+        // Check for a newer release in the background. A newly installed worker is
+        // intentionally left waiting; it will be applied on the next launch.
+        reg.update().catch(function () {});
+      }).catch(function () {
+        cmShowUpdateStatus('アプリの更新機能を初期化できませんでした', 'error', 4500);
+      });
+    });
+
+    var cmUpdateTrigger = document.getElementById('cm-update-trigger');
+    if (cmUpdateTrigger) {
+      cmUpdateTrigger.addEventListener('click', cmCheckForUpdate);
+    }
+
+    // Pull down only from the top-level page. Inputs, dialogs, horizontal gestures,
+    // and nested scroll panels are excluded so existing controls remain unaffected.
+    var cmPullStartX = 0;
+    var cmPullStartY = 0;
+    var cmPullArmed = false;
+    var cmPullTracking = false;
+    var cmPullDistance = 0;
+    var cmPullThreshold = 82;
+
+    function cmIsPageAtTop() {
+      var scrolling = document.scrollingElement || document.documentElement;
+      return window.scrollY <= 1 && scrolling.scrollTop <= 1;
+    }
+
+    function cmIsExcludedPullTarget(target) {
+      var el = target && target.nodeType === 1 ? target : target && target.parentElement;
+      if (!el) return true;
+      if (el.closest('input, textarea, select, button, [contenteditable="true"], dialog, [role="dialog"], .cm-dialog, .ts-modal-dialog')) return true;
+      while (el && el !== document.body && el !== document.documentElement) {
+        var style = window.getComputedStyle(el);
+        var overflowY = style.overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 4) return true;
+        el = el.parentElement;
+      }
+      return false;
+    }
+
+    document.addEventListener('touchstart', function (event) {
+      cmPullArmed = false;
+      cmPullTracking = false;
+      cmPullDistance = 0;
+      if (event.touches.length !== 1 || !cmIsPageAtTop() || cmIsExcludedPullTarget(event.target)) return;
+      cmPullArmed = true;
+      cmPullStartX = event.touches[0].clientX;
+      cmPullStartY = event.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function (event) {
+      if (!cmPullArmed || event.touches.length !== 1 || !cmIsPageAtTop()) return;
+      var touch = event.touches[0];
+      var dx = touch.clientX - cmPullStartX;
+      var dy = touch.clientY - cmPullStartY;
+      if (dy <= 10 || Math.abs(dx) > dy * 0.9) return;
+      cmPullTracking = true;
+      cmPullDistance = dy;
+      if (event.cancelable) event.preventDefault();
+      cmShowUpdateStatus(dy >= cmPullThreshold ? '離すと最新版を確認' : '下に引っ張って更新…', 'pull', 0);
+    }, { passive: false });
+
+    function cmFinishPull() {
+      if (!cmPullTracking) return;
+      var shouldUpdate = cmPullDistance >= cmPullThreshold;
+      cmPullArmed = false;
+      cmPullTracking = false;
+      cmPullDistance = 0;
+      if (shouldUpdate) cmCheckForUpdate();
+      else cmHideUpdateStatus();
+    }
+    document.addEventListener('touchend', cmFinishPull, { passive: true });
+    document.addEventListener('touchcancel', function () {
+      cmPullArmed = false;
+      cmPullTracking = false;
+      cmPullDistance = 0;
+      cmHideUpdateStatus();
+    }, { passive: true });
   }
 })();

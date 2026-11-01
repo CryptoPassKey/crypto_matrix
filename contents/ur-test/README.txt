@@ -10,8 +10,8 @@ Other files:
 Run:
 1. Open the folder URL (index.html) or ur-quickdrop-test-fixed.html. The BC-UR JS library is loaded from esm.sh with crc@3.8.0 pinned explicitly. The page loads the Buffer polyfill first, assigns the same constructor to globalThis.Buffer, and only then imports BC-UR; this is required by cbor-sync's instanceof Buffer check. Internet access is required for initial load.
 2. For camera reception, serve over HTTPS or localhost (camera permissions do not normally work from file://).
-3. On sender, enter text or choose a file, click "URを生成", then "再生". Sender QR frames are painted into a persistent Canvas rather than rebuilt as SVG; dark module runs are batched into one path/fill per frame.
-4. On receiver, select a scanner mode and click "カメラ開始". Choices: Auto (Native → WASM → jsQR), Native BarcodeDetector, WASM ZBar, and the existing jsQR baseline. WASM ZBar dynamically loads `@undecaf/barcode-detector-polyfill@0.9.23` from jsDelivr. ZXing-C++ WASM uses `zxing-wasm@3.1.6` reader/writer modules from esm.sh; its matching WebAssembly binary is loaded from jsDelivr. Internet access is required for first use.
+3. On sender, choose QR Code, Aztec Code, or Data Matrix, enter text or choose a file, click "URを生成", then "再生". QR frames use the existing local Canvas renderer; Aztec and Data Matrix frames are generated with ZXing-C++ WASM. Keep sender and receiver code-format selections identical.
+4. On receiver, select a scanner mode and click "カメラ開始". Choices: Auto, Native BarcodeDetector, WASM ZBar, ZXing-C++ WASM, and the existing jsQR baseline. Auto prefers Native when it supports the selected format, then ZXing-C++ WASM; for QR only, it can fall back to ZBar and jsQR. WASM ZBar dynamically loads `@undecaf/barcode-detector-polyfill@0.9.23` from jsDelivr. ZXing-C++ WASM uses `zxing-wasm@3.1.6` reader/writer modules from esm.sh; its matching WebAssembly binary is loaded from jsDelivr. Internet access is required for first use.
 
 Protocol and performance settings:
 - Uses @ngraveio/bc-ur 1.1.13, UREncoder/URDecoder, and standard UR type `bytes`.
@@ -25,4 +25,4 @@ Protocol and performance settings:
 - This is UR-compatible at the `ur:bytes` transport level, but the inner QDP v1 envelope is CryptoMatrix-specific; other UR apps will not interpret the original payload automatically.
 - SHA-256 is checked after reconstruction. UR's own encoding/checksum handling is delegated to the library.
 - No encryption. Do not use real secrets in a shared/public environment.
-- The current environment cannot validate camera-to-camera performance; measure with the target phone and PC. BarcodeDetector availability varies by browser. Versioning: each subsequent test-page update increments the visible title suffix (v2, v3, ...).
+- The current environment cannot validate camera-to-camera performance; measure with the target phone and PC. BarcodeDetector availability varies by browser. Versioning: each subsequent test-page update increments the visible title suffix (v2, v3, v4, ...).

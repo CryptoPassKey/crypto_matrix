@@ -18,9 +18,10 @@ Protocol and performance settings:
 - Payload is wrapped in a compact private QDP v1 binary envelope, not a JSON numeric array. It stores kind, filename, MIME type, payload length, original bytes, and a SHA-256 digest.
 - UR fragment payload length is adjustable with a continuous slider from 80 to 1400 bytes (step 20, default 300). Changing the slider after preparation regenerates the UR stream immediately.
 - Default display interval is 250 ms (4 frames/second); UI options range from 200 ms (5 fps) to 750 ms (about 1.3 fps).
-- Camera request asks for up to 1920x1080 at 30 fps as an ideal, not a hard requirement. Native BarcodeDetector scans the video element; jsQR fallback samples a downscaled 1440px maximum canvas.
+- Camera request asks for up to 1920x1080 at 30 fps as an ideal, not a hard requirement. Native BarcodeDetector and WASM ZBar scan the live video element directly; jsQR samples a downscaled 1440px maximum canvas. The scanner selector can be changed while running with 「方式を適用」; the camera restarts with the selected engine. If Native/WASM throws at runtime, the page visibly falls back to jsQR.
 - Repeated identical camera-read frames are ignored before passing them to URDecoder.
 - Max original payload: 500 KiB (test limit).
+- The ZBar polyfill package is MIT-licensed and depends on `zbar-wasm` under LGPL; this test loads it from jsDelivr rather than bundling it. Review dependency license and deployment requirements before production use.
 - This is UR-compatible at the `ur:bytes` transport level, but the inner QDP v1 envelope is CryptoMatrix-specific; other UR apps will not interpret the original payload automatically.
 - SHA-256 is checked after reconstruction. UR's own encoding/checksum handling is delegated to the library.
 - No encryption. Do not use real secrets in a shared/public environment.

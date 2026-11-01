@@ -11547,10 +11547,18 @@ async function scanTick(){
    let rawValue=null;
    const scanStarted=performance.now();
    if(scannerEngine==='native'||scannerEngine==='wasm'){
-    const results=await barcodeDetector.detect(v);
-    const hit=results.find(x=>typeof x.rawValue==='string'&&/^ur:/i.test(x.rawValue));
-    if(hit)rawValue=hit.rawValue;
-   }else{
+    try{
+     const results=await barcodeDetector.detect(v);
+     const hit=results.find(x=>typeof x.rawValue==='string'&&/^ur:/i.test(x.rawValue));
+     if(hit)rawValue=hit.rawValue;
+    }catch(detectError){
+     const failed=scannerEngine;
+     barcodeDetector=null;scannerEngine='jsqr';
+     $('scanMode').textContent=`認識方式: jsQR（${failed}の実行エラーで切替）`;
+     $('recvStatus').textContent=`${failed}スキャナーエラー。jsQRに切り替えました: ${detectError.message}`;
+    }
+   }
+   if(scannerEngine==='jsqr'){
     const scale=Math.min(1,1440/v.videoWidth),w=Math.max(1,Math.round(v.videoWidth*scale)),h=Math.max(1,Math.round(v.videoHeight*scale));
     if(c.width!==w||c.height!==h){c.width=w;c.height=h}
     const ctx=c.getContext('2d',{willReadFrequently:true});

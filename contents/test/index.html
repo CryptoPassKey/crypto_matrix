@@ -51,7 +51,7 @@ video{width:100%;max-height:360px;background:#02070d;border-radius:10px;display:
 .map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:.74rem;color:var(--muted)}
 .map-key{display:inline-flex;align-items:center;gap:5px}
 .map-dot{display:inline-block;width:9px;height:9px;border-radius:2px}
-.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #65b7ff}.map-missing{background:#253b52}
+.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
@@ -109,7 +109,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <p id="txBlockSummary" class="blockmap-summary">転送データを準備するとブロックが表示されます</p>
   <div class="map-legend">
    <span class="map-key"><i class="map-dot map-direct"></i>直接送信済み</span>
-   <span class="map-key"><i class="map-dot map-active"></i>青枠 = 現在の合成対象</span>
+   <span class="map-key"><i class="map-dot map-active"></i>黒枠 = 現在表示中のQRの対象</span>
    <span class="map-key"><i class="map-dot map-missing"></i>未送信</span>
   </div>
  </div>
@@ -154,13 +154,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="stat"><b id="rxHitRate">0%</b><small>QR検出率</small></div>
  </div>
  <div class="blockmap-section">
-  <div class="blockmap-title"><strong>受信ブロック状態</strong><small>未取得・直接取得・合成復元を色分け</small></div>
+  <div class="blockmap-title"><strong>受信ブロック状態</strong><small>取得状態の色 + 最後に読み込んだQRの位置を黒枠で表示</small></div>
   <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信元データブロックの状態"></canvas></div>
   <p id="rxBlockSummary" class="blockmap-summary">受信を開始するとブロック状態が表示されます</p>
   <div class="map-legend">
    <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
    <span class="map-key"><i class="map-dot map-recovered"></i>合成片から復元</span>
-   <span class="map-key"><i class="map-dot map-active"></i>青枠 = 現在の受信片</span>
+   <span class="map-key"><i class="map-dot map-active"></i>黒枠 = 最後に読み込んだQRの対象</span>
    <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
   </div>
  </div>

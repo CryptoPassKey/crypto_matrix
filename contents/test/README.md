@@ -134,7 +134,7 @@ The in-page self-test also checks the MUR fragment-chooser reference vectors for
 
 ## TX/RX block-map layout
 
-The TX block map is placed immediately below the animated QR display. The RX block map is rendered as a compact translucent HUD over the lower edge of the camera preview, keeping the same grid width and column behavior as TX while avoiding a separate panel that shifts the camera layout. On narrow screens, the HUD legend is hidden to keep the camera view usable. The cursor and received/recovered cell colors remain independent.
+The TX block map is placed immediately below the animated QR display. The RX block map is rendered as a separate section directly below the camera preview, not overlaid on top of the camera image. It uses the same grid renderer, width behavior, legend, and cell state colors as TX. This keeps the QR camera view unobstructed while making acquisition progress easy to inspect at a glance. The cursor and received/recovered cell colors remain independent.
 
 For small transfers, the map uses fewer columns (up to 75) so each source block remains large enough to track visually. Both maps use the same mapping and sizing logic.
 

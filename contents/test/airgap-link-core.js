@@ -3,7 +3,6 @@
 
   var MAGIC = 'CMAL1';
   var GROUP_SIZE = 8;
-  var GF_POLY = 0x11d;
   var crcTable = new Uint32Array(256);
 
   for (var c = 0; c < 256; c++) {
@@ -201,10 +200,6 @@
     return { lengths: lengths, bytes: payload.subarray(headerLength), maxLength: maxLength };
   }
 
-  function xorInto(target, source) {
-    for (var i = 0; i < source.length; i++) target[i] ^= source[i];
-  }
-
   function Receiver() {
     this.reset();
   }
@@ -384,9 +379,22 @@
     }
     if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1DEFL圧縮データですが、このブラウザはDeflate復号に対応していません');
     var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(8, false);
+    if (expected > 8000000) throw new Error('展開後サイズが試験上限8 MBを超えています');
     var compressed = bytes.subarray(12);
-    var stream = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate'));
-    var result = new Uint8Array(await new Response(stream).arrayBuffer());
+    var reader = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate')).getReader();
+    var chunks = [];
+    var total = 0;
+    while (true) {
+      var item = await reader.read();
+      if (item.done) break;
+      total += item.value.length;
+      if (total > expected || total > 8000000) {
+        await reader.cancel();
+        throw new Error('圧縮データが宣言サイズを超えて展開されました');
+      }
+      chunks.push(item.value);
+    }
+    var result = concatBytes(chunks);
     if (result.length !== expected) throw new Error('圧縮データの展開後サイズが一致しません');
     return { bytes: result, decompressed: true };
   }

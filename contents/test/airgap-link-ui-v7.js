@@ -36,8 +36,10 @@
   var scanDecodeTotalMs = 0;
   var scanIngestTotalMs = 0;
   var scanVideoFrameCallback = null;
-  var txMapSignature = '';
-  var rxMapSignature = '';
+  var txMapLastBlocks = null;
+  var txMapLastTotal = -1;
+  var txMapLastFocusIndex = null;
+  var rxMapDirty = true;
   var scanStartAt = 0;
   var scanFirstHitAt = 0;
   var transferTiming = { startedAt: null, endedAt: null, frameCount: 0 };
@@ -61,8 +63,10 @@
     return kibPerSecond.toFixed(2) + ' KB/s';
   }
 
-  function setSignature(set) {
-    return set ? Array.from(set).sort(function (a, b) { return a - b; }).join(',') : '';
+  function sameSet(left, right) {
+    if (!left || !right || left.size !== right.size) return false;
+    for (var value of left) if (!right.has(value)) return false;
+    return true;
   }
 
   function recordTransferFrame(timing, firstFramePending, duplicate, now) {
@@ -188,10 +192,12 @@
       canvas.setAttribute('aria-valuenow', String(txMapSelectedIndex + 1));
       canvas.setAttribute('aria-valuetext', 'ブロック ' + (txMapSelectedIndex + 1) + ' を選択');
       var focusIndex = document.activeElement === canvas ? txMapSelectedIndex : -1;
-      var signature = total + '|' + setSignature(txCurrentBlocks) + '|' + focusIndex;
-      if (signature !== txMapSignature) {
+      if (total !== txMapLastTotal || !sameSet(txCurrentBlocks, txMapLastBlocks) ||
+          focusIndex !== txMapLastFocusIndex) {
         drawBlockMap('txBlockMap', total, null, null, txCurrentBlocks, true, focusIndex);
-        txMapSignature = signature;
+        txMapLastBlocks = new Set(txCurrentBlocks);
+        txMapLastTotal = total;
+        txMapLastFocusIndex = focusIndex;
       }
       $('txBlockSummary').textContent = '元データ ' + total + 'ブロック · ' +
         (txCurrentLabel || '現在のQR位置を表示します');
@@ -201,9 +207,11 @@
       canvas.setAttribute('aria-valuemax', '1');
       canvas.setAttribute('aria-valuenow', '1');
       canvas.setAttribute('aria-valuetext', '転送データなし');
-      if (txMapSignature !== 'empty') {
+      if (txMapLastTotal !== 0) {
         drawBlockMap('txBlockMap', 0, null, null, null, false, -1);
-        txMapSignature = 'empty';
+        txMapLastBlocks = new Set();
+        txMapLastTotal = 0;
+        txMapLastFocusIndex = -1;
       }
       $('txBlockSummary').textContent = '転送データを準備するとブロックが表示されます';
     }

@@ -42,6 +42,16 @@ video{width:100%;max-height:360px;background:#02070d;border-radius:10px;display:
 .note{border-left:3px solid var(--accent2);background:#11253a;padding:9px 11px;border-radius:0 8px 8px 0;font-size:.82rem;color:#c1d4e7;margin:12px 0}
 .warn{border-left-color:#e6b85c}.section-rule{height:1px;background:var(--line);margin:16px 0}
 .footer{color:var(--muted);font-size:.78rem;margin-top:18px}
+.mode-select{margin:8px 0 12px}
+.blockmap-section{margin:14px 0 12px;padding:11px;border:1px solid #29445f;border-radius:11px;background:#091724}
+.blockmap-title{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-size:.84rem;margin-bottom:7px}
+.blockmap-viewport{max-height:210px;overflow:auto;border:1px solid #263e55;border-radius:7px;background:#07111d;padding:5px}
+.blockmap-viewport canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+.blockmap-summary{font-size:.78rem;color:var(--muted);margin:7px 0 0;overflow-wrap:anywhere}
+.map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:.74rem;color:var(--muted)}
+.map-key{display:inline-flex;align-items:center;gap:5px}
+.map-dot{display:inline-block;width:9px;height:9px;border-radius:2px}
+.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #65b7ff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
@@ -49,12 +59,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="../qr-encoder.js"></script>
 <script src="../vendor/jsQR.js"></script>
 <script src="airgap-link-core.js"></script>
+<script src="airgap-link-fountain.js"></script>
 <script src="airgap-link-ui.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab</h1><p class="subtitle">CMAL1 · screen-to-camera · local QR engine · no external library download</p></div>
+ <div><h1>Airgap <span>Link</span> / Test Lab</h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
  <span class="pill">OFFLINE TEST PAGE</span>
 </header>
 
@@ -68,6 +79,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="muted" style="text-align:center;margin:4px">または</div>
  <label for="txText">テキスト入力</label>
  <textarea id="txText" placeholder="ファイルを選択しない場合、ここにテキストを入力"></textarea>
+
+ <label for="transferMode">転送方式</label>
+ <select id="transferMode" class="mode-select">
+  <option value="legacy">従来CMAL1 — 順次 + P0/P1（最大2片/8片ブロック）</option>
+  <option value="fountain">LTファウンテン — MUR系LT / CMAL1独自フレーム（実験）</option>
+ </select>
+ <p id="txModeHint" class="muted">従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。</p>
 
  <div class="controls">
   <div>
@@ -85,6 +103,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <label><input id="parityEnabled" type="checkbox" checked> 2消失訂正パリティ（8片ごと）</label>
   <label><input id="compressionEnabled" type="checkbox"> Deflate圧縮を試す</label>
  </div>
+ <div class="blockmap-section">
+  <div class="blockmap-title"><strong>送信ブロック状態</strong><small>1マス = 元データ1ブロック</small></div>
+  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="送信元データブロックの状態"></canvas></div>
+  <p id="txBlockSummary" class="blockmap-summary">転送データを準備するとブロックが表示されます</p>
+  <div class="map-legend">
+   <span class="map-key"><i class="map-dot map-direct"></i>直接送信済み</span>
+   <span class="map-key"><i class="map-dot map-active"></i>青枠 = 現在の合成対象</span>
+   <span class="map-key"><i class="map-dot map-missing"></i>未送信</span>
+  </div>
+ </div>
  <div class="row">
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
   <button id="playTx" type="button" disabled>再生</button>
@@ -93,7 +121,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
  <div class="statgrid">
-  <div class="stat"><b id="txFrameCount">—</b><small>データ / 総フレーム</small></div>
+  <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データ / 総フレーム</small></div>
   <div class="stat"><b id="txPayloadSize">—</b><small>転送データ</small></div>
   <div class="stat"><b id="txQrGenMs">—</b><small>直近QR生成時間</small></div>
  </div>
@@ -118,12 +146,23 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <p id="scannerMode" class="status info">読み取り方式：未初期化</p>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid">
-  <div class="stat"><b id="rxProgressText">0 / 0</b><small>受信データ片</small></div>
+  <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>
   <div class="stat"><b id="rxRate">0.0</b><small>新規フレーム / 秒</small></div>
   <div class="stat"><b id="rxAvgMs">0 ms</b><small>平均解析時間</small></div>
   <div class="stat"><b id="rxLost">—</b><small>未取得データ片</small></div>
   <div class="stat"><b id="rxRecovered">0</b><small>パリティ復元</small></div>
   <div class="stat"><b id="rxHitRate">0%</b><small>QR検出率</small></div>
+ </div>
+ <div class="blockmap-section">
+  <div class="blockmap-title"><strong>受信ブロック状態</strong><small>未取得・直接取得・合成復元を色分け</small></div>
+  <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信元データブロックの状態"></canvas></div>
+  <p id="rxBlockSummary" class="blockmap-summary">受信を開始するとブロック状態が表示されます</p>
+  <div class="map-legend">
+   <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
+   <span class="map-key"><i class="map-dot map-recovered"></i>合成片から復元</span>
+   <span class="map-key"><i class="map-dot map-active"></i>青枠 = 現在の受信片</span>
+   <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
+  </div>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
  <label for="rxFilename">保存ファイル名</label>
@@ -142,13 +181,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 <section class="panel" style="margin-top:16px">
  <h2>内部テスト</h2>
- <p class="muted">QRカメラを使わず、CMAL1のCRC32・フレーム構築・2フレーム欠落復元・旧形式（パリティなし）を確認します。</p>
+ <p class="muted">従来CMAL1/P0/P1とLTファウンテンの順不同・重複・欠落復元をカメラなしで確認します。</p>
  <button id="runSelfTest" class="primary" type="button">プロトコル自己テスト</button>
  <p id="selfTestStatus" class="status" aria-live="polite">未実行</p>
- <div class="note">CMAL1データフレームは <code>CMAL1:index/total:id:CRC32:Base64URL</code> 形式です。パリティフレームは <code>P0-group</code> / <code>P1-group</code> を使います。各グループ最大8データ片に2本の独立パリティを付け、同一グループ内の最大2片の消失を訂正します。これはRaptorQ等のファウンテン符号ではありません。</div>
+ <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab · TX/RXはローカル処理のみ · データは外部へ送信されません。受信完了時のCRC32は各フレーム単位の整合性確認です。</p>
+<p class="footer">Airgap Link Test Lab · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式はカメラの読み逃しを補完しますが、必要な受信数は消失パターンに依存し、K片受信だけで常に完了する保証はありません。</p>
 </main>
 </body>
 </html>

@@ -183,6 +183,23 @@
     throw new Error('フレーム番号形式が不正です');
   }
 
+  // Return the original-data block positions represented by one legacy CMAL1 QR.
+  // Data frames point to one block; P0/P1 frames refer to the entire 8-block group.
+  function packetBlockIndexes(packetOrText) {
+    var packet = typeof packetOrText === 'string' ? parseFrame(packetOrText) : packetOrText;
+    if (!packet || !Number.isSafeInteger(packet.total) || packet.total < 1) {
+      throw new Error('ブロック位置を計算できないフレームです');
+    }
+    if (packet.type === 'data') return [packet.index];
+    if (packet.type !== 'parity' || !Number.isSafeInteger(packet.group) || packet.group < 0) {
+      throw new Error('未対応のフレーム種別です');
+    }
+    var start = packet.group * GROUP_SIZE;
+    var count = Math.min(GROUP_SIZE, packet.total - start);
+    if (count < 1) throw new Error('パリティグループの範囲が不正です');
+    return Array.from({ length: count }, function (_, offset) { return start + offset; });
+  }
+
   function decodeParityPayload(payload, expectedCount) {
     if (payload.length < 2 || payload[0] !== 1) throw new Error('未対応のパリティ形式です');
     var count = payload[1];
@@ -454,6 +471,19 @@
       if (legacyDone[legacyCompare] !== source[legacyCompare]) throw new Error('CMAL1旧形式の復元データが一致しません');
     }
 
+    var firstDataMap = packetBlockIndexes(built.dataFrames[3]);
+    if (firstDataMap.length !== 1 || firstDataMap[0] !== 3) throw new Error('受信カーソルのデータ片位置テストに失敗しました');
+    var parityFrames = built.frames.map(function (frame) { return { frame: frame, parsed: parseFrame(frame) }; })
+      .filter(function (item) { return item.parsed.type === 'parity'; });
+    var firstParity = parityFrames.find(function (item) { return item.parsed.group === 0 && item.parsed.parityType === 0; });
+    if (!firstParity || packetBlockIndexes(firstParity.parsed).join(',') !== '0,1,2,3,4,5,6,7') {
+      throw new Error('受信カーソルのP0/P1グループ位置テストに失敗しました');
+    }
+    var finalParity = parityFrames.find(function (item) { return item.parsed.group === 2 && item.parsed.parityType === 1; });
+    if (!finalParity || packetBlockIndexes(finalParity.parsed).join(',') !== '16,17,18,19,20,21,22') {
+      throw new Error('受信カーソルの最終部分グループ位置テストに失敗しました');
+    }
+
     var corruptedParts = built.dataFrames[0].split(':');
     corruptedParts[3] = '00000000';
     var corrupted = corruptedParts.join(':');
@@ -470,6 +500,9 @@
       legacyFrames: legacy.frames.length,
       pairPositions: pairTests.length,
       p1OnlyRecovery: true,
+      cursorDataBlock: firstDataMap[0],
+      cursorParityBlocks: packetBlockIndexes(firstParity.parsed).length,
+      cursorFinalGroupBlocks: packetBlockIndexes(finalParity.parsed).length,
       crcTamperRejected: true
     };
   }
@@ -483,6 +516,7 @@
     base64UrlToBytes: base64UrlToBytes,
     buildFrames: buildFrames,
     parseFrame: parseFrame,
+    packetBlockIndexes: packetBlockIndexes,
     Receiver: Receiver,
     compressIfSmaller: compressIfSmaller,
     decompressIfWrapped: decompressIfWrapped,

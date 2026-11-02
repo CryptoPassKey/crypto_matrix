@@ -16,6 +16,10 @@
   var rx = new Core.Receiver();
   var fountainRx = new Fountain.Receiver();
   var activeProtocol = null;
+  var rxDirectBlocks = new Set();
+  var rxCurrentBlocks = new Set();
+  var rxCurrentLabel = '';
+  var txCurrentLabel = '';
   var stream = null;
   var detector = null;
   var scannerName = '未初期化';
@@ -69,9 +73,15 @@
       context.fillStyle = color;
       context.fillRect(x, y, cell - 1, cell - 1);
       if (activeSet && activeSet.has(index)) {
-        context.strokeStyle = '#65b7ff';
-        context.lineWidth = 1.5;
-        context.strokeRect(x + 1, y + 1, cell - 3, cell - 3);
+        // High-contrast double outline remains visible over green and amber state cells.
+        if (cell >= 5) {
+          context.strokeStyle = '#ffffff';
+          context.lineWidth = 2;
+          context.strokeRect(x + 0.5, y + 0.5, cell - 2, cell - 2);
+        }
+        context.strokeStyle = '#07111d';
+        context.lineWidth = cell >= 5 ? 1.5 : 1;
+        context.strokeRect(x + 1, y + 1, Math.max(0, cell - 3), Math.max(0, cell - 3));
       }
     }
   }
@@ -81,13 +91,13 @@
       drawBlockMap('txBlockMap', txFountainEncoder.seqLen, txDirectBlocks, null, txCurrentBlocks);
       $('txBlockSummary').textContent =
         '元データ ' + txFountainEncoder.seqLen + 'ブロック · 直接送信 ' +
-        txDirectBlocks.size + ' · 現在の合成対象 ' + txCurrentBlocks.size;
+        txDirectBlocks.size + ' · ' + (txCurrentLabel || '送信待機中');
     } else if (txPlan) {
       var dataSet = new Set(txDirectBlocks);
       drawBlockMap('txBlockMap', txPlan.dataFrames.length, dataSet, null, txCurrentBlocks);
       $('txBlockSummary').textContent =
-        '元データ ' + txPlan.dataFrames.length + 'ブロック · 送信済み ' +
-        dataSet.size + ' · P0/P1は8ブロック単位';
+        '元データ ' + txPlan.dataFrames.length + 'ブロック · 直接送信 ' +
+        dataSet.size + ' · ' + (txCurrentLabel || '送信待機中');
     } else {
       drawBlockMap('txBlockMap', 0, null, null, null);
       $('txBlockSummary').textContent = '転送データを準備するとブロックが表示されます';
@@ -113,6 +123,7 @@
     txFountainPart = null;
     txDirectBlocks.clear();
     txCurrentBlocks.clear();
+    txCurrentLabel = '';
     $('playTx').disabled = true;
     $('pauseTx').disabled = true;
     $('txPlaceholder').classList.remove('hidden');
@@ -207,6 +218,7 @@
         blockCount = txFountainEncoder.seqLen;
         txDirectBlocks.add(0);
         txCurrentBlocks = new Set(txFountainPart.indexes);
+        txCurrentLabel = 'LT seq 1 · 直接片 · 対象ブロック 1';
         $('txFrameCount').textContent = blockCount + ' / ∞';
         frameLabel = 'LT seq 1 / K=' + blockCount + ' · system';
       } else {
@@ -217,10 +229,19 @@
         firstFrame = txPlan.frames[0];
         transferId = txPlan.id;
         blockCount = txPlan.dataFrames.length;
-        txDirectBlocks.add(0);
-        txCurrentBlocks.clear();
+        var firstPacket = Core.parseFrame(firstFrame);
+        txCurrentBlocks = new Set(Core.packetBlockIndexes(firstPacket));
+        if (firstPacket.type === 'data') {
+          txDirectBlocks.add(firstPacket.index);
+          txCurrentLabel = 'Data ' + (firstPacket.index + 1) + ' / ' + firstPacket.total;
+        } else {
+          txCurrentLabel = 'P' + firstPacket.parityType + ' · group ' +
+            (firstPacket.group + 1) + ' · block ' +
+            (firstPacket.group * Core.GROUP_SIZE + 1) + '–' +
+            Math.min(firstPacket.total, (firstPacket.group + 1) * Core.GROUP_SIZE);
+        }
         $('txFrameCount').textContent = txPlan.dataFrames.length + ' / ' + txPlan.frames.length;
-        frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + Core.parseFrame(firstFrame).type;
+        frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + firstPacket.type;
       }
       var planStart = performance.now();
       renderQr(firstFrame);
@@ -270,6 +291,9 @@
         frame = txFountainPart.frame;
         txCurrentBlocks = new Set(txFountainPart.indexes);
         if (txFountainPart.direct) txDirectBlocks.add(txFountainPart.indexes[0]);
+        txCurrentLabel = 'LT seq ' + txFountainPart.seqNum + ' · ' +
+          (txFountainPart.direct ? '直接片' : 'XOR合成') + ' · 対象 ' +
+          txFountainPart.indexes.map(function (index) { return index + 1; }).join(',');
         $('txFrameCount').textContent = txFountainEncoder.seqLen + ' / ∞';
         $('txFrameInfo').textContent =
           'LT seq ' + txFountainPart.seqNum + ' · ' +
@@ -281,10 +305,15 @@
       } else {
         frame = txPlan.frames[txIndex];
         var parsed = Core.parseFrame(frame);
-        txCurrentBlocks.clear();
+        txCurrentBlocks = new Set(Core.packetBlockIndexes(parsed));
         if (parsed.type === 'data') {
           txDirectBlocks.add(parsed.index);
-          txCurrentBlocks.add(parsed.index);
+          txCurrentLabel = 'Data ' + (parsed.index + 1) + ' / ' + parsed.total;
+        } else {
+          txCurrentLabel = 'P' + parsed.parityType + ' · group ' +
+            (parsed.group + 1) + ' · block ' +
+            (parsed.group * Core.GROUP_SIZE + 1) + '–' +
+            Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
         }
         $('txFrameInfo').textContent = 'フレーム ' + (txIndex + 1) + ' / ' + txPlan.frames.length +
           ' · ' + parsed.type + ' · ' + (1000 / Number($('fps').value)).toFixed(1) + ' ms/frame';
@@ -324,6 +353,9 @@
     rx.reset();
     fountainRx.reset();
     activeProtocol = null;
+    rxDirectBlocks.clear();
+    rxCurrentBlocks.clear();
+    rxCurrentLabel = '';
     uniqueFrameCount = 0;
     scanAttempts = 0;
     scanHits = 0;
@@ -370,11 +402,16 @@
       have = rx.shards.size;
       total = rx.total;
       recovered = rx.recoveredCount;
-      directSet = rx.shards;
-      recoveredSet = null;
-      activeSet = null;
+      directSet = rxDirectBlocks;
+      recoveredSet = new Set();
+      rx.shards.forEach(function (_value, index) {
+        if (!rxDirectBlocks.has(index)) recoveredSet.add(index);
+      });
+      activeSet = rxCurrentBlocks;
       $('rxBlockSummary').textContent = total
-        ? '元データ ' + total + 'ブロック · 取得済み ' + have + ' · 旧P0/P1方式'
+        ? '元データ ' + total + 'ブロック · 直接取得 ' + rxDirectBlocks.size +
+          ' · パリティ復元 ' + recoveredSet.size + ' · 直近読取: ' +
+          (rxCurrentLabel || '—')
         : '受信を開始するとブロック状態が表示されます';
     }
     $('rxProgressText').textContent = have + ' / ' + total;
@@ -431,25 +468,38 @@
       if (activeProtocol && activeProtocol !== (isFountain ? 'fountain' : 'legacy')) {
         throw new Error('別の転送方式のフレームです。受信をリセットしてください');
       }
-      activeProtocol = isFountain ? 'fountain' : 'legacy';
       var result;
       var have;
       var total;
       var recovered;
       if (isFountain) {
+        var fountainPacket = Fountain.parseFrame(rawText);
         result = await fountainRx.feed(rawText);
+        var indexes = result.lastIndexes || await fountainRx.chooser.choose(fountainPacket.seqNum);
+        rxCurrentBlocks = new Set(indexes);
+        rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' +
+          indexes.map(function (index) { return index + 1; }).join(',');
         have = fountainRx.simpleParts.size;
         total = fountainRx.seqLen;
         recovered = fountainRx.recoveredIndexes.size;
-        $('rxBlockSummary').textContent =
-          '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
-          ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount;
       } else {
+        var packet = Core.parseFrame(rawText);
         result = rx.feed(rawText);
+        rxCurrentBlocks = new Set(Core.packetBlockIndexes(packet));
+        if (packet.type === 'data') {
+          rxDirectBlocks.add(packet.index);
+          rxCurrentLabel = 'Data ' + (packet.index + 1) + ' / ' + packet.total;
+        } else {
+          rxCurrentLabel = 'P' + packet.parityType + ' · group ' +
+            (packet.group + 1) + ' · block ' +
+            (packet.group * Core.GROUP_SIZE + 1) + '–' +
+            Math.min(packet.total, (packet.group + 1) * Core.GROUP_SIZE);
+        }
         have = rx.shards.size;
         total = rx.total;
         recovered = rx.recoveredCount;
       }
+      activeProtocol = isFountain ? 'fountain' : 'legacy';
       if (!result.duplicate) uniqueFrameCount++;
       updateRxStats();
       status('rxStatus',

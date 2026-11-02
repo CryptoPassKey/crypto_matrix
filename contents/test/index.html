@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V2 — QR Animation Lab</title>
+<title>Airgap Link V3 — QR Animation Lab</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -64,13 +64,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="../vendor/jsQR.js"></script>
 <script src="airgap-link-core.js"></script>
 <script src="airgap-link-fountain.js"></script>
-<script src="airgap-link-ui-v2_1.js" defer></script>
+<script src="airgap-link-ui-v3.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V2</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
- <span class="pill">OFFLINE TEST PAGE · V2</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V3</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V3</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送するための実験ページです。通信先サーバーへの送信は行いません。CRC32は転送中の偶発的な破損検出用であり、暗号学的な認証の代わりではありません。</div>
@@ -124,13 +124,11 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
  </div>
  <div class="blockmap-section tx-blockmap">
-  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック</small></div>
-  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="送信ブロックの状態と現在のQR位置"></canvas></div>
-  <p id="txBlockSummary" class="blockmap-summary">転送データを準備するとブロックが表示されます</p>
+  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック · 枠 = 現在のQR位置</small></div>
+  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="現在表示中のQRが参照するデータブロック位置"></canvas></div>
+  <p id="txBlockSummary" class="blockmap-summary">転送データを準備すると現在のQR位置が表示されます</p>
   <div class="map-legend">
-   <span class="map-key"><i class="map-dot map-direct"></i>直接送信済み</span>
-   <span class="map-key"><i class="map-dot map-active"></i>現在のQR位置</span>
-   <span class="map-key"><i class="map-dot map-missing"></i>未送信</span>
+   <span class="map-key"><i class="map-dot map-active"></i>現在表示中のQR位置</span>
   </div>
  </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
@@ -193,7 +191,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V2 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式はカメラの読み逃しを補完しますが、必要な受信数は消失パターンに依存し、K片受信だけで常に完了する保証はありません。</p>
+<p class="footer">Airgap Link Test Lab V3 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式はカメラの読み逃しを補完しますが、必要な受信数は消失パターンに依存し、K片受信だけで常に完了する保証はありません。</p>
 </main>
 </body>
 </html>

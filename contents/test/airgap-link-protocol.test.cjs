@@ -66,6 +66,18 @@ async function main() {
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
   const ui = fs.readFileSync('contents/test/airgap-link-ui-v6.js', 'utf8');
+  const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
+  const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
+  assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
+    'Legacy playback must skip the already displayed preflight QR');
+  const nextLegacyFrameIndexAfterPreflight = vm.runInNewContext(
+    '(' + ui.slice(nextLegacyStart, nextLegacyEnd).trim() + '\n)'
+  );
+  assert.equal(nextLegacyFrameIndexAfterPreflight(5), 1,
+    'After the preflight Data 1, legacy playback must continue at Data 2');
+  assert.equal(nextLegacyFrameIndexAfterPreflight(1), 0,
+    'A one-frame transfer must remain on its only frame and report unmeasured duration');
+
   const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');
   const mapperEnd = ui.indexOf('function drawBlockMap(', mapperStart);
   assert(mapperStart >= 0 && mapperEnd > mapperStart, 'UI-local packet block mapper must exist');
@@ -187,6 +199,8 @@ async function main() {
   assert.equal(formatElapsedMs(100000), '01:40');
   assert(ui.includes('recordTransferFrame(transferTiming, firstFramePending, result.duplicate'),
     'The RX ingest path must start timing on the second distinct accepted QR');
+  assert(ui.includes('txIndex = nextLegacyFrameIndexAfterPreflight(txPlan.frames.length)'),
+    'Legacy TX must not replay Data 1 after RX preflight; Data 2 is the first timed QR');
 
   const legacy = globalThis.AirgapLinkCore.selfTest();
   assert.equal(legacy.crc32, 'CBF43926');
@@ -275,7 +289,7 @@ async function main() {
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS V6 second-frame stopwatch; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
+    'PASS duplicate/CRC/transfer isolation; PASS V6 second-frame stopwatch and legacy Data 2 start; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
   );
 }
 

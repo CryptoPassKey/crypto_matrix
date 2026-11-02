@@ -24,6 +24,8 @@ require('./airgap-link-qr-encoder-v8.js');
 
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
+  const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v9.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
   const cameraStagePosition = page.indexOf('class="camera-stage"');
@@ -41,17 +43,52 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V8 — Base45 Throughput Lab</title>'), 'Page title must show V8');
-  assert(page.includes('/ Test Lab <span>V8</span>'), 'Page heading must show V8');
-  assert(page.includes('Airgap Link Test Lab V8'), 'Footer must show V8');
+  assert(page.includes('<title>Airgap Link V9 — Camera Resolution Benchmark</title>'), 'Page title must show V9');
+  assert(page.includes('/ Test Lab <span>V9</span>'), 'Page heading must show V9');
+  assert(page.includes('Airgap Link Test Lab V9'), 'Footer must show V9');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
     page.includes('<script src="airgap-link-core-v8.js"></script>') &&
     page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
     'Airgap page must load V8 wire, Legacy and Fountain runtimes');
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
-  assert(page.includes('<script src="airgap-link-ui-v8.js" defer></script>'),
-    'Airgap page must load the cache-busted V8 UI runtime');
+  assert(page.includes('<script src="airgap-link-ui-v9.js" defer></script>'),
+    'Airgap page must load the cache-busted V9 UI runtime');
+  assert(page.includes('id="rxResolution"') &&
+    ['640x480', '1280x720', '1920x1080'].every((value) => page.includes('value="' + value + '"')) &&
+    page.includes('value="1920x1080" selected'),
+    'RX must offer the 640x480, 1280x720 and 1920x1080 requested resolution profiles with 1080p as baseline');
+  assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'exportBenchmarkCsv']
+    .every((id) => page.includes('id="' + id + '"')),
+    'V9 must expose actual camera settings, P50/P95, attempt counts and CSV export');
+  assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
+    'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.18.0-airgap-link-test-lab-v9'") &&
+    serviceWorker.includes('"test/airgap-link-ui-v9.js"'),
+    'Service Worker must cache-bust and precache the V9 runtime');
+  new vm.Script(ui, { filename: 'airgap-link-ui-v9.js' });
+  assert(ui.includes("width: { ideal: requestedWidth }") &&
+    ui.includes("height: { ideal: requestedHeight }") &&
+    ui.includes("frameRate: { ideal: 30, max: 60 }"),
+    'Resolution comparison must vary only the requested RX width/height and keep camera frame-rate constraints fixed');
+  assert(ui.includes('cameraTrack.getSettings()'),
+    'RX must record the actual camera track settings, not just the requested profile');
+  assert(ui.includes('detector.detect(video)'),
+    'V9 must retain direct Video input so the resolution-only experiment has a stable baseline');
+  assert(ui.includes('function percentileValue('),
+    'V9 must calculate decode-time percentiles');
+  const percentileStart = ui.indexOf('function percentileValue(');
+  const percentileEnd = ui.indexOf('\n  function nextLegacyFrameIndexAfterPreflight', percentileStart);
+  assert(percentileStart >= 0 && percentileEnd > percentileStart, 'Percentile helper must be extractable for unit tests');
+  const percentileValue = vm.runInNewContext('(' + ui.slice(percentileStart, percentileEnd).trim() + '\n)');
+  assert.equal(percentileValue([10, 20, 30, 40, 50], 0.50), 30);
+  assert.equal(percentileValue([10, 20, 30, 40, 50], 0.95), 48);
+  assert.equal(percentileValue([], 0.50), null);
+  assert(ui.includes('scanDecodeSamples.push(decodeElapsed)') &&
+    ui.includes('if (receivedDone) recordBenchmarkRun()') &&
+    ui.includes('run.samples.forEach'),
+    'V9 must retain bounded per-attempt measurements and log completed runs with raw samples');
+
   assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
     'TX must offer Base45 and legacy Base64URL wire-format selection');
   assert(page.indexOf('airgap-link-wire-v8.js') < page.indexOf('airgap-link-core-v8.js'),
@@ -159,7 +196,6 @@ async function main() {
   assert.equal(wire.splitFrame(base45Frame).payload, base45Text,
     'Wire parser must preserve spaces and colons after the four structural separators');
 
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v8.js', 'utf8');
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
   const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
@@ -291,7 +327,7 @@ async function main() {
   const elapsedEnd = ui.indexOf('\n  function formatElapsedMs(', elapsedStart);
   const elapsedTransferMs = vm.runInNewContext('(' + ui.slice(elapsedStart, elapsedEnd).trim() + '\n)');
   const formatStart = ui.indexOf('function formatElapsedMs(');
-  const formatEnd = ui.indexOf('\n  function nextLegacyFrameIndexAfterPreflight(', formatStart);
+  const formatEnd = ui.indexOf('\n  function percentileValue(', formatStart);
   const formatElapsedMs = vm.runInNewContext('(' + ui.slice(formatStart, formatEnd).trim() + '\n)');
   const timing = { startedAt: null, endedAt: null, frameCount: 0 };
   assert.equal(recordTransferFrame(timing, true, false, 1000), false,

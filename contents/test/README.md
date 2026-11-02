@@ -131,3 +131,10 @@ The fountain chooser uses Web Crypto SHA-256 and BigInt operations, so it requir
 ### Fountain self-test
 
 The in-page self-test also checks the MUR fragment-chooser reference vectors for `seqLen=11` (`seqNum=12 → [9]`, `seqNum=13 → [2,5,6,8,9,10]`), reversed packet order, missing systematic fragments, duplicate handling, per-frame CRC rejection, mixed-transfer rejection, and whole-message reconstruction.
+
+## TX/RX block-map layout
+
+The TX block map is placed immediately below the animated QR display. The RX block map is rendered as a compact translucent HUD over the lower edge of the camera preview, keeping the same grid width and column behavior as TX while avoiding a separate panel that shifts the camera layout. On narrow screens, the HUD legend is hidden to keep the camera view usable. The cursor and received/recovered cell colors remain independent.
+
+For small transfers, the map uses fewer columns (up to 75) so each source block remains large enough to track visually. Both maps use the same mapping and sizing logic.
+

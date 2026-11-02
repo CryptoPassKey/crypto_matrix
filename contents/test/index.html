@@ -37,13 +37,20 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
 .stat{background:#091724;border:1px solid #263e55;border-radius:10px;padding:8px;min-width:0}
 .stat b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.stat small{display:block}
-video{width:100%;max-height:360px;background:#02070d;border-radius:10px;display:block}
+.camera-stage{position:relative;isolation:isolate;overflow:hidden;border-radius:12px;background:#02070d;margin:9px 0 12px;min-height:170px}
+.camera-stage video{width:100%;max-height:420px;aspect-ratio:16/9;object-fit:contain;background:#02070d;display:block}
 #scanCanvas{display:none}
+.rx-blockmap-hud{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;margin:0;padding:8px 10px;background:rgba(5,15,25,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(101,183,255,.52);border-radius:10px;box-shadow:0 6px 24px #0007}
+.rx-blockmap-hud .blockmap-title{margin:0 0 5px;font-size:.78rem}
+.rx-blockmap-hud .blockmap-viewport{max-height:72px;padding:3px;background:rgba(3,10,17,.68);border-color:#49627b}
+.rx-blockmap-hud .blockmap-summary{font-size:.72rem;margin:5px 0 0;color:#d2e5f4}
+.rx-blockmap-hud .map-legend{font-size:.67rem;gap:8px;margin-top:4px}
 .note{border-left:3px solid var(--accent2);background:#11253a;padding:9px 11px;border-radius:0 8px 8px 0;font-size:.82rem;color:#c1d4e7;margin:12px 0}
 .warn{border-left-color:#e6b85c}.section-rule{height:1px;background:var(--line);margin:16px 0}
 .footer{color:var(--muted);font-size:.78rem;margin-top:18px}
 .mode-select{margin:8px 0 12px}
-.blockmap-section{margin:14px 0 12px;padding:11px;border:1px solid #29445f;border-radius:11px;background:#091724}
+.blockmap-section{margin:12px 0 10px;padding:10px;border:1px solid #29445f;border-radius:11px;background:#091724}
+.tx-blockmap{margin-top:11px}
 .blockmap-title{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-size:.84rem;margin-bottom:7px}
 .blockmap-viewport{max-height:210px;overflow:auto;border:1px solid #263e55;border-radius:7px;background:#07111d;padding:5px}
 .blockmap-viewport canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
@@ -54,6 +61,12 @@ video{width:100%;max-height:360px;background:#02070d;border-radius:10px;display:
 .map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
+@media(max-width:560px){
+ .rx-blockmap-hud{left:6px;right:6px;bottom:6px;padding:6px 7px}
+ .rx-blockmap-hud .blockmap-title small,.rx-blockmap-hud .map-legend{display:none}
+ .rx-blockmap-hud .blockmap-viewport{max-height:54px}
+ .rx-blockmap-hud .blockmap-summary{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="../qr-encoder.js"></script>
@@ -103,16 +116,6 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <label><input id="parityEnabled" type="checkbox" checked> 2消失訂正パリティ（8片ごと）</label>
   <label><input id="compressionEnabled" type="checkbox"> Deflate圧縮を試す</label>
  </div>
- <div class="blockmap-section">
-  <div class="blockmap-title"><strong>送信ブロック状態</strong><small>1マス = 元データ1ブロック</small></div>
-  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="送信元データブロックの状態"></canvas></div>
-  <p id="txBlockSummary" class="blockmap-summary">転送データを準備するとブロックが表示されます</p>
-  <div class="map-legend">
-   <span class="map-key"><i class="map-dot map-direct"></i>直接送信済み</span>
-   <span class="map-key"><i class="map-dot map-active"></i>黒枠 = 現在表示中のQRの対象</span>
-   <span class="map-key"><i class="map-dot map-missing"></i>未送信</span>
-  </div>
- </div>
  <div class="row">
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
   <button id="playTx" type="button" disabled>再生</button>
@@ -129,6 +132,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
  </div>
+ <div class="blockmap-section tx-blockmap">
+  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック</small></div>
+  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="送信ブロックの状態と現在のQR位置"></canvas></div>
+  <p id="txBlockSummary" class="blockmap-summary">転送データを準備するとブロックが表示されます</p>
+  <div class="map-legend">
+   <span class="map-key"><i class="map-dot map-direct"></i>直接送信済み</span>
+   <span class="map-key"><i class="map-dot map-active"></i>現在のQR位置</span>
+   <span class="map-key"><i class="map-dot map-missing"></i>未送信</span>
+  </div>
+ </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
  <div class="note warn">30 fpsは上限値です。カメラの露光・フォーカス・デコーダー処理が追いつかない場合は、FPSを下げるか密度を下げてください。</div>
 </section>
@@ -141,7 +154,20 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
  </div>
- <video id="camera" playsinline muted autoplay></video>
+ <div class="camera-stage" aria-label="受信カメラとライブブロック表示">
+  <video id="camera" playsinline muted autoplay></video>
+  <div class="blockmap-section rx-blockmap-hud">
+   <div class="blockmap-title"><strong>RX BLOCK MAP · 読取位置</strong><small>カメラの下端に重ねて表示</small></div>
+   <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの状態と最後に読み込んだQR位置"></canvas></div>
+   <p id="rxBlockSummary" class="blockmap-summary">QRを読み取るとブロック位置が動きます</p>
+   <div class="map-legend">
+    <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
+    <span class="map-key"><i class="map-dot map-recovered"></i>復元済み</span>
+    <span class="map-key"><i class="map-dot map-active"></i>最後に読取</span>
+    <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
+   </div>
+  </div>
+ </div>
  <canvas id="scanCanvas"></canvas>
  <p id="scannerMode" class="status info">読み取り方式：未初期化</p>
  <div class="meter"><div id="rxProgress"></div></div>
@@ -152,17 +178,6 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="stat"><b id="rxLost">—</b><small>未取得データ片</small></div>
   <div class="stat"><b id="rxRecovered">0</b><small>パリティ復元</small></div>
   <div class="stat"><b id="rxHitRate">0%</b><small>QR検出率</small></div>
- </div>
- <div class="blockmap-section">
-  <div class="blockmap-title"><strong>受信ブロック状態</strong><small>取得状態の色 + 最後に読み込んだQRの位置を黒枠で表示</small></div>
-  <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信元データブロックの状態"></canvas></div>
-  <p id="rxBlockSummary" class="blockmap-summary">受信を開始するとブロック状態が表示されます</p>
-  <div class="map-legend">
-   <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
-   <span class="map-key"><i class="map-dot map-recovered"></i>合成片から復元</span>
-   <span class="map-key"><i class="map-dot map-active"></i>黒枠 = 最後に読み込んだQRの対象</span>
-   <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
-  </div>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
  <label for="rxFilename">保存ファイル名</label>

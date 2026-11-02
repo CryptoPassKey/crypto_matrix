@@ -17,7 +17,7 @@ if (typeof globalThis.atob !== 'function') {
 globalThis.window = globalThis;
 
 require('./airgap-link-core.js');
-require('./airgap-link-fountain.js');
+require('./airgap-link-fountain-v5.js');
 
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
@@ -38,11 +38,17 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V4 — QR Animation Lab</title>'), 'Page title must show V4');
-  assert(page.includes('/ Test Lab <span>V4</span>'), 'Page heading must show V4');
-  assert(page.includes('Airgap Link Test Lab V4'), 'Footer must show V4');
-  assert(page.includes('<script src="airgap-link-ui-v4.js" defer></script>'),
-    'Airgap page must load the cache-busted V4 UI runtime');
+  assert(page.includes('<title>Airgap Link V5 — QR Animation Lab</title>'), 'Page title must show V5');
+  assert(page.includes('/ Test Lab <span>V5</span>'), 'Page heading must show V5');
+  assert(page.includes('Airgap Link Test Lab V5'), 'Footer must show V5');
+  assert(page.includes('<script src="airgap-link-fountain-v5.js"></script>'),
+    'Airgap page must load the cache-busted V5 Fountain runtime');
+  assert(page.includes('<script src="airgap-link-ui-v5.js" defer></script>'),
+    'Airgap page must load the cache-busted V5 UI runtime');
+  assert(page.includes('value="hybrid"') && page.includes('value="hybrid-data"'),
+    'Test Lab must expose LT Hybrid and Data-only Hybrid comparison modes');
+  assert(page.includes('先頭QRを1枚読み取る') && page.includes('途中参加は対象外'),
+    'RX must require a first-frame preflight before TX playback');
   assert(page.includes('そのブロックのDataから再生します'), 'TX block map must explain click-to-seek');
   assert(page.includes('role="slider" tabindex="-1"'), 'TX block map must be keyboard-focusable after data preparation');
   const txSectionStart = page.indexOf('class="blockmap-section tx-blockmap"');
@@ -57,7 +63,7 @@ async function main() {
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v4.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v5.js', 'utf8');
   const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');
   const mapperEnd = ui.indexOf('function drawBlockMap(', mapperStart);
   assert(mapperStart >= 0 && mapperEnd > mapperStart, 'UI-local packet block mapper must exist');
@@ -124,6 +130,30 @@ async function main() {
   assert.equal(legacyFrameIndexForBlock(51, dataOnlyPlan), 51,
     'Data-only seek must not apply parity offsets');
 
+  assert.equal(typeof globalThis.AirgapLinkFountain.Encoder.prototype.seekToBlock, 'function',
+    'The loaded V5 Fountain runtime must expose the exact seek API used by the V5 UI');
+  assert.equal(typeof globalThis.AirgapLinkFountain.Encoder.prototype.startRepairPhase, 'function',
+    'V5 Fountain runtime must expose the LT Hybrid repair-phase API');
+  assert.equal(typeof globalThis.AirgapLinkFountain.Receiver.prototype.addKnownBlock, 'function',
+    'V5 Fountain receiver must import legacy-recovered source blocks');
+  assert(ui.includes("txHybridPhase = 'fountain'"), 'Hybrid sender must transition to LT repair packets');
+  assert(ui.includes('fountainRx.addKnownBlock'), 'Hybrid RX must import legacy decoded blocks');
+  assert(ui.includes('isInitialTransferFrame(rawText)'), 'RX must require initial QR before accepting transfer frames');
+  const initialFrameStart = ui.indexOf('function isInitialTransferFrame(');
+  const initialFrameEnd = ui.indexOf('\n  async function ingest(', initialFrameStart);
+  const isInitialTransferFrame = vm.runInNewContext(
+    '(' + ui.slice(initialFrameStart, initialFrameEnd).trim() + '\n)',
+    { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain }
+  );
+  const preflightLegacy = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
+    { chunkSize: 80, parity: true, id: 'A1B2C3D4' });
+  assert.equal(isInitialTransferFrame(preflightLegacy.frames[0]), true);
+  assert.equal(isInitialTransferFrame(preflightLegacy.frames[1]), false);
+  const preflightLtEncoder = new globalThis.AirgapLinkFountain.Encoder(new Uint8Array(10 * 80),
+    { chunkSize: 80, id: 'A1B2C3D4' });
+  assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), true);
+  assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), false);
+
   const legacy = globalThis.AirgapLinkCore.selfTest();
   assert.equal(legacy.crc32, 'CBF43926');
   assert.equal(legacy.p1OnlyRecovery, true);
@@ -142,9 +172,47 @@ async function main() {
   assert.equal(fountain.mixedTransferRejected, true);
   assert.equal(fountain.randomAccessSeek, true);
 
+  const hybridMessage = Uint8Array.from({ length: 20 * 128 - 37 }, (_, i) => (i * 73 + 19) & 0xff);
+  const hybridPlan = globalThis.AirgapLinkCore.buildFrames(hybridMessage,
+    { chunkSize: 128, parity: true, id: 'A1B2C3D4' });
+  const legacyReceiver = new globalThis.AirgapLinkCore.Receiver();
+  const dropped = new Set([0, 1, 2, 8, 9]);
+  const legacyDirect = new Set();
+  for (const frame of hybridPlan.frames) {
+    const packet = globalThis.AirgapLinkCore.parseFrame(frame);
+    if (packet.type === 'data' && dropped.has(packet.index)) continue;
+    if (packet.type === 'data') legacyDirect.add(packet.index);
+    legacyReceiver.feed(frame);
+  }
+  assert.equal(legacyReceiver.isComplete(), false);
+  assert.equal(legacyReceiver.recoveredCount, 2, 'P0/P1 must recover two dropped blocks in the second group');
+  const hybridEncoder = new globalThis.AirgapLinkFountain.Encoder(hybridMessage,
+    { chunkSize: 128, id: hybridPlan.id });
+  assert.equal(hybridEncoder.seqLen, hybridPlan.dataFrames.length);
+  assert.equal(hybridEncoder.fragmentLen, hybridPlan.chunkSize);
+  assert.equal(hybridEncoder.startRepairPhase(), hybridEncoder.seqLen);
+  const firstRepair = await hybridEncoder.nextPart();
+  assert.equal(firstRepair.seqNum, hybridEncoder.seqLen + 1);
+  assert.equal(firstRepair.direct, false);
+  const repairMetadata = globalThis.AirgapLinkFountain.parseFrame(firstRepair.frame);
+  const hybridReceiver = new globalThis.AirgapLinkFountain.Receiver();
+  for (const [index, shard] of legacyReceiver.shards.entries()) {
+    hybridReceiver.addKnownBlock(repairMetadata, index, shard, legacyDirect.has(index));
+  }
+  await hybridReceiver.feed(firstRepair.frame);
+  let packets = 1;
+  while (!hybridReceiver.isComplete() && packets < 2500) {
+    await hybridReceiver.feed((await hybridEncoder.nextPart()).frame);
+    packets++;
+  }
+  assert.equal(hybridReceiver.isComplete(), true, 'LT must repair the remaining blocks after the P0/P1 pass');
+  assert.deepEqual(Array.from(hybridReceiver.bytes()), Array.from(hybridMessage));
+  assert([0, 1, 2].every(index => hybridReceiver.recoveredIndexes.has(index)),
+    'LT must recover the three blocks not recoverable by P0/P1');
+
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS V4 TX map click/keyboard seek and active coloring; PASS RX state/cursor mapping\n'
+    'PASS duplicate/CRC/transfer isolation; PASS V5 TX map click/keyboard seek and active coloring; PASS RX state/cursor mapping\n'
   );
 }
 

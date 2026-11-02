@@ -445,7 +445,9 @@
       if (legacyDone[legacyCompare] !== source[legacyCompare]) throw new Error('CMAL1旧形式の復元データが一致しません');
     }
 
-    var corrupted = built.dataFrames[0].replace(/:([0-9A-F]{8}):/, ':00000000:');
+    var corruptedParts = built.dataFrames[0].split(':');
+    corruptedParts[3] = '00000000';
+    var corrupted = corruptedParts.join(':');
     var crcRejected = false;
     try { parseFrame(corrupted); } catch (_) { crcRejected = true; }
     if (!crcRejected) throw new Error('CRC32改ざん検出テストに失敗しました');

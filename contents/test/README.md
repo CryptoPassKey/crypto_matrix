@@ -152,7 +152,7 @@ For each test-page UI release, increment the visible Test Lab major label (V2, V
 
 ## Test Lab V4 — TX block-map seek
 
-V4 colors the source block(s) referenced by the currently displayed TX QR, rather than relying on an outline alone. Clicking a cell immediately starts playback from that source block's direct Data packet. In legacy CMAL1/P0/P1 mode, the seek calculation skips preceding groups' parity frames and verifies that the selected frame is the requested Data block. In LT Fountain mode, the encoder jumps directly to the corresponding systematic packet (`seqNum = blockIndex + 1`) without generating and discarding earlier equations; subsequent packets continue in normal sequence.
+V4 colors the source block(s) referenced by the currently displayed TX QR, rather than relying on an outline alone. Clicking a cell immediately starts playback from that source block's direct Data packet. In legacy CMAL1/P0/P1 mode, the seek calculation skips preceding groups' parity frames and verifies that the selected frame is the requested Data block. In LT Fountain mode, the encoder replays the corresponding systematic packet (`seqNum = blockIndex + 1`) directly without generating and discarding earlier equations. It then resumes from the previous sequence high-water mark, avoiding a rewind and mass retransmission of already-emitted XOR equations.
 
 The TX map remains a canvas heatmap for large transfers. Pointer clicks map displayed canvas coordinates back to source-block indexes. The focused map also supports keyboard navigation: Tab to focus, arrow keys to choose a block, then Enter to start playback there. RX rendering and persistent direct/recovered/missing states are unchanged.
 

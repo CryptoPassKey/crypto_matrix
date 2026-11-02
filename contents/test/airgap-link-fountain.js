@@ -81,7 +81,7 @@
     var n = probabilities.length;
     var sum = probabilities.reduce(function (total, value) { return total + value; }, 0);
     if (!n || !(sum > 0)) throw new Error('乱数分布が空です');
-    var scaled = probabilities.map(function (value) { return value * n / sum; });
+    var scaled = probabilities.map(function (value) { return value * (n / sum); });
     var small = [];
     var large = [];
     for (var i = n - 1; i >= 0; i--) {
@@ -203,7 +203,9 @@
     var source = bytes(input).slice();
     options = options || {};
     if (source.length > MAX_MESSAGE_BYTES) throw new Error('試験ページの上限は8 MBです');
-    var fragmentLen = Math.max(80, Math.min(800, Math.floor(Number(options.chunkSize) || 180)));
+    var maxFragmentLen = Math.max(80, Math.min(800, Math.floor(Number(options.chunkSize) || 180)));
+    var fragmentCount = Math.max(1, Math.ceil(source.length / maxFragmentLen));
+    var fragmentLen = source.length ? Math.ceil(source.length / fragmentCount) : maxFragmentLen;
     this.messageLen = source.length;
     this.fragmentLen = fragmentLen;
     this.checksum = Core.crc32(source);
@@ -293,6 +295,108 @@
     this.result = null;
   };
 
+  FountainReceiver.prototype._key = function (indexes) {
+    return indexes.join(',');
+  };
+
+  FountainReceiver.prototype._finishIfComplete = function () {
+    if (this.simpleParts.size !== this.seqLen) return false;
+    var padded = new Uint8Array(this.seqLen * this.fragmentLen);
+    for (var i = 0; i < this.seqLen; i++) {
+      var block = this.simpleParts.get(i);
+      if (!block || block.length !== this.fragmentLen) throw new Error('復元ブロックの長さが一致しません');
+      padded.set(block, i * this.fragmentLen);
+    }
+    for (var p = this.messageLen; p < padded.length; p++) {
+      if (padded[p] !== 0) throw new Error('最終ブロックのパディングが不正です');
+    }
+    var message = padded.slice(0, this.messageLen);
+    if (Core.crc32(message) !== this.checksum) {
+      this.error = '復元データ全体のCRC32が一致しません';
+      throw new Error(this.error);
+    }
+    this.result = message;
+    return true;
+  };
+
+  FountainReceiver.prototype._processQueue = function () {
+    var iterations = 0;
+    while (this.queue.length) {
+      if (++iterations > MAX_FRAGMENT_COUNT * 4) throw new Error('Fountainデコーダーの処理上限を超えました');
+      var item = this.queue.pop();
+      var index = item.index;
+      var knownData = item.data;
+      var affected = [];
+      this.mixedParts.forEach(function (equation, key) {
+        if (equation.indexes.indexOf(index) !== -1) affected.push(key);
+      });
+
+      for (var i = 0; i < affected.length; i++) {
+        var key = affected[i];
+        var equation = this.mixedParts.get(key);
+        if (!equation) continue;
+        this.mixedParts.delete(key);
+        var remaining = equation.indexes.slice();
+        var removeIndex = remaining.indexOf(index);
+        if (removeIndex === -1) continue;
+        remaining.splice(removeIndex, 1);
+
+        var reduced = equation.data.slice();
+        for (var pos = 0; pos < reduced.length; pos++) reduced[pos] ^= knownData[pos];
+
+        if (remaining.length === 1) {
+          var newIndex = remaining[0];
+          if (!this.simpleParts.has(newIndex)) {
+            this.simpleParts.set(newIndex, reduced);
+            this.recoveredIndexes.add(newIndex);
+            this.queue.push({ index: newIndex, data: reduced });
+          }
+        } else if (remaining.length > 1) {
+          var reducedKey = this._key(remaining);
+          if (!this.mixedParts.has(reducedKey)) {
+            this.mixedParts.set(reducedKey, { indexes: remaining, data: reduced });
+          }
+        }
+      }
+    }
+    this._finishIfComplete();
+  };
+
+  FountainReceiver.prototype._processSimple = function (index, data, direct) {
+    if (this.simpleParts.has(index)) return;
+    this.simpleParts.set(index, data.slice());
+    if (direct) this.directIndexes.add(index);
+    else this.recoveredIndexes.add(index);
+    this.queue.push({ index: index, data: data.slice() });
+    this._processQueue();
+  };
+
+  FountainReceiver.prototype._processComplex = function (indexes, data) {
+    var remaining = indexes.slice();
+    var toRemove = remaining.filter(function (index) { return this.simpleParts.has(index); }, this);
+    if (remaining.length === toRemove.length) return;
+
+    var mixed = data.slice();
+    for (var i = 0; i < toRemove.length; i++) {
+      var remove = toRemove[i];
+      var removeIndex = remaining.indexOf(remove);
+      if (removeIndex === -1) continue;
+      remaining.splice(removeIndex, 1);
+      var known = this.simpleParts.get(remove);
+      if (!known) throw new Error('既知ブロックが見つかりません');
+      for (var p = 0; p < mixed.length; p++) mixed[p] ^= known[p];
+    }
+
+    if (remaining.length === 1) {
+      this._processSimple(remaining[0], mixed, false);
+    } else if (remaining.length > 1) {
+      var key = this._key(remaining);
+      if (!this.mixedParts.has(key)) {
+        this.mixedParts.set(key, { indexes: remaining, data: mixed });
+      }
+    }
+  };
+
   FountainReceiver.prototype._validate = function (packet) {
     if (this.id === null) {
       this.id = packet.id;
@@ -310,68 +414,11 @@
     }
   };
 
-  FountainReceiver.prototype._reduceMixed = function (byPart) {
-    var next = new Map();
-    var self = this;
-    this.mixedParts.forEach(function (part) {
-      var reduced = reducePart(part, byPart);
-      if (reduced.indexes.length === 1) self.queue.push(reduced);
-      else next.set(partKey(reduced.indexes), reduced);
-    });
-    this.mixedParts = next;
-  };
-
-  FountainReceiver.prototype._processSimple = function (part) {
-    var index = part.indexes[0];
-    if (this.simpleParts.has(index)) return;
-    this.simpleParts.set(index, part.data);
-    if (part.direct) this.directIndexes.add(index);
-    else this.recoveredIndexes.add(index);
-    this._reduceMixed(part);
-    if (this.simpleParts.size === this.seqLen) {
-      var fragments = [];
-      for (var i = 0; i < this.seqLen; i++) fragments.push(this.simpleParts.get(i));
-      var reconstructed = joinFragments(fragments, this.messageLen);
-      if (Core.crc32(reconstructed) !== this.checksum) {
-        this.error = '復元データのCRC32が一致しません';
-        throw new Error(this.error);
-      }
-      this.result = reconstructed;
-    }
-  };
-
-  FountainReceiver.prototype._processMixed = function (part) {
-    var key = partKey(part.indexes);
-    if (this.mixedParts.has(key)) return;
-    var knownParts = [];
-    this.simpleParts.forEach(function (data, index) {
-      knownParts.push({ indexes: [index], data: data, direct: false });
-    });
-    this.mixedParts.forEach(function (mixed) { knownParts.push(mixed); });
-    var reduced = part;
-    for (var i = 0; i < knownParts.length; i++) reduced = reducePart(reduced, knownParts[i]);
-    if (reduced.indexes.length === 1) {
-      this.queue.push(reduced);
-      return;
-    }
-    this._reduceMixed(reduced);
-    this.mixedParts.set(partKey(reduced.indexes), reduced);
-  };
-
-  FountainReceiver.prototype._processQueue = function () {
-    var iterations = 0;
-    while (this.queue.length && !this.result) {
-      if (++iterations > MAX_FRAGMENT_COUNT * 4) throw new Error('Fountainデコーダーの処理上限を超えました');
-      var part = this.queue.shift();
-      if (part.indexes.length === 1) this._processSimple(part);
-      else this._processMixed(part);
-    }
-  };
-
   FountainReceiver.prototype.feed = async function (text) {
     var packet = parseFrame(text);
     this._validate(packet);
     if (this.result) return { duplicate: true, complete: true, bytes: this.result };
+
     if (this.seenSequences.has(packet.seqNum)) {
       return { duplicate: true, complete: false, decoded: this.simpleParts.size, total: this.seqLen };
     }
@@ -380,8 +427,8 @@
 
     var indexes = await this.chooser.choose(packet.seqNum);
     this.lastIndexes = indexes.slice();
-    var key = partKey(indexes);
-    if (this.seenEquations.has(key)) {
+    var equationKey = this._key(indexes);
+    if (this.seenEquations.has(equationKey)) {
       return {
         duplicate: true,
         complete: false,
@@ -391,10 +438,14 @@
         lastIndexes: this.lastIndexes
       };
     }
-    this.seenEquations.add(key);
-    var part = { indexes: indexes, data: packet.data, direct: packet.seqNum <= packet.seqLen };
-    this.queue.push(part);
-    this._processQueue();
+    this.seenEquations.add(equationKey);
+
+    if (indexes.length === 1) {
+      this._processSimple(indexes[0], packet.data, packet.seqNum <= packet.seqLen);
+    } else {
+      this._processComplex(indexes, packet.data);
+    }
+
     return {
       duplicate: false,
       complete: !!this.result,

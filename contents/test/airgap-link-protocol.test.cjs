@@ -24,14 +24,17 @@ async function main() {
   const txMapPosition = page.indexOf('id="txBlockMap"');
   const cameraStagePosition = page.indexOf('class="camera-stage"');
   const videoPosition = page.indexOf('id="camera"');
-  const rxHudPosition = page.indexOf('class="blockmap-section rx-blockmap-hud"');
-  const rxMapPosition = page.indexOf('id="rxBlockMap"');
+  const cameraStageEnd = page.indexOf('</div>', videoPosition);
   const scanCanvasPosition = page.indexOf('id="scanCanvas"');
+  const rxMapSectionPosition = page.indexOf('class="blockmap-section rx-blockmap"');
+  const rxMapPosition = page.indexOf('id="rxBlockMap"');
   assert(qrPosition >= 0 && txMapPosition > qrPosition, 'TX block map must be below the animated QR');
   assert(cameraStagePosition >= 0 && videoPosition > cameraStagePosition, 'RX camera must be inside camera stage');
-  assert(rxHudPosition > videoPosition && rxMapPosition > rxHudPosition && scanCanvasPosition > rxMapPosition,
-    'RX block map HUD must be overlaid inside the camera stage');
-  assert(page.includes('RX BLOCK MAP · 読取位置'), 'RX camera HUD label must be present');
+  assert(cameraStageEnd > videoPosition && scanCanvasPosition > cameraStageEnd &&
+    rxMapSectionPosition > scanCanvasPosition && rxMapPosition > rxMapSectionPosition,
+    'RX block map must be a separate section immediately below the camera preview');
+  assert(!page.includes('rx-blockmap-hud'), 'RX block map must not be overlaid on camera preview');
+  assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
   const legacy = globalThis.AirgapLinkCore.selfTest();
@@ -53,7 +56,7 @@ async function main() {
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS TX/RX block-cursor mapping; PASS block-map layout and camera HUD\n'
+    'PASS duplicate/CRC/transfer isolation; PASS TX/RX block-cursor mapping; PASS block maps below QR/camera\n'
   );
 }
 

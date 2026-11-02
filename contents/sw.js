@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.12.2-airgap-link-test';
+const VERSION = 'cm-v2.12.3-airgap-link-fountain';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -58,6 +58,7 @@ const FILES = [
   "test/",
   "test/index.html",
   "test/airgap-link-core.js",
+  "test/airgap-link-fountain.js",
   "test/airgap-link-ui.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"

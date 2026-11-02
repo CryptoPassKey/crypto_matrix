@@ -21,6 +21,9 @@ async function main() {
   const legacy = globalThis.AirgapLinkCore.selfTest();
   assert.equal(legacy.crc32, 'CBF43926');
   assert.equal(legacy.p1OnlyRecovery, true);
+  assert.equal(legacy.cursorDataBlock, 3);
+  assert.equal(legacy.cursorParityBlocks, 8);
+  assert.equal(legacy.cursorFinalGroupBlocks, 7);
   assert.equal(legacy.crcTamperRejected, true);
 
   const fountain = await globalThis.AirgapLinkFountain.selfTest();
@@ -34,7 +37,7 @@ async function main() {
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation\n'
+    'PASS duplicate/CRC/transfer isolation; PASS TX/RX block-cursor mapping\n'
   );
 }
 

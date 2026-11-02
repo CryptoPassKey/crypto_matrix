@@ -228,6 +228,12 @@
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
   }
 
+  FountainEncoder.prototype.startRepairPhase = function () {
+    this.pendingDirectIndex = null;
+    this.seqNum = Math.max(this.seqNum, this.seqLen);
+    return this.seqNum;
+  };
+
   FountainEncoder.prototype.seekToBlock = function (blockIndex) {
     if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
       throw new RangeError('指定ブロック番号が範囲外です');
@@ -575,6 +581,10 @@
     var invalidSeekRejected = false;
     try { seekEncoder.seekToBlock(seekEncoder.seqLen); } catch (_) { invalidSeekRejected = true; }
     if (!invalidSeekRejected) throw new Error('範囲外ブロックへのseekを拒否できませんでした');
+    var repairEncoder = new FountainEncoder(message, { chunkSize: 94, id: 'A1B2C3D4' });
+    if (repairEncoder.startRepairPhase() !== repairEncoder.seqLen) throw new Error('LT repair phaseの開始シーケンスが一致しません');
+    var repairFirst = await repairEncoder.nextPart();
+    if (repairFirst.seqNum !== repairEncoder.seqLen + 1 || repairFirst.direct) throw new Error('LT repair phaseがSystematic packetを再送しています');
     var receiver = new FountainReceiver();
     var direct = [];
     for (var i = 0; i < encoder.seqLen; i++) {

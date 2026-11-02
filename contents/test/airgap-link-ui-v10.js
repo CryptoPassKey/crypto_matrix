@@ -45,6 +45,11 @@
   var rxCameraSettings = null;
   var rxRequestedResolution = null;
   var scanVideoFrameCallback = null;
+  var cameraFpsCallback = null;
+  var cameraFpsWindowStart = 0;
+  var cameraFpsWindowFrames = 0;
+  var cameraFpsPreviousPresentedFrames = null;
+  var cameraObservedFps = null;
   var txMapLastBlocks = null;
   var txMapLastTotal = -1;
   var txMapLastFocusIndex = null;
@@ -756,6 +761,7 @@
       actualWidth: camera.width || '',
       actualHeight: camera.height || '',
       actualFrameRate: camera.frameRate || '',
+      observedVideoFps: cameraObservedFps,
       scanner: scannerName,
       attempts: sampleCount,
       hits: scanHits,
@@ -786,7 +792,7 @@
     if (!benchmarkRuns.length) return;
     var rows = [[
       'record_type', 'run', 'recorded_at', 'requested_resolution',
-      'actual_resolution', 'actual_frame_rate', 'scanner', 'scan_attempts',
+      'actual_resolution', 'actual_frame_rate', 'observed_video_fps', 'scanner', 'scan_attempts',
       'scan_hits', 'hit_rate_percent', 'decode_mean_ms', 'decode_p50_ms',
       'decode_p95_ms', 'unique_frames_per_second', 'unique_frames',
       'received_blocks', 'total_blocks', 'completion_ms', 'sample_index', 'decode_ms'
@@ -798,6 +804,7 @@
         run.requestedResolution,
         run.actualWidth && run.actualHeight ? run.actualWidth + 'x' + run.actualHeight : '',
         run.actualFrameRate,
+        run.observedVideoFps === null ? '' : run.observedVideoFps,
         run.scanner,
         run.attempts,
         run.hits,
@@ -832,6 +839,57 @@
   function safeFilename(value) {
     var name = String(value || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim();
     return name || 'airgap-link-received.bin';
+  }
+
+  function stopCameraFpsMeasurement() {
+    var video = $('camera');
+    if (cameraFpsCallback !== null && video && typeof video.cancelVideoFrameCallback === 'function') {
+      video.cancelVideoFrameCallback(cameraFpsCallback);
+    }
+    cameraFpsCallback = null;
+    cameraFpsWindowStart = 0;
+    cameraFpsWindowFrames = 0;
+    cameraFpsPreviousPresentedFrames = null;
+    cameraObservedFps = null;
+    var output = $('rxObservedFps');
+    if (output) output.textContent = '—';
+  }
+
+  function startCameraFpsMeasurement() {
+    stopCameraFpsMeasurement();
+    var video = $('camera');
+    var output = $('rxObservedFps');
+    if (!video || typeof video.requestVideoFrameCallback !== 'function') {
+      if (output) output.textContent = '計測非対応';
+      return;
+    }
+    cameraFpsWindowStart = performance.now();
+    cameraFpsWindowFrames = 0;
+    cameraFpsPreviousPresentedFrames = null;
+
+    function onVideoFrame(now, metadata) {
+      if (!stream || !video.srcObject) {
+        cameraFpsCallback = null;
+        return;
+      }
+      var presented = metadata && Number.isFinite(metadata.presentedFrames)
+        ? metadata.presentedFrames : null;
+      if (presented !== null && cameraFpsPreviousPresentedFrames !== null) {
+        cameraFpsWindowFrames += Math.max(0, presented - cameraFpsPreviousPresentedFrames);
+      } else {
+        cameraFpsWindowFrames += 1;
+      }
+      cameraFpsPreviousPresentedFrames = presented;
+      var elapsed = now - cameraFpsWindowStart;
+      if (elapsed >= 1000) {
+        cameraObservedFps = cameraFpsWindowFrames * 1000 / elapsed;
+        if (output) output.textContent = cameraObservedFps.toFixed(1) + ' fps';
+        cameraFpsWindowStart = now;
+        cameraFpsWindowFrames = 0;
+      }
+      cameraFpsCallback = video.requestVideoFrameCallback(onVideoFrame);
+    }
+    cameraFpsCallback = video.requestVideoFrameCallback(onVideoFrame);
   }
 
   function captureCameraSettings() {
@@ -1094,6 +1152,7 @@
       video.srcObject = stream;
       await video.play();
       captureCameraSettings();
+      startCameraFpsMeasurement();
       $('rxResolution').disabled = true;
       if ($('rxScanner')) $('rxScanner').disabled = true;
       $('startCamera').disabled = true;
@@ -1137,6 +1196,7 @@
 
   function stopCamera() {
     cancelScanSchedule();
+    stopCameraFpsMeasurement();
     if (stream) {
       stream.getTracks().forEach(function (track) { track.stop(); });
       stream = null;

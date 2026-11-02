@@ -51,8 +51,9 @@
     if (!canvas) return;
     total = Math.max(0, Number(total) || 0);
     var columns = 75;
-    var cell = 8;
     var rows = Math.max(1, Math.ceil(total / columns));
+    // Keep tall heatmaps below common mobile canvas dimension limits.
+    var cell = Math.max(1, Math.min(8, Math.floor(4096 / rows)));
     canvas.width = columns * cell;
     canvas.height = rows * cell;
     var context = canvas.getContext('2d', { alpha: false });

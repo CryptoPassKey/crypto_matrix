@@ -76,13 +76,15 @@
 
 ---
 
-## Airgap Link / Test Lab V6
+## Airgap Link / Test Lab V7
 
 * PC画面のQRを別端末のカメラで読む、片方向のローカル転送実験ページです。暗号化済みファイルの転送を想定し、通信サーバーや受信ACKは使用しません。
 * 開始時はTXでデータを準備して先頭QRを静止表示し、RXでカメラを起動して先頭QR（LegacyはData 1、Pure LTはseq 1）を確認してからTXの再生を開始します。途中参加は対象外です。転送時間の計測は、再生後に2枚目の有効なQRを受信した瞬間から開始し、同じQRの再読込は数えません。Legacy TXは先頭QRのData 1を事前表示した後、再生時にData 1を重ねて送らずData 2から進みます。完了時は最後の必要QRを受信した時点で時間を固定します。
 * 比較モード: 従来Data+P0/P1、従来Data-only、Pure LT Fountain、LT Hybrid（Data+P0/P1の初回周回後、RXが取得済みブロックをLTへ引き継いで欠落を修復）、Data-only + LT。
 * Hybridでは最初のLegacy周回と後段LTで同一Transfer ID・CRC・ブロック境界を共有します。RXは最初のFountain修復フレームからメタデータを取得し、Legacy Receiverが保持する直接取得・P0/P1復元ブロックをFountain Receiverへ移送します。
 * RXの経過時間とフレームレートは2枚目の有効なQRから計測します。300 KBを約100秒とする場合は約3 KB/sが目安ですが、実効値はQR密度・fps・カメラの読み取り率で変わります。
+* V7では完了時に復元転送データと保存ファイルの実効速度（KB/s）を表示し、QR解析時間と受信処理時間を分離して計測します。カメラが `requestVideoFrameCallback()` に対応する場合は新しい映像フレームに同期してスキャンし、非対応環境ではタイマー方式へフォールバックします。
+* TX/RXブロックマップは表示状態が変化した場合だけ再描画します。白背景のQRを前提にjsQRの反転探索を省略します。これらの変更は転送ワイヤー形式を変えません。
 * ブラウザ上のTest Lab: [Airgap Link Test Lab](https://cryptopasskey.github.io/crypto_matrix/contents/test/)。カメラ間の実機読み取り性能は端末ごとに異なるため、FPS・チャンクサイズは実機で評価してください。
 
 ---

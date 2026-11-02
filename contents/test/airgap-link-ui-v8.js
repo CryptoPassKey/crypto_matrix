@@ -973,7 +973,7 @@
         if (!scanFirstHitAt) scanFirstHitAt = performance.now();
         var ingestStarted = performance.now();
         try {
-          await ingest(raw.replace(/^[\\r\\n]+|[\\r\\n]+$/g, ''));
+          await ingest(raw.replace(/^[\r\n]+|[\r\n]+$/g, ''));
         } finally {
           ingestElapsed = performance.now() - ingestStarted;
         }
@@ -994,7 +994,7 @@
   $('stopCamera').addEventListener('click', stopCamera);
   $('resetRx').addEventListener('click', resetRx);
   $('ingestManual').addEventListener('click', function () {
-    ingest($('manualFrame').value.replace(/^[\\r\\n]+|[\\r\\n]+$/g, ''));
+    ingest($('manualFrame').value.replace(/^[\r\n]+|[\r\n]+$/g, ''));
   });
 
   $('runSelfTest').addEventListener('click', async function () {

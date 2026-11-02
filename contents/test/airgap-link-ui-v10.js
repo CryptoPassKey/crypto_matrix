@@ -59,6 +59,7 @@
   var transferTiming = { startedAt: null, endedAt: null, frameCount: 0 };
   var objectUrl = null;
   var receivedDone = false;
+  var rxTransferId = '';
   var autoTestRunning = false;
   var autoTestTimer = 0;
   var autoResetTimer = 0;
@@ -771,6 +772,7 @@
     transferTiming.endedAt = null;
     transferTiming.frameCount = 0;
     receivedDone = false;
+    rxTransferId = '';
     $('rxProgress').style.width = '0%';
     $('rxProgressText').textContent = '0 / 0';
     $('rxRate').textContent = '0.0';
@@ -871,6 +873,7 @@
     var sampleCount = scanAttempts;
     var run = {
       recordedAt: new Date().toISOString(),
+      transferId: rxTransferId,
       requestedResolution: camera.requestedResolution || rxRequestedResolution || '',
       actualWidth: camera.width || '',
       actualHeight: camera.height || '',
@@ -905,7 +908,7 @@
   function exportBenchmarkCsv() {
     if (!benchmarkRuns.length) return;
     var rows = [[
-      'record_type', 'run', 'recorded_at', 'requested_resolution',
+      'record_type', 'run', 'recorded_at', 'transfer_id', 'requested_resolution',
       'actual_resolution', 'actual_frame_rate', 'observed_video_fps', 'scanner', 'scan_attempts',
       'scan_hits', 'hit_rate_percent', 'decode_mean_ms', 'decode_p50_ms',
       'decode_p95_ms', 'unique_frames_per_second', 'unique_frames',
@@ -915,6 +918,7 @@
       var common = [
         runIndex + 1,
         run.recordedAt,
+        run.transferId,
         run.requestedResolution,
         run.actualWidth && run.actualHeight ? run.actualWidth + 'x' + run.actualHeight : '',
         run.actualFrameRate,
@@ -1099,6 +1103,7 @@
       var result, have, total, recovered;
       if (isFountain) {
         var fountainPacket = Fountain.parseFrame(rawText);
+        if (!rxTransferId) rxTransferId = fountainPacket.id;
         if (hybridTransition) {
           if (rx.id !== fountainPacket.id || rx.total !== fountainPacket.seqLen) {
             throw new Error('HybridのLT修復フレームが初回CMAL1と同じ転送ID／ブロック数ではありません');
@@ -1123,6 +1128,7 @@
         recovered = fountainRx.recoveredIndexes.size;
       } else {
         var packet = Core.parseFrame(rawText);
+        if (!rxTransferId) rxTransferId = packet.id;
         result = rx.feed(rawText);
         rxCurrentBlocks = new Set(packetBlockIndexes(packet));
         if (packet.type === 'data') {

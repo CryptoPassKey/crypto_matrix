@@ -210,8 +210,8 @@ async function main() {
     'RX scanner must schedule work against camera frames and cancel pending callbacks');
   assert(ui.includes("inversionAttempts: 'dontInvert'"),
     'The QR-only light-background scanner must avoid unnecessary inverted-image search');
-  assert(ui.includes('mapSignature !== rxMapSignature') && ui.includes('signature !== txMapSignature'),
-    'TX/RX block maps must skip redraws when their visible state is unchanged');
+  assert(ui.includes('if (rxMapDirty)') && ui.includes('sameSet(txCurrentBlocks, txMapLastBlocks)'),
+    'RX must redraw only after unique accepted packets and TX must compare block sets without sorting');
   assert(!ui.includes('setTimeout(scanTick, 20)'),
     'Camera-frame scheduling must replace the unconditional 20 ms polling loop');
   assert(ui.includes('recordTransferFrame(transferTiming, firstFramePending, result.duplicate'),

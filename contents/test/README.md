@@ -67,7 +67,7 @@ The page's **プロトコル自己テスト** checks:
 
 - CRC32 known vector: `123456789 → CBF43926`
 - Frame construction and parse
-- Four two-loss positions in an 8-fragment group
+- Six two-loss positions, including the final partial group
 - One-loss recovery using only P1
 - CRC field tamper rejection
 - Numeric CMAL1 frames without parity, including multi-fragment reconstruction

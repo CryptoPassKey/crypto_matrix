@@ -16,8 +16,10 @@ if (typeof globalThis.atob !== 'function') {
 }
 globalThis.window = globalThis;
 
-require('./airgap-link-core.js');
-require('./airgap-link-fountain-v5.js');
+require('./airgap-link-wire-v8.js');
+require('./airgap-link-core-v8.js');
+require('./airgap-link-fountain-v8.js');
+require('./airgap-link-qr-encoder-v8.js');
 
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
@@ -38,13 +40,21 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V7 — Throughput Measurement Lab</title>'), 'Page title must show V7');
-  assert(page.includes('/ Test Lab <span>V7</span>'), 'Page heading must show V7');
-  assert(page.includes('Airgap Link Test Lab V7'), 'Footer must show V7');
-  assert(page.includes('<script src="airgap-link-fountain-v5.js"></script>'),
-    'Airgap page must load the cache-busted V5 Fountain runtime');
-  assert(page.includes('<script src="airgap-link-ui-v7.js" defer></script>'),
-    'Airgap page must load the cache-busted V7 UI runtime');
+  assert(page.includes('<title>Airgap Link V8 — Base45 Throughput Lab</title>'), 'Page title must show V8');
+  assert(page.includes('/ Test Lab <span>V8</span>'), 'Page heading must show V8');
+  assert(page.includes('Airgap Link Test Lab V8'), 'Footer must show V8');
+  assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
+    page.includes('<script src="airgap-link-core-v8.js"></script>') &&
+    page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
+    'Airgap page must load V8 wire, Legacy and Fountain runtimes');
+  assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
+    'Airgap page must load the V8 Alphanumeric QR encoder');
+  assert(page.includes('<script src="airgap-link-ui-v8.js" defer></script>'),
+    'Airgap page must load the cache-busted V8 UI runtime');
+  assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
+    'TX must offer Base45 and legacy Base64URL wire-format selection');
+  assert(page.indexOf('airgap-link-wire-v8.js') < page.indexOf('airgap-link-core-v8.js'),
+    'Wire codec must load before the V8 protocol runtimes');
   assert(page.includes('id="rxElapsed"') && page.includes('2枚目の有効なQR'),
     'RX must display elapsed time starting at the second valid QR');
   assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
@@ -67,7 +77,7 @@ async function main() {
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v7.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v8.js', 'utf8');
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
   const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
@@ -159,7 +169,7 @@ async function main() {
   const initialFrameEnd = ui.indexOf('\n  async function ingest(', initialFrameStart);
   const isInitialTransferFrame = vm.runInNewContext(
     '(' + ui.slice(initialFrameStart, initialFrameEnd).trim() + '\n)',
-    { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain }
+    { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain, Wire: globalThis.AirgapLinkWire }
   );
   const preflightLegacy = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
     { chunkSize: 80, parity: true, id: 'A1B2C3D4' });

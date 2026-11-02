@@ -234,9 +234,17 @@
     link.href = objectUrl;
     link.download = name;
     link.classList.remove('hidden');
+    var totalElapsed = scanStartAt ? (performance.now() - scanStartAt) / 1000 : 0;
+    var firstDetection = scanFirstHitAt && scanStartAt ? ((scanFirstHitAt - scanStartAt) / 1000).toFixed(2) + '秒' : '—';
+    var cameraTrack = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+    var cameraSettings = cameraTrack && cameraTrack.getSettings ? cameraTrack.getSettings() : {};
+    var cameraSize = cameraSettings.width && cameraSettings.height ? cameraSettings.width + '×' + cameraSettings.height : '—';
     $('rxResultMeta').textContent =
       '復元サイズ ' + formatBytes(finalBytes.length) +
       (unpacked.decompressed ? ' · Deflate展開済み' : '') +
+      ' · 初回QR ' + firstDetection +
+      ' · 完了 ' + totalElapsed.toFixed(2) + '秒' +
+      ' · ' + scannerName + ' · カメラ ' + cameraSize +
       ' · CRC32検証済み · 転送ID ' + rx.id +
       ' · パリティ復元 ' + rx.recoveredCount + '片';
     status('rxStatus', '受信完了。ファイルを保存できます。', 'ok');

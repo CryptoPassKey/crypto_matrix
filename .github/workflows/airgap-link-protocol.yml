@@ -48,6 +48,8 @@ jobs:
           node --check contents/test/airgap-link-fountain-v8.js
           node --check contents/test/airgap-link-qr-encoder-v8.js
           node --check contents/test/airgap-link-ui-v8.js
+          node --check contents/test/airgap-link-ui-v10.js
+          node --check contents/test/airgap-link-zxing-loader-v10.js
           node --check contents/test/airgap-link-protocol.test.cjs
 
       - name: Run protocol tests

@@ -881,7 +881,7 @@
     var run = {
       recordedAt: new Date().toISOString(),
       transferId: rxTransferId,
-      txMode: '',
+      txMode: activeProtocol || '',
       requestedResolution: camera.requestedResolution || rxRequestedResolution || '',
       actualWidth: camera.width || '',
       actualHeight: camera.height || '',
@@ -974,54 +974,6 @@
     copyTextToClipboard(benchmarkResultsText(), '計測結果をテキストとしてコピーしました。メモ帳などに貼り付けて確認できます。');
   }
 
-  function exportBenchmarkCsv() {
-    if (!benchmarkRuns.length) return;
-    var rows = [[
-      'record_type', 'run', 'recorded_at', 'transfer_id', 'requested_resolution',
-      'actual_resolution', 'actual_frame_rate', 'observed_video_fps', 'scanner', 'scan_attempts',
-      'scan_hits', 'hit_rate_percent', 'decode_mean_ms', 'decode_p50_ms',
-      'decode_p95_ms', 'unique_frames_per_second', 'unique_frames',
-      'received_blocks', 'total_blocks', 'completion_ms', 'sample_index', 'decode_ms'
-    ]];
-    benchmarkRuns.forEach(function (run, runIndex) {
-      var common = [
-        runIndex + 1,
-        run.recordedAt,
-        run.transferId,
-        run.requestedResolution,
-        run.actualWidth && run.actualHeight ? run.actualWidth + 'x' + run.actualHeight : '',
-        run.actualFrameRate,
-        run.observedVideoFps === null ? '' : run.observedVideoFps,
-        run.scanner,
-        run.attempts,
-        run.hits,
-        run.hitRatePercent.toFixed(2),
-        run.decodeMeanMs === null ? '' : run.decodeMeanMs.toFixed(3),
-        run.decodeP50Ms === null ? '' : run.decodeP50Ms.toFixed(3),
-        run.decodeP95Ms === null ? '' : run.decodeP95Ms.toFixed(3),
-        run.uniqueFramesPerSecond === null ? '' : run.uniqueFramesPerSecond.toFixed(3),
-        run.uniqueFrames,
-        run.receivedBlocks,
-        run.totalBlocks,
-        run.completionMs === null ? '' : run.completionMs.toFixed(1)
-      ];
-      rows.push(['summary'].concat(common, ['', '']).map(csvCell).join(','));
-      run.samples.forEach(function (sample, sampleIndex) {
-        rows.push(['scan'].concat(common, [sampleIndex + 1, sample.toFixed(3)]).map(csvCell).join(','));
-      });
-    });
-    var blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'airgap-link-resolution-benchmark-' +
-      new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 0);
-  }
 
   function safeFilename(value) {
     var name = String(value || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim();

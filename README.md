@@ -76,7 +76,7 @@
 
 ---
 
-## Airgap Link / Test Lab V7
+## Airgap Link / Test Lab V8
 
 * PC画面のQRを別端末のカメラで読む、片方向のローカル転送実験ページです。暗号化済みファイルの転送を想定し、通信サーバーや受信ACKは使用しません。
 * 開始時はTXでデータを準備して先頭QRを静止表示し、RXでカメラを起動して先頭QR（LegacyはData 1、Pure LTはseq 1）を確認してからTXの再生を開始します。途中参加は対象外です。転送時間の計測は、再生後に2枚目の有効なQRを受信した瞬間から開始し、同じQRの再読込は数えません。Legacy TXは先頭QRのData 1を事前表示した後、再生時にData 1を重ねて送らずData 2から進みます。完了時は最後の必要QRを受信した時点で時間を固定します。
@@ -84,8 +84,10 @@
 * Hybridでは最初のLegacy周回と後段LTで同一Transfer ID・CRC・ブロック境界を共有します。RXは最初のFountain修復フレームからメタデータを取得し、Legacy Receiverが保持する直接取得・P0/P1復元ブロックをFountain Receiverへ移送します。
 * RXの経過時間とフレームレートは2枚目の有効なQRから計測します。300 KBを約100秒とする場合は約3 KB/sが目安ですが、実効値はQR密度・fps・カメラの読み取り率で変わります。
 * V7では完了時に復元転送データと保存ファイルの実効速度（KB/s）を表示し、QR解析時間と受信処理時間を分離して計測します。カメラが `requestVideoFrameCallback()` に対応する場合は新しい映像フレームに同期してスキャンし、非対応環境ではタイマー方式へフォールバックします。
+* V8では新しい送信形式として `CMAL2`（Base45＋QR Alphanumericモード）を追加し、旧 `CMAL1`（Base64URL＋Byteモード）も受信できます。送信側でQRペイロード形式を切り替え、同一端末ペアで容量と読取安定性を比較できます。Base45の空白・コロンを含むペイロードを壊さないよう、ヘッダーの4区切りだけを解析します。
+* Base45は1枚あたりのQR格納効率を上げるための符号化方式です。実効速度はQRの物理サイズ、カメラ、読取成功率にも左右されるため、Base45が常に高速とは限りません。実機でCMAL1とCMAL2を比較してください。
 * TX/RXブロックマップは表示状態が変化した場合だけ再描画します。白背景のQRを前提にjsQRの反転探索を省略します。これらの変更は転送ワイヤー形式を変えません。
-* ブラウザ上のTest Lab: [Airgap Link Test Lab](https://cryptopasskey.github.io/crypto_matrix/contents/test/)。カメラ間の実機読み取り性能は端末ごとに異なるため、FPS・チャンクサイズは実機で評価してください。
+* ブラウザ上のTest Lab V8: [Airgap Link Test Lab](https://cryptopasskey.github.io/crypto_matrix/contents/test/)。カメラ間の実機読み取り性能は端末ごとに異なるため、FPS・チャンクサイズは実機で評価してください。
 
 ---
 

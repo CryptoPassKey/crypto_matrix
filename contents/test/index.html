@@ -40,10 +40,7 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .camera-stage{position:relative;isolation:isolate;overflow:hidden;border-radius:12px;background:#02070d;margin:9px 0 12px;min-height:170px}
 .camera-stage video{width:100%;max-height:420px;aspect-ratio:16/9;object-fit:contain;background:#02070d;display:block}
 #scanCanvas{display:none}
-.rx-blockmap-hud{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;margin:0;padding:8px 10px;background:rgba(5,15,25,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(101,183,255,.52);border-radius:10px;box-shadow:0 6px 24px #0007}
-.rx-blockmap-hud .blockmap-title{margin:0 0 5px;font-size:.78rem}
-.rx-blockmap-hud .blockmap-viewport{max-height:72px;padding:3px;background:rgba(3,10,17,.68);border-color:#49627b}
-.rx-blockmap-hud .blockmap-summary{font-size:.72rem;margin:5px 0 0;color:#d2e5f4}
+.rx-blockmap{margin:11px 0 12px}
 .rx-blockmap-hud .map-legend{font-size:.67rem;gap:8px;margin-top:4px}
 .note{border-left:3px solid var(--accent2);background:#11253a;padding:9px 11px;border-radius:0 8px 8px 0;font-size:.82rem;color:#c1d4e7;margin:12px 0}
 .warn{border-left-color:#e6b85c}.section-rule{height:1px;background:var(--line);margin:16px 0}
@@ -61,12 +58,7 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
-@media(max-width:560px){
- .rx-blockmap-hud{left:6px;right:6px;bottom:6px;padding:6px 7px}
- .rx-blockmap-hud .blockmap-title small,.rx-blockmap-hud .map-legend{display:none}
- .rx-blockmap-hud .blockmap-viewport{max-height:54px}
- .rx-blockmap-hud .blockmap-summary{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-}
+
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="../qr-encoder.js"></script>
@@ -154,21 +146,21 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
  </div>
- <div class="camera-stage" aria-label="受信カメラとライブブロック表示">
+ <div class="camera-stage" aria-label="受信カメラ映像">
   <video id="camera" playsinline muted autoplay></video>
-  <div class="blockmap-section rx-blockmap-hud">
-   <div class="blockmap-title"><strong>RX BLOCK MAP · 読取位置</strong><small>カメラの下端に重ねて表示</small></div>
-   <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの状態と最後に読み込んだQR位置"></canvas></div>
-   <p id="rxBlockSummary" class="blockmap-summary">QRを読み取るとブロック位置が動きます</p>
-   <div class="map-legend">
-    <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
-    <span class="map-key"><i class="map-dot map-recovered"></i>復元済み</span>
-    <span class="map-key"><i class="map-dot map-active"></i>最後に読取</span>
-    <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
-   </div>
-  </div>
  </div>
  <canvas id="scanCanvas"></canvas>
+ <div class="blockmap-section rx-blockmap">
+  <div class="blockmap-title"><strong>RX BLOCK MAP · 受信位置</strong><small>1マス = 1データブロック</small></div>
+  <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの状態と最後に読み込んだQR位置"></canvas></div>
+  <p id="rxBlockSummary" class="blockmap-summary">QRを読み取ると取得位置が表示されます</p>
+  <div class="map-legend">
+   <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
+   <span class="map-key"><i class="map-dot map-recovered"></i>復元済み</span>
+   <span class="map-key"><i class="map-dot map-active"></i>最後に読取</span>
+   <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
+  </div>
+ </div>
  <p id="scannerMode" class="status info">読み取り方式：未初期化</p>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid">

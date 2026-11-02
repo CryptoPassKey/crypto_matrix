@@ -176,7 +176,7 @@ async function main() {
   const elapsedEnd = ui.indexOf('\n  function formatElapsedMs(', elapsedStart);
   const elapsedTransferMs = vm.runInNewContext('(' + ui.slice(elapsedStart, elapsedEnd).trim() + '\n)');
   const formatStart = ui.indexOf('function formatElapsedMs(');
-  const formatEnd = ui.indexOf('\n  function updateControls(', formatStart);
+  const formatEnd = ui.indexOf('\n  function nextLegacyFrameIndexAfterPreflight(', formatStart);
   const formatElapsedMs = vm.runInNewContext('(' + ui.slice(formatStart, formatEnd).trim() + '\n)');
   const timing = { startedAt: null, endedAt: null, frameCount: 0 };
   assert.equal(recordTransferFrame(timing, true, false, 1000), false,

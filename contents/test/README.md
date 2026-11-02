@@ -111,6 +111,8 @@ This is **not full BC-UR wire compatibility**. The mode borrows the MUR/LT fragm
 
 Fountain decoding is rateless in the sense that additional distinct equations can be emitted without a fixed end frame. It does **not** mean every arbitrary K packets are guaranteed to reconstruct the message. The number of useful packets depends on the loss pattern, equation degrees, duplicate equations, and peeling progress; additional packets may be required. It is not RaptorQ.
 
+The receiver stores only distinct equation index-sets and applies a bounded equation budget of `min(250,000, max(1,024, 8 × K))` per transfer to prevent unbounded memory growth. Repeated equations do not consume the budget. Conflicting values for a previously recovered source block are rejected. A very lossy or unusually long-running transfer can reach this cap and require a reset/retry.
+
 The sender and receiver block maps display one cell per original source block. TX colors show blocks sent systematically and the source blocks used by the current XOR packet. RX colors distinguish directly received blocks, blocks recovered from equations, currently referenced blocks, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
 
 The fountain chooser uses Web Crypto SHA-256 and BigInt operations, so it requires a modern browser in a secure context. Camera access still requires HTTPS or localhost. This remains an experimental implementation and should not be treated as an audited production codec.

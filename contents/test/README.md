@@ -120,11 +120,11 @@ The binary payload contains a version byte, original message length (uint32 big-
 
 This is **not full BC-UR wire compatibility**. The mode borrows the MUR/LT fragment-selection and peeling concepts, but uses the page's own CMAL1 framing and does not serialize `ur:` resources, CBOR, or Bytewords. Both sender and receiver must use this test page and select/detect the fountain extension. Existing CMAL1 numeric and P0/P1 frames remain unchanged.
 
-Fountain decoding is rateless in the sense that additional distinct equations can be emitted without a fixed end frame. It does **not** mean every arbitrary K packets are guaranteed to reconstruct the message. The number of useful packets depends on the loss pattern, equation degrees, duplicate equations, and peeling progress; additional packets may be required. It is not RaptorQ.
+Fountain decoding is rateless in the sense that the sender can emit additional distinct equations without a fixed end frame. The QR link is one-way: the receiver does not send ACKs or acquisition status back to the sender, so the sender cannot adapt its output to receiver progress. The receiver can collect distinct packets over time and may need more than K packets to reconstruct the message. It does **not** mean every arbitrary K packets are guaranteed to reconstruct the message. The number of useful packets depends on the loss pattern, equation degrees, duplicate equations, and peeling progress. It is not RaptorQ.
 
 The receiver stores only distinct equation index-sets and applies a bounded equation budget of `min(250,000, max(1,024, 8 × K))` per transfer to prevent unbounded memory growth. Repeated equations do not consume the budget. Conflicting values for a previously recovered source block are rejected. A very lossy or unusually long-running transfer can reach this cap and require a reset/retry.
 
-The sender and receiver block maps display one cell per original source block. TX colors show blocks sent systematically and the source blocks used by the current XOR packet. RX colors distinguish directly received blocks, blocks recovered from equations, currently referenced blocks, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
+The sender and receiver block maps display one cell per original source block. TX uses a distinct active fill for the source block(s) referenced by the currently displayed QR; it does not claim that the remote receiver has actually acquired a block. RX colors distinguish directly received blocks, blocks recovered from equations, the last valid QR position, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
 
 The fountain chooser uses Web Crypto SHA-256 and BigInt operations, so it requires a modern browser in a secure context. Camera access still requires HTTPS or localhost. This remains an experimental implementation and should not be treated as an audited production codec.
 
@@ -140,7 +140,7 @@ For small transfers, the map uses fewer columns (up to 75) so each source block 
 
 ## Test Lab versioning
 
-The standalone experiment page is labelled **Airgap Link / Test Lab V2**. The visible page title, heading, offline pill, and footer carry the version. Every test-lab UI/runtime behavior change should increment the displayed Test Lab version, use a fresh versioned UI script filename when stale Service Worker caches may survive, and increment the Service Worker cache version.
+The standalone experiment page is labelled **Airgap Link / Test Lab V4**. The visible page title, heading, offline pill, and footer carry the version. Every test-lab UI/runtime behavior change should increment the displayed Test Lab version, use a fresh versioned UI script filename when stale Service Worker caches may survive, and increment the Service Worker cache version.
 
 ## Test Lab V3 — TX position-only map
 
@@ -148,5 +148,13 @@ Starting with **Airgap Link / Test Lab V3**, TX's block map communicates only th
 
 The TX summary reports the source-block count and current packet information (Data/P0/P1 or LT sequence and XOR target indexes). RX retains persistent acquisition state: directly received, recovered, and missing blocks, plus a cursor for the last valid QR read.
 
-For each test-page UI release, increment the visible Test Lab major label (V2, V3, ...), use a new UI runtime filename where stale browser caches may be present, and increment the Service Worker cache version.
+For each test-page UI release, increment the visible Test Lab major label (V2, V3, V4, ...), use a new UI runtime filename where stale browser caches may be present, and increment the Service Worker cache version.
+
+## Test Lab V4 — TX block-map seek
+
+V4 colors the source block(s) referenced by the currently displayed TX QR, rather than relying on an outline alone. Clicking a cell immediately starts playback from that source block's direct Data packet. In legacy CMAL1/P0/P1 mode, the seek calculation skips preceding groups' parity frames and verifies that the selected frame is the requested Data block. In LT Fountain mode, the encoder jumps directly to the corresponding systematic packet (`seqNum = blockIndex + 1`) without generating and discarding earlier equations; subsequent packets continue in normal sequence.
+
+The TX map remains a canvas heatmap for large transfers. Pointer clicks map displayed canvas coordinates back to source-block indexes. The focused map also supports keyboard navigation: Tab to focus, arrow keys to choose a block, then Enter to start playback there. RX rendering and persistent direct/recovered/missing states are unchanged.
+
+The camera-to-sender channel remains one-way. There is no receiver ACK or status feedback, and the sender does not know which QR frames the camera successfully read.
 

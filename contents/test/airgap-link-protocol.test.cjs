@@ -38,15 +38,17 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V6 — QR Animation Lab</title>'), 'Page title must show V6');
-  assert(page.includes('/ Test Lab <span>V6</span>'), 'Page heading must show V6');
-  assert(page.includes('Airgap Link Test Lab V6'), 'Footer must show V6');
+  assert(page.includes('<title>Airgap Link V7 — Throughput Measurement Lab</title>'), 'Page title must show V7');
+  assert(page.includes('/ Test Lab <span>V7</span>'), 'Page heading must show V7');
+  assert(page.includes('Airgap Link Test Lab V7'), 'Footer must show V7');
   assert(page.includes('<script src="airgap-link-fountain-v5.js"></script>'),
     'Airgap page must load the cache-busted V5 Fountain runtime');
-  assert(page.includes('<script src="airgap-link-ui-v6.js" defer></script>'),
-    'Airgap page must load the cache-busted V6 UI runtime');
+  assert(page.includes('<script src="airgap-link-ui-v7.js" defer></script>'),
+    'Airgap page must load the cache-busted V7 UI runtime');
   assert(page.includes('id="rxElapsed"') && page.includes('2枚目の有効なQR'),
     'RX must display elapsed time starting at the second valid QR');
+  assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
+    'RX must show wire-payload throughput, saved-file throughput, and ingest timing');
   assert(page.includes('value="hybrid"') && page.includes('value="hybrid-data"'),
     'Test Lab must expose LT Hybrid and Data-only Hybrid comparison modes');
   assert(page.includes('先頭QRを1枚読み取る') && page.includes('途中参加は対象外'),
@@ -65,7 +67,7 @@ async function main() {
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v6.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v7.js', 'utf8');
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
   const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
@@ -197,6 +199,21 @@ async function main() {
   assert.equal(elapsedTransferMs(timing, 4500), 2000,
     'The stopwatch must freeze at the final required QR');
   assert.equal(formatElapsedMs(100000), '01:40');
+  const rateStart = ui.indexOf('function formatRate(');
+  const rateEnd = ui.indexOf('\n  function setSignature(', rateStart);
+  assert(rateStart >= 0 && rateEnd > rateStart, 'Completed throughput formatter must exist');
+  const formatRate = vm.runInNewContext('(' + ui.slice(rateStart, rateEnd).trim() + '\n)');
+  assert.equal(formatRate(307200, 100000), '3.00 KB/s',
+    '300 KiB reconstructed in 100 seconds must report 3.00 KiB/s');
+  assert.equal(formatRate(1000, 0), '—', 'A zero-duration sample must not report an infinite rate');
+  assert(ui.includes('requestVideoFrameCallback') && ui.includes('cancelVideoFrameCallback'),
+    'RX scanner must schedule work against camera frames and cancel pending callbacks');
+  assert(ui.includes("inversionAttempts: 'dontInvert'"),
+    'The QR-only light-background scanner must avoid unnecessary inverted-image search');
+  assert(ui.includes('mapSignature !== rxMapSignature') && ui.includes('signature !== txMapSignature'),
+    'TX/RX block maps must skip redraws when their visible state is unchanged');
+  assert(!ui.includes('setTimeout(scanTick, 20)'),
+    'Camera-frame scheduling must replace the unconditional 20 ms polling loop');
   assert(ui.includes('recordTransferFrame(transferTiming, firstFramePending, result.duplicate'),
     'The RX ingest path must start timing on the second distinct accepted QR');
   assert(ui.includes('txIndex = nextLegacyFrameIndexAfterPreflight(txPlan.frames.length)'),

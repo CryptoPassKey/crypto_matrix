@@ -394,10 +394,11 @@
       recovered = fountainRx.recoveredIndexes.size;
       directSet = fountainRx.directIndexes;
       recoveredSet = fountainRx.recoveredIndexes;
-      activeSet = new Set(fountainRx.lastIndexes);
+      activeSet = rxCurrentBlocks;
       $('rxBlockSummary').textContent =
         '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
-        ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount;
+        ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount +
+        ' · 直近読取: ' + (rxCurrentLabel || '—');
     } else {
       have = rx.shards.size;
       total = rx.total;

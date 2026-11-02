@@ -82,7 +82,7 @@
       var sourceBytes;
       var sourceName;
       if (file) {
-        if (file.size > 10 * 1024 * 1024) throw new Error('試験ページの上限は10 MBです');
+        if (file.size > 8 * 1000 * 1000) throw new Error('試験ページの上限は8 MBです');
         sourceBytes = new Uint8Array(await file.arrayBuffer());
         sourceName = file.name;
       } else {
@@ -256,7 +256,14 @@
         'CMAL1受信中 · ' + result.have + ' / ' + result.total +
         ' · 復元 ' + result.recovered + '片',
         'info');
-      if (result.complete) await finishReceive(result.bytes);
+      if (result.complete) {
+        try {
+          await finishReceive(result.bytes);
+        } catch (error) {
+          receivedDone = false;
+          status('rxStatus', '復元後の展開・保存準備に失敗しました: ' + error.message, 'error');
+        }
+      }
     } catch (error) {
       status('rxStatus', 'フレーム拒否: ' + error.message, 'error');
     }
@@ -393,6 +400,8 @@
         'PASS · CRC32 ' + result.crc32 +
         ' · 欠落 ' + result.droppedFrames + '片 → 復元 ' + result.recoveredFrames +
         '片 · 送信フレーム ' + result.packetFrames +
+        ' · 欠落位置テスト ' + result.pairPositions + '種 · P1単独 ' + (result.p1OnlyRecovery ? 'PASS' : 'FAIL') +
+        ' · CRC改ざん ' + (result.crcTamperRejected ? 'PASS' : 'FAIL') +
         ' · 旧形式 ' + result.legacyFrames,
         'ok');
     } catch (error) {

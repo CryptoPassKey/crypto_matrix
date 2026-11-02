@@ -44,7 +44,7 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V10 — Camera Resolution Benchmark</title>'), 'Page title must show V10');
+  assert(page.includes('<title>Airgap Link V10 — ZXing-C++ WASM Receiver</title>'), 'Page title must show V10');
   assert(page.includes('/ Test Lab <span>V10</span>'), 'Page heading must show V10');
   assert(page.includes('Airgap Link Test Lab V10'), 'Footer must show V10');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&

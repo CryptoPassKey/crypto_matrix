@@ -407,15 +407,59 @@
     }
     if (!completion || completion.length !== source.length) throw new Error('パリティ復元テストに失敗しました');
     for (var j = 0; j < source.length; j++) if (completion[j] !== source[j]) throw new Error('復元データが元データと一致しません');
-    var legacy = buildFrames(source.subarray(0, 100), { chunkSize: 180, parity: false, id: '11223344' });
-    if (legacy.frames.length !== 1 || parseFrame(legacy.frames[0]).type !== 'data') throw new Error('CMAL1互換フレームテストに失敗しました');
+    var pairTests = [[0, 1], [0, 7], [6, 7], [2, 5]];
+    for (var testIndex = 0; testIndex < pairTests.length; testIndex++) {
+      var pairReceiver = new Receiver();
+      var pairDone = null;
+      for (var packetIndex = 0; packetIndex < built.frames.length; packetIndex++) {
+        var packet = parseFrame(built.frames[packetIndex]);
+        if (packet.type === 'data' && pairTests[testIndex].indexOf(packet.index) !== -1) continue;
+        var pairResult = pairReceiver.feed(built.frames[packetIndex]);
+        if (pairResult.complete) pairDone = pairResult.bytes;
+      }
+      if (!pairDone || pairDone.length !== source.length) throw new Error('欠落位置 ' + pairTests[testIndex].join(',') + ' の復元に失敗しました');
+      for (var compareIndex = 0; compareIndex < source.length; compareIndex++) {
+        if (pairDone[compareIndex] !== source[compareIndex]) throw new Error('2消失訂正後のデータが一致しません');
+      }
+    }
+    var p1Receiver = new Receiver();
+    var p1Done = null;
+    for (var p1Index = 0; p1Index < built.frames.length; p1Index++) {
+      var p1Packet = parseFrame(built.frames[p1Index]);
+      if (p1Packet.type === 'data' && p1Packet.index === 2) continue;
+      if (p1Packet.type === 'parity' && p1Packet.parityType === 0) continue;
+      var p1Result = p1Receiver.feed(built.frames[p1Index]);
+      if (p1Result.complete) p1Done = p1Result.bytes;
+    }
+    if (!p1Done || p1Done.length !== source.length) throw new Error('P1単独の1消失訂正に失敗しました');
+
+    var legacy = buildFrames(source.subarray(0, 250), { chunkSize: 180, parity: false, id: '11223344' });
+    var legacyReceiver = new Receiver();
+    var legacyDone = null;
+    for (var legacyIndex = 0; legacyIndex < legacy.frames.length; legacyIndex++) {
+      var legacyResult = legacyReceiver.feed(legacy.frames[legacyIndex]);
+      if (legacyResult.complete) legacyDone = legacyResult.bytes;
+    }
+    if (!legacyDone || legacyDone.length !== 250) throw new Error('CMAL1旧形式の往復テストに失敗しました');
+    for (var legacyCompare = 0; legacyCompare < 250; legacyCompare++) {
+      if (legacyDone[legacyCompare] !== source[legacyCompare]) throw new Error('CMAL1旧形式の復元データが一致しません');
+    }
+
+    var corrupted = built.dataFrames[0].replace(/:([0-9A-F]{8}):/, ':00000000:');
+    var crcRejected = false;
+    try { parseFrame(corrupted); } catch (_) { crcRejected = true; }
+    if (!crcRejected) throw new Error('CRC32改ざん検出テストに失敗しました');
+
     return {
       crc32: 'CBF43926',
       simulatedBytes: source.length,
       droppedFrames: 2,
       recoveredFrames: receiver.recoveredCount,
       packetFrames: built.frames.length,
-      legacyFrames: legacy.frames.length
+      legacyFrames: legacy.frames.length,
+      pairPositions: pairTests.length,
+      p1OnlyRecovery: true,
+      crcTamperRejected: true
     };
   }
 

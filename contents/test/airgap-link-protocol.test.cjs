@@ -100,7 +100,7 @@ async function main() {
     'Fountain TX map cursor must follow current XOR source blocks');
   const pointStart = ui.indexOf('function blockIndexFromPoint(');
   const pointEnd = ui.indexOf('\n  function legacyFrameIndexForBlock', pointStart);
-  const blockIndexFromPoint = vm.runInNewContext('(' + ui.slice(pointStart, pointEnd).trim() + ')');
+  const blockIndexFromPoint = vm.runInNewContext('(' + ui.slice(pointStart, pointEnd).trim() + '\n)');
   assert.equal(blockIndexFromPoint(20 * 8 + 4, 4, 52 * 8, 8, 52), 20,
     'TX map coordinates must resolve a block in a one-row map');
   assert.equal(blockIndexFromPoint(8 + 4, 8 + 4, 75 * 8, 14 * 8, 1000), 76,
@@ -110,7 +110,7 @@ async function main() {
 
   const seekStart = ui.indexOf('function legacyFrameIndexForBlock(');
   const seekEnd = ui.indexOf('\n  function seekTxToBlock', seekStart);
-  const legacyFrameIndexForBlock = vm.runInNewContext('(' + ui.slice(seekStart, seekEnd).trim() + ')');
+  const legacyFrameIndexForBlock = vm.runInNewContext('(' + ui.slice(seekStart, seekEnd).trim() + '\n)');
   const parityPlan = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(52 * 80),
     { chunkSize: 80, parity: true, id: 'A1B2C3D4' });
   for (const index of [0, 7, 8, 15, 16, 31, 48, 51]) {

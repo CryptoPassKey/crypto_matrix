@@ -142,3 +142,11 @@ For small transfers, the map uses fewer columns (up to 75) so each source block 
 
 The standalone experiment page is labelled **Airgap Link / Test Lab V2**. The visible page title, heading, offline pill, and footer carry the version. Every test-lab UI/runtime behavior change should increment the displayed Test Lab version, use a fresh versioned UI script filename when stale Service Worker caches may survive, and increment the Service Worker cache version.
 
+## Test Lab V3 — TX position-only map
+
+Starting with **Airgap Link / Test Lab V3**, TX's block map communicates only the current QR position. All source blocks use the same neutral base color; only the active QR's source block(s) receive the high-contrast cursor. TX does not claim that a block is sent or unsent because the page controls what is displayed, not what the remote camera has actually received.
+
+The TX summary reports the source-block count and current packet information (Data/P0/P1 or LT sequence and XOR target indexes). RX retains persistent acquisition state: directly received, recovered, and missing blocks, plus a cursor for the last valid QR read.
+
+For each test-page UI release, increment the visible Test Lab major label (V2, V3, ...), use a new UI runtime filename where stale browser caches may be present, and increment the Service Worker cache version.
+

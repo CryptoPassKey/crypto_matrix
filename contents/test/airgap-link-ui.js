@@ -3,11 +3,19 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var Core = window.AirgapLinkCore;
+  var Fountain = window.AirgapLinkFountain;
   var txPlan = null;
+  var txFountainEncoder = null;
+  var txFountainPart = null;
+  var txMode = 'legacy';
+  var txDirectBlocks = new Set();
+  var txCurrentBlocks = new Set();
   var txIndex = 0;
   var txTimer = 0;
   var txPlaying = false;
   var rx = new Core.Receiver();
+  var fountainRx = new Fountain.Receiver();
+  var activeProtocol = null;
   var stream = null;
   var detector = null;
   var scannerName = '未初期化';
@@ -37,6 +45,75 @@
     $('chunkSizeValue').textContent = $('chunkSize').value + ' B';
     $('fpsValue').textContent = $('fps').value + ' fps';
   }
+
+  function drawBlockMap(canvasId, total, directSet, recoveredSet, activeSet) {
+    var canvas = $(canvasId);
+    if (!canvas) return;
+    total = Math.max(0, Number(total) || 0);
+    var columns = 75;
+    var cell = 8;
+    var rows = Math.max(1, Math.ceil(total / columns));
+    canvas.width = columns * cell;
+    canvas.height = rows * cell;
+    var context = canvas.getContext('2d', { alpha: false });
+    context.fillStyle = '#17283a';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    if (!total) return;
+    for (var index = 0; index < total; index++) {
+      var color = '#253b52';
+      if (directSet && directSet.has(index)) color = '#27bd8d';
+      if (recoveredSet && recoveredSet.has(index)) color = '#e5b44f';
+      if (activeSet && activeSet.has(index) &&
+          !(directSet && directSet.has(index)) &&
+          !(recoveredSet && recoveredSet.has(index))) color = '#65b7ff';
+      var x = (index % columns) * cell;
+      var y = Math.floor(index / columns) * cell;
+      context.fillStyle = color;
+      context.fillRect(x, y, cell - 1, cell - 1);
+    }
+  }
+
+  function updateTxBlockMap() {
+    if (txMode === 'fountain' && txFountainEncoder) {
+      drawBlockMap('txBlockMap', txFountainEncoder.seqLen, txDirectBlocks, null, txCurrentBlocks);
+      $('txBlockSummary').textContent =
+        '元データ ' + txFountainEncoder.seqLen + 'ブロック · 直接送信 ' +
+        txDirectBlocks.size + ' · 現在の合成対象 ' + txCurrentBlocks.size;
+    } else if (txPlan) {
+      var dataSet = new Set(txDirectBlocks);
+      drawBlockMap('txBlockMap', txPlan.dataFrames.length, dataSet, null, txCurrentBlocks);
+      $('txBlockSummary').textContent =
+        '元データ ' + txPlan.dataFrames.length + 'ブロック · 送信済み ' +
+        dataSet.size + ' · P0/P1は8ブロック単位';
+    } else {
+      drawBlockMap('txBlockMap', 0, null, null, null);
+      $('txBlockSummary').textContent = '転送データを準備するとブロックが表示されます';
+    }
+  }
+
+  function updateModeControls() {
+    var fountainMode = $('transferMode').value === 'fountain';
+    $('parityEnabled').disabled = fountainMode;
+    $('parityEnabled').parentElement.style.opacity = fountainMode ? '.45' : '1';
+    $('txModeHint').textContent = fountainMode
+      ? 'LTファウンテン: 最初のK片を直接送信し、その後は疑似ランダムXOR合成片を追加します。'
+      : '従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。';
+  }
+
+  $('transferMode').addEventListener('change', function () {
+    stopTx();
+    txPlan = null;
+    txFountainEncoder = null;
+    txFountainPart = null;
+    txDirectBlocks.clear();
+    txCurrentBlocks.clear();
+    $('playTx').disabled = true;
+    $('pauseTx').disabled = true;
+    $('txPlaceholder').classList.remove('hidden');
+    updateTxBlockMap();
+    status('txStatus', '方式を変更しました。転送データを再準備してください。', 'info');
+    updateModeControls();
+  });
   $('chunkSize').addEventListener('input', updateControls);
   $('fps').addEventListener('input', updateControls);
   updateControls();
@@ -102,29 +179,64 @@
           : 'Deflate省略: ' + packed.reason;
       }
 
-      txPlan = Core.buildFrames(wireBytes, {
-        chunkSize: Number($('chunkSize').value),
-        parity: $('parityEnabled').checked
-      });
+      txMode = $('transferMode').value;
+      txPlan = null;
+      txFountainEncoder = null;
+      txFountainPart = null;
+      txDirectBlocks.clear();
+      txCurrentBlocks.clear();
       txIndex = 0;
+
+      var firstFrame;
+      var transferId;
+      var blockCount;
+      var frameLabel;
+      if (txMode === 'fountain') {
+        txFountainEncoder = new Fountain.Encoder(wireBytes, {
+          chunkSize: Number($('chunkSize').value)
+        });
+        txFountainPart = await txFountainEncoder.nextPart();
+        firstFrame = txFountainPart.frame;
+        transferId = txFountainEncoder.id;
+        blockCount = txFountainEncoder.seqLen;
+        txDirectBlocks.add(0);
+        txCurrentBlocks = new Set(txFountainPart.indexes);
+        $('txFrameCount').textContent = blockCount + ' / ∞';
+        frameLabel = 'LT seq 1 / K=' + blockCount + ' · system';
+      } else {
+        txPlan = Core.buildFrames(wireBytes, {
+          chunkSize: Number($('chunkSize').value),
+          parity: $('parityEnabled').checked
+        });
+        firstFrame = txPlan.frames[0];
+        transferId = txPlan.id;
+        blockCount = txPlan.dataFrames.length;
+        txDirectBlocks.add(0);
+        txCurrentBlocks.clear();
+        $('txFrameCount').textContent = txPlan.dataFrames.length + ' / ' + txPlan.frames.length;
+        frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + Core.parseFrame(firstFrame).type;
+      }
       var planStart = performance.now();
-      renderQr(txPlan.frames[0]);
+      renderQr(firstFrame);
       var initialRenderMs = performance.now() - planStart;
       $('txPlaceholder').classList.add('hidden');
       $('playTx').disabled = false;
       $('pauseTx').disabled = true;
-      $('txFrameCount').textContent = txPlan.dataFrames.length + ' / ' + txPlan.frames.length;
       $('txPayloadSize').textContent = formatBytes(wireBytes.length);
       $('txQrGenMs').textContent = initialRenderMs.toFixed(1) + ' ms';
-      $('txFrameInfo').textContent = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + Core.parseFrame(txPlan.frames[0]).type;
-      $('txProgress').style.width = '0%';
+      $('txFrameInfo').textContent = frameLabel;
+      $('txProgress').style.width = (txMode === 'fountain' ? (1 / blockCount * 100) : 0).toFixed(1) + '%';
+      updateTxBlockMap();
       status('txStatus',
         '準備完了: ' + sourceName + ' · 元データ ' + formatBytes(sourceBytes.length) +
         ' · 転送 ' + formatBytes(wireBytes.length) + ' · ' + compressionNote +
-        ' · ID ' + txPlan.id,
+        ' · ' + (txMode === 'fountain' ? 'LTファウンテン' : 'CMAL1') +
+        ' · ID ' + transferId,
         'ok');
     } catch (error) {
       txPlan = null;
+      txFountainEncoder = null;
+      txFountainPart = null;
       $('playTx').disabled = true;
       $('pauseTx').disabled = true;
       $('txPlaceholder').classList.remove('hidden');
@@ -138,22 +250,45 @@
     txPlaying = false;
     if (txTimer) clearTimeout(txTimer);
     txTimer = 0;
-    $('playTx').disabled = !txPlan;
+    $('playTx').disabled = !(txPlan || txFountainEncoder);
     $('pauseTx').disabled = true;
   }
 
-  function showNextFrame() {
-    if (!txPlan) return;
+  async function showNextFrame() {
+    if (!txPlan && !txFountainEncoder) return;
     var started = performance.now();
     try {
-      var frame = txPlan.frames[txIndex];
+      var frame;
+      if (txMode === 'fountain') {
+        txFountainPart = await txFountainEncoder.nextPart();
+        frame = txFountainPart.frame;
+        txCurrentBlocks = new Set(txFountainPart.indexes);
+        if (txFountainPart.direct) txDirectBlocks.add(txFountainPart.indexes[0]);
+        $('txFrameCount').textContent = txFountainEncoder.seqLen + ' / ∞';
+        $('txFrameInfo').textContent =
+          'LT seq ' + txFountainPart.seqNum + ' · ' +
+          (txFountainPart.direct ? '直接片' : 'XOR合成 degree=' + txFountainPart.indexes.length) +
+          ' · K=' + txFountainEncoder.seqLen;
+        $('txProgress').style.width =
+          (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) /
+            txFountainEncoder.seqLen * 100).toFixed(1) + '%';
+      } else {
+        frame = txPlan.frames[txIndex];
+        var parsed = Core.parseFrame(frame);
+        txCurrentBlocks.clear();
+        if (parsed.type === 'data') {
+          txDirectBlocks.add(parsed.index);
+          txCurrentBlocks.add(parsed.index);
+        }
+        $('txFrameInfo').textContent = 'フレーム ' + (txIndex + 1) + ' / ' + txPlan.frames.length +
+          ' · ' + parsed.type + ' · ' + (1000 / Number($('fps').value)).toFixed(1) + ' ms/frame';
+        $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
+        txIndex = (txIndex + 1) % txPlan.frames.length;
+      }
       renderQr(frame);
+      updateTxBlockMap();
       var elapsed = performance.now() - started;
       $('txQrGenMs').textContent = elapsed.toFixed(1) + ' ms';
-      $('txFrameInfo').textContent = 'フレーム ' + (txIndex + 1) + ' / ' + txPlan.frames.length +
-        ' · ' + Core.parseFrame(frame).type + ' · ' + (1000 / Number($('fps').value)).toFixed(1) + ' ms/frame';
-      $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
-      txIndex = (txIndex + 1) % txPlan.frames.length;
       if (txPlaying) {
         var target = 1000 / Number($('fps').value);
         txTimer = setTimeout(showNextFrame, Math.max(0, target - elapsed));
@@ -165,7 +300,7 @@
   }
 
   function playTx() {
-    if (!txPlan || txPlaying) return;
+    if ((!txPlan && !txFountainEncoder) || txPlaying) return;
     txPlaying = true;
     $('playTx').disabled = true;
     $('pauseTx').disabled = false;
@@ -181,6 +316,8 @@
 
   function resetRx() {
     rx.reset();
+    fountainRx.reset();
+    activeProtocol = null;
     uniqueFrameCount = 0;
     scanAttempts = 0;
     scanHits = 0;
@@ -195,6 +332,8 @@
     $('rxLost').textContent = '—';
     $('rxRecovered').textContent = '0';
     $('rxHitRate').textContent = '0%';
+    $('rxBlockSummary').textContent = '受信を開始するとブロック状態が表示されます';
+    drawBlockMap('rxBlockMap', 0, null, null, null);
     $('rxResultMeta').textContent = '';
     $('downloadResult').classList.add('hidden');
     $('downloadResult').removeAttribute('href');
@@ -205,15 +344,41 @@
 
   function updateRxStats() {
     var elapsed = scanStartAt ? Math.max(0.001, (performance.now() - scanStartAt) / 1000) : 0;
-    var have = rx.shards.size;
-    var total = rx.total;
+    var have;
+    var total;
+    var recovered;
+    var directSet;
+    var recoveredSet;
+    var activeSet;
+    if (activeProtocol === 'fountain') {
+      have = fountainRx.simpleParts.size;
+      total = fountainRx.seqLen;
+      recovered = fountainRx.recoveredIndexes.size;
+      directSet = fountainRx.directIndexes;
+      recoveredSet = fountainRx.recoveredIndexes;
+      activeSet = new Set(fountainRx.lastIndexes);
+      $('rxBlockSummary').textContent =
+        '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
+        ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount;
+    } else {
+      have = rx.shards.size;
+      total = rx.total;
+      recovered = rx.recoveredCount;
+      directSet = rx.shards;
+      recoveredSet = null;
+      activeSet = null;
+      $('rxBlockSummary').textContent = total
+        ? '元データ ' + total + 'ブロック · 取得済み ' + have + ' · 旧P0/P1方式'
+        : '受信を開始するとブロック状態が表示されます';
+    }
     $('rxProgressText').textContent = have + ' / ' + total;
     $('rxProgress').style.width = total ? (have / total * 100).toFixed(1) + '%' : '0%';
     $('rxRate').textContent = elapsed ? (uniqueFrameCount / elapsed).toFixed(2) : '0.0';
     $('rxAvgMs').textContent = scanAttempts ? (scanTotalMs / scanAttempts).toFixed(1) + ' ms' : '0 ms';
     $('rxLost').textContent = total ? String(Math.max(0, total - have)) : '—';
-    $('rxRecovered').textContent = String(rx.recoveredCount);
+    $('rxRecovered').textContent = String(recovered);
     $('rxHitRate').textContent = scanAttempts ? (scanHits / scanAttempts * 100).toFixed(1) + '%' : '0%';
+    drawBlockMap('rxBlockMap', total, directSet, recoveredSet, activeSet);
   }
 
   function safeFilename(value) {
@@ -245,8 +410,8 @@
       ' · 初回QR ' + firstDetection +
       ' · 完了 ' + totalElapsed.toFixed(2) + '秒' +
       ' · ' + scannerName + ' · カメラ ' + cameraSize +
-      ' · CRC32検証済み · 転送ID ' + rx.id +
-      ' · パリティ復元 ' + rx.recoveredCount + '片';
+      ' · CRC32検証済み · 転送ID ' + (activeProtocol === 'fountain' ? fountainRx.id : rx.id) +
+      ' · 復元 ' + (activeProtocol === 'fountain' ? fountainRx.recoveredIndexes.size : rx.recoveredCount) + '片';
     status('rxStatus', '受信完了。ファイルを保存できます。', 'ok');
     updateRxStats();
     stopCamera();
@@ -256,12 +421,34 @@
     if (receivedDone) return;
     if (typeof rawText !== 'string' || rawText.indexOf('CMAL1:') !== 0) return;
     try {
-      var result = rx.feed(rawText);
+      var isFountain = rawText.indexOf('CMAL1:F') === 0;
+      if (activeProtocol && activeProtocol !== (isFountain ? 'fountain' : 'legacy')) {
+        throw new Error('別の転送方式のフレームです。受信をリセットしてください');
+      }
+      activeProtocol = isFountain ? 'fountain' : 'legacy';
+      var result;
+      var have;
+      var total;
+      var recovered;
+      if (isFountain) {
+        result = await fountainRx.feed(rawText);
+        have = fountainRx.simpleParts.size;
+        total = fountainRx.seqLen;
+        recovered = fountainRx.recoveredIndexes.size;
+        $('rxBlockSummary').textContent =
+          '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
+          ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount;
+      } else {
+        result = rx.feed(rawText);
+        have = rx.shards.size;
+        total = rx.total;
+        recovered = rx.recoveredCount;
+      }
       if (!result.duplicate) uniqueFrameCount++;
       updateRxStats();
       status('rxStatus',
-        'CMAL1受信中 · ' + rx.shards.size + ' / ' + rx.total +
-        ' · 復元 ' + rx.recoveredCount + '片',
+        (isFountain ? 'LTファウンテン受信中' : 'CMAL1受信中') +
+        ' · ' + have + ' / ' + total + 'ブロック · 復元 ' + recovered + '片',
         'info');
       if (result.complete) {
         try {
@@ -400,19 +587,22 @@
     ingest($('manualFrame').value.trim());
   });
 
-  $('runSelfTest').addEventListener('click', function () {
+  $('runSelfTest').addEventListener('click', async function () {
+    var button = $('runSelfTest');
+    button.disabled = true;
     try {
-      var result = Core.selfTest();
+      var legacyResult = Core.selfTest();
+      var fountainResult = await Fountain.selfTest();
       status('selfTestStatus',
-        'PASS · CRC32 ' + result.crc32 +
-        ' · 欠落 ' + result.droppedFrames + '片 → 復元 ' + result.recoveredFrames +
-        '片 · 送信フレーム ' + result.packetFrames +
-        ' · 欠落位置テスト ' + result.pairPositions + '種 · P1単独 ' + (result.p1OnlyRecovery ? 'PASS' : 'FAIL') +
-        ' · CRC改ざん ' + (result.crcTamperRejected ? 'PASS' : 'FAIL') +
-        ' · 旧形式 ' + result.legacyFrames,
+        'PASS · 旧CMAL1/P0/P1 ' + legacyResult.pairPositions + '欠落位置 · ' +
+        'LT公式chooserベクトル seq12=' + fountainResult.sequence12 +
+        ' / seq13=' + fountainResult.sequence13 +
+        ' · 順不同復元 · 2片欠落 · 重複処理 · CRC検証 · 転送混在拒否',
         'ok');
     } catch (error) {
       status('selfTestStatus', 'FAIL · ' + error.message, 'error');
+    } finally {
+      button.disabled = false;
     }
   });
 
@@ -422,9 +612,12 @@
     if (objectUrl) URL.revokeObjectURL(objectUrl);
   });
 
-  if (!Core || typeof Core.buildFrames !== 'function') {
-    status('txStatus', 'AirgapLinkCoreの初期化に失敗しました', 'error');
+  if (!Core || typeof Core.buildFrames !== 'function' ||
+      !Fountain || typeof Fountain.Encoder !== 'function') {
+    status('txStatus', 'Airgap Linkプロトコルの初期化に失敗しました', 'error');
     $('prepareTx').disabled = true;
   }
+  updateModeControls();
   resetRx();
+  updateTxBlockMap();
 })();

@@ -210,9 +210,38 @@ async function main() {
   assert([0, 1, 2].every(index => hybridReceiver.recoveredIndexes.has(index)),
     'LT must recover the three blocks not recoverable by P0/P1');
 
+  // A user may seek on the TX map immediately after entering the Hybrid LT phase.
+  // In that case the first LT frame is a direct systematic resend (seq <= K),
+  // followed by the normal rateless repair stream.
+  const seekHybridEncoder = new globalThis.AirgapLinkFountain.Encoder(hybridMessage,
+    { chunkSize: 128, id: hybridPlan.id });
+  seekHybridEncoder.startRepairPhase();
+  seekHybridEncoder.seekToBlock(0);
+  const firstSeekPart = await seekHybridEncoder.nextPart();
+  assert.equal(firstSeekPart.direct, true);
+  assert.equal(firstSeekPart.seqNum, 1);
+  const seekMetadata = globalThis.AirgapLinkFountain.parseFrame(firstSeekPart.frame);
+  const seekHybridReceiver = new globalThis.AirgapLinkFountain.Receiver();
+  for (const [index, shard] of legacyReceiver.shards.entries()) {
+    seekHybridReceiver.addKnownBlock(seekMetadata, index, shard, legacyDirect.has(index));
+  }
+  await seekHybridReceiver.feed(firstSeekPart.frame);
+  let seekPackets = 1;
+  while (!seekHybridReceiver.isComplete() && seekPackets < 2500) {
+    await seekHybridReceiver.feed((await seekHybridEncoder.nextPart()).frame);
+    seekPackets++;
+  }
+  assert.equal(seekHybridReceiver.isComplete(), true,
+    'Hybrid receiver must accept a systematic seek frame before Fountain repair packets');
+  assert(seekHybridReceiver.directIndexes.has(0),
+    'Hybrid seek target must be registered as directly received');
+  assert([1, 2].every(index => seekHybridReceiver.recoveredIndexes.has(index)),
+    'Subsequent LT equations must repair the remaining missing source blocks');
+  assert.deepEqual(Array.from(seekHybridReceiver.bytes()), Array.from(hybridMessage));
+
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS V5 TX map click/keyboard seek and active coloring; PASS RX state/cursor mapping\n'
+    'PASS duplicate/CRC/transfer isolation; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
   );
 }
 

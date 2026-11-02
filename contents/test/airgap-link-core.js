@@ -394,7 +394,7 @@
   function selfTest() {
     var check = new Uint8Array([49, 50, 51, 52, 53, 54, 55, 56, 57]);
     if (hex32(crc32(check)) !== 'CBF43926') throw new Error('CRC32既知テストに失敗しました');
-    var source = new Uint8Array(1733);
+    var source = new Uint8Array(4000);
     for (var i = 0; i < source.length; i++) source[i] = (i * 31 + 7) & 0xff;
     var built = buildFrames(source, { chunkSize: 180, parity: true, id: 'A1B2C3D4' });
     var receiver = new Receiver();
@@ -408,7 +408,7 @@
     }
     if (!completion || completion.length !== source.length) throw new Error('パリティ復元テストに失敗しました');
     for (var j = 0; j < source.length; j++) if (completion[j] !== source[j]) throw new Error('復元データが元データと一致しません');
-    var pairTests = [[0, 1], [0, 7], [6, 7], [2, 5]];
+    var pairTests = [[0, 1], [0, 7], [6, 7], [2, 5], [16, 21], [21, 22]];
     for (var testIndex = 0; testIndex < pairTests.length; testIndex++) {
       var pairReceiver = new Receiver();
       var pairDone = null;

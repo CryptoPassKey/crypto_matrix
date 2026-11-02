@@ -13,7 +13,7 @@
   var scannerName = '未初期化';
   var scanBusy = false;
   var scanTimer = 0;
-  var seenFrames = new Set();
+  var uniqueFrameCount = 0;
   var scanAttempts = 0;
   var scanHits = 0;
   var scanTotalMs = 0;
@@ -181,7 +181,7 @@
 
   function resetRx() {
     rx.reset();
-    seenFrames.clear();
+    uniqueFrameCount = 0;
     scanAttempts = 0;
     scanHits = 0;
     scanTotalMs = 0;
@@ -209,7 +209,7 @@
     var total = rx.total;
     $('rxProgressText').textContent = have + ' / ' + total;
     $('rxProgress').style.width = total ? (have / total * 100).toFixed(1) + '%' : '0%';
-    $('rxRate').textContent = elapsed ? (seenFrames.size / elapsed).toFixed(2) : '0.0';
+    $('rxRate').textContent = elapsed ? (uniqueFrameCount / elapsed).toFixed(2) : '0.0';
     $('rxAvgMs').textContent = scanAttempts ? (scanTotalMs / scanAttempts).toFixed(1) + ' ms' : '0 ms';
     $('rxLost').textContent = total ? String(Math.max(0, total - have)) : '—';
     $('rxRecovered').textContent = String(rx.recoveredCount);
@@ -255,14 +255,13 @@
   async function ingest(rawText) {
     if (receivedDone) return;
     if (typeof rawText !== 'string' || rawText.indexOf('CMAL1:') !== 0) return;
-    if (seenFrames.has(rawText)) return;
-    seenFrames.add(rawText);
     try {
       var result = rx.feed(rawText);
+      if (!result.duplicate) uniqueFrameCount++;
       updateRxStats();
       status('rxStatus',
-        'CMAL1受信中 · ' + result.have + ' / ' + result.total +
-        ' · 復元 ' + result.recovered + '片',
+        'CMAL1受信中 · ' + rx.shards.size + ' / ' + rx.total +
+        ' · 復元 ' + rx.recoveredCount + '片',
         'info');
       if (result.complete) {
         try {

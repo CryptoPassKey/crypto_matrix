@@ -99,8 +99,11 @@
     $('parityEnabled').disabled = fountainMode;
     $('parityEnabled').parentElement.style.opacity = fountainMode ? '.45' : '1';
     $('txModeHint').textContent = fountainMode
-      ? 'LTファウンテン: 最初のK片を直接送信し、その後は疑似ランダムXOR合成片を追加します。'
+      ? 'LTファウンテン: 最初のK片を直接送信し、その後は疑似ランダムXOR合成片を追加します。送信は必要な分だけ継続できます。'
       : '従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。';
+    $('txFrameCountLabel').textContent = fountainMode
+      ? '元データ片数 / 送信パケットは継続'
+      : 'データ / 総フレーム';
   }
 
   $('transferMode').addEventListener('change', function () {

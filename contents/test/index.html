@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V6 — QR Animation Lab</title>
+<title>Airgap Link V8 — Base45 Throughput Lab</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -61,17 +61,18 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
-<script src="../qr-encoder.js"></script>
+<script src="airgap-link-qr-encoder-v8.js"></script>
 <script src="../vendor/jsQR.js"></script>
-<script src="airgap-link-core.js"></script>
-<script src="airgap-link-fountain-v5.js"></script>
-<script src="airgap-link-ui-v6.js" defer></script>
+<script src="airgap-link-wire-v8.js"></script>
+<script src="airgap-link-core-v8.js"></script>
+<script src="airgap-link-fountain-v8.js"></script>
+<script src="airgap-link-ui-v8.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V6</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
- <span class="pill">OFFLINE TEST PAGE · V6</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V8</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · throughput measurement</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V8</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
@@ -87,12 +88,18 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
  <label for="transferMode">転送方式</label>
  <select id="transferMode" class="mode-select">
-  <option value="legacy">従来CMAL1 — Data + P0/P1</option>
-  <option value="legacy-data">従来CMAL1 — Dataのみ（比較用）</option>
+  <option value="legacy">Legacy — Data + P0/P1</option>
+  <option value="legacy-data">Legacy — Dataのみ（比較用）</option>
   <option value="fountain">Pure LT Fountain — Systematic + XOR修復</option>
   <option value="hybrid" selected>LT Hybrid — Data + P0/P1を1周 → LT修復</option>
   <option value="hybrid-data">Hybrid対照 — Dataのみを1周 → LT修復</option>
  </select>
+ <label for="wireFormat">QRペイロード形式</label>
+ <select id="wireFormat" class="mode-select">
+  <option value="base45" selected>Base45 / Alphanumeric（高容量・新形式）</option>
+  <option value="base64url">Base64URL / Byte（旧形式・比較用）</option>
+ </select>
+ <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  <p id="txModeHint" class="muted">従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。</p>
 
  <div class="controls">
@@ -167,11 +174,14 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid">
   <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>
-  <div class="stat"><b id="rxRate">0.0</b><small>転送フレーム / 秒（2枚目QRから）</small></div>
+  <div class="stat"><b id="rxRate">0.0</b><small>有効フレーム / 秒（2枚目QRから）</small></div>
   <div class="stat"><b id="rxElapsed">—</b><small>転送経過時間（2枚目QRから）</small></div>
-  <div class="stat"><b id="rxAvgMs">0 ms</b><small>平均解析時間</small></div>
+  <div class="stat"><b id="rxThroughput">—</b><small>転送データ実効速度</small></div>
+  <div class="stat"><b id="rxFileRate">—</b><small>保存ファイル実効速度</small></div>
+  <div class="stat"><b id="rxAvgMs">0 ms</b><small>QR解析平均時間</small></div>
+  <div class="stat"><b id="rxIngestMs">0 ms</b><small>受信処理平均時間</small></div>
   <div class="stat"><b id="rxLost">—</b><small>未取得データ片</small></div>
-  <div class="stat"><b id="rxRecovered">0</b><small>パリティ復元</small></div>
+  <div class="stat"><b id="rxRecovered">0</b><small>パリティ／LT復元</small></div>
   <div class="stat"><b id="rxHitRate">0%</b><small>QR検出率</small></div>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
@@ -197,7 +207,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V6 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
+<p class="footer">Airgap Link Test Lab V8 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>
 </body>
 </html>

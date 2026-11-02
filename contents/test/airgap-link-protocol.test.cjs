@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const nodeCrypto = require('node:crypto');
+const jsQR = require('../vendor/jsQR.js');
 
 if (!globalThis.crypto || !globalThis.crypto.subtle) {
   globalThis.crypto = nodeCrypto.webcrypto;
@@ -16,8 +17,10 @@ if (typeof globalThis.atob !== 'function') {
 }
 globalThis.window = globalThis;
 
-require('./airgap-link-core.js');
-require('./airgap-link-fountain-v5.js');
+require('./airgap-link-wire-v8.js');
+require('./airgap-link-core-v8.js');
+require('./airgap-link-fountain-v8.js');
+require('./airgap-link-qr-encoder-v8.js');
 
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
@@ -38,15 +41,25 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V6 — QR Animation Lab</title>'), 'Page title must show V6');
-  assert(page.includes('/ Test Lab <span>V6</span>'), 'Page heading must show V6');
-  assert(page.includes('Airgap Link Test Lab V6'), 'Footer must show V6');
-  assert(page.includes('<script src="airgap-link-fountain-v5.js"></script>'),
-    'Airgap page must load the cache-busted V5 Fountain runtime');
-  assert(page.includes('<script src="airgap-link-ui-v6.js" defer></script>'),
-    'Airgap page must load the cache-busted V6 UI runtime');
+  assert(page.includes('<title>Airgap Link V8 — Base45 Throughput Lab</title>'), 'Page title must show V8');
+  assert(page.includes('/ Test Lab <span>V8</span>'), 'Page heading must show V8');
+  assert(page.includes('Airgap Link Test Lab V8'), 'Footer must show V8');
+  assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
+    page.includes('<script src="airgap-link-core-v8.js"></script>') &&
+    page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
+    'Airgap page must load V8 wire, Legacy and Fountain runtimes');
+  assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
+    'Airgap page must load the V8 Alphanumeric QR encoder');
+  assert(page.includes('<script src="airgap-link-ui-v8.js" defer></script>'),
+    'Airgap page must load the cache-busted V8 UI runtime');
+  assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
+    'TX must offer Base45 and legacy Base64URL wire-format selection');
+  assert(page.indexOf('airgap-link-wire-v8.js') < page.indexOf('airgap-link-core-v8.js'),
+    'Wire codec must load before the V8 protocol runtimes');
   assert(page.includes('id="rxElapsed"') && page.includes('2枚目の有効なQR'),
     'RX must display elapsed time starting at the second valid QR');
+  assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
+    'RX must show wire-payload throughput, saved-file throughput, and ingest timing');
   assert(page.includes('value="hybrid"') && page.includes('value="hybrid-data"'),
     'Test Lab must expose LT Hybrid and Data-only Hybrid comparison modes');
   assert(page.includes('先頭QRを1枚読み取る') && page.includes('途中参加は対象外'),
@@ -65,7 +78,88 @@ async function main() {
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v6.js', 'utf8');
+  const wire = globalThis.AirgapLinkWire;
+  const base45Sample = Uint8Array.from([0, 44, 0, 36, 0, 45, 0, 46, 255, 0, 128, 1]);
+  const base45Text = wire.encodeBase45(base45Sample);
+  assert(base45Text.includes(':') && base45Text.includes(' '),
+    'Base45 fixture must cover colon and ordinary-space payload characters');
+  assert.deepEqual(Array.from(wire.decodeBase45(base45Text)), Array.from(base45Sample),
+    'Base45 must round-trip arbitrary bytes including colon and spaces');
+  assert.throws(() => wire.decodeBase45('1'), 'Base45 must reject a 1-character remainder');
+  const allBytes = Uint8Array.from({ length: 256 }, (_, index) => index);
+  assert.deepEqual(Array.from(wire.decodeBase45(wire.encodeBase45(allBytes))), Array.from(allBytes),
+    'Base45 must round-trip every possible byte value');
+  const base45Plan = globalThis.AirgapLinkCore.buildFrames(base45Sample,
+    { chunkSize: 80, parity: false, id: 'A1B2C3D4', wireFormat: 'base45' });
+  const base45Frame = base45Plan.frames[0];
+  assert(base45Frame.startsWith('CMAL2:'), 'Base45 frames must use the versioned CMAL2 prefix');
+  assert.equal(globalThis.AirgapLinkCore.parseFrame(base45Frame).wireFormat, 'base45');
+  assert.deepEqual(Array.from(globalThis.AirgapLinkCore.parseFrame(base45Frame).payload), Array.from(base45Sample),
+    'Legacy CMAL2 parser must recover original payload bytes');
+  const base45Receiver = new globalThis.AirgapLinkCore.Receiver();
+  const base45Result = base45Receiver.feed(base45Frame);
+  assert.equal(base45Result.complete, true);
+  assert.deepEqual(Array.from(base45Result.bytes), Array.from(base45Sample));
+  const legacyFormatPlan = globalThis.AirgapLinkCore.buildFrames(base45Sample,
+    { chunkSize: 80, parity: false, id: 'A1B2C3D4' });
+  assert(legacyFormatPlan.frames[0].startsWith('CMAL1:'),
+    'Default legacy format must remain CMAL1/Base64URL for backwards compatibility');
+  assert.equal(globalThis.AirgapLinkCore.parseFrame(legacyFormatPlan.frames[0]).wireFormat, 'base64url');
+  const mixedWireReceiver = new globalThis.AirgapLinkCore.Receiver();
+  mixedWireReceiver.feed(legacyFormatPlan.frames[0]);
+  assert.throws(() => mixedWireReceiver.feed(base45Frame),
+    'One transfer must not mix CMAL1 and CMAL2 frames');
+  const fountainBase45Encoder = new globalThis.AirgapLinkFountain.Encoder(base45Sample,
+    { chunkSize: 80, id: 'A1B2C3D4', wireFormat: 'base45' });
+  const fountainBase45Part = await fountainBase45Encoder.nextPart();
+  assert(fountainBase45Part.frame.startsWith('CMAL2:F'),
+    'LT Fountain systematic packets must use CMAL2 when Base45 is selected');
+  assert.equal(globalThis.AirgapLinkFountain.parseFrame(fountainBase45Part.frame).wireFormat, 'base45');
+  const fountainBase45Receiver = new globalThis.AirgapLinkFountain.Receiver();
+  const fountainBase45Result = await fountainBase45Receiver.feed(fountainBase45Part.frame);
+  assert.equal(fountainBase45Result.complete, true);
+  assert.deepEqual(Array.from(fountainBase45Receiver.bytes()), Array.from(base45Sample));
+  const base45QrFrame = 'CMAL2:1/1:11223344:ABCDEF12:' + base45Text;
+  assert.equal(globalThis.MatrixQRCode.modeFor(base45QrFrame), 2,
+    'CMAL2/Base45 frames must use QR Alphanumeric mode');
+  assert.equal(globalThis.MatrixQRCode.modeFor('CMAL1:1/1:11223344:ABCDEF12:ab_cd-1'), 4,
+    'Legacy Base64URL-like payloads must remain in QR Byte mode');
+  assert(globalThis.MatrixQRCode.matrix(base45QrFrame).length > 0,
+    'The Alphanumeric QR encoder must generate a matrix for Base45 frames');
+  const base45QrMatrix = globalThis.MatrixQRCode.matrix(base45QrFrame);
+  const moduleScale = 6;
+  const quietZone = 4;
+  const qrDimension = (base45QrMatrix.length + quietZone * 2) * moduleScale;
+  const qrPixels = new Uint8ClampedArray(qrDimension * qrDimension * 4);
+  for (let offset = 0; offset < qrPixels.length; offset += 4) {
+    qrPixels[offset] = 255;
+    qrPixels[offset + 1] = 255;
+    qrPixels[offset + 2] = 255;
+    qrPixels[offset + 3] = 255;
+  }
+  for (let row = 0; row < base45QrMatrix.length; row++) {
+    for (let column = 0; column < base45QrMatrix.length; column++) {
+      if (!base45QrMatrix[row][column]) continue;
+      const left = (column + quietZone) * moduleScale;
+      const top = (row + quietZone) * moduleScale;
+      for (let py = top; py < top + moduleScale; py++) {
+        for (let px = left; px < left + moduleScale; px++) {
+          const pixel = (py * qrDimension + px) * 4;
+          qrPixels[pixel] = 0;
+          qrPixels[pixel + 1] = 0;
+          qrPixels[pixel + 2] = 0;
+        }
+      }
+    }
+  }
+  const decodedBase45Qr = jsQR(qrPixels, qrDimension, qrDimension, { inversionAttempts: 'dontInvert' });
+  assert(decodedBase45Qr, 'The bundled jsQR reader must decode a generated Base45/Alphanumeric QR');
+  assert.equal(decodedBase45Qr.data, base45QrFrame,
+    'The bundled jsQR reader must preserve Base45 colons and spaces byte-for-byte');
+  assert.equal(wire.splitFrame(base45Frame).payload, base45Text,
+    'Wire parser must preserve spaces and colons after the four structural separators');
+
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v8.js', 'utf8');
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
   const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
@@ -157,7 +251,7 @@ async function main() {
   const initialFrameEnd = ui.indexOf('\n  async function ingest(', initialFrameStart);
   const isInitialTransferFrame = vm.runInNewContext(
     '(' + ui.slice(initialFrameStart, initialFrameEnd).trim() + '\n)',
-    { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain }
+    { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain, Wire: globalThis.AirgapLinkWire }
   );
   const preflightLegacy = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
     { chunkSize: 80, parity: true, id: 'A1B2C3D4' });
@@ -167,6 +261,27 @@ async function main() {
     { chunkSize: 80, id: 'A1B2C3D4' });
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), true);
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), false);
+  const preflightLegacyBase45 = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
+    { chunkSize: 80, parity: true, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(isInitialTransferFrame(preflightLegacyBase45.frames[0]), true,
+    'CMAL2 Legacy Data 1 must be accepted as the initial preflight QR');
+  const preflightLtBase45Encoder = new globalThis.AirgapLinkFountain.Encoder(new Uint8Array(10 * 80),
+    { chunkSize: 80, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(isInitialTransferFrame((await preflightLtBase45Encoder.nextPart()).frame), true,
+    'CMAL2 LT seq 1 must be accepted as the initial preflight QR');
+  assert.equal(isInitialTransferFrame((await preflightLtBase45Encoder.nextPart()).frame), false,
+    'CMAL2 LT seq 2 must not be accepted as a preflight frame');
+  const prepareSource = ui.slice(ui.indexOf('async function prepareTx()'), ui.indexOf('function stopTx()'));
+  assert(prepareSource.includes("$('wireFormat').value"),
+    'TX preparation must read the selected wire format');
+  assert.equal((prepareSource.match(/wireFormat: wireFormat/g) || []).length, 3,
+    'The selected wire format must propagate to Pure LT, Legacy and Hybrid encoders');
+  assert(ui.includes('Wire.isAirgapFrame(rawText)') && ui.includes('Wire.isFountainFrame(rawText)'),
+    'RX recognition must accept both CMAL1 and CMAL2 across Legacy and LT');
+  assert(ui.includes("raw.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '')"),
+    'Camera ingestion must preserve Base45 leading/trailing spaces');
+  assert(ui.includes("manualFrame').value.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '')"),
+    'Manual ingestion must preserve Base45 leading/trailing spaces');
 
   const timerStart = ui.indexOf('function recordTransferFrame(');
   const timerEnd = ui.indexOf('\n  function elapsedTransferMs(', timerStart);
@@ -197,6 +312,21 @@ async function main() {
   assert.equal(elapsedTransferMs(timing, 4500), 2000,
     'The stopwatch must freeze at the final required QR');
   assert.equal(formatElapsedMs(100000), '01:40');
+  const rateStart = ui.indexOf('function formatRate(');
+  const rateEnd = ui.indexOf('\n  function sameSet(', rateStart);
+  assert(rateStart >= 0 && rateEnd > rateStart, 'Completed throughput formatter must exist');
+  const formatRate = vm.runInNewContext('(' + ui.slice(rateStart, rateEnd).trim() + '\n)');
+  assert.equal(formatRate(307200, 100000), '3.00 KB/s',
+    '300 KiB reconstructed in 100 seconds must report 3.00 KiB/s');
+  assert.equal(formatRate(1000, 0), '—', 'A zero-duration sample must not report an infinite rate');
+  assert(ui.includes('requestVideoFrameCallback') && ui.includes('cancelVideoFrameCallback'),
+    'RX scanner must schedule work against camera frames and cancel pending callbacks');
+  assert(ui.includes("inversionAttempts: 'dontInvert'"),
+    'The QR-only light-background scanner must avoid unnecessary inverted-image search');
+  assert(ui.includes('if (rxMapDirty)') && ui.includes('sameSet(txCurrentBlocks, txMapLastBlocks)'),
+    'RX must redraw only after unique accepted packets and TX must compare block sets without sorting');
+  assert(!ui.includes('setTimeout(scanTick, 20)'),
+    'Camera-frame scheduling must replace the unconditional 20 ms polling loop');
   assert(ui.includes('recordTransferFrame(transferTiming, firstFramePending, result.duplicate'),
     'The RX ingest path must start timing on the second distinct accepted QR');
   assert(ui.includes('txIndex = nextLegacyFrameIndexAfterPreflight(txPlan.frames.length)'),
@@ -222,7 +352,7 @@ async function main() {
 
   const hybridMessage = Uint8Array.from({ length: 20 * 128 - 37 }, (_, i) => (i * 73 + 19) & 0xff);
   const hybridPlan = globalThis.AirgapLinkCore.buildFrames(hybridMessage,
-    { chunkSize: 128, parity: true, id: 'A1B2C3D4' });
+    { chunkSize: 128, parity: true, id: 'A1B2C3D4', wireFormat: 'base45' });
   const legacyReceiver = new globalThis.AirgapLinkCore.Receiver();
   const dropped = new Set([0, 1, 2, 8, 9]);
   const legacyDirect = new Set();
@@ -235,7 +365,7 @@ async function main() {
   assert.equal(legacyReceiver.isComplete(), false);
   assert.equal(legacyReceiver.recoveredCount, 2, 'P0/P1 must recover two dropped blocks in the second group');
   const hybridEncoder = new globalThis.AirgapLinkFountain.Encoder(hybridMessage,
-    { chunkSize: 128, id: hybridPlan.id });
+    { chunkSize: 128, id: hybridPlan.id, wireFormat: 'base45' });
   assert.equal(hybridEncoder.seqLen, hybridPlan.dataFrames.length);
   assert.equal(hybridEncoder.fragmentLen, hybridPlan.chunkSize);
   assert.equal(hybridEncoder.startRepairPhase(), hybridEncoder.seqLen);
@@ -262,7 +392,7 @@ async function main() {
   // In that case the first LT frame is a direct systematic resend (seq <= K),
   // followed by the normal rateless repair stream.
   const seekHybridEncoder = new globalThis.AirgapLinkFountain.Encoder(hybridMessage,
-    { chunkSize: 128, id: hybridPlan.id });
+    { chunkSize: 128, id: hybridPlan.id, wireFormat: 'base45' });
   seekHybridEncoder.startRepairPhase();
   seekHybridEncoder.seekToBlock(0);
   const firstSeekPart = await seekHybridEncoder.nextPart();

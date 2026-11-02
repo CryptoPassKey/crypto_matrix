@@ -261,6 +261,27 @@ async function main() {
     { chunkSize: 80, id: 'A1B2C3D4' });
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), true);
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), false);
+  const preflightLegacyBase45 = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
+    { chunkSize: 80, parity: true, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(isInitialTransferFrame(preflightLegacyBase45.frames[0]), true,
+    'CMAL2 Legacy Data 1 must be accepted as the initial preflight QR');
+  const preflightLtBase45Encoder = new globalThis.AirgapLinkFountain.Encoder(new Uint8Array(10 * 80),
+    { chunkSize: 80, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(isInitialTransferFrame((await preflightLtBase45Encoder.nextPart()).frame), true,
+    'CMAL2 LT seq 1 must be accepted as the initial preflight QR');
+  assert.equal(isInitialTransferFrame((await preflightLtBase45Encoder.nextPart()).frame), false,
+    'CMAL2 LT seq 2 must not be accepted as a preflight frame');
+  const prepareSource = ui.slice(ui.indexOf('async function prepareTx()'), ui.indexOf('function stopTx()'));
+  assert(prepareSource.includes("$('wireFormat').value"),
+    'TX preparation must read the selected wire format');
+  assert.equal((prepareSource.match(/wireFormat: wireFormat/g) || []).length, 3,
+    'The selected wire format must propagate to Pure LT, Legacy and Hybrid encoders');
+  assert(ui.includes('Wire.isAirgapFrame(rawText)') && ui.includes('Wire.isFountainFrame(rawText)'),
+    'RX recognition must accept both CMAL1 and CMAL2 across Legacy and LT');
+  assert(ui.includes("raw.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '')"),
+    'Camera ingestion must preserve Base45 leading/trailing spaces');
+  assert(ui.includes("manualFrame').value.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '')"),
+    'Manual ingestion must preserve Base45 leading/trailing spaces');
 
   const timerStart = ui.indexOf('function recordTransferFrame(');
   const timerEnd = ui.indexOf('\n  function elapsedTransferMs(', timerStart);

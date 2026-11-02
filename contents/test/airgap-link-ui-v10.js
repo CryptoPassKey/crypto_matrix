@@ -684,7 +684,7 @@
       fps: $('fps').value
     };
     // Deliberately use a compact, repeatable matrix to keep the run practical.
-    var modes = ['legacy', 'fountain', 'hybrid'];
+    var modes = ['hybrid-data'];
     var chunks = [180, 360, 540];
     var rates = [6, 12, 18];
     var cases = [];
@@ -712,7 +712,9 @@
         if (!autoTestRunning || (!txPlan && !txFountainEncoder)) break;
         var units = txMode === 'fountain'
           ? Math.ceil(txFountainEncoder.seqLen * 1.6)
-          : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
+          : txMode === 'hybrid-data'
+            ? (txPlan.frames.length + Math.ceil(txFountainEncoder.seqLen * 1.6))
+            : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
         // Leave a short receive-reset interval between independent transfers.
         var duration = Math.min(120000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
         var caseTransferId = txMode === 'fountain' ? txFountainEncoder.id : txPlan.id;
@@ -749,7 +751,7 @@
       $('fpsValue').textContent = original.fps + ' fps';
       $('autoTxTest').textContent = '送信条件の自動テスト';
       $('prepareTx').disabled = false;
-      status('txStatus', '自動テスト終了。受信側のCSVに記録された条件別結果を比較してください。', 'ok');
+      status('txStatus', '自動テスト終了。受信側の計測結果をテキストコピーし、Transfer IDで照合してください。', 'ok');
     }
   }
   $('autoTxTest').addEventListener('click', runTxAutoTest);
@@ -881,6 +883,7 @@
     var run = {
       recordedAt: new Date().toISOString(),
       transferId: rxTransferId,
+      txMode: activeProtocol || '',
       requestedResolution: camera.requestedResolution || rxRequestedResolution || '',
       actualWidth: camera.width || '',
       actualHeight: camera.height || '',
@@ -905,61 +908,74 @@
     benchmarkRunRecorded = true;
     $('benchmarkRunCount').textContent =
       '完了した計測: ' + benchmarkRuns.length + '件（このページを開いている間保持）';
-    $('exportBenchmarkCsv').disabled = false;
+    $('copyBenchmarkText').disabled = false;
   }
 
-  function csvCell(value) {
-    return '"' + String(value === null || value === undefined ? '' : value).replace(/"/g, '""') + '"';
-  }
-
-  function exportBenchmarkCsv() {
-    if (!benchmarkRuns.length) return;
-    var rows = [[
-      'record_type', 'run', 'recorded_at', 'transfer_id', 'requested_resolution',
-      'actual_resolution', 'actual_frame_rate', 'observed_video_fps', 'scanner', 'scan_attempts',
-      'scan_hits', 'hit_rate_percent', 'decode_mean_ms', 'decode_p50_ms',
-      'decode_p95_ms', 'unique_frames_per_second', 'unique_frames',
-      'received_blocks', 'total_blocks', 'completion_ms', 'sample_index', 'decode_ms'
-    ]];
-    benchmarkRuns.forEach(function (run, runIndex) {
-      var common = [
-        runIndex + 1,
+  function benchmarkResultsText() {
+    var lines = [
+      'Airgap Link Test Lab — 計測結果',
+      '計測日時\tTransfer ID\tモード\t要求解像度\t実解像度\t実測映像FPS\t読み取り方式\t検出率(%)\t解析平均(ms)\t解析P95(ms)\t有効フレーム/秒\t受信ブロック\t総ブロック\t完了時間(ms)'
+    ];
+    benchmarkRuns.forEach(function (run) {
+      lines.push([
         run.recordedAt,
-        run.transferId,
-        run.requestedResolution,
+        run.transferId || '',
+        run.txMode || '',
+        run.requestedResolution || '',
         run.actualWidth && run.actualHeight ? run.actualWidth + 'x' + run.actualHeight : '',
-        run.actualFrameRate,
         run.observedVideoFps === null ? '' : run.observedVideoFps,
-        run.scanner,
-        run.attempts,
-        run.hits,
+        run.scanner || '',
         run.hitRatePercent.toFixed(2),
         run.decodeMeanMs === null ? '' : run.decodeMeanMs.toFixed(3),
-        run.decodeP50Ms === null ? '' : run.decodeP50Ms.toFixed(3),
         run.decodeP95Ms === null ? '' : run.decodeP95Ms.toFixed(3),
         run.uniqueFramesPerSecond === null ? '' : run.uniqueFramesPerSecond.toFixed(3),
-        run.uniqueFrames,
         run.receivedBlocks,
         run.totalBlocks,
         run.completionMs === null ? '' : run.completionMs.toFixed(1)
-      ];
-      rows.push(['summary'].concat(common, ['', '']).map(csvCell).join(','));
-      run.samples.forEach(function (sample, sampleIndex) {
-        rows.push(['scan'].concat(common, [sampleIndex + 1, sample.toFixed(3)]).map(csvCell).join(','));
-      });
+      ].join('\t'));
     });
-    var blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'airgap-link-resolution-benchmark-' +
-      new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    return lines.join('\n');
   }
+
+  async function copyTextToClipboard(value, successMessage) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        var area = document.createElement('textarea');
+        area.value = value;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        var ok = document.execCommand('copy');
+        area.remove();
+        if (!ok) throw new Error('copy command unavailable');
+      }
+      status('rxStatus', successMessage, 'ok');
+    } catch (_error) {
+      var fallback = document.createElement('textarea');
+      fallback.value = value;
+      fallback.setAttribute('readonly', '');
+      fallback.style.position = 'fixed';
+      fallback.style.inset = '10px';
+      fallback.style.width = 'calc(100% - 20px)';
+      fallback.style.height = '40vh';
+      fallback.style.opacity = '1';
+      fallback.style.zIndex = '99999';
+      document.body.appendChild(fallback);
+      fallback.focus();
+      fallback.select();
+      status('rxStatus', '自動コピーできませんでした。表示されたテキストを長押ししてコピーしてください。', 'info');
+    }
+  }
+
+  function copyBenchmarkText() {
+    if (!benchmarkRuns.length) return;
+    copyTextToClipboard(benchmarkResultsText(), '計測結果をテキストとしてコピーしました。メモ帳などに貼り付けて確認できます。');
+  }
+
 
   function safeFilename(value) {
     var name = String(value || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim();
@@ -1441,7 +1457,11 @@
   $('startCamera').addEventListener('click', startCamera);
   $('stopCamera').addEventListener('click', stopCamera);
   $('resetRx').addEventListener('click', resetRx);
-  $('exportBenchmarkCsv').addEventListener('click', exportBenchmarkCsv);
+  $('copyBenchmarkText').addEventListener('click', copyBenchmarkText);
+  $('copyTxTestLog').addEventListener('click', function () {
+    if (!$('autoTxLog').value.trim()) return;
+    copyTextToClipboard($('autoTxLog').value, '送信条件ログをコピーしました。');
+  });
   $('ingestManual').addEventListener('click', function () {
     ingest($('manualFrame').value.replace(/^[\r\n]+|[\r\n]+$/g, ''));
   });

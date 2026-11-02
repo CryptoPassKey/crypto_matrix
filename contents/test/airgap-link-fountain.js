@@ -330,6 +330,16 @@
       this.mixedParts.forEach(function (equation, key) {
         if (equation.indexes.indexOf(index) !== -1) affected.push(key);
       });
+      affected.sort(function (leftKey, rightKey) {
+        var left = this.mixedParts.get(leftKey);
+        var right = this.mixedParts.get(rightKey);
+        var a = left ? left.indexes : [];
+        var b = right ? right.indexes : [];
+        for (var i = 0; i < Math.min(a.length, b.length); i++) {
+          if (a[i] !== b[i]) return a[i] - b[i];
+        }
+        return a.length - b.length;
+      }.bind(this));
 
       for (var i = 0; i < affected.length; i++) {
         var key = affected[i];
@@ -363,7 +373,13 @@
   };
 
   FountainReceiver.prototype._processSimple = function (index, data, direct) {
-    if (this.simpleParts.has(index)) return;
+    if (this.simpleParts.has(index)) {
+      if (direct) {
+        this.directIndexes.add(index);
+        this.recoveredIndexes.delete(index);
+      }
+      return;
+    }
     this.simpleParts.set(index, data.slice());
     if (direct) this.directIndexes.add(index);
     else this.recoveredIndexes.add(index);

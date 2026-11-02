@@ -681,9 +681,6 @@
           if (rx.id !== fountainPacket.id || rx.total !== fountainPacket.seqLen) {
             throw new Error('HybridのLT修復フレームが初回CMAL1と同じ転送ID／ブロック数ではありません');
           }
-          if (fountainPacket.seqNum <= fountainPacket.seqLen) {
-            throw new Error('HybridのLT段階は初回Systematic周回の後から開始する必要があります');
-          }
           hybridFountainMeta = fountainPacket;
           hybridImportedBlocks.clear();
           rx.shards.forEach(function (block, index) {

@@ -83,7 +83,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <label for="transferMode">転送方式</label>
  <select id="transferMode" class="mode-select">
   <option value="legacy">従来CMAL1 — 順次 + P0/P1（最大2片/8片ブロック）</option>
-  <option value="fountain">LTファウンテン — MURアルゴリズム方式（実験）</option>
+  <option value="fountain">LTファウンテン — MUR系LT / CMAL1独自フレーム（実験）</option>
  </select>
  <p id="txModeHint" class="muted">従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。</p>
 
@@ -121,7 +121,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
  <div class="statgrid">
-  <div class="stat"><b id="txFrameCount">—</b><small>データ / 総フレーム</small></div>
+  <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データ / 総フレーム</small></div>
   <div class="stat"><b id="txPayloadSize">—</b><small>転送データ</small></div>
   <div class="stat"><b id="txQrGenMs">—</b><small>直近QR生成時間</small></div>
  </div>

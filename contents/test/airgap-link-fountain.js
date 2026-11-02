@@ -285,7 +285,6 @@
     this.simpleParts = new Map();
     this.mixedParts = new Map();
     this.queue = [];
-    this.seenSequences = new Set();
     this.seenEquations = new Set();
     this.directIndexes = new Set();
     this.recoveredIndexes = new Set();
@@ -356,7 +355,14 @@
 
         if (remaining.length === 1) {
           var newIndex = remaining[0];
-          if (!this.simpleParts.has(newIndex)) {
+          if (this.simpleParts.has(newIndex)) {
+            var knownBlock = this.simpleParts.get(newIndex);
+            for (var check = 0; check < reduced.length; check++) {
+              if (knownBlock[check] !== reduced[check]) {
+                throw new Error('異なるファウンテン式から矛盾するブロック値を検出しました');
+              }
+            }
+          } else {
             this.simpleParts.set(newIndex, reduced);
             this.recoveredIndexes.add(newIndex);
             this.queue.push({ index: newIndex, data: reduced });
@@ -374,6 +380,10 @@
 
   FountainReceiver.prototype._processSimple = function (index, data, direct) {
     if (this.simpleParts.has(index)) {
+      var existing = this.simpleParts.get(index);
+      for (var i = 0; i < data.length; i++) {
+        if (existing[i] !== data[i]) throw new Error('同じ元ブロックから異なる復元値を検出しました');
+      }
       if (direct) {
         this.directIndexes.add(index);
         this.recoveredIndexes.delete(index);
@@ -435,12 +445,6 @@
     this._validate(packet);
     if (this.result) return { duplicate: true, complete: true, bytes: this.result };
 
-    if (this.seenSequences.has(packet.seqNum)) {
-      return { duplicate: true, complete: false, decoded: this.simpleParts.size, total: this.seqLen };
-    }
-    this.seenSequences.add(packet.seqNum);
-    this.receivedPartCount++;
-
     var indexes = await this.chooser.choose(packet.seqNum);
     this.lastIndexes = indexes.slice();
     var equationKey = this._key(indexes);
@@ -454,7 +458,12 @@
         lastIndexes: this.lastIndexes
       };
     }
+    var maxUniqueEquations = Math.min(250000, Math.max(1024, this.seqLen * 8));
+    if (this.seenEquations.size >= maxUniqueEquations) {
+      throw new Error('受信式数の安全上限に達しました。転送をリセットしてください');
+    }
     this.seenEquations.add(equationKey);
+    this.receivedPartCount++;
 
     if (indexes.length === 1) {
       this._processSimple(indexes[0], packet.data, packet.seqNum <= packet.seqLen);

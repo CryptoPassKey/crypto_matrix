@@ -48,14 +48,14 @@ async function main() {
   const txSectionStart = page.indexOf('class="blockmap-section tx-blockmap"');
   const txSectionEnd = page.indexOf('</div>\n <p class="muted" id="txFrameInfo">', txSectionStart);
   const txSection = page.slice(txSectionStart, txSectionEnd);
-  assert(txSection.includes('現在表示中のQR位置'), 'TX map legend must describe only the active QR position');
+  assert(txSection.includes('現在表示中のQR位置') && txSection.includes('map-tx-current'), 'TX map legend must describe the colored active QR position');
   assert(txSection.includes('クリックで') || txSection.includes('クリックすると'), 'TX map must document click-to-seek');
   assert(!txSection.includes('直接送信済み') && !txSection.includes('未送信'),
     'TX map must not imply sent/unsent state');
   const rxSectionStart = page.indexOf('class="blockmap-section rx-blockmap"');
   const rxSectionEnd = page.indexOf('<p id="rxStatus"', rxSectionStart);
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
-  assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得'),
+  assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
   const ui = fs.readFileSync('contents/test/airgap-link-ui-v4.js', 'utf8');
   const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');

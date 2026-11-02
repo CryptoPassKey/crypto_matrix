@@ -55,6 +55,10 @@ const FILES = [
   "timelock.js",
   "timelock-recover.html",
   "timesecret.js",
+  "test/",
+  "test/index.html",
+  "test/airgap-link-core.js",
+  "test/airgap-link-ui.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];

@@ -365,9 +365,9 @@
     try {
       var stream = new Blob([bytes]).stream().pipeThrough(new root.CompressionStream('deflate'));
       var compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-      var header = new Uint8Array(8);
-      header.set([0x43, 0x4d, 0x5a, 0x31], 0); // CMZ1
-      new DataView(header.buffer).setUint32(4, bytes.length, false);
+      var header = new Uint8Array(12);
+      header.set([0x43, 0x4d, 0x5a, 0x31, 0x44, 0x45, 0x46, 0x4c], 0); // CMZ1DEFL
+      new DataView(header.buffer).setUint32(8, bytes.length, false);
       var wrapped = concatBytes([header, compressed]);
       if (wrapped.length >= bytes.length) return { bytes: bytes.slice(), compressed: false, reason: '圧縮しても小さくならないため省略' };
       return { bytes: wrapped, compressed: true, originalBytes: bytes.length, packedBytes: wrapped.length, reason: 'Deflate適用' };
@@ -378,12 +378,13 @@
 
   async function decompressIfWrapped(bytes) {
     bytes = asBytes(bytes);
-    if (bytes.length < 8 || bytes[0] !== 0x43 || bytes[1] !== 0x4d || bytes[2] !== 0x5a || bytes[3] !== 0x31) {
+    var magic = [0x43, 0x4d, 0x5a, 0x31, 0x44, 0x45, 0x46, 0x4c]; // CMZ1DEFL
+    if (bytes.length < 12 || magic.some(function (value, index) { return bytes[index] !== value; })) {
       return { bytes: bytes.slice(), decompressed: false };
     }
-    if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1圧縮データですが、このブラウザはDeflate復号に対応していません');
-    var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(4, false);
-    var compressed = bytes.subarray(8);
+    if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1DEFL圧縮データですが、このブラウザはDeflate復号に対応していません');
+    var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(8, false);
+    var compressed = bytes.subarray(12);
     var stream = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate'));
     var result = new Uint8Array(await new Response(stream).arrayBuffer());
     if (result.length !== expected) throw new Error('圧縮データの展開後サイズが一致しません');

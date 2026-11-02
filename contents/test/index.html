@@ -61,6 +61,12 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
+@media(max-width:560px){
+ .rx-blockmap-hud{left:6px;right:6px;bottom:6px;padding:6px 7px}
+ .rx-blockmap-hud .blockmap-title small,.rx-blockmap-hud .map-legend{display:none}
+ .rx-blockmap-hud .blockmap-viewport{max-height:54px}
+ .rx-blockmap-hud .blockmap-summary{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="../qr-encoder.js"></script>

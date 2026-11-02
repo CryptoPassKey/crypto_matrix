@@ -618,7 +618,7 @@
     scanHits = 0;
     scanDecodeTotalMs = 0;
     scanIngestTotalMs = 0;
-    rxMapSignature = '';
+    rxMapDirty = false;
     scanStartAt = 0;
     scanFirstHitAt = 0;
     transferTiming.startedAt = null;
@@ -638,6 +638,7 @@
     $('rxHitRate').textContent = '0%';
     $('rxBlockSummary').textContent = '受信を開始するとブロック状態が表示されます';
     drawBlockMap('rxBlockMap', 0, null, null, null);
+    rxMapDirty = false;
     $('rxResultMeta').textContent = '';
     $('downloadResult').classList.add('hidden');
     $('downloadResult').removeAttribute('href');
@@ -691,11 +692,9 @@
     $('rxLost').textContent = total ? String(Math.max(0, total - have)) : '—';
     $('rxRecovered').textContent = String(recovered);
     $('rxHitRate').textContent = scanAttempts ? (scanHits / scanAttempts * 100).toFixed(1) + '%' : '0%';
-    var mapSignature = total + '|' + setSignature(directSet) + '|' +
-      setSignature(recoveredSet) + '|' + setSignature(activeSet);
-    if (mapSignature !== rxMapSignature) {
+    if (rxMapDirty) {
       drawBlockMap('rxBlockMap', total, directSet, recoveredSet, activeSet);
-      rxMapSignature = mapSignature;
+      rxMapDirty = false;
     }
   }
 
@@ -802,6 +801,7 @@
         recovered = rx.recoveredCount;
       }
       var transferTimerStarted = recordTransferFrame(transferTiming, firstFramePending, result.duplicate, performance.now());
+      if (!result.duplicate) rxMapDirty = true;
       if (firstFramePending) rxFirstFrameCaptured = true;
       if (!result.duplicate) uniqueFrameCount++;
       if (result.complete && transferTiming.startedAt !== null && transferTiming.endedAt === null) {

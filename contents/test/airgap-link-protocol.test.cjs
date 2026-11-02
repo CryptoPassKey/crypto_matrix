@@ -37,6 +37,23 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
+  assert(page.includes('<script src="airgap-link-ui-v2.js" defer></script>'),
+    'Airgap page must load the cache-busted UI runtime');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v2.js', 'utf8');
+  const prepareStart = ui.indexOf('async function prepareTx()');
+  const prepareEnd = ui.indexOf('function stopTx()', prepareStart);
+  const frameStart = ui.indexOf('async function showNextFrame()');
+  const frameEnd = ui.indexOf('function playTx()', frameStart);
+  assert(prepareStart >= 0 && prepareEnd > prepareStart &&
+    ui.slice(prepareStart, prepareEnd).includes('updateTxBlockMap();'),
+    'TX map must update immediately after transfer preparation');
+  assert(frameStart >= 0 && frameEnd > frameStart &&
+    ui.slice(frameStart, frameEnd).includes('updateTxBlockMap();'),
+    'TX map must update for every displayed QR frame');
+  assert(ui.includes("txCurrentBlocks = new Set(Core.packetBlockIndexes(parsed));"),
+    'Legacy TX map cursor must follow data and P0/P1 packets');
+  assert(ui.includes("txCurrentBlocks = new Set(txFountainPart.indexes);"),
+    'Fountain TX map cursor must follow current XOR source blocks');
   const legacy = globalThis.AirgapLinkCore.selfTest();
   assert.equal(legacy.crc32, 'CBF43926');
   assert.equal(legacy.p1OnlyRecovery, true);

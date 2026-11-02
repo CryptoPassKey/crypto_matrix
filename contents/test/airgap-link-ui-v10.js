@@ -712,7 +712,9 @@
         if (!autoTestRunning || (!txPlan && !txFountainEncoder)) break;
         var units = txMode === 'fountain'
           ? Math.ceil(txFountainEncoder.seqLen * 1.6)
-          : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
+          : txMode === 'hybrid-data'
+            ? (txPlan.frames.length + Math.ceil(txFountainEncoder.seqLen * 1.6))
+            : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
         // Leave a short receive-reset interval between independent transfers.
         var duration = Math.min(120000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
         var caseTransferId = txMode === 'fountain' ? txFountainEncoder.id : txPlan.id;

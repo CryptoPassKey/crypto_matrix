@@ -62,6 +62,7 @@
   var autoTestRunning = false;
   var autoTestTimer = 0;
   var autoResetTimer = 0;
+  var autoTestResolve = null;
 
   function status(id, message, kind) {
     var el = $(id);
@@ -608,6 +609,19 @@
       if (renderGeneration !== txRenderGeneration) return;
       renderQr(frame);
       updateTxBlockMap();
+      // During an automatic sweep, send one finite pass per condition so RX records one run.
+      if (autoTestRunning && txPlaying) {
+        var autoStop = false;
+        if (txMode === 'fountain') {
+          autoStop = txFountainPart && txFountainPart.seqNum >= Math.ceil(txFountainEncoder.seqLen * 1.6);
+        } else if (txMode === 'hybrid' || txMode === 'hybrid-data') {
+          autoStop = txHybridPhase === 'fountain' && txFountainPart &&
+            txFountainPart.seqNum >= Math.ceil(txFountainEncoder.seqLen * 1.6);
+        } else {
+          autoStop = txIndex >= txPlan.frames.length;
+        }
+        if (autoStop) { stopTx(); return; }
+      }
       var elapsed = performance.now() - started;
       $('txQrGenMs').textContent = elapsed.toFixed(1) + ' ms';
       if (txPlaying) {
@@ -641,6 +655,7 @@
       autoTestRunning = false;
       if (autoTestTimer) clearTimeout(autoTestTimer);
       autoTestTimer = 0;
+      if (autoTestResolve) { autoTestResolve(); autoTestResolve = null; }
       stopTx();
       $('autoTxTest').textContent = '送信条件の自動テスト';
       $('prepareTx').disabled = false;
@@ -698,12 +713,18 @@
           test.mode + ' · ' + test.chunk + ' B · ' + test.fps + ' fps · 送信中', 'info');
         playTx();
         await new Promise(function (resolve) {
-          autoTestTimer = setTimeout(function () { autoTestTimer = 0; resolve(); }, duration);
+          autoTestResolve = resolve;
+          autoTestTimer = setTimeout(function () {
+            autoTestTimer = 0; autoTestResolve = null; resolve();
+          }, duration);
         });
         if (!autoTestRunning) break;
         stopTx();
         await new Promise(function (resolve) {
-          autoTestTimer = setTimeout(function () { autoTestTimer = 0; resolve(); }, 2200);
+          autoTestResolve = resolve;
+          autoTestTimer = setTimeout(function () {
+            autoTestTimer = 0; autoTestResolve = null; resolve();
+          }, 2200);
         });
       }
     } catch (error) {

@@ -610,7 +610,6 @@
     scanHits = 0;
     scanDecodeTotalMs = 0;
     scanIngestTotalMs = 0;
-    scanVideoFrameCallback = null;
     rxMapSignature = '';
     scanStartAt = 0;
     scanFirstHitAt = 0;

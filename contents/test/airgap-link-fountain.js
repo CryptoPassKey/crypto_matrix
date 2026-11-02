@@ -227,6 +227,15 @@
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
   }
 
+  FountainEncoder.prototype.seekToBlock = function (blockIndex) {
+    if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
+      throw new RangeError('指定ブロック番号が範囲外です');
+    }
+    // The next call to nextPart() emits this source block as systematic seq=blockIndex+1.
+    this.seqNum = blockIndex;
+    return this.seqNum + 1;
+  };
+
   FountainEncoder.prototype.nextPart = async function () {
     if (this.seqNum >= 0xffffffff) throw new Error('シーケンス番号が上限に達しました');
     this.seqNum++;
@@ -505,6 +514,15 @@
 
     var encoder = new FountainEncoder(message, { chunkSize: 94, id: 'A1B2C3D4' });
     if (encoder.seqLen !== 11) throw new Error('フラグメント数テストに失敗しました');
+    var seekEncoder = new FountainEncoder(message, { chunkSize: 94, id: 'A1B2C3D4' });
+    if (seekEncoder.seekToBlock(7) !== 8) throw new Error('ブロック位置からのシーケンス計算に失敗しました');
+    var seekPart = await seekEncoder.nextPart();
+    if (seekPart.seqNum !== 8 || !seekPart.direct || seekPart.indexes.join(',') !== '7') {
+      throw new Error('指定ブロックからのsystematic Data再生に失敗しました');
+    }
+    var invalidSeekRejected = false;
+    try { seekEncoder.seekToBlock(seekEncoder.seqLen); } catch (_) { invalidSeekRejected = true; }
+    if (!invalidSeekRejected) throw new Error('範囲外ブロックへのseekを拒否できませんでした');
     var receiver = new FountainReceiver();
     var direct = [];
     for (var i = 0; i < encoder.seqLen; i++) {
@@ -547,7 +565,8 @@
       outOfOrder: true,
       duplicate: true,
       crcTamperRejected: true,
-      mixedTransferRejected: true
+      mixedTransferRejected: true,
+      randomAccessSeek: true
     };
   }
 

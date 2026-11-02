@@ -47,9 +47,9 @@ This is a small block erasure code, **not** a fountain code and not RaptorQ. The
 
 ## Compression experiment
 
-Deflate is optional and is only used when the compressed result plus its 8-byte `CMZ1` length header is smaller than the original. The receiver detects and expands the `CMZ1` wrapper after reassembly.
+Deflate is optional and is only used when the compressed result plus its 12-byte `CMZ1DEFL` marker and length header is smaller than the original. The receiver detects and expands the `CMZ1DEFL` wrapper after reassembly.
 
-Encrypted data is already close to random and normally does not compress. For encrypted `.cmtl` files, leave compression off unless testing; the feature is mainly useful for compressible plaintext before encryption. A receiver that does not understand the optional `CMZ1` wrapper will produce the compressed wrapper bytes rather than the original data.
+Encrypted data is already close to random and normally does not compress. For encrypted `.cmtl` files, leave compression off unless testing; the feature is mainly useful for compressible plaintext before encryption. A receiver that does not understand the optional `CMZ1DEFL` wrapper will produce the compressed wrapper bytes rather than the original data.
 
 ## UI/test settings
 
@@ -59,7 +59,7 @@ Encrypted data is already close to random and normally does not compress. For en
 - QR quiet zone: 4 modules
 - QR canvas: 720 × 720
 - RX scanner: native `BarcodeDetector`, with local jsQR fallback when unavailable or when native detection throws
-- Maximum source file size: 10 MiB in the UI (the protocol limits each transfer to at most 100,000 data fragments)
+- Maximum source file size: 8,000,000 bytes in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 
 ## Self-test coverage
 

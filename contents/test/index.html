@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V5 — QR Animation Lab</title>
+<title>Airgap Link V6 — QR Animation Lab</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -65,13 +65,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="../vendor/jsQR.js"></script>
 <script src="airgap-link-core.js"></script>
 <script src="airgap-link-fountain-v5.js"></script>
-<script src="airgap-link-ui-v5.js" defer></script>
+<script src="airgap-link-ui-v6.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V5</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
- <span class="pill">OFFLINE TEST PAGE · V5</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V6</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V6</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
@@ -142,7 +142,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 <section class="panel" aria-labelledby="rx-title">
  <h2 id="rx-title">RX — 受信</h2>
- <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。途中参加は受け付けません。</p>
+ <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。2枚目の有効なQRを読み込んだ時点から転送時間を計測します。同じQRの再読込は数えません。途中参加は受け付けません。</p>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
@@ -167,7 +167,8 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid">
   <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>
-  <div class="stat"><b id="rxRate">0.0</b><small>新規フレーム / 秒</small></div>
+  <div class="stat"><b id="rxRate">0.0</b><small>転送フレーム / 秒（2枚目QRから）</small></div>
+  <div class="stat"><b id="rxElapsed">—</b><small>転送経過時間（2枚目QRから）</small></div>
   <div class="stat"><b id="rxAvgMs">0 ms</b><small>平均解析時間</small></div>
   <div class="stat"><b id="rxLost">—</b><small>未取得データ片</small></div>
   <div class="stat"><b id="rxRecovered">0</b><small>パリティ復元</small></div>

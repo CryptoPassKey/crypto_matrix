@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const nodeCrypto = require('node:crypto');
+const jsQR = require('../vendor/jsQR.js');
 
 if (!globalThis.crypto || !globalThis.crypto.subtle) {
   globalThis.crypto = nodeCrypto.webcrypto;
@@ -125,6 +126,36 @@ async function main() {
     'Legacy Base64URL-like payloads must remain in QR Byte mode');
   assert(globalThis.MatrixQRCode.matrix(base45QrFrame).length > 0,
     'The Alphanumeric QR encoder must generate a matrix for Base45 frames');
+  const base45QrMatrix = globalThis.MatrixQRCode.matrix(base45QrFrame);
+  const moduleScale = 6;
+  const quietZone = 4;
+  const qrDimension = (base45QrMatrix.length + quietZone * 2) * moduleScale;
+  const qrPixels = new Uint8ClampedArray(qrDimension * qrDimension * 4);
+  for (let offset = 0; offset < qrPixels.length; offset += 4) {
+    qrPixels[offset] = 255;
+    qrPixels[offset + 1] = 255;
+    qrPixels[offset + 2] = 255;
+    qrPixels[offset + 3] = 255;
+  }
+  for (let row = 0; row < base45QrMatrix.length; row++) {
+    for (let column = 0; column < base45QrMatrix.length; column++) {
+      if (!base45QrMatrix[row][column]) continue;
+      const left = (column + quietZone) * moduleScale;
+      const top = (row + quietZone) * moduleScale;
+      for (let py = top; py < top + moduleScale; py++) {
+        for (let px = left; px < left + moduleScale; px++) {
+          const pixel = (py * qrDimension + px) * 4;
+          qrPixels[pixel] = 0;
+          qrPixels[pixel + 1] = 0;
+          qrPixels[pixel + 2] = 0;
+        }
+      }
+    }
+  }
+  const decodedBase45Qr = jsQR(qrPixels, qrDimension, qrDimension, { inversionAttempts: 'dontInvert' });
+  assert(decodedBase45Qr, 'The bundled jsQR reader must decode a generated Base45/Alphanumeric QR');
+  assert.equal(decodedBase45Qr.data, base45QrFrame,
+    'The bundled jsQR reader must preserve Base45 colons and spaces byte-for-byte');
   assert.equal(wire.splitFrame(base45Frame).payload, base45Text,
     'Wire parser must preserve spaces and colons after the four structural separators');
 

@@ -54,7 +54,9 @@
     var canvas = $(canvasId);
     if (!canvas) return;
     total = Math.max(0, Number(total) || 0);
-    var columns = 75;
+    // Use only as many columns as there are source blocks (up to 75),
+    // so small transfers still render with large, easy-to-track cells.
+    var columns = total ? Math.min(75, total) : 75;
     var rows = Math.max(1, Math.ceil(total / columns));
     // Keep tall heatmaps below common mobile canvas dimension limits.
     var cell = Math.max(1, Math.min(8, Math.floor(4096 / rows)));

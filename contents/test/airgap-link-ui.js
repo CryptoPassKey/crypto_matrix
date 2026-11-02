@@ -63,13 +63,15 @@
       var color = '#253b52';
       if (directSet && directSet.has(index)) color = '#27bd8d';
       if (recoveredSet && recoveredSet.has(index)) color = '#e5b44f';
-      if (activeSet && activeSet.has(index) &&
-          !(directSet && directSet.has(index)) &&
-          !(recoveredSet && recoveredSet.has(index))) color = '#65b7ff';
       var x = (index % columns) * cell;
       var y = Math.floor(index / columns) * cell;
       context.fillStyle = color;
       context.fillRect(x, y, cell - 1, cell - 1);
+      if (activeSet && activeSet.has(index)) {
+        context.strokeStyle = '#65b7ff';
+        context.lineWidth = 1.5;
+        context.strokeRect(x + 1, y + 1, cell - 3, cell - 3);
+      }
     }
   }
 

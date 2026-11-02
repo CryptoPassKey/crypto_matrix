@@ -90,3 +90,31 @@ Camera-to-camera testing still needs to be performed on real target devices. QR 
 - Do not treat a successfully reconstructed file as authentic solely because all CRC32 checks pass. The encrypted file's own authenticated-encryption verification remains authoritative.
 - Camera access is requested only after the user presses **カメラ開始**.
 - There is no automatic upload, telemetry, or server-side relay.
+
+## LT fountain experiment mode
+
+The page now offers a second transport mode in addition to the original CMAL1/P0/P1 block erasure mode.
+
+- **Legacy CMAL1:** sequential data fragments with optional P0/P1 parity. P0/P1 can recover up to two erased fragments per 8-fragment group.
+- **LT fountain mode:** a systematic-plus-rateless XOR transport inspired by the Blockchain Commons Multipart UR (MUR) algorithm. The first K packets carry the K source fragments directly. Later packets select a deterministic pseudo-random subset of source fragments and XOR them together. The selection is reproducible from the sequence number and whole-message CRC32.
+- **Receiver:** accepts packets out of order, ignores duplicates, stores XOR equations, and uses peeling-style subset reduction to recover source blocks as soon as an equation contains only one unknown. It verifies the reconstructed whole-message CRC32 before download.
+
+Fountain-mode test packet format (custom CMAL1 extension):
+
+`CMAL1:FseqNum/seqLen:transferId:frameCRC32:Base64URL(payload)`
+
+The binary payload contains a version byte, original message length (uint32 big-endian), whole-message CRC32 (uint32 big-endian), and one fixed-length XOR fragment. The outer frame CRC32 detects accidental corruption of each QR packet; the whole-message CRC32 detects an incorrect reconstruction.
+
+### Compatibility and limitations
+
+This is **not full BC-UR wire compatibility**. The mode borrows the MUR/LT fragment-selection and peeling concepts, but uses the page's own CMAL1 framing and does not serialize `ur:` resources, CBOR, or Bytewords. Both sender and receiver must use this test page and select/detect the fountain extension. Existing CMAL1 numeric and P0/P1 frames remain unchanged.
+
+Fountain decoding is rateless in the sense that additional distinct equations can be emitted without a fixed end frame. It does **not** mean every arbitrary K packets are guaranteed to reconstruct the message. The number of useful packets depends on the loss pattern, equation degrees, duplicate equations, and peeling progress; additional packets may be required. It is not RaptorQ.
+
+The sender and receiver block maps display one cell per original source block. TX colors show blocks sent systematically and the source blocks used by the current XOR packet. RX colors distinguish directly received blocks, blocks recovered from equations, currently referenced blocks, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
+
+The fountain chooser uses Web Crypto SHA-256 and BigInt operations, so it requires a modern browser in a secure context. Camera access still requires HTTPS or localhost. This remains an experimental implementation and should not be treated as an audited production codec.
+
+### Fountain self-test
+
+The in-page self-test also checks the MUR fragment-chooser reference vectors for `seqLen=11` (`seqNum=12 → [9]`, `seqNum=13 → [2,5,6,8,9,10]`), reversed packet order, missing systematic fragments, duplicate handling, per-frame CRC rejection, mixed-transfer rejection, and whole-message reconstruction.

@@ -663,6 +663,10 @@
       status('txStatus', '自動テストを停止しました。', 'info');
       return;
     }
+    if (!$('autoBenchmarkReset').checked || !stream) {
+      status('txStatus', '先にRX側で「ベンチマーク自動受信」を有効にし、カメラを開始してください。', 'error');
+      return;
+    }
     var file = $('txFile').files && $('txFile').files[0];
     var inputText = $('txText').value;
     if (!file && !inputText) {
@@ -692,6 +696,7 @@
       });
     });
     autoTestRunning = true;
+    $('autoTxLog').value = 'case,mode,chunk_bytes,fps,transfer_id\\n';
     $('autoTxTest').textContent = '自動テストを停止';
     $('prepareTx').disabled = true;
     try {
@@ -710,8 +715,10 @@
           : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
         // Leave a short receive-reset interval between independent transfers.
         var duration = Math.min(90000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
+        var caseTransferId = txMode === 'fountain' ? txFountainEncoder.id : txPlan.id;
+        $('autoTxLog').value += [i + 1, test.mode, test.chunk, test.fps, caseTransferId].join(',') + '\\n';
         status('txStatus', '自動テスト ' + (i + 1) + '/' + cases.length + ' · ' +
-          test.mode + ' · ' + test.chunk + ' B · ' + test.fps + ' fps · 送信中', 'info');
+          test.mode + ' · ' + test.chunk + ' B · ' + test.fps + ' fps · ID ' + caseTransferId, 'info');
         playTx();
         await new Promise(function (resolve) {
           autoTestResolve = resolve;

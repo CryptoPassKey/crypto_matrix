@@ -39,14 +39,14 @@
     for (var i = 0; i < bytes.length; i += step) {
       binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + step, bytes.length)));
     }
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    return root.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
   function base64UrlToBytes(text) {
     if (typeof text !== 'string' || !/^[A-Za-z0-9_-]*$/.test(text)) throw new Error('Base64URL形式が不正です');
     var base64 = text.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) base64 += '=';
-    var binary = atob(base64);
+    var binary = root.atob(base64);
     var out = new Uint8Array(binary.length);
     for (var i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
     return out;

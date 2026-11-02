@@ -61,7 +61,7 @@
   // Do not trim ordinary spaces: space is part of the Base45 alphabet.
   function splitFrame(text) {
     if (typeof text !== 'string') throw new TypeError('フレームが文字列ではありません');
-    var value = text.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '');
+    var value = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
     var parts = [];
     var start = 0;
     for (var i = 0; i < 4; i++) {

@@ -52,9 +52,11 @@
       try { cache = await window.caches.open(CACHE_NAME); } catch (_) {}
     }
 
-    var scriptPromise = loadScript(SCRIPT_LOCAL_URL).catch(function () {
-      return loadScript(SCRIPT_URL);
-    });
+    var scriptPromise = window.ZXingWASM && typeof window.ZXingWASM.readBarcodes === 'function'
+      ? Promise.resolve(window.ZXingWASM)
+      : loadScript(SCRIPT_LOCAL_URL).catch(function () {
+          return loadScript(SCRIPT_URL);
+        });
     var wasmPromise = cachedWasm(cache);
     var results = await Promise.all([scriptPromise, wasmPromise]);
     var api = results[0];

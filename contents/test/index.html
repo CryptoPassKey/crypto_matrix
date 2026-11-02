@@ -30,7 +30,7 @@ button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#
 button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .qr-stage{background:#fff;border-radius:12px;min-height:330px;display:grid;place-items:center;margin-top:12px;padding:10px;position:relative}
 #txCanvas{display:block;width:min(100%,430px);height:auto;aspect-ratio:1;image-rendering:pixelated}
-.placeholder{color:#415366;text-align:center;padding:30px}
+.placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#415366;text-align:center;padding:30px;pointer-events:none}.button-link{display:inline-block;text-decoration:none;border:1px solid #3cbba3;color:#fff;background:linear-gradient(135deg,#147c68,#146f87);border-radius:9px;padding:9px 13px;font-weight:700}
 .status{min-height:1.5em;margin:8px 0 4px;font-size:.87rem;overflow-wrap:anywhere}
 .status.ok{color:var(--ok)}.status.error{color:var(--danger)}.status.info{color:var(--accent2)}
 .meter{height:8px;background:#263d53;border-radius:99px;overflow:hidden;margin:8px 0}.meter>div{height:100%;width:0;background:linear-gradient(90deg,#21b98c,#65b7ff);transition:width .12s}
@@ -129,7 +129,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <label for="rxFilename">保存ファイル名</label>
  <input id="rxFilename" type="text" value="airgap-link-received.bin" autocomplete="off">
  <div class="row">
-  <a id="downloadResult" class="hidden" download="airgap-link-received.bin"><button type="button" class="primary">復元ファイルを保存</button></a>
+  <a id="downloadResult" class="button-link hidden" download="airgap-link-received.bin">復元ファイルを保存</a>
  </div>
  <p id="rxResultMeta" class="muted"></p>
  <div class="section-rule"></div>

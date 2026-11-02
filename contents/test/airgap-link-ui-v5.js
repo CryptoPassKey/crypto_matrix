@@ -414,7 +414,7 @@
           if (typeof txFountainEncoder.seekToBlock !== 'function') {
             throw new Error('Fountain Encoder APIが不完全です。V5のFountainモジュールを確認してください');
           }
-          txFountainEncoder.seqNum = txFountainEncoder.seqLen;
+          txFountainEncoder.startRepairPhase();
           txHybridPhase = 'legacy';
           txIndex = 1;
           $('txFrameCount').textContent = blockCount + ' / ' + txPlan.frames.length + ' → LT';
@@ -469,39 +469,42 @@
     var started = performance.now();
     try {
       var frame;
-      if (txMode === 'fountain') {
+      var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
+      if (hybridMode && txHybridPhase === 'legacy' && txIndex >= txPlan.frames.length) {
+        txHybridPhase = 'fountain';
+        status('txStatus', '従来Data/P0/P1の初回周回が終了しました。LT修復パケットへ移行します。', 'info');
+      }
+      var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
+      if (fountainPhase) {
         var nextFountainPart = await txFountainEncoder.nextPart();
         if (renderGeneration !== txRenderGeneration) return;
         txFountainPart = nextFountainPart;
         frame = txFountainPart.frame;
         txCurrentBlocks = new Set(txFountainPart.indexes);
         txCurrentLabel = 'LT seq ' + txFountainPart.seqNum + ' · ' +
-          (txFountainPart.direct ? 'Data' : 'XOR合成') + ' · 対象 ' +
+          (txFountainPart.direct ? 'Data再送' : 'XOR修復') + ' · 対象 ' +
           txFountainPart.indexes.map(function (index) { return index + 1; }).join(',');
         $('txFrameCount').textContent = txFountainEncoder.seqLen + ' / ∞';
         $('txFrameInfo').textContent =
-          'LT seq ' + txFountainPart.seqNum + ' · ' +
-          (txFountainPart.direct ? '直接片' : 'XOR合成 degree=' + txFountainPart.indexes.length) +
+          (hybridMode ? 'Hybrid LT修復' : 'LT') + ' seq ' + txFountainPart.seqNum + ' · ' +
+          (txFountainPart.direct ? '直接片再送' : 'XOR合成 degree=' + txFountainPart.indexes.length) +
           ' · K=' + txFountainEncoder.seqLen;
         $('txProgress').style.width =
-          (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) /
-            txFountainEncoder.seqLen * 100).toFixed(1) + '%';
+          (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) / txFountainEncoder.seqLen * 100).toFixed(1) + '%';
       } else {
         frame = txPlan.frames[txIndex];
         var parsed = Core.parseFrame(frame);
         txCurrentBlocks = new Set(packetBlockIndexes(parsed));
-        if (parsed.type === 'data') {
-          txCurrentLabel = 'Data ' + (parsed.index + 1) + ' / ' + parsed.total;
-        } else {
-          txCurrentLabel = 'P' + parsed.parityType + ' · group ' +
-            (parsed.group + 1) + ' · block ' +
-            (parsed.group * Core.GROUP_SIZE + 1) + '–' +
-            Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
-        }
-        $('txFrameInfo').textContent = 'フレーム ' + (txIndex + 1) + ' / ' + txPlan.frames.length +
+        if (parsed.type === 'data') txCurrentLabel = 'Data ' + (parsed.index + 1) + ' / ' + parsed.total;
+        else txCurrentLabel = 'P' + parsed.parityType + ' · group ' + (parsed.group + 1) +
+          ' · block ' + (parsed.group * Core.GROUP_SIZE + 1) + '–' +
+          Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
+        $('txFrameInfo').textContent =
+          (hybridMode ? 'Hybrid初回周回 ' : 'フレーム ') + (txIndex + 1) + ' / ' + txPlan.frames.length +
           ' · ' + parsed.type + ' · ' + (1000 / Number($('fps').value)).toFixed(1) + ' ms/frame';
         $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
-        txIndex = (txIndex + 1) % txPlan.frames.length;
+        if (hybridMode) txIndex++;
+        else txIndex = (txIndex + 1) % txPlan.frames.length;
       }
       if (renderGeneration !== txRenderGeneration) return;
       renderQr(frame);
@@ -538,6 +541,9 @@
     rx.reset();
     fountainRx.reset();
     activeProtocol = null;
+    hybridFountainMeta = null;
+    hybridImportedBlocks.clear();
+    rxFirstFrameCaptured = false;
     rxDirectBlocks.clear();
     rxCurrentBlocks.clear();
     rxCurrentLabel = '';
@@ -573,7 +579,7 @@
     var directSet;
     var recoveredSet;
     var activeSet;
-    if (activeProtocol === 'fountain') {
+    if (activeProtocol === 'fountain' || activeProtocol === 'hybrid') {
       have = fountainRx.simpleParts.size;
       total = fountainRx.seqLen;
       recovered = fountainRx.recoveredIndexes.size;
@@ -639,32 +645,60 @@
       ' · 初回QR ' + firstDetection +
       ' · 完了 ' + totalElapsed.toFixed(2) + '秒' +
       ' · ' + scannerName + ' · カメラ ' + cameraSize +
-      ' · CRC32検証済み · 転送ID ' + (activeProtocol === 'fountain' ? fountainRx.id : rx.id) +
-      ' · 復元 ' + (activeProtocol === 'fountain' ? fountainRx.recoveredIndexes.size : rx.recoveredCount) + '片';
+      ' · CRC32検証済み · 転送ID ' + ((activeProtocol === 'fountain' || activeProtocol === 'hybrid') ? fountainRx.id : rx.id) +
+      ' · 復元 ' + ((activeProtocol === 'fountain' || activeProtocol === 'hybrid') ? fountainRx.recoveredIndexes.size : rx.recoveredCount) + '片';
     status('rxStatus', '受信完了。ファイルを保存できます。', 'ok');
     updateRxStats();
     stopCamera();
+  }
+
+  function isInitialTransferFrame(rawText) {
+    try {
+      if (typeof rawText !== 'string' || rawText.indexOf('CMAL1:') !== 0) return false;
+      if (rawText.indexOf('CMAL1:F') === 0) return Fountain.parseFrame(rawText).seqNum === 1;
+      var packet = Core.parseFrame(rawText);
+      return packet.type === 'data' && packet.index === 0;
+    } catch (_) { return false; }
   }
 
   async function ingest(rawText) {
     if (receivedDone) return;
     if (typeof rawText !== 'string' || rawText.indexOf('CMAL1:') !== 0) return;
     try {
-      var isFountain = rawText.indexOf('CMAL1:F') === 0;
-      if (activeProtocol && activeProtocol !== (isFountain ? 'fountain' : 'legacy')) {
-        throw new Error('別の転送方式のフレームです。受信をリセットしてください');
+      var firstFramePending = !rxFirstFrameCaptured;
+      if (firstFramePending && !isInitialTransferFrame(rawText)) {
+        throw new Error('先頭QRではありません。TXを停止し、Data 1（またはLT seq 1）を表示してから読み取ってください');
       }
-      var result;
-      var have;
-      var total;
-      var recovered;
+      var isFountain = rawText.indexOf('CMAL1:F') === 0;
+      var hybridTransition = isFountain && activeProtocol === 'legacy';
+      if (!isFountain && (activeProtocol === 'fountain' || activeProtocol === 'hybrid')) {
+        throw new Error('同じ転送中にLegacyフレームへ戻ることはできません');
+      }
+      var result, have, total, recovered;
       if (isFountain) {
         var fountainPacket = Fountain.parseFrame(rawText);
+        if (hybridTransition) {
+          if (rx.id !== fountainPacket.id || rx.total !== fountainPacket.seqLen) {
+            throw new Error('HybridのLT修復フレームが初回CMAL1と同じ転送ID／ブロック数ではありません');
+          }
+          if (fountainPacket.seqNum <= fountainPacket.seqLen) {
+            throw new Error('HybridのLT段階は初回Systematic周回の後から開始する必要があります');
+          }
+          hybridFountainMeta = fountainPacket;
+          hybridImportedBlocks.clear();
+          rx.shards.forEach(function (block, index) {
+            fountainRx.addKnownBlock(hybridFountainMeta, index, block, rxDirectBlocks.has(index));
+            hybridImportedBlocks.add(index);
+          });
+          activeProtocol = 'hybrid';
+        } else if (activeProtocol === null) activeProtocol = 'fountain';
+        else if (activeProtocol !== 'fountain' && activeProtocol !== 'hybrid') {
+          throw new Error('別の転送方式のフレームです。受信をリセットしてください');
+        }
         result = await fountainRx.feed(rawText);
         var indexes = result.lastIndexes || await fountainRx.chooser.choose(fountainPacket.seqNum);
         rxCurrentBlocks = new Set(indexes);
-        rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' +
-          indexes.map(function (index) { return index + 1; }).join(',');
+        rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' + indexes.map(function (index) { return index + 1; }).join(',');
         have = fountainRx.simpleParts.size;
         total = fountainRx.seqLen;
         recovered = fountainRx.recoveredIndexes.size;
@@ -676,26 +710,28 @@
           rxDirectBlocks.add(packet.index);
           rxCurrentLabel = 'Data ' + (packet.index + 1) + ' / ' + packet.total;
         } else {
-          rxCurrentLabel = 'P' + packet.parityType + ' · group ' +
-            (packet.group + 1) + ' · block ' +
-            (packet.group * Core.GROUP_SIZE + 1) + '–' +
+          rxCurrentLabel = 'P' + packet.parityType + ' · group ' + (packet.group + 1) +
+            ' · block ' + (packet.group * Core.GROUP_SIZE + 1) + '–' +
             Math.min(packet.total, (packet.group + 1) * Core.GROUP_SIZE);
         }
+        if (activeProtocol === null) activeProtocol = 'legacy';
         have = rx.shards.size;
         total = rx.total;
         recovered = rx.recoveredCount;
       }
-      activeProtocol = isFountain ? 'fountain' : 'legacy';
+      if (firstFramePending) rxFirstFrameCaptured = true;
       if (!result.duplicate) uniqueFrameCount++;
       updateRxStats();
-      status('rxStatus',
-        (isFountain ? 'LTファウンテン受信中' : 'CMAL1受信中') +
-        ' · ' + have + ' / ' + total + 'ブロック · 復元 ' + recovered + '片',
-        'info');
+      if (uniqueFrameCount <= 1) {
+        status('rxStatus', '先頭QRを確認しました。送信側で再生を開始してください。途中参加は対象外です。', 'ok');
+      } else {
+        var modeLabel = activeProtocol === 'hybrid' ? 'LT Hybrid（P0/P1取得分 + LT修復）'
+          : isFountain ? 'Pure LTファウンテン' : 'CMAL1';
+        status('rxStatus', modeLabel + ' 受信中 · ' + have + ' / ' + total + 'ブロック · 復元 ' + recovered + '片', 'info');
+      }
       if (result.complete) {
-        try {
-          await finishReceive(result.bytes);
-        } catch (error) {
+        try { await finishReceive(result.bytes); }
+        catch (error) {
           receivedDone = false;
           status('rxStatus', '復元後の展開・保存準備に失敗しました: ' + error.message, 'error');
         }
@@ -747,7 +783,7 @@
       $('startCamera').disabled = true;
       $('stopCamera').disabled = false;
       scanStartAt = performance.now();
-      status('rxStatus', 'カメラ読み取り中。送信側のQRを画面に映してください。', 'info');
+      status('rxStatus', '初回QR待ち: TX側で先頭QRを静止表示し、このカメラで1枚目を確認してください。確認後にTXを再生します。途中参加は対象外です。', 'info');
       scanTick();
     } catch (error) {
       stopCamera();
@@ -855,7 +891,10 @@
   });
 
   if (!Core || typeof Core.buildFrames !== 'function' ||
-      !Fountain || typeof Fountain.Encoder !== 'function') {
+      !Fountain || typeof Fountain.Encoder !== 'function' ||
+      !Fountain.Encoder.prototype || typeof Fountain.Encoder.prototype.seekToBlock !== 'function' ||
+      typeof Fountain.Encoder.prototype.startRepairPhase !== 'function' ||
+      !Fountain.Receiver.prototype || typeof Fountain.Receiver.prototype.addKnownBlock !== 'function') {
     status('txStatus', 'Airgap Linkプロトコルの初期化に失敗しました', 'error');
     $('prepareTx').disabled = true;
   }

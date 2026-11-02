@@ -1,7 +1,10 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.18.0-airgap-link-test-lab-v9';
+const VERSION = 'cm-v2.19.0-airgap-link-test-lab-v10-zxing-wasm';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
+const ZXING_WASM_VERSION = '3.1.6';
+const ZXING_WASM_CACHE = 'airgap-link-zxing-wasm-' + ZXING_WASM_VERSION;
+const ZXING_READER_SCRIPT = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + ZXING_WASM_VERSION + '/dist/iife/reader/index.js';
 const FILES = [
   "./",
   "app.css",
@@ -74,6 +77,8 @@ const FILES = [
   "test/airgap-link-qr-encoder-v8.js",
   "test/airgap-link-ui-v8.js",
   "test/airgap-link-ui-v9.js",
+  "test/airgap-link-zxing-loader-v10.js",
+  "test/airgap-link-ui-v10.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];
@@ -121,7 +126,32 @@ self.addEventListener('notificationclick', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const requestUrl = new URL(req.url);
+  if (req.method !== 'GET' || requestUrl.origin !== location.origin) return;
+
+  // Virtual same-origin script URL: cache the version-pinned ZXing reader IIFE
+  // in its own cache so it remains available after the app shell is upgraded.
+  if (requestUrl.pathname.endsWith('/contents/test/zxing-wasm-reader-v10.js')) {
+    e.respondWith((async () => {
+      const cache = await caches.open(ZXING_WASM_CACHE);
+      const cached = await cache.match(ZXING_READER_SCRIPT);
+      if (cached) return cached;
+      const upstream = await fetch(ZXING_READER_SCRIPT, { mode: 'cors', credentials: 'omit' });
+      if (!upstream.ok || upstream.type === 'opaque') {
+        return new Response('ZXing reader download failed', {
+          status: 502,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+      await cache.put(ZXING_READER_SCRIPT, upstream.clone());
+      return upstream;
+    })().catch(() => new Response('ZXing reader is not cached and could not be downloaded', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    })));
+    return;
+  }
+
   if (req.mode === 'navigate') {
     // ページ本体：オンラインなら最新、オフラインならキャッシュ
     e.respondWith(fetch(req).then((res) => {

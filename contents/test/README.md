@@ -12,15 +12,16 @@ Local testing also works when served over HTTPS or localhost. Camera access requ
 
 ## Dependencies
 
-No new external libraries are downloaded.
+The transfer protocol, QR payloads, and camera frames remain local. ZXing-C++ WASM is the optional first-use decoder dependency:
 
 - TX QR matrix: existing `../qr-encoder.js` (`window.MatrixQRCode`)
-- RX fallback: existing `../vendor/jsQR.js`
-- Preferred RX decoder: browser-native `BarcodeDetector` when it supports QR Code
+- RX native decoder: browser-native `BarcodeDetector` when QR Code is supported
+- RX WASM decoder: pinned `zxing-wasm@3.1.6` reader-only IIFE and `zxing_reader.wasm`, loaded lazily from jsDelivr
+- RX compatibility fallback: existing `../vendor/jsQR.js`
 - Camera: `navigator.mediaDevices.getUserMedia`
 - Optional compression: browser-native `CompressionStream('deflate')` / `DecompressionStream('deflate')`
 
-The page does not make application-level network requests. It uses local files from the repository.
+The JavaScript reader is served through a same-origin Service Worker route and stored in a dedicated Cache Storage bucket. The WASM module is also cached there. After the first successful setup, ZXing can be initialized offline provided browser site data has not been cleared or evicted. The first ZXing load requires an Internet connection; Auto mode falls back to jsQR if the first load is offline. Frames and transferred payloads are not uploaded.
 
 ## CMAL1 transport
 
@@ -58,7 +59,9 @@ Encrypted data is already close to random and normally does not compress. For en
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
 - QR canvas: 720 × 720
-- RX scanner: native `BarcodeDetector`, with local jsQR fallback when unavailable or when native detection throws
+- RX scanner: selectable Auto / Native BarcodeDetector / ZXing-C++ WASM / jsQR
+- Auto preference: Native BarcodeDetector → ZXing-C++ WASM → jsQR
+- ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
 - Maximum source file size: 8,000,000 bytes in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 
 ## Self-test coverage
@@ -158,3 +161,18 @@ The TX map remains a canvas heatmap for large transfers. Pointer clicks map disp
 
 The camera-to-sender channel remains one-way. There is no receiver ACK or status feedback, and the sender does not know which QR frames the camera successfully read.
 
+
+
+## V10 — ZXing-C++ WASM receiver
+
+V10 adds an RX decoder selector while leaving the CMAL1 wire format, TX QR encoding, LT fountain protocol, CRC checks, and receiver reconstruction unchanged.
+
+- **Auto** chooses Native BarcodeDetector when QR support is exposed, otherwise ZXing-C++ WASM, then jsQR if the WASM assets cannot be loaded.
+- **ZXing-C++ WASM** forces the reader-only `zxing-wasm@3.1.6` build for direct iPhone Safari comparison.
+- **Native BarcodeDetector** and **jsQR** remain individually selectable comparison baselines.
+- ZXing receives the same downsized canvas `ImageData` used by jsQR and is restricted to `QRCode`, one symbol per frame, with `tryHarder: false`.
+- The JavaScript IIFE is served through a virtual same-origin URL handled by the Service Worker and retained in the independent `airgap-link-zxing-wasm-3.1.6` cache. The WASM binary is cached in the same bucket.
+- First use needs an Internet connection to fetch the reader bundle and approximately 1.04 MiB WASM module. This is decoder setup only; QR frames and data remain local. After caching, the scanner can be used offline unless site data is cleared or evicted.
+- Real iPhone camera testing is still required. CI validates code wiring and protocol regression tests, not camera performance.
+
+Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-cpp` is Apache-2.0. See the upstream [zxing-wasm package](https://www.npmjs.com/package/zxing-wasm) and [ZXing-C++ project](https://github.com/zxing-cpp/zxing-cpp).

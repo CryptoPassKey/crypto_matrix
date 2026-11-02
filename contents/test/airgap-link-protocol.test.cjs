@@ -25,6 +25,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v9.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
   const cameraStagePosition = page.indexOf('class="camera-stage"');
@@ -195,7 +196,6 @@ async function main() {
   assert.equal(wire.splitFrame(base45Frame).payload, base45Text,
     'Wire parser must preserve spaces and colons after the four structural separators');
 
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v9.js', 'utf8');
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
   const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,

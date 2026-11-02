@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V4 — QR Animation Lab</title>
+<title>Airgap Link V5 — QR Animation Lab</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -64,17 +64,17 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="../qr-encoder.js"></script>
 <script src="../vendor/jsQR.js"></script>
 <script src="airgap-link-core.js"></script>
-<script src="airgap-link-fountain.js"></script>
-<script src="airgap-link-ui-v4.js" defer></script>
+<script src="airgap-link-fountain-v5.js"></script>
+<script src="airgap-link-ui-v5.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V4</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
- <span class="pill">OFFLINE TEST PAGE · V4</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V5</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V5</span>
 </header>
 
-<div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送するための実験ページです。通信先サーバーへの送信は行いません。CRC32は転送中の偶発的な破損検出用であり、暗号学的な認証の代わりではありません。</div>
+<div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
@@ -87,8 +87,11 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
  <label for="transferMode">転送方式</label>
  <select id="transferMode" class="mode-select">
-  <option value="legacy">従来CMAL1 — 順次 + P0/P1（最大2片/8片ブロック）</option>
-  <option value="fountain">LTファウンテン — MUR系LT / CMAL1独自フレーム（実験）</option>
+  <option value="legacy">従来CMAL1 — Data + P0/P1</option>
+  <option value="legacy-data">従来CMAL1 — Dataのみ（比較用）</option>
+  <option value="fountain">Pure LT Fountain — Systematic + XOR修復</option>
+  <option value="hybrid" selected>LT Hybrid — Data + P0/P1を1周 → LT修復</option>
+  <option value="hybrid-data">Hybrid対照 — Dataのみを1周 → LT修復</option>
  </select>
  <p id="txModeHint" class="muted">従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。</p>
 
@@ -139,7 +142,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 <section class="panel" aria-labelledby="rx-title">
  <h2 id="rx-title">RX — 受信</h2>
- <p class="muted" style="margin-top:-4px">別端末の画面に表示されたアニメーションQRを背面カメラで読み取ります。</p>
+ <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。途中参加は受け付けません。</p>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
@@ -193,7 +196,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V4 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
+<p class="footer">Airgap Link Test Lab V5 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>
 </body>
 </html>

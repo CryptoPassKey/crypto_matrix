@@ -91,6 +91,17 @@ Camera-to-camera testing still needs to be performed on real target devices. QR 
 - Camera access is requested only after the user presses **カメラ開始**.
 - There is no automatic upload, telemetry, or server-side relay.
 
+## Live TX/RX block cursor
+
+Both sides display one cell per original data block.
+
+- TX advances a high-contrast cursor with each QR packet. Numeric data frames highlight one source block; P0/P1 parity frames highlight the corresponding group of up to eight blocks; LT fountain packets highlight every source block referenced by the current XOR equation.
+- RX advances the cursor only after a valid packet is accepted by the protocol receiver. A data frame highlights its one block; a P0/P1 frame highlights its complete group; a fountain frame highlights the equation's selected source blocks. A repeated but valid QR still moves the cursor to the frame just read. Corrupt or rejected frames do not move it.
+- The cursor is independent from persistent block state: green means directly received, amber means reconstructed from parity/fountain equations, dark means still missing. A direct frame received later changes that block from reconstructed to directly received.
+- The RX summary names the last packet sequence or P0/P1 group and its block range. The cursor therefore continues to show the latest scanned QR even after all source blocks have already been recovered.
+
+The legacy receiver exposes this location through `packetBlockIndexes`; the Node protocol test covers data frames, full 8-block groups, and the final partial group. The canvas uses a dark outline with a light halo for contrast over the green/amber state fills.
+
 ## LT fountain experiment mode
 
 The page now offers a second transport mode in addition to the original CMAL1/P0/P1 block erasure mode.

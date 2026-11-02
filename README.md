@@ -76,6 +76,16 @@
 
 ---
 
+## Airgap Link / Test Lab V5
+
+* PC画面のQRを別端末のカメラで読む、片方向のローカル転送実験ページです。暗号化済みファイルの転送を想定し、通信サーバーや受信ACKは使用しません。
+* 開始時はTXでデータを準備して先頭QRを静止表示し、RXでカメラを起動して先頭QR（LegacyはData 1、Pure LTはseq 1）を確認してからTXの再生を開始します。途中参加は対象外です。
+* 比較モード: 従来Data+P0/P1、従来Data-only、Pure LT Fountain、LT Hybrid（Data+P0/P1の初回周回後、RXが取得済みブロックをLTへ引き継いで欠落を修復）、Data-only + LT。
+* Hybridでは最初のLegacy周回と後段LTで同一Transfer ID・CRC・ブロック境界を共有します。RXは最初のFountain修復フレームからメタデータを取得し、Legacy Receiverが保持する直接取得・P0/P1復元ブロックをFountain Receiverへ移送します。
+* ブラウザ上のTest Lab: [Airgap Link Test Lab](https://cryptopasskey.github.io/crypto_matrix/contents/test/)。カメラ間の実機読み取り性能は端末ごとに異なるため、FPS・チャンクサイズは実機で評価してください。
+
+---
+
 ## ファイル構成（contents/）
 
 | ファイル / フォルダ | 役割 |

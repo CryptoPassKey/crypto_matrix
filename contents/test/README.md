@@ -138,3 +138,7 @@ The TX block map is placed immediately below the animated QR display. The RX blo
 
 For small transfers, the map uses fewer columns (up to 75) so each source block remains large enough to track visually. Both maps use the same mapping and sizing logic.
 
+## Test Lab versioning
+
+The standalone experiment page is labelled **Airgap Link / Test Lab V2**. The visible page title, heading, offline pill, and footer carry the version. Every test-lab UI/runtime behavior change should increment the displayed Test Lab version, use a fresh versioned UI script filename when stale Service Worker caches may survive, and increment the Service Worker cache version.
+

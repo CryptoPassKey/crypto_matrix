@@ -36,6 +36,7 @@ jobs:
           node --check contents/test/airgap-link-core.js
           node --check contents/test/airgap-link-fountain.js
           node --check contents/test/airgap-link-ui.js
+          node --check contents/test/airgap-link-ui-v2_1.js
           node --check contents/test/airgap-link-protocol.test.cjs
 
       - name: Run protocol tests

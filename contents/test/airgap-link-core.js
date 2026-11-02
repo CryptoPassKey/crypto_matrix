@@ -391,7 +391,7 @@
   }
 
   function selfTest() {
-    var check = new TextEncoder().encode('123456789');
+    var check = new Uint8Array([49, 50, 51, 52, 53, 54, 55, 56, 57]);
     if (hex32(crc32(check)) !== 'CBF43926') throw new Error('CRC32既知テストに失敗しました');
     var source = new Uint8Array(1733);
     for (var i = 0; i < source.length; i++) source[i] = (i * 31 + 7) & 0xff;

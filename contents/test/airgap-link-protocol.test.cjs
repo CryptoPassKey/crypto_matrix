@@ -38,12 +38,23 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V2 — QR Animation Lab</title>'), 'Page title must show V2');
-  assert(page.includes('/ Test Lab <span>V2</span>'), 'Page heading must show V2');
-  assert(page.includes('Airgap Link Test Lab V2'), 'Footer must show V2');
-  assert(page.includes('<script src="airgap-link-ui-v2_1.js" defer></script>'),
-    'Airgap page must load the cache-busted V2.1 UI runtime');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v2_1.js', 'utf8');
+  assert(page.includes('<title>Airgap Link V3 — QR Animation Lab</title>'), 'Page title must show V3');
+  assert(page.includes('/ Test Lab <span>V3</span>'), 'Page heading must show V3');
+  assert(page.includes('Airgap Link Test Lab V3'), 'Footer must show V3');
+  assert(page.includes('<script src="airgap-link-ui-v3.js" defer></script>'),
+    'Airgap page must load the V3 UI runtime');
+  const txSectionStart = page.indexOf('class="blockmap-section tx-blockmap"');
+  const txSectionEnd = page.indexOf('</div>\n <p class="muted" id="txFrameInfo">', txSectionStart);
+  const txSection = page.slice(txSectionStart, txSectionEnd);
+  assert(txSection.includes('現在表示中のQR位置'), 'TX map legend must describe only the active QR position');
+  assert(!txSection.includes('直接送信済み') && !txSection.includes('未送信'),
+    'TX map must not imply sent/unsent state');
+  const rxSectionStart = page.indexOf('class="blockmap-section rx-blockmap"');
+  const rxSectionEnd = page.indexOf('<p id="rxStatus"', rxSectionStart);
+  const rxSection = page.slice(rxSectionStart, rxSectionEnd);
+  assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得'),
+    'RX map must retain acquisition state legend');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v3.js', 'utf8');
   const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');
   const mapperEnd = ui.indexOf('function drawBlockMap(', mapperStart);
   assert(mapperStart >= 0 && mapperEnd > mapperStart, 'UI-local packet block mapper must exist');
@@ -70,6 +81,12 @@ async function main() {
     'TX map must update for every displayed QR frame');
   assert(ui.includes("txCurrentBlocks = new Set(packetBlockIndexes(parsed));"),
     'Legacy TX map cursor must use the UI-local mapper');
+  assert(!ui.includes('txDirectBlocks'), 'TX UI must not track sent/unsent block state');
+  assert(ui.includes("drawBlockMap('txBlockMap', txPlan.dataFrames.length, null, null, txCurrentBlocks);"),
+    'Legacy TX map must render only the active QR cursor');
+  assert(ui.includes("drawBlockMap('txBlockMap', txFountainEncoder.seqLen, null, null, txCurrentBlocks);"),
+    'Fountain TX map must render only the active XOR source cursor');
+  assert(!ui.includes('直接送信 '), 'TX summary must not show direct-sent counts');
   assert(ui.includes("txCurrentBlocks = new Set(txFountainPart.indexes);"),
     'Fountain TX map cursor must follow current XOR source blocks');
   const legacy = globalThis.AirgapLinkCore.selfTest();

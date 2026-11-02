@@ -82,6 +82,10 @@
       : mm + ':' + ss;
   }
 
+  function nextLegacyFrameIndexAfterPreflight(frameCount) {
+    return Number.isSafeInteger(frameCount) && frameCount > 1 ? 1 : 0;
+  }
+
   function updateControls() {
     $('chunkSizeValue').textContent = $('chunkSize').value + ' B';
     $('fpsValue').textContent = $('fps').value + ' fps';
@@ -452,6 +456,7 @@
           $('txFrameCount').textContent = blockCount + ' / ' + txPlan.frames.length + ' → LT';
           frameLabel = 'Hybrid 初回QR · Data 1 / ' + blockCount + ' · RX読取待ち';
         } else {
+          txIndex = nextLegacyFrameIndexAfterPreflight(txPlan.frames.length);
           $('txFrameCount').textContent = txPlan.dataFrames.length + ' / ' + txPlan.frames.length;
           frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + firstPacket.type;
         }

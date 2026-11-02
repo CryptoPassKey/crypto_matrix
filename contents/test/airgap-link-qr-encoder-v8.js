@@ -2,7 +2,7 @@
 (function(){'use strict';const modules={"./QR8bitByte":function(module,exports,require){
 var QRMode = require('./QRMode');
 var ALPHANUMERIC = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
-var ALPHANUMERIC_PATTERN = /^[0-9A-Z $%*+\\-./:]*$/;
+var ALPHANUMERIC_PATTERN = /^[0-9A-Z $%*+./:-]*$/;
 
 function QR8bitByte(data) {
 	this.mode = ALPHANUMERIC_PATTERN.test(data) ? QRMode.MODE_ALPHA_NUM : QRMode.MODE_8BIT_BYTE;

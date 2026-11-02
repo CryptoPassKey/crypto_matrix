@@ -166,6 +166,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <option value="1920x1080" selected>1920 × 1080（現行条件）</option>
  </select>
  <p id="rxCameraSettings" class="muted">実解像度: 未取得（カメラ接続後に getSettings() で確認）</p>
+ <p class="muted">映像フレーム実測FPS: <strong id="rxObservedFps">—</strong>（requestVideoFrameCallback基準。デコード試行FPSとは別指標）</p>
  <p class="muted">解像度比較中はTXのチャンクサイズ・FPS・QR表示サイズを固定してください。要求値ではなく、実際に適用されたカメラ解像度を記録します。</p>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>

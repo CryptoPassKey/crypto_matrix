@@ -123,6 +123,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
   <button id="playTx" type="button" disabled>再生</button>
   <button id="pauseTx" type="button" disabled>停止</button>
+  <button id="autoTxTest" type="button">送信条件の自動テスト</button>
+  <label for="autoTxLog">自動テスト条件ログ（transfer IDで受信CSVと照合）</label>
+  <textarea id="autoTxLog" rows="5" readonly placeholder="自動テスト実行後、条件とtransfer IDがここに記録されます"></textarea>
  </div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
@@ -172,6 +175,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
+  <label class="checkrow"><input id="autoBenchmarkReset" type="checkbox"> ベンチマーク自動受信（完了後に計測保存・自動リセット）</label>
  </div>
  <div class="camera-stage" aria-label="受信カメラ映像">
   <video id="camera" playsinline muted autoplay></video>

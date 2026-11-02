@@ -38,13 +38,15 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V5 — QR Animation Lab</title>'), 'Page title must show V5');
-  assert(page.includes('/ Test Lab <span>V5</span>'), 'Page heading must show V5');
-  assert(page.includes('Airgap Link Test Lab V5'), 'Footer must show V5');
+  assert(page.includes('<title>Airgap Link V6 — QR Animation Lab</title>'), 'Page title must show V6');
+  assert(page.includes('/ Test Lab <span>V6</span>'), 'Page heading must show V6');
+  assert(page.includes('Airgap Link Test Lab V6'), 'Footer must show V6');
   assert(page.includes('<script src="airgap-link-fountain-v5.js"></script>'),
     'Airgap page must load the cache-busted V5 Fountain runtime');
-  assert(page.includes('<script src="airgap-link-ui-v5.js" defer></script>'),
-    'Airgap page must load the cache-busted V5 UI runtime');
+  assert(page.includes('<script src="airgap-link-ui-v6.js" defer></script>'),
+    'Airgap page must load the cache-busted V6 UI runtime');
+  assert(page.includes('id="rxElapsed"') && page.includes('2枚目の有効なQR'),
+    'RX must display elapsed time starting at the second valid QR');
   assert(page.includes('value="hybrid"') && page.includes('value="hybrid-data"'),
     'Test Lab must expose LT Hybrid and Data-only Hybrid comparison modes');
   assert(page.includes('先頭QRを1枚読み取る') && page.includes('途中参加は対象外'),
@@ -63,7 +65,7 @@ async function main() {
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
   assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
     'RX map must retain acquisition state legend');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v5.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v6.js', 'utf8');
   const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');
   const mapperEnd = ui.indexOf('function drawBlockMap(', mapperStart);
   assert(mapperStart >= 0 && mapperEnd > mapperStart, 'UI-local packet block mapper must exist');
@@ -154,6 +156,38 @@ async function main() {
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), true);
   assert.equal(isInitialTransferFrame((await preflightLtEncoder.nextPart()).frame), false);
 
+  const timerStart = ui.indexOf('function recordTransferFrame(');
+  const timerEnd = ui.indexOf('\n  function elapsedTransferMs(', timerStart);
+  assert(timerStart >= 0 && timerEnd > timerStart, 'Second-frame timer helper must exist');
+  const recordTransferFrame = vm.runInNewContext('(' + ui.slice(timerStart, timerEnd).trim() + '\n)');
+  const elapsedStart = ui.indexOf('function elapsedTransferMs(');
+  const elapsedEnd = ui.indexOf('\n  function formatElapsedMs(', elapsedStart);
+  const elapsedTransferMs = vm.runInNewContext('(' + ui.slice(elapsedStart, elapsedEnd).trim() + '\n)');
+  const formatStart = ui.indexOf('function formatElapsedMs(');
+  const formatEnd = ui.indexOf('\n  function updateControls(', formatStart);
+  const formatElapsedMs = vm.runInNewContext('(' + ui.slice(formatStart, formatEnd).trim() + '\n)');
+  const timing = { startedAt: null, endedAt: null, frameCount: 0 };
+  assert.equal(recordTransferFrame(timing, true, false, 1000), false,
+    'The first QR preflight frame must not start the stopwatch');
+  assert.equal(recordTransferFrame(timing, false, true, 1500), false,
+    'A repeated QR must not start the stopwatch');
+  assert.equal(timing.startedAt, null);
+  assert.equal(recordTransferFrame(timing, false, false, 2000), true,
+    'The second unique valid QR must start the stopwatch');
+  assert.equal(timing.startedAt, 2000);
+  assert.equal(timing.frameCount, 1);
+  assert.equal(recordTransferFrame(timing, false, true, 2200), false,
+    'Duplicate reads must not increment transfer frame count');
+  assert.equal(recordTransferFrame(timing, false, false, 3000), false);
+  assert.equal(timing.frameCount, 2);
+  assert.equal(elapsedTransferMs(timing, 4500), 2500);
+  timing.endedAt = 4000;
+  assert.equal(elapsedTransferMs(timing, 4500), 2000,
+    'The stopwatch must freeze at the final required QR');
+  assert.equal(formatElapsedMs(100000), '01:40');
+  assert(ui.includes('recordTransferFrame(transferTiming, firstFramePending, result.duplicate'),
+    'The RX ingest path must start timing on the second distinct accepted QR');
+
   const legacy = globalThis.AirgapLinkCore.selfTest();
   assert.equal(legacy.crc32, 'CBF43926');
   assert.equal(legacy.p1OnlyRecovery, true);
@@ -241,7 +275,7 @@ async function main() {
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
+    'PASS duplicate/CRC/transfer isolation; PASS V6 second-frame stopwatch; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
   );
 }
 

@@ -200,7 +200,7 @@ async function main() {
     'The stopwatch must freeze at the final required QR');
   assert.equal(formatElapsedMs(100000), '01:40');
   const rateStart = ui.indexOf('function formatRate(');
-  const rateEnd = ui.indexOf('\n  function setSignature(', rateStart);
+  const rateEnd = ui.indexOf('\n  function sameSet(', rateStart);
   assert(rateStart >= 0 && rateEnd > rateStart, 'Completed throughput formatter must exist');
   const formatRate = vm.runInNewContext('(' + ui.slice(rateStart, rateEnd).trim() + '\n)');
   assert.equal(formatRate(307200, 100000), '3.00 KB/s',

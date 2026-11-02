@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V3 — QR Animation Lab</title>
+<title>Airgap Link V4 — QR Animation Lab</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -50,11 +50,12 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .blockmap-title{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-size:.84rem;margin-bottom:7px}
 .blockmap-viewport{max-height:210px;overflow:auto;border:1px solid #263e55;border-radius:7px;background:#07111d;padding:5px}
 .blockmap-viewport canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+#txBlockMap{cursor:pointer;touch-action:manipulation;outline-offset:-2px}#txBlockMap:focus{outline:2px solid var(--accent);outline-offset:-2px}
 .blockmap-summary{font-size:.78rem;color:var(--muted);margin:7px 0 0;overflow-wrap:anywhere}
 .map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:.74rem;color:var(--muted)}
 .map-key{display:inline-flex;align-items:center;gap:5px}
 .map-dot{display:inline-block;width:9px;height:9px;border-radius:2px}
-.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
+.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-tx-current{background:#20c9d7;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
 
@@ -64,13 +65,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="../vendor/jsQR.js"></script>
 <script src="airgap-link-core.js"></script>
 <script src="airgap-link-fountain.js"></script>
-<script src="airgap-link-ui-v3.js" defer></script>
+<script src="airgap-link-ui-v4.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V3</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
- <span class="pill">OFFLINE TEST PAGE · V3</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V4</span></h1><p class="subtitle">CMAL1 + LT Fountain · screen-to-camera · local QR engine</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V4</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送するための実験ページです。通信先サーバーへの送信は行いません。CRC32は転送中の偶発的な破損検出用であり、暗号学的な認証の代わりではありません。</div>
@@ -124,11 +125,12 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
  </div>
  <div class="blockmap-section tx-blockmap">
-  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック · 枠 = 現在のQR位置</small></div>
-  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" aria-label="現在表示中のQRが参照するデータブロック位置"></canvas></div>
+  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック · 色 = 現在のQR位置</small></div>
+  <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" role="slider" tabindex="-1" aria-label="送信開始ブロックを選択" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-valuetext="転送データなし" aria-disabled="true" aria-describedby="txBlockHelp"></canvas></div>
   <p id="txBlockSummary" class="blockmap-summary">転送データを準備すると現在のQR位置が表示されます</p>
-  <div class="map-legend">
-   <span class="map-key"><i class="map-dot map-active"></i>現在表示中のQR位置</span>
+  <p id="txBlockHelp" class="blockmap-summary">ブロックをクリックすると、そのブロックのDataから再生します。キーボード: Tabで選択、矢印キーで移動、Enterで再生位置を変更。</p>
+  <div class="map-legend>
+   <span class="map-key"><i class="map-dot map-tx-current"></i>現在表示中のQR位置</span>
   </div>
  </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
@@ -191,7 +193,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V3 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式はカメラの読み逃しを補完しますが、必要な受信数は消失パターンに依存し、K片受信だけで常に完了する保証はありません。</p>
+<p class="footer">Airgap Link Test Lab V4 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>
 </body>
 </html>

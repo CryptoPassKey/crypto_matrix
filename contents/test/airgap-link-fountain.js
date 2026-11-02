@@ -227,7 +227,32 @@
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
   }
 
+  FountainEncoder.prototype.seekToBlock = function (blockIndex) {
+    if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
+      throw new RangeError('指定ブロック番号が範囲外です');
+    }
+    // Replay one systematic source packet, then continue from the previous sequence high-water mark.
+    this.pendingDirectIndex = blockIndex;
+    this.seqNum = Math.max(this.seqNum, blockIndex + 1);
+    return blockIndex + 1;
+  };
+
   FountainEncoder.prototype.nextPart = async function () {
+    if (this.pendingDirectIndex !== null && this.pendingDirectIndex !== undefined) {
+      var directIndex = this.pendingDirectIndex;
+      this.pendingDirectIndex = null;
+      var directSequence = directIndex + 1;
+      var directBytes = this.fragments[directIndex].slice();
+      return {
+        frame: makeFrame(directSequence, this.seqLen, this.id, this.messageLen, this.checksum, directBytes),
+        seqNum: directSequence,
+        seqLen: this.seqLen,
+        indexes: [directIndex],
+        data: directBytes,
+        direct: true,
+        id: this.id
+      };
+    }
     if (this.seqNum >= 0xffffffff) throw new Error('シーケンス番号が上限に達しました');
     this.seqNum++;
     var indexes = await this.chooser.choose(this.seqNum);
@@ -505,6 +530,21 @@
 
     var encoder = new FountainEncoder(message, { chunkSize: 94, id: 'A1B2C3D4' });
     if (encoder.seqLen !== 11) throw new Error('フラグメント数テストに失敗しました');
+    var seekEncoder = new FountainEncoder(message, { chunkSize: 94, id: 'A1B2C3D4' });
+    // Simulate a sender already in the rateless phase: seeking must not rewind its sequence counter.
+    seekEncoder.seqNum = 20;
+    if (seekEncoder.seekToBlock(7) !== 8) throw new Error('ブロック位置からのシーケンス計算に失敗しました');
+    var seekPart = await seekEncoder.nextPart();
+    if (seekPart.seqNum !== 8 || !seekPart.direct || seekPart.indexes.join(',') !== '7') {
+      throw new Error('指定ブロックからのsystematic Data再生に失敗しました');
+    }
+    var afterSeekPart = await seekEncoder.nextPart();
+    if (afterSeekPart.seqNum !== 21 || afterSeekPart.direct) {
+      throw new Error('systematic Data再送後にLTシーケンスが巻き戻っています');
+    }
+    var invalidSeekRejected = false;
+    try { seekEncoder.seekToBlock(seekEncoder.seqLen); } catch (_) { invalidSeekRejected = true; }
+    if (!invalidSeekRejected) throw new Error('範囲外ブロックへのseekを拒否できませんでした');
     var receiver = new FountainReceiver();
     var direct = [];
     for (var i = 0; i < encoder.seqLen; i++) {
@@ -547,7 +587,8 @@
       outOfOrder: true,
       duplicate: true,
       crcTamperRejected: true,
-      mixedTransferRejected: true
+      mixedTransferRejected: true,
+      randomAccessSeek: true
     };
   }
 

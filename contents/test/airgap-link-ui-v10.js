@@ -674,8 +674,8 @@
       return;
     }
     var inputSize = file ? file.size : new TextEncoder().encode(inputText).length;
-    if (inputSize > 128 * 1024) {
-      status('txStatus', '自動テストは128 KiB以下のデータで実行してください。大容量転送は条件ごとの所要時間が長くなります。', 'error');
+    if (inputSize > 32 * 1024) {
+      status('txStatus', '自動テストは32 KiB以下のデータで実行してください。大容量データは手動ベンチマークで測定してください。', 'error');
       return;
     }
     var original = {
@@ -714,7 +714,7 @@
           ? Math.ceil(txFountainEncoder.seqLen * 1.6)
           : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
         // Leave a short receive-reset interval between independent transfers.
-        var duration = Math.min(90000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
+        var duration = Math.min(120000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
         var caseTransferId = txMode === 'fountain' ? txFountainEncoder.id : txPlan.id;
         $('autoTxLog').value += [i + 1, test.mode, test.chunk, test.fps, caseTransferId].join(',') + '\n';
         status('txStatus', '自動テスト ' + (i + 1) + '/' + cases.length + ' · ' +

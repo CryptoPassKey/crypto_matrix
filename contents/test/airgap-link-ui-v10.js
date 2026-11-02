@@ -59,6 +59,9 @@
   var transferTiming = { startedAt: null, endedAt: null, frameCount: 0 };
   var objectUrl = null;
   var receivedDone = false;
+  var autoTestRunning = false;
+  var autoTestTimer = 0;
+  var autoResetTimer = 0;
 
   function status(id, message, kind) {
     var el = $(id);
@@ -633,7 +636,97 @@
     status('txStatus', '送信を停止しました。再生で続きから再開できます。', 'info');
   });
 
+  async function runTxAutoTest() {
+    if (autoTestRunning) {
+      autoTestRunning = false;
+      if (autoTestTimer) clearTimeout(autoTestTimer);
+      autoTestTimer = 0;
+      stopTx();
+      $('autoTxTest').textContent = '送信条件の自動テスト';
+      $('prepareTx').disabled = false;
+      status('txStatus', '自動テストを停止しました。', 'info');
+      return;
+    }
+    var file = $('txFile').files && $('txFile').files[0];
+    var inputText = $('txText').value;
+    if (!file && !inputText) {
+      status('txStatus', '自動テスト用のファイルまたはテキストを指定してください。', 'error');
+      return;
+    }
+    var inputSize = file ? file.size : new TextEncoder().encode(inputText).length;
+    if (inputSize > 128 * 1024) {
+      status('txStatus', '自動テストは128 KiB以下のデータで実行してください。大容量転送は条件ごとの所要時間が長くなります。', 'error');
+      return;
+    }
+    var original = {
+      mode: $('transferMode').value,
+      chunk: $('chunkSize').value,
+      fps: $('fps').value
+    };
+    // Deliberately use a compact, repeatable matrix to keep the run practical.
+    var modes = ['legacy', 'fountain', 'hybrid'];
+    var chunks = [180, 360, 540];
+    var rates = [6, 12, 18];
+    var cases = [];
+    modes.forEach(function (mode) {
+      chunks.forEach(function (chunk) {
+        rates.forEach(function (fps) {
+          cases.push({ mode: mode, chunk: chunk, fps: fps });
+        });
+      });
+    });
+    autoTestRunning = true;
+    $('autoTxTest').textContent = '自動テストを停止';
+    $('prepareTx').disabled = true;
+    try {
+      for (var i = 0; i < cases.length && autoTestRunning; i++) {
+        var test = cases[i];
+        $('transferMode').value = test.mode;
+        $('chunkSize').value = String(test.chunk);
+        $('fps').value = String(test.fps);
+        $('chunkSizeValue').textContent = test.chunk + ' B';
+        $('fpsValue').textContent = test.fps + ' fps';
+        stopTx();
+        await prepareTx();
+        if (!autoTestRunning || (!txPlan && !txFountainEncoder)) break;
+        var units = txMode === 'fountain'
+          ? Math.ceil(txFountainEncoder.seqLen * 1.6)
+          : (txPlan ? txPlan.frames.length : txFountainEncoder.seqLen);
+        // Leave a short receive-reset interval between independent transfers.
+        var duration = Math.min(90000, Math.max(10000, units * 1000 / test.fps * 1.35 + 3500));
+        status('txStatus', '自動テスト ' + (i + 1) + '/' + cases.length + ' · ' +
+          test.mode + ' · ' + test.chunk + ' B · ' + test.fps + ' fps · 送信中', 'info');
+        playTx();
+        await new Promise(function (resolve) {
+          autoTestTimer = setTimeout(function () { autoTestTimer = 0; resolve(); }, duration);
+        });
+        if (!autoTestRunning) break;
+        stopTx();
+        await new Promise(function (resolve) {
+          autoTestTimer = setTimeout(function () { autoTestTimer = 0; resolve(); }, 2200);
+        });
+      }
+    } catch (error) {
+      status('txStatus', '自動テストを中断しました: ' + error.message, 'error');
+    } finally {
+      autoTestRunning = false;
+      if (autoTestTimer) clearTimeout(autoTestTimer);
+      autoTestTimer = 0;
+      stopTx();
+      $('transferMode').value = original.mode;
+      $('chunkSize').value = original.chunk;
+      $('fps').value = original.fps;
+      $('chunkSizeValue').textContent = original.chunk + ' B';
+      $('fpsValue').textContent = original.fps + ' fps';
+      $('autoTxTest').textContent = '送信条件の自動テスト';
+      $('prepareTx').disabled = false;
+      status('txStatus', '自動テスト終了。受信側のCSVに記録された条件別結果を比較してください。', 'ok');
+    }
+  }
+  $('autoTxTest').addEventListener('click', runTxAutoTest);
+
   function resetRx() {
+    if (autoResetTimer) { clearTimeout(autoResetTimer); autoResetTimer = 0; }
     rx.reset();
     fountainRx.reset();
     activeProtocol = null;
@@ -948,7 +1041,16 @@
       ' · 復元 ' + ((activeProtocol === 'fountain' || activeProtocol === 'hybrid') ? fountainRx.recoveredIndexes.size : rx.recoveredCount) + '片';
     status('rxStatus', '受信完了。ファイルを保存できます。', 'ok');
     updateRxStats();
-    stopCamera();
+    if ($('autoBenchmarkReset') && $('autoBenchmarkReset').checked) {
+      // In benchmark mode, keep the camera alive; scanTick records this run before reset.
+      if (autoResetTimer) clearTimeout(autoResetTimer);
+      autoResetTimer = setTimeout(function () {
+        autoResetTimer = 0;
+        if ($('autoBenchmarkReset').checked && receivedDone) resetRx();
+      }, 1800);
+    } else {
+      stopCamera();
+    }
   }
 
   function isInitialTransferFrame(rawText) {

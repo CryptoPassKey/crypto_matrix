@@ -34,7 +34,7 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .status{min-height:1.5em;margin:8px 0 4px;font-size:.87rem;overflow-wrap:anywhere}
 .status.ok{color:var(--ok)}.status.error{color:var(--danger)}.status.info{color:var(--accent2)}
 .meter{height:8px;background:#263d53;border-radius:99px;overflow:hidden;margin:8px 0}.meter>div{height:100%;width:0;background:linear-gradient(90deg,#21b98c,#65b7ff);transition:width .12s}
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
 .stat{background:#091724;border:1px solid #263e55;border-radius:10px;padding:8px;min-width:0}
 .stat b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.stat small{display:block}
 .camera-stage{position:relative;isolation:isolate;overflow:hidden;border-radius:12px;background:#02070d;margin:9px 0 12px;min-height:170px}
@@ -175,8 +175,10 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="statgrid">
   <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データ / 総フレーム</small></div>
   <div class="stat"><b id="txPayloadSize">—</b><small>転送データ</small></div>
-  <div class="stat"><b id="txQrGenMs">—</b><small>直近QR生成時間</small></div>
+  <div class="stat"><b id="txQrGenMs">—</b><small>QR事前生成時間</small></div>
+  <div class="stat"><b id="txDisplayFps">—</b><small>TX実効表示FPS</small></div>
  </div>
+ <p id="txCacheStatus" class="muted">QR事前生成: 未準備</p>
  <div class="qr-stage">
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>

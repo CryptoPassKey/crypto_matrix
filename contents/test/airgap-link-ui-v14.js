@@ -131,7 +131,7 @@
     enabled: false,
     currentFps: Number($('fps') ? $('fps').value : 6) || 6,
     minFps: 3,
-    maxFps: 30,
+    maxFps: 120,
     windowStartedAt: 0,
     renderSamples: [],
     statusText: '待機中',
@@ -142,7 +142,7 @@
     reset: function () {
       this.currentFps = Number($('fps') ? $('fps').value : 6) || 6;
       this.minFps = Math.max(1, Number($('minFps') ? $('minFps').value : 3) || 3);
-      this.maxFps = Math.max(this.minFps, Math.min(30, Number($('maxFps') ? $('maxFps').value : 24) || 24));
+      this.maxFps = Math.max(this.minFps, Math.min(120, Number($('maxFps') ? $('maxFps').value : 24) || 24));
       this.statusText = this.enabled ? 'TXローカル性能を観測中' : '固定FPS';
       this.clearWindow();
       this.updateUi();
@@ -276,7 +276,7 @@
       var maxVal = Number($('maxFps') ? $('maxFps').value : 24) || 24;
       if (minVal > maxVal) { var tmp = minVal; minVal = maxVal; maxVal = tmp; }
       this.minFps = Math.max(1, minVal);
-      this.maxFps = Math.min(30, maxVal);
+      this.maxFps = Math.min(120, maxVal);
 
       // サンプル数が少なすぎる場合は判定保留
       if (attempts < 3) {
@@ -781,7 +781,7 @@
   }
   if ($('minFps')) {
     $('minFps').addEventListener('change', function () {
-      txAutoRateController.minFps = Math.max(1, Math.min(30, Number(this.value) || 3));
+      txAutoRateController.minFps = Math.max(1, Math.min(120, Number(this.value) || 3));
       rxRateAdvisor.minFps = txAutoRateController.minFps;
       txAutoRateController.reset();
       rxRateAdvisor.reset();
@@ -789,7 +789,7 @@
   }
   if ($('maxFps')) {
     $('maxFps').addEventListener('change', function () {
-      txAutoRateController.maxFps = Math.max(1, Math.min(30, Number(this.value) || 24));
+      txAutoRateController.maxFps = Math.max(1, Math.min(120, Number(this.value) || 24));
       rxRateAdvisor.maxFps = txAutoRateController.maxFps;
       txAutoRateController.reset();
       rxRateAdvisor.reset();

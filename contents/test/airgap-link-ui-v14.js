@@ -43,6 +43,15 @@
   var txPausedByVisibility = false;
   var txPlaying = false;
   var txRenderGeneration = 0;
+  // QR matrices are encoded before playback and stored as compact 1-bit data.
+  var txQrMatrixCache = [];
+  var txFountainQrCache = [];
+  var txFountainQrCacheIndex = 1;
+  var txQrCacheBytes = 0;
+  var TX_QR_CACHE_MAX_BYTES = 64 * 1024 * 1024;
+  var txDisplayWindowStart = 0;
+  var txDisplayWindowFrames = 0;
+  var txLastFrameSwitchAt = 0;
   var rx = new Core.Receiver();
   var fountainRx = new Fountain.Receiver();
   var activeProtocol = null;
@@ -643,6 +652,8 @@
           throw new Error('Fountain EncoderとUIのAPI版が一致しません。ページを再読み込みしてください');
         }
         txFountainEncoder.seekToBlock(blockIndex);
+        // Random access invalidates the precomputed Fountain sequence; continue from the seek point.
+        txFountainQrCacheIndex = txFountainQrCache.length;
       } else {
         var frameIndex = legacyFrameIndexForBlock(blockIndex, txPlan);
         if (frameIndex < 0 || frameIndex >= txPlan.frames.length) throw new Error('指定ブロックのフレーム位置が見つかりません');
@@ -803,14 +814,29 @@
   $('txBlockMap').addEventListener('blur', updateTxBlockMap);
   updateControls();
 
-  function renderQr(text) {
+  function encodeQrMatrix(text) {
     if (!window.MatrixQRCode) throw new Error('MatrixQRCode が読み込まれていません');
     var matrix = MatrixQRCode.matrix(text);
+    var modules = matrix.length;
+    var packed = new Uint8Array(Math.ceil(modules * modules / 8));
+    for (var row = 0; row < modules; row++) {
+      for (var col = 0; col < modules; col++) {
+        if (matrix[row][col]) {
+          var bitIndex = row * modules + col;
+          packed[bitIndex >>> 3] |= 1 << (bitIndex & 7);
+        }
+      }
+    }
+    return { modules: modules, packed: packed };
+  }
+
+  function renderQrMatrix(entry) {
+    if (!entry || !entry.packed) throw new Error('事前生成QRキャッシュがありません');
     var canvas = $('txCanvas');
     var context = canvas.getContext('2d', { alpha: false });
     var size = canvas.width;
     var quiet = 4;
-    var modules = matrix.length;
+    var modules = entry.modules;
     var total = modules + quiet * 2;
     context.fillStyle = '#fff';
     context.fillRect(0, 0, size, size);
@@ -820,7 +846,8 @@
     for (var row = 0; row < modules; row++) {
       var run = -1;
       for (var col = 0; col <= modules; col++) {
-        var dark = col < modules && matrix[row][col];
+        var bitIndex = row * modules + col;
+        var dark = col < modules && ((entry.packed[bitIndex >>> 3] >>> (bitIndex & 7)) & 1) !== 0;
         if (dark && run < 0) run = col;
         if (!dark && run >= 0) {
           var x0 = Math.floor((run + quiet) * size / total);
@@ -833,7 +860,82 @@
       }
     }
     context.fill();
-    return { versionModules: modules, matrix: matrix };
+    return { versionModules: modules };
+  }
+
+  function renderQr(text) {
+    return renderQrMatrix(encodeQrMatrix(text));
+  }
+
+  async function prepareTxQrCache() {
+    txQrMatrixCache = [];
+    txFountainQrCache = [];
+    txFountainQrCacheIndex = 1;
+    txQrCacheBytes = 0;
+    var fountainMode = txMode === 'fountain';
+    var total = fountainMode
+      ? (txFountainEncoder ? txFountainEncoder.seqLen : 0)
+      : (txPlan ? txPlan.frames.length : 0);
+    var cache = [];
+    var currentPart = txFountainPart;
+    var startedAt = performance.now();
+
+    for (var i = 0; i < total; i++) {
+      var frame;
+      if (fountainMode) {
+        if (i > 0) currentPart = await txFountainEncoder.nextPart();
+        frame = currentPart.frame;
+      } else {
+        frame = txPlan.frames[i];
+      }
+
+      var qr = encodeQrMatrix(frame);
+      var entryBytes = qr.packed.byteLength + 16;
+      if (cache.length > 0 && txQrCacheBytes + entryBytes > TX_QR_CACHE_MAX_BYTES) break;
+      cache.push({ frame: frame, qr: qr, part: fountainMode ? currentPart : null });
+      txQrCacheBytes += entryBytes;
+
+      if ((i + 1) % 16 === 0) {
+        $('txCacheStatus').textContent =
+          'QR事前生成: ' + cache.length + ' / ' + total + ' 枚 · ' +
+          formatBytes(txQrCacheBytes);
+        status('txStatus', 'QRコードを事前生成しています: ' + cache.length + ' / ' + total, 'info');
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+      }
+    }
+
+    if (fountainMode) {
+      txFountainQrCache = cache;
+      // Entry 0 is already displayed as the preflight QR.
+      txFountainQrCacheIndex = 1;
+    } else {
+      txQrMatrixCache = cache;
+    }
+
+    var elapsed = performance.now() - startedAt;
+    $('txCacheStatus').textContent =
+      'QR事前生成: ' + cache.length + ' / ' + total + ' 枚 · ' +
+      formatBytes(txQrCacheBytes) +
+      (cache.length < total ? '（メモリ上限のため残りは再生時生成）' : '（全件完了）');
+    $('txQrGenMs').textContent = elapsed.toFixed(1) + ' ms';
+    return { cachedFrames: cache.length, totalFrames: total, durationMs: elapsed };
+  }
+
+  function recordTxDisplayFrame(now) {
+    if (!txDisplayWindowStart) {
+      txDisplayWindowStart = now;
+      txLastFrameSwitchAt = now;
+      txDisplayWindowFrames = 0;
+      return;
+    }
+    txDisplayWindowFrames++;
+    txLastFrameSwitchAt = now;
+    var elapsed = now - txDisplayWindowStart;
+    if (elapsed >= 1000) {
+      $('txDisplayFps').textContent = (txDisplayWindowFrames * 1000 / elapsed).toFixed(1);
+      txDisplayWindowStart = now;
+      txDisplayWindowFrames = 0;
+    }
   }
 
   async function prepareTx() {
@@ -952,15 +1054,19 @@
           frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + firstPacket.type;
         }
       }
+      var cacheResult = await prepareTxQrCache();
       var planStart = performance.now();
-      renderQr(firstFrame);
+      var firstCacheEntry = txMode === 'fountain' ? txFountainQrCache[0] : txQrMatrixCache[0];
+      if (firstCacheEntry && firstCacheEntry.qr) renderQrMatrix(firstCacheEntry.qr);
+      else renderQr(firstFrame);
       var initialRenderMs = performance.now() - planStart;
       txFrameStartTime = performance.now();
       $('txPlaceholder').classList.add('hidden');
       $('playTx').disabled = false;
       $('pauseTx').disabled = true;
       $('txPayloadSize').textContent = formatBytes(wireBytes.length);
-      $('txQrGenMs').textContent = initialRenderMs.toFixed(1) + ' ms';
+      $('txQrGenMs').textContent = cacheResult.durationMs.toFixed(1) + ' ms';
+      $('txCacheStatus').textContent = 'QR事前生成: ' + cacheResult.cachedFrames + ' / ' + cacheResult.totalFrames + ' 枚';
       $('txFrameInfo').textContent = frameLabel;
       $('txProgress').style.width = (txMode === 'fountain' || hybridMode ? (1 / blockCount * 100) : 0).toFixed(1) + '%';
       updateTxBlockMap();
@@ -976,6 +1082,11 @@
       txPlan = null;
       txFountainEncoder = null;
       txFountainPart = null;
+      txQrMatrixCache = [];
+      txFountainQrCache = [];
+      txFountainQrCacheIndex = 1;
+      txQrCacheBytes = 0;
+      $('txCacheStatus').textContent = 'QR事前生成: 失敗';
       $('playTx').disabled = true;
       $('pauseTx').disabled = true;
       $('txPlaceholder').classList.remove('hidden');
@@ -1043,8 +1154,11 @@
     txIsRendering = true;
     var renderGeneration = ++txRenderGeneration;
     var started = performance.now();
+    // Cadence is measured from frame-switch start; QR generation time is no longer added after the wait.
+    txFrameStartTime = started;
     try {
       var frame;
+      var cachedQr = null;
       var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
       if (hybridMode && txHybridPhase === 'legacy' && txIndex >= txPlan.frames.length) {
         txHybridPhase = 'fountain';
@@ -1052,8 +1166,13 @@
       }
       var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
       if (fountainPhase) {
-        var nextFountainPart = await txFountainEncoder.nextPart();
+        var cachedFountainEntry = txMode === 'fountain' && txFountainQrCacheIndex < txFountainQrCache.length
+          ? txFountainQrCache[txFountainQrCacheIndex++] : null;
+        var nextFountainPart = cachedFountainEntry
+          ? cachedFountainEntry.part
+          : await txFountainEncoder.nextPart();
         if (renderGeneration !== txRenderGeneration || !txPlaying) return;
+        cachedQr = cachedFountainEntry ? cachedFountainEntry.qr : null;
         txFountainPart = nextFountainPart;
         frame = txFountainPart.frame;
         txCurrentBlocks = new Set(txFountainPart.indexes);
@@ -1068,7 +1187,9 @@
         $('txProgress').style.width =
           (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) / txFountainEncoder.seqLen * 100).toFixed(1) + '%';
       } else {
-        frame = txPlan.frames[txIndex];
+        var legacyFrameIndex = txIndex;
+        frame = txPlan.frames[legacyFrameIndex];
+        cachedQr = txQrMatrixCache[legacyFrameIndex] ? txQrMatrixCache[legacyFrameIndex].qr : null;
         var parsed = Core.parseFrame(frame);
         txCurrentBlocks = new Set(packetBlockIndexes(parsed));
         if (parsed.type === 'data') txCurrentLabel = 'Data ' + (parsed.index + 1) + ' / ' + parsed.total;
@@ -1084,11 +1205,10 @@
         else txIndex = (txIndex + 1) % txPlan.frames.length;
       }
       if (renderGeneration !== txRenderGeneration || !txPlaying) return;
-      renderQr(frame);
+      if (cachedQr) renderQrMatrix(cachedQr);
+      else renderQr(frame);
       updateTxBlockMap();
-
-      // 新しいフレームの描画が完了した時刻を記録（ここから最低表示時間がカウントされる）
-      txFrameStartTime = performance.now();
+      recordTxDisplayFrame(performance.now());
 
       // During an automatic sweep, send one finite pass per condition so RX records one run.
       if (autoTestRunning && txPlaying) {
@@ -1128,6 +1248,10 @@
     $('pauseTx').disabled = false;
     // 再生開始時、現在画面に表示されているフレームの表示開始時刻を現在時刻に設定
     txFrameStartTime = performance.now();
+    txDisplayWindowStart = txFrameStartTime;
+    txDisplayWindowFrames = 0;
+    txLastFrameSwitchAt = txFrameStartTime;
+    $('txDisplayFps').textContent = '計測中';
     if (!txRafId && !txIsRendering) {
       txRafId = requestAnimationFrame(txAnimationLoop);
     }
@@ -1151,6 +1275,9 @@
           txPausedByVisibility = false;
           // 復帰直後のフレームスキップを防ぐため、現在フレームの表示開始時刻を復帰時刻でリセット
           txFrameStartTime = performance.now();
+          txDisplayWindowStart = txFrameStartTime;
+          txDisplayWindowFrames = 0;
+          txLastFrameSwitchAt = txFrameStartTime;
           if (!txRafId && !txIsRendering) {
             txRafId = requestAnimationFrame(txAnimationLoop);
           }

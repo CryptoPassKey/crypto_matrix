@@ -981,6 +981,12 @@
         run.totalBlocks,
         run.completionMs === null ? '' : run.completionMs.toFixed(1)
       ].join('\t'));
+      if (run.samples && run.samples.length) {
+        lines.push('Raw scan samples (ms) for ' + (run.transferId || 'unknown') + ':');
+        run.samples.forEach(function (sample, index) {
+          lines.push((index + 1) + '\t' + Number(sample).toFixed(3));
+        });
+      }
     });
     return lines.join('\n');
   }

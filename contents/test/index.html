@@ -220,8 +220,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
   <label class="checkrow"><input id="autoBenchmarkReset" type="checkbox"> ベンチマーク自動受信（完了後に計測保存・自動リセット）</label>
-  <label class="checkrow"><input id="rxGaussianEnabled" type="checkbox"> GF(2)ガウス消去（実験・受信側のみ）</label>
-  <p id="rxGaussianStatus" class="muted">GF(2)実験: OFF。peelingのみで復元します。</p>
+  <label class="checkrow"><input id="rxGaussianEnabled" type="checkbox"> GF(2)ガウス消去を使用可能にする（実験）</label>
+  <button id="runRxGaussian" type="button" disabled>蓄積した式でGF(2)ガウス消去を実行</button>
+  <p id="rxGaussianStatus" class="muted">通常受信中はpeelingのみ。ガウス消去はカメラ停止後に手動実行します。</p>
  </div>
  <div class="camera-stage" aria-label="受信カメラ映像">
   <video id="camera" playsinline muted autoplay></video>

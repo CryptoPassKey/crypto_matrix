@@ -95,12 +95,18 @@ async function main() {
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
     page.includes('<script src="airgap-link-ui-v14.js" defer></script>'),
     'Airgap page must load the unchanged ZXing loader before the V14 UI runtime');
-  assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"'),
-    'RX must expose the opt-in GF(2) Gaussian recovery experiment and diagnostics');
+  assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"') &&
+    page.includes('id="runRxGaussian"'),
+    'RX must expose opt-in GF(2) recovery with a manual execution control');
   assert(ui.includes('fountainRx.gaussianEnabled = !!$(\'rxGaussianEnabled\').checked') &&
-    ui.includes('result.gaussian') &&
-    ui.includes('32個の新規パケット'),
-    'GF(2) recovery must be opt-in and invoked only after a bounded peeling stall');
+    ui.includes("$('runRxGaussian').addEventListener"),
+    'GF(2) recovery must be explicitly enabled');
+  assert(ui.includes('cameraLive || scanBusy || rxWorkerBusy || scanIngestBusy') &&
+    ui.includes('カメラを停止して受信処理が終わってから実行'),
+    'GF(2) elimination must refuse to run while camera capture or ingest is active');
+  assert(!ui.includes('result.gaussian') &&
+    !fountain.includes('this.runGaussianElimination()'),
+    'The live QR feed path must never invoke synchronous Gaussian elimination');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&
     page.includes('value="native"') &&
@@ -150,7 +156,7 @@ async function main() {
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.23.0-airgap-link-test-lab-gf2-gaussian-experiment'") &&
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.24.0-airgap-link-test-lab-gf2-manual'") &&
     serviceWorker.includes('"test/airgap-link-ui-v14.js"'),
     'Service Worker must cache-bust and precache the V14 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),

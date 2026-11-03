@@ -1260,9 +1260,10 @@
     rx.reset();
     fountainRx.reset();
     fountainRx.gaussianEnabled = !!$('rxGaussianEnabled').checked;
+    $('runRxGaussian').disabled = !fountainRx.gaussianEnabled;
     $('rxGaussianStatus').textContent = fountainRx.gaussianEnabled
-      ? 'GF(2)実験: ON。32個の新規パケットでpeelingが停滞した場合に疎行列消去を試します。'
-      : 'GF(2)実験: OFF。peelingのみで復元します。';
+      ? 'GF(2)実験: 使用可能。カメラ停止後に手動実行してください。受信中はpeelingのみです。'
+      : '通常受信中はpeelingのみ。ガウス消去は無効です。';
     activeProtocol = null;
     hybridFountainMeta = null;
     hybridImportedBlocks.clear();
@@ -1694,13 +1695,6 @@
           throw new Error('別の転送方式のフレームです。受信をリセットしてください');
         }
         result = await fountainRx.feed(rawText);
-        if (result.gaussian) {
-          var gs = result.gaussian;
-          $('rxGaussianStatus').textContent = gs.skipped
-            ? 'GF(2)実験: 安全上限でスキップ · 式 ' + gs.equationCount + ' · 非ゼロ係数 ' + gs.nonZeros
-            : 'GF(2)実験: rank ' + gs.rank + '/' + gs.variables + ' · 新規復元 ' +
-              gs.recoveredBlocks + '片 · ' + gs.durationMs.toFixed(2) + ' ms';
-        }
         var indexes = result.lastIndexes || await fountainRx.chooser.choose(fountainPacket.seqNum);
         rxCurrentBlocks = new Set(indexes);
         rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' + indexes.map(function (index) { return index + 1; }).join(',');
@@ -2320,9 +2314,33 @@
   $('resetRx').addEventListener('click', resetRx);
   $('rxGaussianEnabled').addEventListener('change', function () {
     fountainRx.gaussianEnabled = $('rxGaussianEnabled').checked;
+    $('runRxGaussian').disabled = !fountainRx.gaussianEnabled;
     $('rxGaussianStatus').textContent = fountainRx.gaussianEnabled
-      ? 'GF(2)実験: ON。32個の新規パケットでpeelingが停滞した場合に疎行列消去を試します。'
-      : 'GF(2)実験: OFF。peelingのみで復元します。';
+      ? 'GF(2)実験: 使用可能。カメラ停止後に手動実行してください。受信中はpeelingのみです。'
+      : '通常受信中はpeelingのみ。ガウス消去は無効です。';
+  });
+  $('runRxGaussian').addEventListener('click', function () {
+    if (!fountainRx.gaussianEnabled) return;
+    var video = $('camera');
+    var stream = video && video.srcObject;
+    var cameraLive = !!(stream && stream.getTracks().some(function (track) { return track.readyState === 'live'; }));
+    if (cameraLive || scanBusy || rxWorkerBusy || scanIngestBusy) {
+      $('rxGaussianStatus').textContent = '実行中止: QR取りこぼし防止のため、カメラを停止して受信処理が終わってから実行してください。';
+      return;
+    }
+    try {
+      var gs = fountainRx.runGaussianElimination();
+      $('rxGaussianStatus').textContent = gs.skipped
+        ? 'GF(2): 安全上限でスキップ · 式 ' + gs.equationCount + ' · 非ゼロ係数 ' + gs.nonZeros
+        : 'GF(2): rank ' + gs.rank + '/' + gs.variables + ' · 新規復元 ' +
+          gs.recoveredBlocks + '片 · ' + gs.durationMs.toFixed(2) + ' ms';
+      updateRxStats();
+      if (fountainRx.isComplete()) {
+        status('rxStatus', 'GF(2)ガウス消去で復元完了。データ全体のCRC32も検証済みです。', 'ok');
+      }
+    } catch (error) {
+      $('rxGaussianStatus').textContent = 'GF(2)実験エラー: ' + (error && error.message ? error.message : String(error));
+    }
   });
   $('copyBenchmarkText').addEventListener('click', copyBenchmarkText);
   $('copyTxTestLog').addEventListener('click', function () {

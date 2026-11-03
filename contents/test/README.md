@@ -131,7 +131,7 @@ The receiver stores only distinct equation index-sets and applies a bounded equa
 
 ### Experimental sparse GF(2) recovery
 
-The RX page has an opt-in **GF(2)ガウス消去（実験・受信側のみ）** checkbox. It is OFF by default. When enabled, the receiver keeps using the existing peeling decoder; after 32 newly accepted packets without an increase in recovered source blocks, it attempts sparse GF(2) elimination over the retained unresolved equations. It retries only after another 32-packet stall.
+The RX page has an opt-in **GF(2)ガウス消去を使用可能にする（実験）** checkbox. It is OFF by default. The live receive path always uses the existing peeling decoder; it never runs Gaussian elimination while camera capture or QR ingest is active. After stopping the camera and allowing ingest to finish, the operator can manually press **蓄積した式でGF(2)ガウス消去を実行**. This keeps matrix work out of the camera/decode critical path and avoids dropped QR frames caused by synchronous CPU work.
 
 - Sender behavior, packet selection, frame encoding, and wire format are unchanged.
 - Only uniquely determined source blocks are committed. Free variables are never guessed.

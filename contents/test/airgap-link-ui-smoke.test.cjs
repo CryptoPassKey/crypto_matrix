@@ -89,8 +89,8 @@ for (const filename of [
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
-const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v12.js'), 'utf8');
-vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v12.js' });
+const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v13.js'), 'utf8');
+vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
 
 (async () => {
   assert.equal(getElement('autoTxTest').listeners.click.length, 1,
@@ -105,6 +105,8 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v12.js' });
   assert(!autoBody.includes('autoBenchmarkReset') && !autoBody.includes('cameraVideo') &&
     !autoBody.includes('stream.active'),
     'TX benchmark must not gate its start on remote RX camera state');
+  assert.equal(getElement('chunkSizeNumber').listeners.input.length, 1,
+    'Expanded chunk-size numeric input must be wired');
   assert.equal(getElement('benchmarkSizeRange').listeners.input.length, 1,
     'Benchmark data-size slider must be wired');
   assert.equal(getElement('benchmarkSizeInput').listeners.input.length, 1,

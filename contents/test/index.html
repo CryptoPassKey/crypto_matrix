@@ -133,7 +133,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
   <div>
    <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">6 fps</output></div>
-   <input id="fps" type="range" min="3" max="30" step="1" value="6">
+   <input id="fps" type="range" min="3" max="60" step="1" value="6">
    <small>表示フレームの切り替え目標値。画面・カメラ性能で実測値は変わります。</small>
   </div>
  </div>
@@ -171,7 +171,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
  </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
- <div class="note warn">30 fpsは上限値です。カメラの露光・フォーカス・デコーダー処理が追いつかない場合は、FPSを下げるか密度を下げてください。</div>
+ <div class="note warn">60 fpsは送信側の設定上限です。60 QR/sの読み取りを保証するものではありません。カメラの実フレームレート、露光・フォーカス、デコーダー処理が追いつかない場合は、FPSを下げるか密度を下げてください。</div>
 </section>
 
 <section class="panel" aria-labelledby="rx-title">

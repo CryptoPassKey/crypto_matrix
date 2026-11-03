@@ -54,7 +54,9 @@ Encrypted data is already close to random and normally does not compress. For en
 
 ## UI/test settings
 
-- Fragment size: 80–800 bytes (default 180 bytes)
+- Fragment size: 80–2,800 bytes for Base45 / 80–2,100 bytes for Base64URL (default 180 bytes)
+- Numeric input and slider share a 20-byte step; the selected wire format determines the maximum
+- QR encoder auto-selects Versions 1–40; large Base45 frames may fall back from ECC-M to ECC-L when required
 - TX frame rate: 3–30 fps (default 6 fps)
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
@@ -81,7 +83,7 @@ Additional development checks performed before publishing this branch:
 - Two missing data frames at the beginning, middle, and end of a parity group
 - Last partial group handling
 - Single-erasure recovery when P0 is missing
-- 180-byte and 800-byte frame strings accepted by the local QR matrix generator (65 and 125 modules respectively)
+- 180-byte and 2,800-byte Base45 parity/Fountain frame strings accepted by the local QR matrix generator (up to 177 modules / Version 40)
 - JavaScript syntax checks for the core and UI modules
 
 Camera-to-camera testing still needs to be performed on real target devices. QR generation and decoder behavior vary with display pixel density, camera exposure, autofocus, device/browser implementation, and ambient light.

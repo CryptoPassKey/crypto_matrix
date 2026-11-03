@@ -85,7 +85,7 @@ async function main() {
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
   assert(page.includes('<title>Airgap Link V14 — TX/RX Adaptive Separation</title>'), 'Page title must show V14');
-  assert(page.includes('/ Test Lab <span>V14</span>'), 'Page heading must show V14');
+  assert(page.includes('/ Test Lab <span>V15</span>'), 'Page heading must show V15');
   assert(page.includes('Airgap Link Test Lab V14'), 'Footer must show V14');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
     page.includes('<script src="airgap-link-core-v8.js"></script>') &&

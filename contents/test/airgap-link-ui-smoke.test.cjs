@@ -89,8 +89,8 @@ for (const filename of [
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
-vm.runInContext(fs.readFileSync(path.join(root, 'airgap-link-ui-v10.js'), 'utf8'), sandbox,
-  { filename: 'airgap-link-ui-v10.js' });
+vm.runInContext(fs.readFileSync(path.join(root, 'airgap-link-ui-v11.js'), 'utf8'), sandbox,
+  { filename: 'airgap-link-ui-v11.js' });
 
 (async () => {
   assert.equal(getElement('autoTxTest').listeners.click.length, 1,

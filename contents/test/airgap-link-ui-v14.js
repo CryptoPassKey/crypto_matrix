@@ -891,9 +891,13 @@
 
       var qr = encodeQrMatrix(frame);
       var entryBytes = qr.packed.byteLength + 16;
-      if (cache.length > 0 && txQrCacheBytes + entryBytes > TX_QR_CACHE_MAX_BYTES) break;
+      var cacheLimitReached = cache.length > 0 &&
+        txQrCacheBytes + entryBytes > TX_QR_CACHE_MAX_BYTES;
+      // Keep the frame already requested from the Fountain encoder; otherwise
+      // stopping at the memory limit would silently skip that sequence number.
       cache.push({ frame: frame, qr: qr, part: fountainMode ? currentPart : null });
       txQrCacheBytes += entryBytes;
+      if (cacheLimitReached) break;
 
       if ((i + 1) % 16 === 0) {
         $('txCacheStatus').textContent =

@@ -367,10 +367,10 @@ async function main() {
   const seekEnd = fountainSource.indexOf('\n  };', seekStart);
   const seekMethod = seekStart >= 0 && seekEnd > seekStart
     ? fountainSource.slice(seekStart, seekEnd + 5) : '';
-  assert(seekMethod.includes('this.seqNum = blockIndex;') &&
-    seekMethod.includes('this.pendingDirectIndex = null;') &&
-    !seekMethod.includes('Math.max(this.seqNum'),
-    'Fountain map seek must restart at the selected position in the first systematic pass');
+  assert(seekMethod.includes('this.pendingDirectIndex = blockIndex;') &&
+    !seekMethod.includes('this.seqNum = blockIndex;') &&
+    !seekMethod.includes('this.seqNum = Math.max'),
+    'Fountain map seek must replay the selected Data block without rewinding the LT sequence');
   assert(ui.includes('legacyFrameIndexForBlock(blockIndex, txPlan)'),
     'Legacy seek must map source blocks to the corresponding Data frame');
   assert(ui.includes('renderGeneration !== txRenderGeneration'),

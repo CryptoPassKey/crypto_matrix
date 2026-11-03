@@ -249,9 +249,10 @@
     if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
       throw new RangeError('指定ブロック番号が範囲外です');
     }
-    // Replay one systematic source packet, then continue from the previous sequence high-water mark.
-    this.pendingDirectIndex = blockIndex;
-    this.seqNum = Math.max(this.seqNum, blockIndex + 1);
+    // A map seek always restarts at the selected position in the first systematic pass.
+    // Do not preserve a later repair-pass sequence high-water mark.
+    this.pendingDirectIndex = null;
+    this.seqNum = blockIndex;
     return blockIndex + 1;
   };
 

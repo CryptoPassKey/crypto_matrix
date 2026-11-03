@@ -277,7 +277,7 @@ async function main() {
     'Wire parser must preserve spaces and colons after the four structural separators');
 
   const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
-  const nextLegacyEnd = ui.indexOf('\n  function updateControls(', nextLegacyStart);
+  const nextLegacyEnd = ui.indexOf('\n  function syncChunkSizeControls(', nextLegacyStart);
   assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
     'Legacy playback must skip the already displayed preflight QR');
   const nextLegacyFrameIndexAfterPreflight = vm.runInNewContext(

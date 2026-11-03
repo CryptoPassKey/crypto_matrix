@@ -402,7 +402,7 @@
     }
     if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1DEFL圧縮データですが、このブラウザはDeflate復号に対応していません');
     var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(8, false);
-    if (expected > 8000000) throw new Error('展開後サイズが試験上限8 MBを超えています');
+    if (expected > 67108864) throw new Error('展開後サイズが試験上限64 MiBを超えています');
     var compressed = bytes.subarray(12);
     var reader = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate')).getReader();
     var chunks = [];
@@ -411,7 +411,7 @@
       var item = await reader.read();
       if (item.done) break;
       total += item.value.length;
-      if (total > expected || total > 8000000) {
+      if (total > expected || total > 67108864) {
         await reader.cancel();
         throw new Error('圧縮データが宣言サイズを超えて展開されました');
       }

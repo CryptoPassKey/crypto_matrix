@@ -182,7 +182,7 @@ Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-c
 
 ## UI control smoke test
 
-`airgap-link-ui-smoke.test.cjs` runs the actual V12 UI script against a lightweight DOM stub and verifies:
+`airgap-link-ui-smoke.test.cjs` runs the actual V13 UI script against a lightweight DOM stub and verifies:
 
 - Automatic TX benchmark registration and independence from remote RX camera state
 - Benchmark copy button event registration and the zero-results message
@@ -207,3 +207,12 @@ The TX automatic benchmark now uses the currently selected mode, chunk size, fra
 Completed RX measurements include reconstructed transfer-payload bytes, final output-file bytes, received/total/missing source blocks, camera FPS, unique valid frames per second, decode mean/P95, and completion time. Where `performance.memory` is exposed, the run also records peak observed JavaScript heap usage and the reported heap limit. This is a JS-heap estimate only; it does not include all native camera, GPU, or WebAssembly allocations. Browsers without this API report the measurement as unavailable.
 
 The Service Worker cache key and immutable UI runtime were advanced to V12 to prevent stale V11 UI code from being reused.
+
+
+## V13 — Large QR chunk-size experiment
+
+V13 raises the experimental fragment ceiling from 800 bytes to 2,800 bytes for Base45 / QR Alphanumeric frames. Base64URL / QR Byte mode is capped at 2,100 bytes in the UI because its encoded text expands more and reaches the Version 40 capacity sooner. The numeric input and slider use 20-byte increments; changing wire format adjusts the maximum automatically.
+
+The QR encoder now evaluates Version 40 during automatic version selection and reports an explicit overflow when the payload exceeds Version 40. The renderer first tries ECC-M and falls back to ECC-L if necessary. Core and Fountain encode/decode paths accept up to 2,800-byte source fragments; the Legacy parser also rejects oversized data/parity fragment declarations. The 100,000-source-fragment and 64 MiB transfer limits remain unchanged.
+
+The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guarantee of camera readability. At the upper end, the QR occupies Version 40 (177 × 177 modules) before the four-module quiet zone. Real throughput and decode stability must be measured on the target iPhone Safari and Android Chrome devices.

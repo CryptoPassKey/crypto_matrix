@@ -555,23 +555,42 @@
     rows.sort(function (a, b) { return a.indexes.length - b.indexes.length; });
 
     var pivots = new Map();
+    var fillInNonZeros = 0;
+    var fillInExceeded = false;
     for (var r = 0; r < rows.length; r++) {
       var row = rows[r];
       while (row.indexes.length) {
         var pivot = row.indexes[0];
         var existing = pivots.get(pivot);
         if (!existing) {
+          if (fillInNonZeros + row.indexes.length > maxNonZeros) {
+            fillInExceeded = true;
+            break;
+          }
           pivots.set(pivot, row);
+          fillInNonZeros += row.indexes.length;
           break;
         }
         row.indexes = xorSortedIndexes(row.indexes, existing.indexes);
+        if (fillInNonZeros + row.indexes.length > maxNonZeros) {
+          fillInExceeded = true;
+          break;
+        }
         fastXor(row.data, existing.data, row.data.length);
       }
+      if (fillInExceeded) break;
       if (!row.indexes.length && !isZeroBytes(row.data)) {
         throw new Error('GF(2)ガウス消去で矛盾する修復式を検出しました');
       }
     }
     stats.rank = pivots.size;
+    if (fillInExceeded) {
+      stats.skipped = 'fill-in-limit';
+      stats.durationMs = ((root.performance && root.performance.now) ? root.performance.now() : Date.now()) - startedAt;
+      this.gaussianRuns++;
+      this.gaussianStats = stats;
+      return stats;
+    }
 
     // Back-substitute only variables that are uniquely determined. Free
     // columns remain unknown; no guessed values are ever introduced.
@@ -806,6 +825,19 @@
       if (gaussianRestored[gi] !== gaussianMessage[gi]) throw new Error('GF(2)ガウス消去の復元内容が一致しません');
     }
 
+    var underdetermined = new FountainReceiver();
+    underdetermined.seqLen = 3;
+    underdetermined.messageLen = gaussianMessage.length;
+    underdetermined.fragmentLen = 4;
+    underdetermined.checksum = Core.crc32(gaussianMessage);
+    underdetermined._addEquation([0, 1], gx01);
+    underdetermined._addEquation([1, 2], gx12);
+    var underdeterminedStats = underdetermined.runGaussianElimination();
+    if (underdeterminedStats.rank !== 2 || underdeterminedStats.recoveredBlocks !== 0 ||
+        underdetermined.simpleParts.size !== 0 || underdetermined.isComplete()) {
+      throw new Error('GF(2)ガウス消去が自由変数を推測していないことを確認できませんでした');
+    }
+
     var corrupt = fountainFrames[0].split(':');
     corrupt[3] = '00000000';
     var crcRejected = false;
@@ -831,7 +863,8 @@
       randomAccessSeek: true,
       gaussianFullRankRecovery: true,
       gaussianRank: gaussianStats.rank,
-      gaussianRecoveredBlocks: gaussianStats.recoveredBlocks
+      gaussianRecoveredBlocks: gaussianStats.recoveredBlocks,
+      gaussianUnderdeterminedNoGuess: underdeterminedStats.recoveredBlocks === 0
     };
   }
 

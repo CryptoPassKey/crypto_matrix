@@ -107,6 +107,16 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
     'TX benchmark must not gate its start on remote RX camera state');
   assert.equal(getElement('chunkSizeNumber').listeners.input.length, 1,
     'Expanded chunk-size numeric input must be wired');
+  getElement('chunkSizeNumber').value = '3000';
+  await getElement('chunkSizeNumber').dispatch('input');
+  assert.equal(getElement('chunkSizeNumber').value, '2800',
+    'Base45 chunk-size input must clamp to the 2,800-byte experiment ceiling');
+  getElement('wireFormat').value = 'base64url';
+  await getElement('wireFormat').dispatch('change');
+  assert.equal(getElement('chunkSize').max, '2100',
+    'Base64URL must expose its lower QR-capacity-aware maximum');
+  assert.equal(getElement('chunkSizeNumber').value, '2100',
+    'Changing to Base64URL must clamp the current chunk size');
   assert.equal(getElement('benchmarkSizeRange').listeners.input.length, 1,
     'Benchmark data-size slider must be wired');
   assert.equal(getElement('benchmarkSizeInput').listeners.input.length, 1,

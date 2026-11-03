@@ -1259,6 +1259,10 @@
     if (rxRateAdvisor) rxRateAdvisor.reset();
     rx.reset();
     fountainRx.reset();
+    fountainRx.gaussianEnabled = !!$('rxGaussianEnabled').checked;
+    $('rxGaussianStatus').textContent = fountainRx.gaussianEnabled
+      ? 'GF(2)実験: ON。32個の新規パケットでpeelingが停滞した場合に疎行列消去を試します。'
+      : 'GF(2)実験: OFF。peelingのみで復元します。';
     activeProtocol = null;
     hybridFountainMeta = null;
     hybridImportedBlocks.clear();
@@ -1690,6 +1694,13 @@
           throw new Error('別の転送方式のフレームです。受信をリセットしてください');
         }
         result = await fountainRx.feed(rawText);
+        if (result.gaussian) {
+          var gs = result.gaussian;
+          $('rxGaussianStatus').textContent = gs.skipped
+            ? 'GF(2)実験: 安全上限でスキップ · 式 ' + gs.equationCount + ' · 非ゼロ係数 ' + gs.nonZeros
+            : 'GF(2)実験: rank ' + gs.rank + '/' + gs.variables + ' · 新規復元 ' +
+              gs.recoveredBlocks + '片 · ' + gs.durationMs.toFixed(2) + ' ms';
+        }
         var indexes = result.lastIndexes || await fountainRx.chooser.choose(fountainPacket.seqNum);
         rxCurrentBlocks = new Set(indexes);
         rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' + indexes.map(function (index) { return index + 1; }).join(',');
@@ -2307,6 +2318,12 @@
   $('startCamera').addEventListener('click', startCamera);
   $('stopCamera').addEventListener('click', stopCamera);
   $('resetRx').addEventListener('click', resetRx);
+  $('rxGaussianEnabled').addEventListener('change', function () {
+    fountainRx.gaussianEnabled = $('rxGaussianEnabled').checked;
+    $('rxGaussianStatus').textContent = fountainRx.gaussianEnabled
+      ? 'GF(2)実験: ON。32個の新規パケットでpeelingが停滞した場合に疎行列消去を試します。'
+      : 'GF(2)実験: OFF。peelingのみで復元します。';
+  });
   $('copyBenchmarkText').addEventListener('click', copyBenchmarkText);
   $('copyTxTestLog').addEventListener('click', function () {
     if (!$('autoTxLog').value.trim()) return;

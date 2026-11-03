@@ -106,7 +106,7 @@ async function main() {
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.20.0-airgap-link-test-lab-v12-zxing-wasm'") &&
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.20.0-airgap-link-test-lab-v12-large-benchmark-zxing-wasm'") &&
     serviceWorker.includes('"test/airgap-link-ui-v12.js"'),
     'Service Worker must cache-bust and precache the V12 runtime');
   new vm.Script(ui, { filename: 'airgap-link-ui-v12.js' });

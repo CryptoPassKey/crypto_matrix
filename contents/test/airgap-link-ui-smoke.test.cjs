@@ -68,6 +68,7 @@ const document = {
 };
 const window = {
   document,
+  crypto: require('node:crypto').webcrypto,
   isSecureContext: false,
   addEventListener() {},
   requestAnimationFrame: callback => setTimeout(callback, 0),

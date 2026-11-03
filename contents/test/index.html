@@ -133,8 +133,8 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
   <div>
    <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">6 fps</output></div>
-   <input id="fps" type="range" min="3" max="30" step="1" value="6">
-   <small>表示フレームの切り替え目標値。画面・カメラ性能で実測値は変わります。</small>
+   <input id="fps" type="range" min="3" max="120" step="1" value="6">
+   <small>表示フレームの切り替え目標値（3〜120 fps）。実際の切り替え速度はディスプレイのリフレッシュレートとブラウザーの描画周期が上限になります。</small>
   </div>
  </div>
  <div class="checkrow" style="margin:6px 0 4px">
@@ -144,11 +144,11 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
    <div>
     <label for="minFps" style="font-size:0.85em;display:block">下限 (min)</label>
-    <input id="minFps" type="number" min="1" max="15" value="3" style="width:64px" aria-label="自動速度調整の下限FPS">
+    <input id="minFps" type="number" min="1" max="120" value="3" style="width:64px" aria-label="自動速度調整の下限FPS">
    </div>
    <div>
     <label for="maxFps" style="font-size:0.85em;display:block">上限 (max)</label>
-    <input id="maxFps" type="number" min="5" max="30" value="24" style="width:64px" aria-label="自動速度調整の上限FPS">
+    <input id="maxFps" type="number" min="5" max="120" value="24" style="width:64px" aria-label="自動速度調整の上限FPS">
    </div>
    <div style="flex:1;min-width:180px">
     <span style="font-size:0.85em;color:#555">TXローカル適応状態: </span>

@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const nodeCrypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const jsQR = require('../vendor/jsQR.js');
 
 if (!globalThis.crypto || !globalThis.crypto.subtle) {
@@ -69,9 +70,23 @@ async function main() {
     ['640x480', '1280x720', '1920x1080'].every((value) => page.includes('value="' + value + '"')) &&
     page.includes('value="1920x1080" selected'),
     'RX must offer the 640x480, 1280x720 and 1920x1080 requested resolution profiles with 1080p as baseline');
-  assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'exportBenchmarkCsv']
+  assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'copyBenchmarkText', 'benchmarkRunCount']
     .every((id) => page.includes('id="' + id + '"')),
-    'V10 must expose actual camera settings, P50/P95, attempt counts and CSV export');
+    'V10 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
+  assert(page.includes('<button id="copyBenchmarkText" type="button">'),
+    'The text-copy button must remain clickable when there are zero benchmark runs');
+  assert(!page.includes('id="exportBenchmarkCsv"') && !ui.result.content.includes('function exportBenchmarkCsv'),
+    'V10 must not expose the retired CSV export control');
+  assert(ui.result.content.includes("window.addEventListener('error'") && ui.result.content.includes("window.addEventListener('unhandledrejection'"),
+    'Initialization and asynchronous runtime errors must be surfaced in the UI');
+  assert(ui.result.content.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
+    'The automatic TX benchmark button must have a click handler');
+  assert(ui.result.content.includes("$('copyBenchmarkText').addEventListener('click', copyBenchmarkText)"),
+    'The benchmark text-copy button must have a click handler');
+  assert(ui.result.content.includes('var prepared = await prepareTx()') && ui.result.content.includes('if (!prepared || (!txPlan && !txFountainEncoder))'),
+    'The TX sweep must stop and report when preparation fails instead of silently ending as success');
+  assert(ui.result.content.includes('if (!benchmarkRuns.length)') && ui.result.content.includes('clipboardFallback'),
+    'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
   assert(serviceWorker.includes("const VERSION = 'cm-v2.19.0-airgap-link-test-lab-v10-zxing-wasm'") &&
@@ -473,6 +488,9 @@ async function main() {
   assert([1, 2].every(index => seekHybridReceiver.recoveredIndexes.has(index)),
     'Subsequent LT equations must repair the remaining missing source blocks');
   assert.deepEqual(Array.from(seekHybridReceiver.bytes()), Array.from(hybridMessage));
+
+  execFileSync(process.execPath, [require('node:path').join(__dirname, 'airgap-link-ui-smoke.test.cjs')],
+    { stdio: 'inherit' });
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +

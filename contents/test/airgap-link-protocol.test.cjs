@@ -64,6 +64,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
+  const fountainSource = fs.readFileSync('contents/test/airgap-link-fountain-v8.js', 'utf8');
   const ui = fs.readFileSync('contents/test/airgap-link-ui-v14.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');

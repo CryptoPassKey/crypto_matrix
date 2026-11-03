@@ -121,7 +121,7 @@
   function buildFrames(input, options) {
     var bytes = asBytes(input).slice();
     options = options || {};
-    var chunkSize = Math.max(80, Math.min(800, Math.floor(Number(options.chunkSize) || 180)));
+    var chunkSize = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
     var wireFormat = options.wireFormat === 'base45' ? 'base45' : 'base64url';
     var parity = options.parity !== false;
     var total = Math.max(1, Math.ceil(bytes.length / chunkSize));

@@ -176,6 +176,7 @@
     if (dataMatch) {
       var index = Number(dataMatch[1]);
       if (Number(dataMatch[2]) !== total || index > total) throw new Error('データフレーム番号が不正です');
+      if (payload.length > 2800) throw new Error('データ片が上限2,800Bを超えています');
       return { type: 'data', index: index - 1, total: total, id: id.toUpperCase(), payload: payload, wireFormat: fields.wireFormat };
     }
     var parityMatch = /^P([01])-([0-9]+)\/([1-9][0-9]*)$/.exec(token);
@@ -214,6 +215,7 @@
     var maxLength = 0;
     for (var i = 0; i < count; i++) {
       var len = (payload[2 + i * 2] << 8) | payload[3 + i * 2];
+      if (len > 2800) throw new Error('パリティ内のデータ片が上限2,800Bを超えています');
       lengths.push(len);
       maxLength = Math.max(maxLength, len);
     }

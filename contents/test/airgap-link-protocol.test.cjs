@@ -26,7 +26,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v12.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v13.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -45,9 +45,9 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V12 — ZXing-C++ WASM Receiver</title>'), 'Page title must show V12');
-  assert(page.includes('/ Test Lab <span>V12</span>'), 'Page heading must show V12');
-  assert(page.includes('Airgap Link Test Lab V12'), 'Footer must show V12');
+  assert(page.includes('<title>Airgap Link V13 — ZXing-C++ WASM Receiver</title>'), 'Page title must show V13');
+  assert(page.includes('/ Test Lab <span>V13</span>'), 'Page heading must show V13');
+  assert(page.includes('Airgap Link Test Lab V13'), 'Footer must show V13');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
     page.includes('<script src="airgap-link-core-v8.js"></script>') &&
     page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
@@ -55,28 +55,28 @@ async function main() {
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
-    page.includes('<script src="airgap-link-ui-v12.js" defer></script>'),
-    'Airgap page must load the unchanged ZXing loader before the V12 UI runtime');
+    page.includes('<script src="airgap-link-ui-v13.js" defer></script>'),
+    'Airgap page must load the unchanged ZXing loader before the V13 UI runtime');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&
     page.includes('value="native"') &&
     page.includes('value="jsqr"'),
     'RX must offer explicit Native, ZXing-C++ WASM and jsQR decoder selection');
   assert(serviceWorker.includes('"test/airgap-link-zxing-loader-v10.js"') &&
-    serviceWorker.includes('"test/airgap-link-ui-v12.js"') &&
+    serviceWorker.includes('"test/airgap-link-ui-v13.js"') &&
     serviceWorker.includes("const ZXING_WASM_VERSION = '3.1.6'"),
-    'Service Worker must precache V12 scripts and expose the pinned ZXing virtual script route');
+    'Service Worker must precache V13 scripts and expose the pinned ZXing virtual script route');
   assert(['benchmarkSizeRange', 'benchmarkSizeInput', 'benchmarkSizeValue',
     'benchmarkPreset1MiB', 'benchmarkPreset2MiB', 'benchmarkPreset4MiB',
     'benchmarkPreset8MiB', 'benchmarkPreset16MiB', 'benchmarkPreset32MiB',
     'benchmarkPreset64MiB'].every((id) => page.includes('id="' + id + '"')),
-    'V12 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
+    'V13 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
   assert(['rxWireBytes', 'rxOutputBytes', 'rxMemoryPeak'].every((id) => page.includes('id="' + id + '"')),
-    'V12 must expose received payload size, reconstructed file size and optional heap measurement');
+    'V13 must expose received payload size, reconstructed file size and optional heap measurement');
   assert(ui.includes('var MAX_BENCHMARK_BYTES = 64 * 1024 * 1024') &&
     ui.includes('missingBlocks: Math.max(0, progress.total - progress.have)') &&
     ui.includes('wireBytes: rxWireByteCount') && ui.includes('memoryPeakBytes: benchmarkPeakHeapBytes'),
-    'V12 must record payload size, missing blocks and optional JS heap usage');
+    'V13 must record payload size, missing blocks and optional JS heap usage');
   const autoStart = ui.indexOf('async function runTxAutoTest()');
   const autoEnd = ui.indexOf("  $('autoTxTest').addEventListener", autoStart);
   const autoBody = ui.slice(autoStart, autoEnd);
@@ -89,11 +89,11 @@ async function main() {
     'RX must offer the 640x480, 1280x720 and 1920x1080 requested resolution profiles with 1080p as baseline');
   assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'copyBenchmarkText', 'benchmarkRunCount']
     .every((id) => page.includes('id="' + id + '"')),
-    'V12 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
+    'V13 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
   assert(page.includes('<button id="copyBenchmarkText" type="button">'),
     'The text-copy button must remain clickable when there are zero benchmark runs');
   assert(!page.includes('id="exportBenchmarkCsv"') && !ui.includes('function exportBenchmarkCsv'),
-    'V12 must not expose the retired CSV export control');
+    'V13 must not expose the retired CSV export control');
   assert(ui.includes("window.addEventListener('error'") && ui.includes("window.addEventListener('unhandledrejection'"),
     'Initialization and asynchronous runtime errors must be surfaced in the UI');
   assert(ui.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
@@ -106,15 +106,19 @@ async function main() {
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.20.0-airgap-link-test-lab-v12-large-benchmark-zxing-wasm'") &&
-    serviceWorker.includes('"test/airgap-link-ui-v12.js"'),
-    'Service Worker must cache-bust and precache the V12 runtime');
-  new vm.Script(ui, { filename: 'airgap-link-ui-v12.js' });
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.20.0-airgap-link-test-lab-v13-large-benchmark-zxing-wasm'") &&
+    serviceWorker.includes('"test/airgap-link-ui-v13.js"'),
+    'Service Worker must cache-bust and precache the V13 runtime');
+  assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
+    'V13 must expose the expanded numeric and range chunk-size controls');
+  assert(ui.includes('maximum = $(\'wireFormat\').value === \'base64url\' ? 2100 : 2800'),
+    'V13 must apply wire-format-specific chunk limits');
+  new vm.Script(ui, { filename: 'airgap-link-ui-v13.js' });
   new vm.Script(zxingLoader, { filename: 'airgap-link-zxing-loader-v10.js' });
   assert(ui.includes("zxingDecoder.readBarcodes(image,") &&
     ui.includes("formats: ['QRCode']") &&
     ui.includes("scannerType === 'zxing-wasm'"),
-    'V12 must pass canvas ImageData to the ZXing-C++ QR reader');
+    'V13 must pass canvas ImageData to the ZXing-C++ QR reader');
   assert(zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/iife/reader/index.js") &&
     zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm") &&
     zxingLoader.includes("SCRIPT_LOCAL_URL = 'zxing-wasm-reader-v10.js'") &&
@@ -127,9 +131,9 @@ async function main() {
   assert(ui.includes('cameraTrack.getSettings()'),
     'RX must record the actual camera track settings, not just the requested profile');
   assert(ui.includes('detector.detect(video)'),
-    'V12 must retain direct Video input so the resolution-only experiment has a stable baseline');
+    'V13 must retain direct Video input so the resolution-only experiment has a stable baseline');
   assert(ui.includes('function percentileValue('),
-    'V12 must calculate decode-time percentiles');
+    'V13 must calculate decode-time percentiles');
   const percentileStart = ui.indexOf('function percentileValue(');
   const percentileEnd = ui.indexOf('\n  function nextLegacyFrameIndexAfterPreflight', percentileStart);
   assert(percentileStart >= 0 && percentileEnd > percentileStart, 'Percentile helper must be extractable for unit tests');
@@ -140,7 +144,7 @@ async function main() {
   assert(ui.includes('scanDecodeSamples.push(decodeElapsed)') &&
     ui.includes('if (receivedDone) recordBenchmarkRun()') &&
     ui.includes('run.samples.forEach'),
-    'V12 must retain bounded per-attempt measurements and log completed runs with raw samples');
+    'V13 must retain bounded per-attempt measurements and log completed runs with raw samples');
 
   assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
     'TX must offer Base45 and legacy Base64URL wire-format selection');
@@ -182,6 +186,23 @@ async function main() {
   const base45Plan = globalThis.AirgapLinkCore.buildFrames(base45Sample,
     { chunkSize: 80, parity: false, id: 'A1B2C3D4', wireFormat: 'base45' });
   const base45Frame = base45Plan.frames[0];
+  const largeBase45Plan = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(5600),
+    { chunkSize: 2800, parity: true, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(largeBase45Plan.chunkSize, 2800, 'Legacy Core must preserve the expanded 2,800-byte chunk size');
+  assert.equal(globalThis.AirgapLinkCore.parseFrame(largeBase45Plan.frames[0]).payload.length, 2800);
+  assert.equal(globalThis.MatrixQRCode.matrix(largeBase45Plan.frames[3]).length, 177,
+    'A maximum-size Base45 parity frame must fit QR Version 40 at ECC-L fallback');
+  const largeFountainEncoder = new globalThis.AirgapLinkFountain.Encoder(new Uint8Array(2800),
+    { chunkSize: 2800, id: 'A1B2C3D4', wireFormat: 'base45' });
+  assert.equal(largeFountainEncoder.fragmentLen, 2800, 'Fountain must preserve the expanded fragment size');
+  const largeFountainPart = await largeFountainEncoder.nextPart();
+  assert.equal(globalThis.AirgapLinkFountain.parseFrame(largeFountainPart.frame).data.length, 2800);
+  assert.equal(globalThis.MatrixQRCode.matrix(largeFountainPart.frame).length, 177,
+    'A maximum-size Fountain frame must fit QR Version 40 at ECC-L fallback');
+  assert.equal(globalThis.MatrixQRCode.matrix('A'.repeat(4200)).length, 177,
+    'The QR encoder must automatically evaluate Version 40');
+  assert.throws(() => globalThis.MatrixQRCode.matrix('A'.repeat(4300)),
+    /code length overflow|Version 40/i, 'Payloads beyond Version 40 capacity must fail clearly');
   assert(base45Frame.startsWith('CMAL2:'), 'Base45 frames must use the versioned CMAL2 prefix');
   assert.equal(globalThis.AirgapLinkCore.parseFrame(base45Frame).wireFormat, 'base45');
   assert.deepEqual(Array.from(globalThis.AirgapLinkCore.parseFrame(base45Frame).payload), Array.from(base45Sample),

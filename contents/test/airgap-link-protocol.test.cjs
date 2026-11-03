@@ -190,6 +190,12 @@ async function main() {
     { chunkSize: 2800, parity: true, id: 'A1B2C3D4', wireFormat: 'base45' });
   assert.equal(largeBase45Plan.chunkSize, 2800, 'Legacy Core must preserve the expanded 2,800-byte chunk size');
   assert.equal(globalThis.AirgapLinkCore.parseFrame(largeBase45Plan.frames[0]).payload.length, 2800);
+  const oversizedChunk = new Uint8Array(2801);
+  const oversizedFrame = 'CMAL2:1/1:A1B2C3D4:' +
+    globalThis.AirgapLinkCore.hex32(globalThis.AirgapLinkCore.crc32(oversizedChunk)) + ':' +
+    globalThis.AirgapLinkWire.encodeBase45(oversizedChunk);
+  assert.throws(() => globalThis.AirgapLinkCore.parseFrame(oversizedFrame),
+    /上限2,800B/, 'Legacy receiver must reject a data fragment beyond the advertised cap');
   assert.equal(globalThis.MatrixQRCode.matrix(largeBase45Plan.frames[3]).length, 177,
     'A maximum-size Base45 parity frame must fit QR Version 40 at ECC-L fallback');
   const largeFountainEncoder = new globalThis.AirgapLinkFountain.Encoder(new Uint8Array(2800),

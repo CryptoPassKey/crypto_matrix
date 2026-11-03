@@ -1,6 +1,29 @@
 (function () {
   'use strict';
 
+  // Report startup/runtime failures instead of leaving controls apparently inert.
+  window.addEventListener('error', function (event) {
+    var message = event && event.message ? event.message : '不明なJavaScriptエラー';
+    ['txStatus', 'rxStatus'].forEach(function (id) {
+      var element = document.getElementById(id);
+      if (element) {
+        element.textContent = 'JavaScriptエラー: ' + message;
+        element.className = 'status error';
+      }
+    });
+  });
+  window.addEventListener('unhandledrejection', function (event) {
+    var reason = event && event.reason;
+    var message = reason && reason.message ? reason.message : String(reason || '不明な非同期エラー');
+    ['txStatus', 'rxStatus'].forEach(function (id) {
+      var element = document.getElementById(id);
+      if (element) {
+        element.textContent = '非同期処理エラー: ' + message;
+        element.className = 'status error';
+      }
+    });
+  });
+
   var $ = function (id) { return document.getElementById(id); };
   var Core = window.AirgapLinkCore;
   var Fountain = window.AirgapLinkFountain;
@@ -64,6 +87,7 @@
   var autoTestTimer = 0;
   var autoResetTimer = 0;
   var autoTestResolve = null;
+  var autoTestErrorMessage = '';
 
   function status(id, message, kind) {
     var el = $(id);
@@ -542,6 +566,7 @@
         ' · QR形式 ' + (wireFormat === 'base45' ? 'CMAL2 / Base45 / Alphanumeric' : 'CMAL1 / Base64URL / Byte') +
         ' · ID ' + transferId,
         'ok');
+      return true;
     } catch (error) {
       txPlan = null;
       txFountainEncoder = null;
@@ -550,8 +575,9 @@
       $('pauseTx').disabled = true;
       $('txPlaceholder').classList.remove('hidden');
       status('txStatus', '準備失敗: ' + error.message, 'error');
+      return false;
     } finally {
-      $('prepareTx').disabled = false;
+      $('prepareTx').disabled = autoTestRunning;
     }
   }
 
@@ -632,6 +658,7 @@
     } catch (error) {
       if (renderGeneration !== txRenderGeneration) return;
       stopTx();
+      if (autoTestRunning) autoTestErrorMessage = error.message || String(error);
       status('txStatus', 'QR生成エラー: ' + error.message + '。密度を下げてください。', 'error');
     }
   }
@@ -663,8 +690,10 @@
       status('txStatus', '自動テストを停止しました。', 'info');
       return;
     }
-    if (!$('autoBenchmarkReset').checked || !stream) {
-      status('txStatus', '先にRX側で「ベンチマーク自動受信」を有効にし、カメラを開始してください。', 'error');
+    var cameraVideo = $('camera');
+    if (!$('autoBenchmarkReset').checked || !stream || stream.active === false ||
+        !cameraVideo || cameraVideo.readyState < 2) {
+      status('txStatus', '自動テストを開始できません。RX側で「ベンチマーク自動受信」をONにし、カメラを開始して映像が表示されてから実行してください。', 'error');
       return;
     }
     var file = $('txFile').files && $('txFile').files[0];
@@ -696,9 +725,13 @@
       });
     });
     autoTestRunning = true;
+    var autoTestFailure = '';
+    var completedCases = 0;
+    autoTestErrorMessage = '';
     $('autoTxLog').value = 'case,mode,chunk_bytes,fps,transfer_id\n';
     $('autoTxTest').textContent = '自動テストを停止';
     $('prepareTx').disabled = true;
+    status('txStatus', '自動テストを開始します（全' + cases.length + '条件）。RX側で先頭QRを読み取れる状態にしてください。', 'info');
     try {
       for (var i = 0; i < cases.length && autoTestRunning; i++) {
         var test = cases[i];
@@ -708,8 +741,12 @@
         $('chunkSizeValue').textContent = test.chunk + ' B';
         $('fpsValue').textContent = test.fps + ' fps';
         stopTx();
-        await prepareTx();
-        if (!autoTestRunning || (!txPlan && !txFountainEncoder)) break;
+        var prepared = await prepareTx();
+        if (!autoTestRunning) break;
+        if (!prepared || (!txPlan && !txFountainEncoder)) {
+          autoTestFailure = '条件 ' + (i + 1) + ' の送信データ準備に失敗しました。TXのエラー表示を確認してください。';
+          break;
+        }
         var units = txMode === 'fountain'
           ? Math.ceil(txFountainEncoder.seqLen * 1.6)
           : txMode === 'hybrid-data'
@@ -729,6 +766,10 @@
           }, duration);
         });
         if (!autoTestRunning) break;
+        if (autoTestErrorMessage) {
+          autoTestFailure = '条件 ' + (i + 1) + ' の送信中にエラーが発生しました: ' + autoTestErrorMessage;
+          break;
+        }
         stopTx();
         await new Promise(function (resolve) {
           autoTestResolve = resolve;
@@ -736,9 +777,10 @@
             autoTestTimer = 0; autoTestResolve = null; resolve();
           }, 2200);
         });
+        if (autoTestRunning) completedCases++;
       }
     } catch (error) {
-      status('txStatus', '自動テストを中断しました: ' + error.message, 'error');
+      autoTestFailure = '自動テストを中断しました: ' + error.message;
     } finally {
       autoTestRunning = false;
       if (autoTestTimer) clearTimeout(autoTestTimer);
@@ -751,7 +793,13 @@
       $('fpsValue').textContent = original.fps + ' fps';
       $('autoTxTest').textContent = '送信条件の自動テスト';
       $('prepareTx').disabled = false;
-      status('txStatus', '自動テスト終了。受信側の計測結果をテキストコピーし、Transfer IDで照合してください。', 'ok');
+      if (autoTestFailure) {
+        status('txStatus', autoTestFailure, 'error');
+      } else if (completedCases < cases.length) {
+        status('txStatus', '自動テストを中断しました（' + completedCases + '/' + cases.length + '条件完了）。', 'info');
+      } else {
+        status('txStatus', '自動テスト終了。送信条件ログと受信側の計測結果をTransfer IDで照合してください。', 'ok');
+      }
     }
   }
   $('autoTxTest').addEventListener('click', runTxAutoTest);
@@ -933,6 +981,12 @@
         run.totalBlocks,
         run.completionMs === null ? '' : run.completionMs.toFixed(1)
       ].join('\t'));
+      if (run.samples && run.samples.length) {
+        lines.push('Raw scan samples (ms) for ' + (run.transferId || 'unknown') + ':');
+        run.samples.forEach(function (sample, index) {
+          lines.push((index + 1) + '\t' + Number(sample).toFixed(3));
+        });
+      }
     });
     return lines.join('\n');
   }
@@ -955,24 +1009,35 @@
       }
       status('rxStatus', successMessage, 'ok');
     } catch (_error) {
+      var previousFallback = $('clipboardFallback');
+      if (previousFallback) previousFallback.remove();
       var fallback = document.createElement('textarea');
+      fallback.id = 'clipboardFallback';
       fallback.value = value;
       fallback.setAttribute('readonly', '');
+      fallback.setAttribute('aria-label', 'コピー用テキスト');
       fallback.style.position = 'fixed';
       fallback.style.inset = '10px';
       fallback.style.width = 'calc(100% - 20px)';
       fallback.style.height = '40vh';
       fallback.style.opacity = '1';
       fallback.style.zIndex = '99999';
+      fallback.style.background = '#fff';
+      fallback.style.color = '#111';
+      fallback.style.padding = '10px';
       document.body.appendChild(fallback);
       fallback.focus();
       fallback.select();
-      status('rxStatus', '自動コピーできませんでした。表示されたテキストを長押ししてコピーしてください。', 'info');
+      status('rxStatus', '自動コピーできませんでした。画面に表示したテキストを選択してコピーしてください。', 'info');
     }
   }
 
   function copyBenchmarkText() {
-    if (!benchmarkRuns.length) return;
+    if (!benchmarkRuns.length) {
+      status('rxStatus', 'コピーできる計測結果はまだありません。受信を完了すると計測結果が保存され、このボタンが有効になります。', 'info');
+      $('benchmarkRunCount').textContent = '完了した計測: 0件（受信完了後にコピーできます）';
+      return;
+    }
     copyTextToClipboard(benchmarkResultsText(), '計測結果をテキストとしてコピーしました。メモ帳などに貼り付けて確認できます。');
   }
 

@@ -249,10 +249,10 @@
     if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
       throw new RangeError('指定ブロック番号が範囲外です');
     }
-    // A map seek always restarts at the selected position in the first systematic pass.
-    // Do not preserve a later repair-pass sequence high-water mark.
-    this.pendingDirectIndex = null;
-    this.seqNum = blockIndex;
+    // Replay only the selected systematic Data block, then resume the LT stream
+    // from its existing sequence high-water mark. Rewinding seqNum would reuse
+    // repair sequence numbers and can make the receiver discard valid equations.
+    this.pendingDirectIndex = blockIndex;
     return blockIndex + 1;
   };
 

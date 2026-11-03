@@ -7,6 +7,44 @@ const nodeCrypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const jsQR = require('../vendor/jsQR.js');
 
+function extractFunctionDeclaration(source, name) {
+  const marker = new RegExp('(?:^|\\n)\\s*function\\s+' + name + '\\s*\\(');
+  const match = marker.exec(source);
+  assert(match, 'Function declaration not found: ' + name);
+  const start = source.indexOf('function', match.index);
+  const bodyStart = source.indexOf('{', start);
+  assert(bodyStart >= 0, 'Function body not found: ' + name);
+  let depth = 0, quote = '', escaped = false, lineComment = false, blockComment = false;
+  for (let i = bodyStart; i < source.length; i++) {
+    const ch = source[i], next = source[i + 1];
+    if (lineComment) { if (ch === '\n') lineComment = false; continue; }
+    if (blockComment) { if (ch === '*' && next === '/') { blockComment = false; i++; } continue; }
+    if (quote) {
+      if (escaped) { escaped = false; continue; }
+      if (ch === '\\') { escaped = true; continue; }
+      if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '/' && next === '/') { lineComment = true; i++; continue; }
+    if (ch === '/' && next === '*') { blockComment = true; i++; continue; }
+    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) return source.slice(start, i + 1);
+  }
+  throw new Error('Unterminated function declaration: ' + name);
+}
+
+const extractionFixture = [
+  'function first() {',
+  '  const brace = "}";',
+  '  /* } is not a closing brace */',
+  '  return { ok: true };',
+  '}',
+  'function second() { return false; }'
+].join('\\n');
+assert(!extractFunctionDeclaration(extractionFixture, 'first').includes('function second'),
+  'Function extraction must stop at the matching closing brace, not the next function name');
+
 if (!globalThis.crypto || !globalThis.crypto.subtle) {
   globalThis.crypto = nodeCrypto.webcrypto;
 }
@@ -134,10 +172,7 @@ async function main() {
     'V13 must retain direct Video input so the resolution-only experiment has a stable baseline');
   assert(ui.includes('function percentileValue('),
     'V13 must calculate decode-time percentiles');
-  const percentileStart = ui.indexOf('function percentileValue(');
-  const percentileEnd = ui.indexOf('\n  function nextLegacyFrameIndexAfterPreflight', percentileStart);
-  assert(percentileStart >= 0 && percentileEnd > percentileStart, 'Percentile helper must be extractable for unit tests');
-  const percentileValue = vm.runInNewContext('(' + ui.slice(percentileStart, percentileEnd).trim() + '\n)');
+  const percentileValue = vm.runInNewContext('(' + extractFunctionDeclaration(ui, 'percentileValue') + ')');
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.50), 30);
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.95), 48);
   assert.equal(percentileValue([], 0.50), null);
@@ -276,23 +311,17 @@ async function main() {
   assert.equal(wire.splitFrame(base45Frame).payload, base45Text,
     'Wire parser must preserve spaces and colons after the four structural separators');
 
-  const nextLegacyStart = ui.indexOf('function nextLegacyFrameIndexAfterPreflight(');
-  const nextLegacyEnd = ui.indexOf('\n  function syncChunkSizeControls(', nextLegacyStart);
-  assert(nextLegacyStart >= 0 && nextLegacyEnd > nextLegacyStart,
-    'Legacy playback must skip the already displayed preflight QR');
   const nextLegacyFrameIndexAfterPreflight = vm.runInNewContext(
-    '(' + ui.slice(nextLegacyStart, nextLegacyEnd).trim() + '\n)'
+    '(' + extractFunctionDeclaration(ui, 'nextLegacyFrameIndexAfterPreflight') + ')'
   );
   assert.equal(nextLegacyFrameIndexAfterPreflight(5), 1,
     'After the preflight Data 1, legacy playback must continue at Data 2');
   assert.equal(nextLegacyFrameIndexAfterPreflight(1), 0,
     'A one-frame transfer must remain on its only frame and report unmeasured duration');
 
-  const mapperStart = ui.indexOf('function packetBlockIndexes(packet)');
-  const mapperEnd = ui.indexOf('function drawBlockMap(', mapperStart);
-  assert(mapperStart >= 0 && mapperEnd > mapperStart, 'UI-local packet block mapper must exist');
-  const mapperSource = ui.slice(mapperStart, mapperEnd).trim();
-  const packetBlockIndexes = vm.runInNewContext('(' + mapperSource + ')');
+  const packetBlockIndexes = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'packetBlockIndexes') + ')'
+  );
   assert.deepEqual(Array.from(packetBlockIndexes({ type: 'data', index: 4, total: 52 })), [4],
     'Data packets must point to one zero-based source block');
   assert.deepEqual(Array.from(packetBlockIndexes({ type: 'parity', parityType: 0, group: 1, total: 52 })),
@@ -328,9 +357,9 @@ async function main() {
   assert(!ui.includes('直接送信 '), 'TX summary must not show direct-sent counts');
   assert(ui.includes("txCurrentBlocks = new Set(txFountainPart.indexes);"),
     'Fountain TX map cursor must follow current XOR source blocks');
-  const pointStart = ui.indexOf('function blockIndexFromPoint(');
-  const pointEnd = ui.indexOf('\n  function legacyFrameIndexForBlock', pointStart);
-  const blockIndexFromPoint = vm.runInNewContext('(' + ui.slice(pointStart, pointEnd).trim() + '\n)');
+  const blockIndexFromPoint = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'blockIndexFromPoint') + ')'
+  );
   assert.equal(blockIndexFromPoint(20 * 8 + 4, 4, 52 * 8, 8, 52), 20,
     'TX map coordinates must resolve a block in a one-row map');
   assert.equal(blockIndexFromPoint(8 + 4, 8 + 4, 75 * 8, 14 * 8, 1000), 76,
@@ -338,9 +367,9 @@ async function main() {
   assert.equal(blockIndexFromPoint(-1, 0, 600, 112, 1000), -1,
     'TX map coordinates outside the canvas must be rejected');
 
-  const seekStart = ui.indexOf('function legacyFrameIndexForBlock(');
-  const seekEnd = ui.indexOf('\n  function seekTxToBlock', seekStart);
-  const legacyFrameIndexForBlock = vm.runInNewContext('(' + ui.slice(seekStart, seekEnd).trim() + '\n)');
+  const legacyFrameIndexForBlock = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'legacyFrameIndexForBlock') + ')'
+  );
   const parityPlan = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(52 * 80),
     { chunkSize: 80, parity: true, id: 'A1B2C3D4' });
   for (const index of [0, 7, 8, 15, 16, 31, 48, 51]) {
@@ -363,10 +392,8 @@ async function main() {
   assert(ui.includes("txHybridPhase = 'fountain'"), 'Hybrid sender must transition to LT repair packets');
   assert(ui.includes('fountainRx.addKnownBlock'), 'Hybrid RX must import legacy decoded blocks');
   assert(ui.includes('isInitialTransferFrame(rawText)'), 'RX must require initial QR before accepting transfer frames');
-  const initialFrameStart = ui.indexOf('function isInitialTransferFrame(');
-  const initialFrameEnd = ui.indexOf('\n  async function ingest(', initialFrameStart);
   const isInitialTransferFrame = vm.runInNewContext(
-    '(' + ui.slice(initialFrameStart, initialFrameEnd).trim() + '\n)',
+    '(' + extractFunctionDeclaration(ui, 'isInitialTransferFrame') + ')',
     { window: globalThis, Core: globalThis.AirgapLinkCore, Fountain: globalThis.AirgapLinkFountain, Wire: globalThis.AirgapLinkWire }
   );
   const preflightLegacy = globalThis.AirgapLinkCore.buildFrames(new Uint8Array(10 * 80),
@@ -399,16 +426,15 @@ async function main() {
   assert(ui.includes("manualFrame').value.replace(/^[\\r\\n]+|[\\r\\n]+$/g, '')"),
     'Manual ingestion must preserve Base45 leading/trailing spaces');
 
-  const timerStart = ui.indexOf('function recordTransferFrame(');
-  const timerEnd = ui.indexOf('\n  function elapsedTransferMs(', timerStart);
-  assert(timerStart >= 0 && timerEnd > timerStart, 'Second-frame timer helper must exist');
-  const recordTransferFrame = vm.runInNewContext('(' + ui.slice(timerStart, timerEnd).trim() + '\n)');
-  const elapsedStart = ui.indexOf('function elapsedTransferMs(');
-  const elapsedEnd = ui.indexOf('\n  function formatElapsedMs(', elapsedStart);
-  const elapsedTransferMs = vm.runInNewContext('(' + ui.slice(elapsedStart, elapsedEnd).trim() + '\n)');
-  const formatStart = ui.indexOf('function formatElapsedMs(');
-  const formatEnd = ui.indexOf('\n  function percentileValue(', formatStart);
-  const formatElapsedMs = vm.runInNewContext('(' + ui.slice(formatStart, formatEnd).trim() + '\n)');
+  const recordTransferFrame = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'recordTransferFrame') + ')'
+  );
+  const elapsedTransferMs = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'elapsedTransferMs') + ')'
+  );
+  const formatElapsedMs = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'formatElapsedMs') + ')'
+  );
   const timing = { startedAt: null, endedAt: null, frameCount: 0 };
   assert.equal(recordTransferFrame(timing, true, false, 1000), false,
     'The first QR preflight frame must not start the stopwatch');
@@ -428,10 +454,9 @@ async function main() {
   assert.equal(elapsedTransferMs(timing, 4500), 2000,
     'The stopwatch must freeze at the final required QR');
   assert.equal(formatElapsedMs(100000), '01:40');
-  const rateStart = ui.indexOf('function formatRate(');
-  const rateEnd = ui.indexOf('\n  function sameSet(', rateStart);
-  assert(rateStart >= 0 && rateEnd > rateStart, 'Completed throughput formatter must exist');
-  const formatRate = vm.runInNewContext('(' + ui.slice(rateStart, rateEnd).trim() + '\n)');
+  const formatRate = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'formatRate') + ')'
+  );
   assert.equal(formatRate(307200, 100000), '3.00 KB/s',
     '300 KiB reconstructed in 100 seconds must report 3.00 KiB/s');
   assert.equal(formatRate(1000, 0), '—', 'A zero-duration sample must not report an infinite rate');

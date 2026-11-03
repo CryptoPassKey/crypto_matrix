@@ -75,17 +75,17 @@ async function main() {
     'V10 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
   assert(page.includes('<button id="copyBenchmarkText" type="button">'),
     'The text-copy button must remain clickable when there are zero benchmark runs');
-  assert(!page.includes('id="exportBenchmarkCsv"') && !ui.result.content.includes('function exportBenchmarkCsv'),
+  assert(!page.includes('id="exportBenchmarkCsv"') && !ui.includes('function exportBenchmarkCsv'),
     'V10 must not expose the retired CSV export control');
-  assert(ui.result.content.includes("window.addEventListener('error'") && ui.result.content.includes("window.addEventListener('unhandledrejection'"),
+  assert(ui.includes("window.addEventListener('error'") && ui.includes("window.addEventListener('unhandledrejection'"),
     'Initialization and asynchronous runtime errors must be surfaced in the UI');
-  assert(ui.result.content.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
+  assert(ui.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
     'The automatic TX benchmark button must have a click handler');
-  assert(ui.result.content.includes("$('copyBenchmarkText').addEventListener('click', copyBenchmarkText)"),
+  assert(ui.includes("$('copyBenchmarkText').addEventListener('click', copyBenchmarkText)"),
     'The benchmark text-copy button must have a click handler');
-  assert(ui.result.content.includes('var prepared = await prepareTx()') && ui.result.content.includes('if (!prepared || (!txPlan && !txFountainEncoder))'),
+  assert(ui.includes('var prepared = await prepareTx()') && ui.includes('if (!prepared || (!txPlan && !txFountainEncoder))'),
     'The TX sweep must stop and report when preparation fails instead of silently ending as success');
-  assert(ui.result.content.includes('if (!benchmarkRuns.length)') && ui.result.content.includes('clipboardFallback'),
+  assert(ui.includes('if (!benchmarkRuns.length)') && ui.includes('clipboardFallback'),
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');

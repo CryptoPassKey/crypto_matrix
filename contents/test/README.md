@@ -176,3 +176,14 @@ V10 adds an RX decoder selector while leaving the CMAL1 wire format, TX QR encod
 - Real iPhone camera testing is still required. CI validates code wiring and protocol regression tests, not camera performance.
 
 Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-cpp` is Apache-2.0. See the upstream [zxing-wasm package](https://www.npmjs.com/package/zxing-wasm) and [ZXing-C++ project](https://github.com/zxing-cpp/zxing-cpp).
+
+
+## UI control smoke test
+
+`airgap-link-ui-smoke.test.cjs` runs the actual V10 UI script against a lightweight DOM stub and verifies:
+
+- Automatic TX test button event registration and prerequisite feedback when RX benchmark mode/camera are not ready
+- Benchmark copy button event registration and the zero-results message
+- Visible selectable-text fallback when Clipboard API / `execCommand('copy')` is unavailable
+
+The protocol test invokes this smoke test automatically. This does not replace real-device camera-to-camera E2E testing.

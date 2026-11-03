@@ -65,6 +65,7 @@ async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
   const ui = fs.readFileSync('contents/test/airgap-link-ui-v15.js', 'utf8');
+  const fountainSource = fs.readFileSync('contents/test/airgap-link-fountain-v8.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -105,7 +106,7 @@ async function main() {
     ui.includes('カメラを停止して受信処理が終わってから実行'),
     'GF(2) elimination must refuse to run while camera capture or ingest is active');
   assert(!ui.includes('result.gaussian') &&
-    !fountain.includes('this.runGaussianElimination()'),
+    !fountainSource.includes('this.runGaussianElimination()'),
     'The live QR feed path must never invoke synchronous Gaussian elimination');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&
@@ -362,10 +363,13 @@ async function main() {
     'TX block map must support pointer and keyboard navigation');
   assert(ui.includes('txFountainEncoder.seekToBlock(blockIndex)'),
     'Fountain seek must jump to the selected systematic Data packet');
-  const seekMethod = fountain.match(/FountainEncoder\.prototype\.seekToBlock = function \(blockIndex\) \{[\\s\\S]*?\n  \};/);
-  assert(seekMethod && seekMethod[0].includes('this.seqNum = blockIndex;') &&
-    seekMethod[0].includes('this.pendingDirectIndex = null;') &&
-    !seekMethod[0].includes('Math.max(this.seqNum'),
+  const seekStart = fountainSource.indexOf('FountainEncoder.prototype.seekToBlock = function (blockIndex) {');
+  const seekEnd = fountainSource.indexOf('\n  };', seekStart);
+  const seekMethod = seekStart >= 0 && seekEnd > seekStart
+    ? fountainSource.slice(seekStart, seekEnd + 5) : '';
+  assert(seekMethod.includes('this.seqNum = blockIndex;') &&
+    seekMethod.includes('this.pendingDirectIndex = null;') &&
+    !seekMethod.includes('Math.max(this.seqNum'),
     'Fountain map seek must restart at the selected position in the first systematic pass');
   assert(ui.includes('legacyFrameIndexForBlock(blockIndex, txPlan)'),
     'Legacy seek must map source blocks to the corresponding Data frame');

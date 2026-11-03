@@ -346,6 +346,28 @@ server.listen(PORT, async () => {
           };
         }
 
+        // --- R8: TX FPS Slider Supports 120 FPS Without RX Advisor Mutating It ---
+        {
+          const fpsSlider = document.getElementById('fps');
+          const fpsValueLabel = document.getElementById('fpsValue');
+          const maxInput = document.getElementById('maxFps');
+
+          maxInput.value = '120';
+          maxInput.dispatchEvent(new Event('change'));
+          fpsSlider.value = '120';
+          fpsSlider.dispatchEvent(new Event('input'));
+          const maxSliderValue = fpsSlider.max;
+          const manualLabel = fpsValueLabel.textContent;
+          const rxAdvisorMax = controller.maxFps;
+
+          results.R8_TX_FPS_120_LIMIT = {
+            passed: maxSliderValue === '120' && manualLabel === '120 fps' && rxAdvisorMax === 120,
+            maxSliderValue,
+            manualLabel,
+            rxAdvisorMax
+          };
+        }
+
         return results;
       })()`,
       returnByValue: true,

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V13 — ZXing-C++ WASM Receiver</title>
+<title>Airgap Link V14 — TX/RX Adaptive Separation</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -67,13 +67,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="airgap-link-core-v8.js"></script>
 <script src="airgap-link-fountain-v8.js"></script>
 <script src="airgap-link-zxing-loader-v10.js" defer></script>
-<script src="airgap-link-ui-v13.js" defer></script>
+<script src="airgap-link-ui-v14.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V13</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
- <span class="pill">OFFLINE TEST PAGE · V13</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V14</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V14</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
@@ -137,6 +137,26 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
    <small>表示フレームの切り替え目標値。画面・カメラ性能で実測値は変わります。</small>
   </div>
  </div>
+ <div class="checkrow" style="margin:6px 0 4px">
+  <label><input id="autoFpsEnabled" type="checkbox"> 送信速度の自動適応制御（送信端末自身のQR生成・描画負荷だけで調整）</label>
+ </div>
+ <div id="autoFpsControls" class="auto-fps-controls" style="display:none;margin-bottom:10px;padding:8px 12px;background:#f8f9fa;border:1px solid #dadce0;border-radius:6px">
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+   <div>
+    <label for="minFps" style="font-size:0.85em;display:block">下限 (min)</label>
+    <input id="minFps" type="number" min="1" max="15" value="3" style="width:64px" aria-label="自動速度調整の下限FPS">
+   </div>
+   <div>
+    <label for="maxFps" style="font-size:0.85em;display:block">上限 (max)</label>
+    <input id="maxFps" type="number" min="5" max="30" value="24" style="width:64px" aria-label="自動速度調整の上限FPS">
+   </div>
+   <div style="flex:1;min-width:180px">
+    <span style="font-size:0.85em;color:#555">TXローカル適応状態: </span>
+    <strong id="autoFpsStatus" style="font-size:0.85em;color:#1a73e8">待機中</strong>
+   </div>
+  </div>
+  <small style="display:block;margin-top:4px;color:#666">TX端末のQR生成時間を測定して送信FPSを調整します。RX側のカメラ・デコード・復元状況はTX速度に影響しません。</small>
+ </div>
  <div class="checkrow">
   <label><input id="parityEnabled" type="checkbox" checked> 2消失訂正パリティ（8片ごと）</label>
   <label><input id="compressionEnabled" type="checkbox"> Deflate圧縮を試す</label>
@@ -193,6 +213,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  </select>
  <p id="rxCameraSettings" class="muted">実解像度: 未取得（カメラ接続後に getSettings() で確認）</p>
  <p class="muted">映像フレーム実測FPS: <strong id="rxObservedFps">—</strong>（requestVideoFrameCallback基準。デコード試行FPSとは別指標）</p>
+ <p class="muted">適応速度ステータス: <strong id="rxSpeedRecommendation">—</strong></p>
  <p class="muted">解像度比較中はTXのチャンクサイズ・FPS・QR表示サイズを固定してください。要求値ではなく、実際に適用されたカメラ解像度を記録します。</p>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>

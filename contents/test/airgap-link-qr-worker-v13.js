@@ -1,0 +1,188 @@
+/* global importScripts, ZXingWASM, jsQR */
+'use strict';
+
+var VERSION = '3.1.6';
+var WASM_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm';
+var zxingApi = null;
+var isInitialized = false;
+
+// Reusable ROI buffer to eliminate per-frame allocations and GC pressure
+var cachedRoiData = null;
+var cachedRoiWidth = 0;
+var cachedRoiHeight = 0;
+
+function loadJsQr() {
+  if (typeof jsQR === 'function') return true;
+  try {
+    importScripts('../vendor/jsQR.js');
+    return typeof jsQR === 'function';
+  } catch (e) {
+    try {
+      importScripts('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js');
+      return typeof jsQR === 'function';
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+async function initZxing() {
+  if (zxingApi) return zxingApi;
+  try {
+    if (typeof ZXingWASM === 'undefined' || typeof ZXingWASM.readBarcodes !== 'function') {
+      importScripts('https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js');
+    }
+    if (typeof ZXingWASM === 'undefined' || typeof ZXingWASM.readBarcodes !== 'function') {
+      throw new Error('ZXingWASM not available in worker');
+    }
+
+    var wasmResponse = await fetch(WASM_URL, { mode: 'cors', credentials: 'omit' });
+    if (!wasmResponse.ok) throw new Error('WASM fetch failed: ' + wasmResponse.status);
+    var wasmBytes = await wasmResponse.arrayBuffer();
+    var wasmBlob = new Blob([wasmBytes], { type: 'application/wasm' });
+    var wasmUrl = URL.createObjectURL(wasmBlob);
+
+    await ZXingWASM.prepareZXingModule({
+      overrides: {
+        locateFile: function (path, prefix) {
+          return path.slice(-5).toLowerCase() === '.wasm' ? wasmUrl : prefix + path;
+        }
+      },
+      fireImmediately: true
+    });
+    zxingApi = ZXingWASM;
+    return zxingApi;
+  } catch (err) {
+    loadJsQr();
+    throw err;
+  }
+}
+
+function extractRoiImageData(srcBuffer, srcWidth, srcHeight, roiX, roiY, roiW, roiH) {
+  var neededLength = roiW * roiH * 4;
+  if (!cachedRoiData || cachedRoiWidth !== roiW || cachedRoiHeight !== roiH || cachedRoiData.length !== neededLength) {
+    cachedRoiData = new Uint8ClampedArray(neededLength);
+    cachedRoiWidth = roiW;
+    cachedRoiHeight = roiH;
+  }
+  var dstData = cachedRoiData;
+  var src32 = new Uint32Array(srcBuffer);
+  var dst32 = new Uint32Array(dstData.buffer);
+
+  for (var y = 0; y < roiH; y++) {
+    var srcRowStart = (roiY + y) * srcWidth + roiX;
+    var dstRowStart = y * roiW;
+    for (var x = 0; x < roiW; x++) {
+      dst32[dstRowStart + x] = src32[srcRowStart + x];
+    }
+  }
+  return new ImageData(dstData, roiW, roiH);
+}
+
+async function decodeFrame(data) {
+  var width = data.width;
+  var height = data.height;
+  var buffer = data.buffer;
+  var scannerType = data.scannerType || 'auto';
+
+  // 1. Try Center ROI (70%) first
+  var roiRatio = 0.7;
+  var roiW = Math.round(width * roiRatio);
+  var roiH = Math.round(height * roiRatio);
+  var roiX = Math.round((width - roiW) / 2);
+  var roiY = Math.round((height - roiH) / 2);
+
+  var roiImage = extractRoiImageData(buffer, width, height, roiX, roiY, roiW, roiH);
+  var raw = null;
+
+  // Try ZXing if available
+  if (zxingApi && (scannerType === 'auto' || scannerType === 'zxing-wasm')) {
+    try {
+      var roiResults = await zxingApi.readBarcodes(roiImage, {
+        formats: ['QRCode'],
+        maxNumberOfSymbols: 1,
+        tryHarder: false
+      });
+      if (roiResults && roiResults.length && roiResults[0].text) {
+        raw = roiResults[0].text;
+      }
+    } catch (_) {}
+
+    // Fallback to full frame
+    if (!raw) {
+      try {
+        var fullImageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+        var fullResults = await zxingApi.readBarcodes(fullImageData, {
+          formats: ['QRCode'],
+          maxNumberOfSymbols: 1,
+          tryHarder: false
+        });
+        if (fullResults && fullResults.length && fullResults[0].text) {
+          raw = fullResults[0].text;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // If still not found and jsQR is available, try jsQR
+  if (!raw && typeof jsQR === 'function') {
+    try {
+      var roiDecoded = jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
+      if (roiDecoded && roiDecoded.data) {
+        raw = roiDecoded.data;
+      }
+    } catch (_) {}
+
+    if (!raw) {
+      try {
+        var fullImageDataJs = new ImageData(new Uint8ClampedArray(buffer), width, height);
+        var fullDecoded = jsQR(fullImageDataJs.data, fullImageDataJs.width, fullImageDataJs.height, { inversionAttempts: 'dontInvert' });
+        if (fullDecoded && fullDecoded.data) {
+          raw = fullDecoded.data;
+        }
+      } catch (_) {}
+    }
+  }
+
+  return raw;
+}
+
+self.onmessage = async function (e) {
+  var msg = e.data;
+  if (!msg) return;
+
+  if (msg.type === 'init') {
+    try {
+      loadJsQr();
+      try {
+        await initZxing();
+      } catch (_) {}
+      isInitialized = true;
+      self.postMessage({
+        type: 'init-ready',
+        success: !!(zxingApi || typeof jsQR === 'function'),
+        hasZxing: !!zxingApi,
+        hasJsQr: typeof jsQR === 'function'
+      });
+    } catch (err) {
+      self.postMessage({ type: 'init-ready', success: false, error: err.message });
+    }
+    return;
+  }
+
+  if (msg.type === 'decode') {
+    var started = performance.now();
+    var raw = null;
+    try {
+      raw = await decodeFrame(msg);
+    } catch (_) {}
+    var elapsed = performance.now() - started;
+    self.postMessage({
+      type: 'decode-result',
+      id: msg.id,
+      sessionId: msg.sessionId,
+      raw: raw,
+      elapsedMs: elapsed
+    });
+  }
+};

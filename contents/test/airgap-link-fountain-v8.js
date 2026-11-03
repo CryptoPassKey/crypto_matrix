@@ -118,11 +118,13 @@
     this.seqLen = seqLen;
     this.checksum = checksum >>> 0;
     this.sampler = new RandomSampler(Array.from({ length: seqLen }, function (_, index) { return 1 / (index + 1); }));
+    this.cache = new Map();
   }
 
   FragmentChooser.prototype.choose = async function (seqNum) {
     if (!Number.isSafeInteger(seqNum) || seqNum < 1 || seqNum > 0xffffffff) throw new RangeError('シーケンス番号が上限外です');
     if (seqNum <= this.seqLen) return [seqNum - 1];
+    if (this.cache.has(seqNum)) return this.cache.get(seqNum).slice();
 
     var seed = new Uint8Array(8);
     writeU32(seed, 0, seqNum);
@@ -136,7 +138,10 @@
       result.push(remaining.splice(selected, 1)[0]);
     }
     result.sort(function (a, b) { return a - b; });
-    return result;
+    if (this.cache.size < 4096) {
+      this.cache.set(seqNum, result);
+    }
+    return result.slice();
   };
 
   function randomTransferId() {
@@ -250,6 +255,18 @@
     return blockIndex + 1;
   };
 
+  function fastXor(dst, src, len) {
+    var words = len >>> 2;
+    if ((dst.byteOffset & 3) === 0 && (src.byteOffset & 3) === 0) {
+      var d32 = new Uint32Array(dst.buffer, dst.byteOffset, words);
+      var s32 = new Uint32Array(src.buffer, src.byteOffset, words);
+      for (var i = 0; i < words; i++) d32[i] ^= s32[i];
+      for (var pos = words << 2; pos < len; pos++) dst[pos] ^= src[pos];
+    } else {
+      for (var pos = 0; pos < len; pos++) dst[pos] ^= src[pos];
+    }
+  }
+
   FountainEncoder.prototype.nextPart = async function () {
     if (this.pendingDirectIndex !== null && this.pendingDirectIndex !== undefined) {
       var directIndex = this.pendingDirectIndex;
@@ -272,7 +289,7 @@
     var mixed = new Uint8Array(this.fragmentLen);
     for (var i = 0; i < indexes.length; i++) {
       var shard = this.fragments[indexes[i]];
-      for (var j = 0; j < mixed.length; j++) mixed[j] ^= shard[j];
+      fastXor(mixed, shard, mixed.length);
     }
     var frame = makeFrame(this.seqNum, this.seqLen, this.id, this.messageLen, this.checksum, mixed, this.wireFormat);
     return {
@@ -296,7 +313,8 @@
   function reducePart(a, b) {
     if (!subset(a.indexes, b.indexes)) return a;
     var reduced = new Uint8Array(a.data.length);
-    for (var i = 0; i < reduced.length; i++) reduced[i] = a.data[i] ^ b.data[i];
+    reduced.set(a.data);
+    fastXor(reduced, b.data, reduced.length);
     var remove = new Set(b.indexes);
     return {
       indexes: a.indexes.filter(function (index) { return !remove.has(index); }),
@@ -323,6 +341,7 @@
     this.chooser = null;
     this.simpleParts = new Map();
     this.mixedParts = new Map();
+    this.indexToEquations = new Map();
     this.queue = [];
     this.seenEquations = new Set();
     this.directIndexes = new Set();
@@ -335,6 +354,21 @@
 
   FountainReceiver.prototype._key = function (indexes) {
     return indexes.join(',');
+  };
+
+  FountainReceiver.prototype._addEquation = function (indexes, data) {
+    var key = this._key(indexes);
+    var eq = { indexes: indexes, data: data, key: key };
+    this.mixedParts.set(key, eq);
+    for (var i = 0; i < indexes.length; i++) {
+      var idx = indexes[i];
+      var set = this.indexToEquations.get(idx);
+      if (!set) {
+        set = new Set();
+        this.indexToEquations.set(idx, set);
+      }
+      set.add(eq);
+    }
   };
 
   FountainReceiver.prototype._finishIfComplete = function () {
@@ -364,52 +398,46 @@
       var item = this.queue.pop();
       var index = item.index;
       var knownData = item.data;
-      var affected = [];
-      this.mixedParts.forEach(function (equation, key) {
-        if (equation.indexes.indexOf(index) !== -1) affected.push(key);
-      });
-      affected.sort(function (leftKey, rightKey) {
-        var left = this.mixedParts.get(leftKey);
-        var right = this.mixedParts.get(rightKey);
-        var a = left ? left.indexes : [];
-        var b = right ? right.indexes : [];
-        for (var i = 0; i < Math.min(a.length, b.length); i++) {
-          if (a[i] !== b[i]) return a[i] - b[i];
-        }
-        return a.length - b.length;
-      }.bind(this));
+
+      var eqSet = this.indexToEquations.get(index);
+      if (!eqSet || eqSet.size === 0) continue;
+      var affected = Array.from(eqSet);
+      this.indexToEquations.delete(index);
 
       for (var i = 0; i < affected.length; i++) {
-        var key = affected[i];
-        var equation = this.mixedParts.get(key);
-        if (!equation) continue;
-        this.mixedParts.delete(key);
-        var remaining = equation.indexes.slice();
-        var removeIndex = remaining.indexOf(index);
-        if (removeIndex === -1) continue;
-        remaining.splice(removeIndex, 1);
+        var eq = affected[i];
+        var remaining = eq.indexes;
+        var removePos = remaining.indexOf(index);
+        if (removePos === -1) continue;
+        remaining.splice(removePos, 1);
 
-        var reduced = equation.data.slice();
-        for (var pos = 0; pos < reduced.length; pos++) reduced[pos] ^= knownData[pos];
+        fastXor(eq.data, knownData, eq.data.length);
+        this.mixedParts.delete(eq.key);
 
         if (remaining.length === 1) {
           var newIndex = remaining[0];
+          var lastSet = this.indexToEquations.get(newIndex);
+          if (lastSet) {
+            lastSet.delete(eq);
+            if (lastSet.size === 0) this.indexToEquations.delete(newIndex);
+          }
+
           if (this.simpleParts.has(newIndex)) {
             var knownBlock = this.simpleParts.get(newIndex);
-            for (var check = 0; check < reduced.length; check++) {
-              if (knownBlock[check] !== reduced[check]) {
+            for (var check = 0; check < eq.data.length; check++) {
+              if (knownBlock[check] !== eq.data[check]) {
                 throw new Error('異なるファウンテン式から矛盾するブロック値を検出しました');
               }
             }
           } else {
-            this.simpleParts.set(newIndex, reduced);
+            this.simpleParts.set(newIndex, eq.data);
             this.recoveredIndexes.add(newIndex);
-            this.queue.push({ index: newIndex, data: reduced });
+            this.queue.push({ index: newIndex, data: eq.data });
           }
         } else if (remaining.length > 1) {
-          var reducedKey = this._key(remaining);
-          if (!this.mixedParts.has(reducedKey)) {
-            this.mixedParts.set(reducedKey, { indexes: remaining, data: reduced });
+          eq.key = this._key(remaining);
+          if (!this.mixedParts.has(eq.key)) {
+            this.mixedParts.set(eq.key, eq);
           }
         }
       }
@@ -449,7 +477,7 @@
       remaining.splice(removeIndex, 1);
       var known = this.simpleParts.get(remove);
       if (!known) throw new Error('既知ブロックが見つかりません');
-      for (var p = 0; p < mixed.length; p++) mixed[p] ^= known[p];
+      fastXor(mixed, known, mixed.length);
     }
 
     if (remaining.length === 1) {
@@ -457,7 +485,7 @@
     } else if (remaining.length > 1) {
       var key = this._key(remaining);
       if (!this.mixedParts.has(key)) {
-        this.mixedParts.set(key, { indexes: remaining, data: mixed });
+        this._addEquation(remaining, mixed);
       }
     }
   };
@@ -514,6 +542,19 @@
     var packet = parseFrame(text);
     this._validate(packet);
     if (this.result) return { duplicate: true, complete: true, bytes: this.result };
+
+    // Early duplicate check for systematic frames: avoid choose() and processing
+    if (packet.seqNum <= packet.seqLen && this.simpleParts.has(packet.seqNum - 1)) {
+      this.lastIndexes = [packet.seqNum - 1];
+      return {
+        duplicate: true,
+        complete: !!this.result,
+        decoded: this.simpleParts.size,
+        total: this.seqLen,
+        receivedParts: this.receivedPartCount,
+        lastIndexes: this.lastIndexes
+      };
+    }
 
     var indexes = await this.chooser.choose(packet.seqNum);
     this.lastIndexes = indexes.slice();

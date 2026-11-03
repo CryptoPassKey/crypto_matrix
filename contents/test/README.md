@@ -216,3 +216,11 @@ V13 raises the experimental fragment ceiling from 800 bytes to 2,800 bytes for B
 The QR encoder now evaluates Version 40 during automatic version selection and reports an explicit overflow when the payload exceeds Version 40. The renderer first tries ECC-M and falls back to ECC-L if necessary. Core and Fountain encode/decode paths accept up to 2,800-byte source fragments; the Legacy parser also rejects oversized data/parity fragment declarations. The 100,000-source-fragment and 64 MiB transfer limits remain unchanged.
 
 The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guarantee of camera readability. At the upper end, the QR occupies Version 40 (177 × 177 modules) before the four-module quiet zone. Real throughput and decode stability must be measured on the target iPhone Safari and Android Chrome devices.
+
+## V14 — TX/RX適応制御の分離
+
+- TX自動FPSは送信端末自身のQR生成時間（ローカル処理負荷）のみを観測して調整。
+- RX側は検出率、解析遅延、重複率、復元進捗から推奨値を算出して表示するだけ。
+- RX側からTXのFPSスライダー・送信コントローラーを変更しない。
+- 固定モードでは手動FPSを維持。
+- 転送プロトコル、ワイヤー形式、暗号処理は変更しない。

@@ -37,6 +37,10 @@
   var txMapSelectedIndex = 0;
   var txIndex = 0;
   var txTimer = 0;
+  var txRafId = 0;
+  var txFrameStartTime = 0;
+  var txIsRendering = false;
+  var txPausedByVisibility = false;
   var txPlaying = false;
   var txRenderGeneration = 0;
   var rx = new Core.Receiver();
@@ -57,6 +61,21 @@
   var scannerName = '未初期化';
   var scanBusy = false;
   var scanTimer = 0;
+  var scanVideoFrameCallback = null;
+  var scanLatestPresentedFrames = null;
+  var scanLastAnalyzedPresentedFrames = null;
+  var scanLastIngestedRawText = '';
+  var scanConsecutiveNoQrCount = 0;
+  var scanIngestQueue = [];
+  var scanIngestBusy = false;
+  var scanCachedContext = null;
+  var rxWorker = null;
+  var rxWorkerReady = false;
+  var rxWorkerBusy = false;
+  var rxWorkerFailed = false;
+  var rxWorkerRequestId = 0;
+  var rxScanSessionId = 0;
+  var MAX_INGEST_QUEUE = 16;
   var uniqueFrameCount = 0;
   var scanAttempts = 0;
   var scanHits = 0;
@@ -96,6 +115,258 @@
   var rxOutputByteCount = null;
   var MAX_BENCHMARK_BYTES = 64 * 1024 * 1024;
   var DEFAULT_BENCHMARK_BYTES = 711 * 1024;
+
+  // TX local adaptive FPS: based only on this sender's QR render cost.
+  // No RX scan/decode/ingest measurements are read here.
+  var txAutoRateController = {
+    enabled: false,
+    currentFps: Number($('fps') ? $('fps').value : 6) || 6,
+    minFps: 3,
+    maxFps: 30,
+    windowStartedAt: 0,
+    renderSamples: [],
+    statusText: '待機中',
+    clearWindow: function () {
+      this.windowStartedAt = performance.now();
+      this.renderSamples = [];
+    },
+    reset: function () {
+      this.currentFps = Number($('fps') ? $('fps').value : 6) || 6;
+      this.minFps = Math.max(1, Number($('minFps') ? $('minFps').value : 3) || 3);
+      this.maxFps = Math.max(this.minFps, Math.min(30, Number($('maxFps') ? $('maxFps').value : 24) || 24));
+      this.statusText = this.enabled ? 'TXローカル性能を観測中' : '固定FPS';
+      this.clearWindow();
+      this.updateUi();
+    },
+    recordRender: function (renderMs) {
+      if (!this.enabled || !Number.isFinite(renderMs) || renderMs < 0) return;
+      this.renderSamples.push(renderMs);
+      if (this.renderSamples.length > 32) this.renderSamples.shift();
+      var now = performance.now();
+      if (now - this.windowStartedAt < 1200 || this.renderSamples.length < 4) return;
+      var sorted = this.renderSamples.slice().sort(function(a,b){return a-b;});
+      var p95 = sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * 0.95))];
+      var interval = 1000 / Math.max(1, this.currentFps);
+      if (p95 > interval * 0.75) {
+        this.currentFps = Math.max(this.minFps, this.currentFps - 1);
+        this.statusText = 'QR生成負荷により減速 (P95 ' + p95.toFixed(1) + ' ms)';
+      } else if (p95 < interval * 0.30) {
+        this.currentFps = Math.min(this.maxFps, this.currentFps + 1);
+        this.statusText = '送信端末の描画余力により増速 (P95 ' + p95.toFixed(1) + ' ms)';
+      } else {
+        this.statusText = 'TX描画性能に合わせて維持 (P95 ' + p95.toFixed(1) + ' ms)';
+      }
+      this.windowStartedAt = now;
+      this.renderSamples = [];
+      this.updateUi();
+    },
+    updateUi: function () {
+      var out = $('fpsValue');
+      if (out) out.textContent = this.enabled
+        ? this.currentFps + ' fps (TXローカル自動)'
+        : ($('fps') ? $('fps').value : 6) + ' fps';
+      var badge = $('autoFpsStatus');
+      if (badge) badge.textContent = this.statusText;
+    }
+  };
+
+  // 優先6: 送信速度の適応制御（受信成功率・遅延・復元効率を優先した自動速度調整）
+  var rxRateAdvisor = {
+    enabled: false,
+    minFps: 3,
+    maxFps: 24,
+    currentFps: 6,
+    windowMs: 1200,
+    lastEvalTime: 0,
+    cooldownUntil: 0,
+    statusText: '待機中',
+    recommendationText: '—',
+
+    // 観測ウィンドウ積算値
+    windowAttempts: 0,
+    windowHits: 0,
+    windowDuplicates: 0,
+    windowNovel: 0,
+    windowSamples: [],
+    windowQueueSum: 0,
+    windowQueueCount: 0,
+    windowStartDecoded: 0,
+    windowRedundantFountain: 0,
+    windowUsefulFountain: 0,
+
+    reset: function () {
+      var manualFps = Number($('fps') ? $('fps').value : 6) || 6;
+      this.currentFps = manualFps;
+      this.lastEvalTime = performance.now();
+      this.cooldownUntil = 0;
+      this.statusText = this.enabled ? '観測中 (' + this.currentFps + ' fps)' : 'OFF (固定 ' + manualFps + ' fps)';
+      this.recommendationText = '—';
+      this.clearWindow();
+      this.updateUi();
+    },
+
+    clearWindow: function () {
+      this.windowAttempts = 0;
+      this.windowHits = 0;
+      this.windowDuplicates = 0;
+      this.windowNovel = 0;
+      this.windowSamples = [];
+      this.windowQueueSum = 0;
+      this.windowQueueCount = 0;
+      var curDecoded = (activeProtocol === 'fountain' || activeProtocol === 'hybrid')
+        ? (fountainRx ? fountainRx.simpleParts.size : 0)
+        : (rx ? rx.shards.size : 0);
+      this.windowStartDecoded = curDecoded;
+      this.windowRedundantFountain = 0;
+      this.windowUsefulFountain = 0;
+    },
+
+    recordScanAttempt: function (hit, isNovel, decodeMs) {
+      this.windowAttempts++;
+      if (hit) {
+        this.windowHits++;
+        if (isNovel) this.windowNovel++;
+        else this.windowDuplicates++;
+        if (typeof decodeMs === 'number' && Number.isFinite(decodeMs)) {
+          this.windowSamples.push(decodeMs);
+        }
+      }
+    },
+
+    recordQueueLength: function (queueLen) {
+      this.windowQueueSum += queueLen;
+      this.windowQueueCount++;
+    },
+
+    recordIngestResult: function (isDuplicate, isComplete) {
+      if (isDuplicate) this.windowRedundantFountain++;
+      else this.windowUsefulFountain++;
+    },
+
+    evaluate: function (now) {
+      if (receivedDone) return;
+      var elapsed = now - this.lastEvalTime;
+      if (elapsed < this.windowMs) return;
+
+      var attempts = this.windowAttempts;
+      var hits = this.windowHits;
+      var novel = this.windowNovel;
+      var duplicates = this.windowDuplicates;
+      var samples = this.windowSamples;
+      var curDecoded = (activeProtocol === 'fountain' || activeProtocol === 'hybrid')
+        ? (fountainRx ? fountainRx.simpleParts.size : 0)
+        : (rx ? rx.shards.size : 0);
+      var progressDelta = curDecoded - this.windowStartDecoded;
+      var avgQueue = this.windowQueueCount > 0 ? (this.windowQueueSum / this.windowQueueCount) : 0;
+      var currentQueue = scanIngestQueue ? scanIngestQueue.length : 0;
+
+      this.lastEvalTime = now;
+
+      // ユーザー設定上限・下限の反映
+      var minVal = Number($('minFps') ? $('minFps').value : 3) || 3;
+      var maxVal = Number($('maxFps') ? $('maxFps').value : 24) || 24;
+      if (minVal > maxVal) { var tmp = minVal; minVal = maxVal; maxVal = tmp; }
+      this.minFps = Math.max(1, minVal);
+      this.maxFps = Math.min(30, maxVal);
+
+      // サンプル数が少なすぎる場合は判定保留
+      if (attempts < 3) {
+        this.clearWindow();
+        return;
+      }
+
+      var hitRate = hits / attempts;
+      var duplicateRate = hits > 0 ? (duplicates / hits) : 0;
+      var p50Ms = percentileValue(samples, 0.50) || 0;
+      var p95Ms = percentileValue(samples, 0.95) || 0;
+      var currentInterval = 1000 / Math.max(1, this.currentFps);
+
+      // 推奨値と状況表示の更新
+      this.recommendationText = '実測: ' + (hits * 1000 / elapsed).toFixed(1) + ' fps · 検出率: ' +
+        (hitRate * 100).toFixed(0) + '%' + ' · P95: ' + p95Ms.toFixed(1) + 'ms · 重複率: ' +
+        (duplicateRate * 100).toFixed(0) + '%' +
+        (progressDelta > 0 ? ' · 復元進捗: +' + progressDelta + '片' : ' · 復元進捗: 停滞');
+      var recEl = $('rxSpeedRecommendation');
+      if (recEl) recEl.textContent = this.recommendationText;
+
+      // 自動調整が無効な場合は推奨表示のみ更新してリターン
+      if (!this.enabled) {
+        this.statusText = 'OFF (固定 ' + ($('fps') ? $('fps').value : 6) + ' fps)';
+        this.clearWindow();
+        this.updateUi();
+        return;
+      }
+
+      // クールダウン（速度変更直後の安定待ち）期間の確認
+      if (now < this.cooldownUntil) {
+        this.statusText = '変更後安定確認中 (' + this.currentFps + ' fps)';
+        this.clearWindow();
+        this.updateUi();
+        return;
+      }
+
+      var nextFps = this.currentFps;
+      var reason = '';
+
+      // === 判定ルール（受信成功率と実効復元スループット最優先） ===
+      // 1. キュー滞留・処理追いつき不能（即時減速）
+      if (currentQueue >= 4 || avgQueue >= 3) {
+        nextFps = Math.max(this.minFps, this.currentFps - 2);
+        reason = '受信キュー滞留 (' + currentQueue + '件) による減速';
+      }
+      // 2. デコード時間P95/P50の飽和（CPU/Worker過負荷、即時減速）
+      else if (p95Ms > currentInterval * 0.85 || p50Ms > currentInterval * 0.70) {
+        var backoff = Math.max(1, Math.round(this.currentFps * 0.2));
+        nextFps = Math.max(this.minFps, this.currentFps - backoff);
+        reason = '解析遅延増加 (P95: ' + p95Ms.toFixed(1) + 'ms / 目標間隔: ' + currentInterval.toFixed(1) + 'ms) による減速';
+      }
+      // 3. QR検出率の低下（露出・ブレ・コマ落ち、速度抑制）
+      else if (hitRate < 0.65) {
+        nextFps = Math.max(this.minFps, this.currentFps - 1);
+        reason = '検出率低下 (' + (hitRate * 100).toFixed(0) + '%) による減速';
+      }
+      // 4. 重複過多および復元停滞（無駄なパケット空転、減速して確実なパケット取得へ）
+      else if (hits >= 6 && progressDelta <= 0 && duplicateRate > 0.75) {
+        if (this.currentFps > this.minFps) {
+          nextFps = Math.max(this.minFps, this.currentFps - 1);
+          reason = '復元進捗停滞・重複過多 (' + (duplicateRate * 100).toFixed(0) + '%) による減速';
+        } else {
+          reason = '重複率高 (' + (duplicateRate * 100).toFixed(0) + '%)・下限 (' + this.minFps + ' fps) 維持';
+        }
+      }
+      // 5. 安定・検出率高・余力十分・復元進捗あり（+1 fps 漸増）
+      else if (hitRate >= 0.85 && p95Ms < currentInterval * 0.55 && currentQueue <= 1 && (progressDelta > 0 || duplicateRate < 0.50)) {
+        if (this.currentFps < this.maxFps) {
+          nextFps = Math.min(this.maxFps, this.currentFps + 1);
+          reason = '受信安定・検出率 ' + (hitRate * 100).toFixed(0) + '%・余力あり: 速度向上 (+1 fps)';
+        } else {
+          reason = '上限到達 (' + this.maxFps + ' fps) で安定継続';
+        }
+      }
+      // 6. 均衡状態（維持）
+      else {
+        reason = '最適速度で安定中 (' + this.currentFps + ' fps · 検出率: ' + (hitRate * 100).toFixed(0) + '%)';
+      }
+
+      // 速度変更の適用
+      if (nextFps !== this.currentFps) {
+        this.currentFps = nextFps;
+        this.cooldownUntil = now + this.windowMs * 1.2;
+      }
+
+      this.statusText = reason;
+      this.clearWindow();
+      this.updateUi();
+    },
+
+    updateUi: function () {
+      var badge = $('autoFpsStatus');
+      if (badge) badge.textContent = this.statusText;
+      // RX advisor is display-only. It must never update TX controls.
+      var rxStatus = $('rxSpeedRecommendation');
+      if (rxStatus) rxStatus.textContent = this.recommendationText + ' · ' + this.statusText;
+    }
+  };
 
   function status(id, message, kind) {
     var el = $(id);
@@ -220,7 +491,9 @@
 
   function updateControls() {
     syncChunkSizeControls('range');
-    $('fpsValue').textContent = $('fps').value + ' fps';
+    $('fpsValue').textContent = txAutoRateController.enabled
+      ? txAutoRateController.currentFps + ' fps (TXローカル自動)'
+      : $('fps').value + ' fps';
     updateBenchmarkSizeControls();
   }
 
@@ -356,9 +629,13 @@
     var total = txBlockTotal();
     if (!total || !Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= total) return;
     try {
+      if (txRafId) cancelAnimationFrame(txRafId);
+      txRafId = 0;
       if (txTimer) clearTimeout(txTimer);
       txTimer = 0;
       txRenderGeneration++;
+      txIsRendering = false;
+      txPausedByVisibility = false;
       var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
       var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
       if (fountainPhase && txFountainEncoder) {
@@ -476,7 +753,37 @@
     syncChunkSizeControls('range');
     updateControls();
   });
-  $('fps').addEventListener('input', updateControls);
+  $('fps').addEventListener('input', function () {
+    txAutoRateController.currentFps = Number(this.value) || 6;
+    txAutoRateController.clearWindow();
+    updateControls();
+  });
+  if ($('autoFpsEnabled')) {
+    $('autoFpsEnabled').addEventListener('change', function () {
+      txAutoRateController.enabled = this.checked;
+      if ($('autoFpsControls')) {
+        $('autoFpsControls').style.display = this.checked ? 'block' : 'none';
+      }
+      txAutoRateController.reset();
+      updateControls();
+    });
+  }
+  if ($('minFps')) {
+    $('minFps').addEventListener('change', function () {
+      txAutoRateController.minFps = Math.max(1, Math.min(30, Number(this.value) || 3));
+      rxRateAdvisor.minFps = txAutoRateController.minFps;
+      txAutoRateController.reset();
+      rxRateAdvisor.reset();
+    });
+  }
+  if ($('maxFps')) {
+    $('maxFps').addEventListener('change', function () {
+      txAutoRateController.maxFps = Math.max(1, Math.min(30, Number(this.value) || 24));
+      rxRateAdvisor.maxFps = txAutoRateController.maxFps;
+      txAutoRateController.reset();
+      rxRateAdvisor.reset();
+    });
+  }
   $('benchmarkSizeRange').addEventListener('input', function () { updateBenchmarkSizeControls('range'); });
   $('benchmarkSizeInput').addEventListener('input', function () { updateBenchmarkSizeControls('input'); });
   [
@@ -648,6 +955,7 @@
       var planStart = performance.now();
       renderQr(firstFrame);
       var initialRenderMs = performance.now() - planStart;
+      txFrameStartTime = performance.now();
       $('txPlaceholder').classList.add('hidden');
       $('playTx').disabled = false;
       $('pauseTx').disabled = true;
@@ -680,15 +988,59 @@
 
   function stopTx() {
     txPlaying = false;
+    txIsRendering = false;
+    txPausedByVisibility = false;
     txRenderGeneration++;
+    if (txRafId) {
+      cancelAnimationFrame(txRafId);
+      txRafId = 0;
+    }
     if (txTimer) clearTimeout(txTimer);
     txTimer = 0;
     $('playTx').disabled = !(txPlan || txFountainEncoder);
     $('pauseTx').disabled = true;
   }
 
+  function txAnimationLoop(now) {
+    txRafId = 0;
+    if (!txPlaying) {
+      return;
+    }
+
+    // バックグラウンド中はフレーム進行を停止（visibilitychange で復帰時に再開）
+    if (typeof document !== 'undefined' && document.hidden) {
+      txRafId = 0;
+      return;
+    }
+
+    var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
+    var targetInterval = 1000 / Math.max(1, effectiveFps);
+
+    // 初回描画時刻が未記録なら現在時刻で初期化
+    if (!txFrameStartTime) {
+      txFrameStartTime = now;
+    }
+
+    // 最低表示時間を保証：現在フレームの表示時間が targetInterval 未満なら次の rAF を待つ
+    if (now - txFrameStartTime < targetInterval) {
+      txRafId = requestAnimationFrame(txAnimationLoop);
+      return;
+    }
+
+    // すでに非同期フレーム生成（Fountain等）または描画が進行中の場合は多重実行を防ぐ
+    if (txIsRendering) {
+      txRafId = requestAnimationFrame(txAnimationLoop);
+      return;
+    }
+
+    // 目標表示時間を満たしたため、次のフレームへ進む
+    showNextFrame();
+  }
+
   async function showNextFrame() {
     if (!txPlan && !txFountainEncoder) return;
+    if (txIsRendering) return;
+    txIsRendering = true;
     var renderGeneration = ++txRenderGeneration;
     var started = performance.now();
     try {
@@ -701,7 +1053,7 @@
       var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
       if (fountainPhase) {
         var nextFountainPart = await txFountainEncoder.nextPart();
-        if (renderGeneration !== txRenderGeneration) return;
+        if (renderGeneration !== txRenderGeneration || !txPlaying) return;
         txFountainPart = nextFountainPart;
         frame = txFountainPart.frame;
         txCurrentBlocks = new Set(txFountainPart.indexes);
@@ -723,16 +1075,21 @@
         else txCurrentLabel = 'P' + parsed.parityType + ' · group ' + (parsed.group + 1) +
           ' · block ' + (parsed.group * Core.GROUP_SIZE + 1) + '–' +
           Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
+        var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
         $('txFrameInfo').textContent =
           (hybridMode ? 'Hybrid初回周回 ' : 'フレーム ') + (txIndex + 1) + ' / ' + txPlan.frames.length +
-          ' · ' + parsed.type + ' · ' + (1000 / Number($('fps').value)).toFixed(1) + ' ms/frame';
+          ' · ' + parsed.type + ' · ' + (1000 / Math.max(1, effectiveFps)).toFixed(1) + ' ms/frame';
         $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
         if (hybridMode) txIndex++;
         else txIndex = (txIndex + 1) % txPlan.frames.length;
       }
-      if (renderGeneration !== txRenderGeneration) return;
+      if (renderGeneration !== txRenderGeneration || !txPlaying) return;
       renderQr(frame);
       updateTxBlockMap();
+
+      // 新しいフレームの描画が完了した時刻を記録（ここから最低表示時間がカウントされる）
+      txFrameStartTime = performance.now();
+
       // During an automatic sweep, send one finite pass per condition so RX records one run.
       if (autoTestRunning && txPlaying) {
         var autoStop = false;
@@ -748,24 +1105,61 @@
       }
       var elapsed = performance.now() - started;
       $('txQrGenMs').textContent = elapsed.toFixed(1) + ' ms';
-      if (txPlaying) {
-        var target = 1000 / Number($('fps').value);
-        txTimer = setTimeout(showNextFrame, Math.max(0, target - elapsed));
-      }
+      txAutoRateController.recordRender(elapsed);
     } catch (error) {
       if (renderGeneration !== txRenderGeneration) return;
       stopTx();
       if (autoTestRunning) autoTestErrorMessage = error.message || String(error);
       status('txStatus', 'QR生成エラー: ' + error.message + '。密度を下げてください。', 'error');
+    } finally {
+      txIsRendering = false;
+      // 送信継続中なら次の rAF ループを要求して最低表示時間の待機へ入る
+      if (txPlaying && !txRafId && !(typeof document !== 'undefined' && document.hidden)) {
+        txRafId = requestAnimationFrame(txAnimationLoop);
+      }
     }
   }
 
   function playTx() {
     if ((!txPlan && !txFountainEncoder) || txPlaying) return;
     txPlaying = true;
+    txPausedByVisibility = false;
     $('playTx').disabled = true;
     $('pauseTx').disabled = false;
-    showNextFrame();
+    // 再生開始時、現在画面に表示されているフレームの表示開始時刻を現在時刻に設定
+    txFrameStartTime = performance.now();
+    if (!txRafId && !txIsRendering) {
+      txRafId = requestAnimationFrame(txAnimationLoop);
+    }
+  }
+
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        if (txPlaying) {
+          txPausedByVisibility = true;
+          if (txRafId) {
+            cancelAnimationFrame(txRafId);
+            txRafId = 0;
+          }
+        }
+        if (stream && !receivedDone) {
+          cancelScanSchedule();
+        }
+      } else {
+        if (txPlaying && txPausedByVisibility) {
+          txPausedByVisibility = false;
+          // 復帰直後のフレームスキップを防ぐため、現在フレームの表示開始時刻を復帰時刻でリセット
+          txFrameStartTime = performance.now();
+          if (!txRafId && !txIsRendering) {
+            txRafId = requestAnimationFrame(txAnimationLoop);
+          }
+        }
+        if (stream && !receivedDone) {
+          scheduleScan(0);
+        }
+      }
+    });
   }
 
   $('prepareTx').addEventListener('click', prepareTx);
@@ -862,6 +1256,7 @@
 
   function resetRx() {
     if (autoResetTimer) { clearTimeout(autoResetTimer); autoResetTimer = 0; }
+    if (rxRateAdvisor) rxRateAdvisor.reset();
     rx.reset();
     fountainRx.reset();
     activeProtocol = null;
@@ -884,6 +1279,14 @@
     transferTiming.startedAt = null;
     transferTiming.endedAt = null;
     transferTiming.frameCount = 0;
+    scanBusy = false;
+    scanLatestPresentedFrames = null;
+    scanLastAnalyzedPresentedFrames = null;
+    scanLastIngestedRawText = '';
+    scanConsecutiveNoQrCount = 0;
+    scanIngestQueue = [];
+    scanIngestBusy = false;
+    rxWorkerBusy = false;
     receivedDone = false;
     rxTransferId = '';
     $('rxProgress').style.width = '0%';
@@ -1315,6 +1718,9 @@
       if (!result.duplicate) rxMapDirty = true;
       if (firstFramePending) rxFirstFrameCaptured = true;
       if (!result.duplicate) uniqueFrameCount++;
+      if (rxRateAdvisor) {
+        rxRateAdvisor.recordIngestResult(result.duplicate, result.complete);
+      }
       if (result.complete && transferTiming.startedAt !== null && transferTiming.endedAt === null) {
         transferTiming.endedAt = performance.now();
       }
@@ -1412,6 +1818,120 @@
     $('scannerMode').className = 'status info';
   }
 
+  function handleWorkerDecodeResult(msg) {
+    rxWorkerBusy = false;
+    // カメラ停止中、受信完了後、またはセッション世代が不一致（停止後の遅延結果）なら完全に破棄
+    if (!stream || receivedDone || (msg.sessionId !== undefined && msg.sessionId !== rxScanSessionId)) {
+      return;
+    }
+    var raw = msg.raw;
+    var decodeElapsed = msg.elapsedMs || 0;
+
+    var isHit = !!raw;
+    var isNovel = false;
+    if (raw) {
+      scanHits++;
+      scanConsecutiveNoQrCount = 0;
+      if (!scanFirstHitAt) scanFirstHitAt = performance.now();
+      var clean = raw.replace(/^[\r\n]+|[\r\n]+$/g, '');
+
+      if (clean !== scanLastIngestedRawText) {
+        isNovel = true;
+        scanLastIngestedRawText = clean;
+        enqueueIngest(clean);
+      }
+    } else {
+      scanConsecutiveNoQrCount++;
+      if (scanConsecutiveNoQrCount >= 5) {
+        scanLastIngestedRawText = '';
+      }
+    }
+
+    scanAttempts++;
+    sampleBenchmarkMemory();
+    scanDecodeSamples.push(decodeElapsed);
+    if (scanDecodeSamples.length > 256) scanDecodeSamples.shift();
+    scanDecodeTotalMs += decodeElapsed;
+    updateRxStats();
+
+    if (rxRateAdvisor) {
+      rxRateAdvisor.recordScanAttempt(isHit, isNovel, decodeElapsed);
+      rxRateAdvisor.recordQueueLength(scanIngestQueue.length);
+      rxRateAdvisor.evaluate(performance.now());
+    }
+
+    // デコード完了後、もし解析中に新しい映像フレームが届いていれば直ちに最新フレームを処理
+    if (stream && !receivedDone) {
+      if (scanLatestPresentedFrames !== null &&
+          scanLatestPresentedFrames !== scanLastAnalyzedPresentedFrames) {
+        triggerScanIfIdle();
+      }
+    }
+  }
+
+  function initQrWorker() {
+    if (rxWorker && rxWorkerReady) return Promise.resolve(true);
+    if (typeof window === 'undefined' || typeof window.Worker !== 'function') {
+      rxWorkerFailed = true;
+      return Promise.resolve(false);
+    }
+    if (rxWorker) {
+      try { rxWorker.terminate(); } catch (_) {}
+      rxWorker = null;
+    }
+    return new Promise(function (resolve) {
+      try {
+        rxWorker = new Worker('airgap-link-qr-worker-v13.js');
+        var initTimer = setTimeout(function () {
+          rxWorkerFailed = true;
+          rxWorkerReady = false;
+          resolve(false);
+        }, 3000);
+
+        rxWorker.onmessage = function (e) {
+          var msg = e.data;
+          if (!msg) return;
+          if (msg.type === 'init-ready') {
+            clearTimeout(initTimer);
+            if (msg.success) {
+              rxWorkerReady = true;
+              rxWorkerFailed = false;
+              if (scannerType === 'zxing-wasm' || scannerType === 'jsqr') {
+                $('scannerMode').textContent = '読み取り方式: ' + scannerName + ' (Web Worker非同期)';
+              }
+              resolve(true);
+            } else {
+              rxWorkerFailed = true;
+              rxWorkerReady = false;
+              resolve(false);
+            }
+          } else if (msg.type === 'decode-result') {
+            handleWorkerDecodeResult(msg);
+          }
+        };
+
+        rxWorker.onerror = function () {
+          clearTimeout(initTimer);
+          rxWorkerBusy = false;
+          rxWorkerFailed = true;
+          rxWorkerReady = false;
+          try { rxWorker.terminate(); } catch (_) {}
+          rxWorker = null;
+          resolve(false);
+        };
+
+        rxWorker.postMessage({
+          type: 'init',
+          scannerType: scannerType
+        });
+      } catch (_) {
+        rxWorkerFailed = true;
+        rxWorkerReady = false;
+        resolve(false);
+      }
+    });
+  }
+
   async function startCamera() {
     if (stream) return;
     if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1420,9 +1940,11 @@
     }
     $('startCamera').disabled = true;
     if ($('rxScanner')) $('rxScanner').disabled = true;
+    rxScanSessionId++;
     status('rxStatus', '読み取り方式を初期化しています…', 'info');
     try {
       await initScanner();
+      await initQrWorker();
       var resolutionParts = String($('rxResolution').value || '1920x1080').split('x');
       var requestedWidth = Number(resolutionParts[0]);
       var requestedHeight = Number(resolutionParts[1]);
@@ -1467,17 +1989,39 @@
     var video = $('camera');
     if ((!delay || delay === 0) && video && typeof video.requestVideoFrameCallback === 'function') {
       if (scanVideoFrameCallback !== null) return;
-      scanVideoFrameCallback = video.requestVideoFrameCallback(function () {
-        scanVideoFrameCallback = null;
-        scanTick();
-      });
+      scanVideoFrameCallback = video.requestVideoFrameCallback(onScanVideoFrame);
       return;
     }
     if (scanTimer) clearTimeout(scanTimer);
     scanTimer = setTimeout(function () {
       scanTimer = 0;
-      scanTick();
+      onScanTimerFallback();
     }, Math.max(0, Number(delay) || 0));
+  }
+
+  function onScanVideoFrame(now, metadata) {
+    scanVideoFrameCallback = null;
+    if (!stream || receivedDone) return;
+    var presented = metadata && Number.isFinite(metadata.presentedFrames)
+      ? metadata.presentedFrames
+      : null;
+    scanLatestPresentedFrames = presented;
+
+    // 解析ループがアイドルなら最新フレームの解析を開始
+    triggerScanIfIdle();
+
+    // 解析の進行状況にかかわらず、カメラ映像の監視ループを継続（最新フレームを逃さない）
+    if (stream && !receivedDone) {
+      scheduleScan(0);
+    }
+  }
+
+  function onScanTimerFallback() {
+    if (!stream || receivedDone) return;
+    triggerScanIfIdle();
+    if (stream && !receivedDone) {
+      scheduleScan(16);
+    }
   }
 
   function cancelScanSchedule() {
@@ -1493,109 +2037,270 @@
   function stopCamera() {
     cancelScanSchedule();
     stopCameraFpsMeasurement();
+    rxScanSessionId++;
     if (stream) {
       stream.getTracks().forEach(function (track) { track.stop(); });
       stream = null;
     }
     var video = $('camera');
     if (video.srcObject) video.srcObject = null;
+    scanBusy = false;
+    scanLatestPresentedFrames = null;
+    scanLastAnalyzedPresentedFrames = null;
+    scanLastIngestedRawText = '';
+    scanConsecutiveNoQrCount = 0;
+    scanIngestQueue = [];
+    scanIngestBusy = false;
+    rxWorkerBusy = false;
     $('startCamera').disabled = false;
     $('stopCamera').disabled = true;
     $('rxResolution').disabled = false;
     if ($('rxScanner')) $('rxScanner').disabled = false;
   }
 
+  function triggerScanIfIdle() {
+    if (!stream || scanBusy || rxWorkerBusy || receivedDone) return;
+    var video = $('camera');
+    if (!video || video.readyState < 2 || !video.videoWidth) return;
+
+    // rVFC でフレーム通番が取得できる場合、前回解析したフレームと同一なら重複解析をスキップ
+    if (scanLatestPresentedFrames !== null &&
+        scanLatestPresentedFrames === scanLastAnalyzedPresentedFrames) {
+      return;
+    }
+
+    scanTick();
+  }
+
+  function enqueueIngest(rawText) {
+    if (scanIngestQueue.length >= MAX_INGEST_QUEUE) {
+      scanIngestQueue.shift();
+    }
+    scanIngestQueue.push(rawText);
+    if (!scanIngestBusy) {
+      drainIngestQueue();
+    }
+  }
+
+  async function drainIngestQueue() {
+    if (scanIngestBusy || !scanIngestQueue.length || receivedDone) return;
+    scanIngestBusy = true;
+    try {
+      while (scanIngestQueue.length && !receivedDone) {
+        var rawText = scanIngestQueue.shift();
+        var ingestStarted = performance.now();
+        try {
+          await ingest(rawText);
+        } finally {
+          var ingestElapsed = performance.now() - ingestStarted;
+          scanIngestTotalMs += ingestElapsed;
+        }
+      }
+    } catch (error) {
+      status('rxStatus', 'プロトコル受信エラー: ' + error.message, 'error');
+    } finally {
+      scanIngestBusy = false;
+      if (receivedDone) recordBenchmarkRun();
+      if (scanIngestQueue.length && !receivedDone) {
+        drainIngestQueue();
+      }
+    }
+  }
+
+  async function detectQr(video) {
+    // 1. Native BarcodeDetector (高速・GPU直結)
+    if (detector) {
+      try {
+        var results = await detector.detect(video);
+        var hit = results.find(function (item) { return Wire.isAirgapFrame(item.rawValue); });
+        if (hit) return hit.rawValue;
+      } catch (nativeError) {
+        detector = null;
+        scannerType = 'jsqr';
+        if (scannerPreference === 'auto' && window.AirgapLinkZXingLoader) {
+          try {
+            zxingDecoder = await window.AirgapLinkZXingLoader.load();
+            scannerType = 'zxing-wasm';
+            scannerName = 'ZXing-C++ WASM 3.1.6（Native error fallback）';
+          } catch (_) {
+            scannerType = 'jsqr';
+            scannerName = 'jsQR fallback (Native error)';
+          }
+        } else {
+          scannerType = 'jsqr';
+          scannerName = 'jsQR fallback (Native error)';
+        }
+        $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+      }
+    }
+
+    // 2. Canvas経由でのデコード (ZXing WASM / jsQR)
+    var canvas = $('scanCanvas');
+    var scale = Math.min(1, 1280 / video.videoWidth);
+    var width = Math.max(1, Math.round(video.videoWidth * scale));
+    var height = Math.max(1, Math.round(video.videoHeight * scale));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+      scanCachedContext = null;
+    }
+    if (!scanCachedContext) {
+      scanCachedContext = canvas.getContext('2d', { willReadFrequently: true });
+    }
+    var context = scanCachedContext;
+    context.drawImage(video, 0, 0, width, height);
+
+    // ROIスキャン（中央70%優先）
+    // QRが中央にある場合は高速・省メモリで完了
+    var roiRatio = 0.7;
+    var roiW = Math.round(width * roiRatio);
+    var roiH = Math.round(height * roiRatio);
+    var roiX = Math.round((width - roiW) / 2);
+    var roiY = Math.round((height - roiH) / 2);
+    var roiImage = context.getImageData(roiX, roiY, roiW, roiH);
+
+    var roiRaw = null;
+    if (scannerType === 'zxing-wasm') {
+      var roiZxingResults = await zxingDecoder.readBarcodes(roiImage, {
+        formats: ['QRCode'],
+        maxNumberOfSymbols: 1,
+        tryHarder: false
+      });
+      var roiHit = roiZxingResults.find(function (item) {
+        return item && Wire.isAirgapFrame(item.text);
+      });
+      if (roiHit) roiRaw = roiHit.text;
+    } else {
+      var roiDecoded = window.jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
+      if (roiDecoded && Wire.isAirgapFrame(roiDecoded.data)) roiRaw = roiDecoded.data;
+    }
+
+    if (roiRaw) return roiRaw;
+
+    // ROIで見つからなければ全画面スキャンへフォールバック
+    var image = context.getImageData(0, 0, width, height);
+    if (scannerType === 'zxing-wasm') {
+      var zxingResults = await zxingDecoder.readBarcodes(image, {
+        formats: ['QRCode'],
+        maxNumberOfSymbols: 1,
+        tryHarder: false
+      });
+      var zxingHit = zxingResults.find(function (item) {
+        return item && Wire.isAirgapFrame(item.text);
+      });
+      if (zxingHit) return zxingHit.text;
+    } else {
+      var decoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
+      if (decoded && Wire.isAirgapFrame(decoded.data)) return decoded.data;
+    }
+
+    return null;
+  }
+
   async function scanTick() {
-    if (!stream || scanBusy || receivedDone) return;
+    if (!stream || scanBusy || rxWorkerBusy || receivedDone) return;
     var video = $('camera');
     if (video.readyState < 2 || !video.videoWidth) {
       scheduleScan(30);
       return;
     }
+
+    // 1. Web Worker による非同期デコード（Native Detector を使わない場合）
+    if (rxWorkerReady && !rxWorkerFailed && !detector) {
+      rxWorkerBusy = true;
+      scanLastAnalyzedPresentedFrames = scanLatestPresentedFrames;
+
+      var canvas = $('scanCanvas');
+      var scale = Math.min(1, 1280 / video.videoWidth);
+      var width = Math.max(1, Math.round(video.videoWidth * scale));
+      var height = Math.max(1, Math.round(video.videoHeight * scale));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        scanCachedContext = null;
+      }
+      if (!scanCachedContext) {
+        scanCachedContext = canvas.getContext('2d', { willReadFrequently: true });
+      }
+      scanCachedContext.drawImage(video, 0, 0, width, height);
+      var image = scanCachedContext.getImageData(0, 0, width, height);
+
+      try {
+        rxWorker.postMessage({
+          type: 'decode',
+          id: ++rxWorkerRequestId,
+          sessionId: rxScanSessionId,
+          buffer: image.data.buffer,
+          width: width,
+          height: height,
+          scannerType: scannerType
+        }, [image.data.buffer]);
+      } catch (err) {
+        rxWorkerBusy = false;
+        rxWorkerFailed = true;
+      }
+      return;
+    }
+
+    // 2. メインスレッドでの解析（Native BarcodeDetector、または Worker フォールバック）
     scanBusy = true;
+    scanLastAnalyzedPresentedFrames = scanLatestPresentedFrames;
+
     var raw = null;
     var decodeElapsed = 0;
-    var ingestElapsed = 0;
     try {
       var decodeStarted = performance.now();
       try {
-        if (detector) {
-          try {
-            var results = await detector.detect(video);
-            var hit = results.find(function (item) { return Wire.isAirgapFrame(item.rawValue); });
-            if (hit) raw = hit.rawValue;
-          } catch (nativeError) {
-            detector = null;
-            scannerType = 'jsqr';
-            if (scannerPreference === 'auto' && window.AirgapLinkZXingLoader) {
-              try {
-                zxingDecoder = await window.AirgapLinkZXingLoader.load();
-                scannerType = 'zxing-wasm';
-                scannerName = 'ZXing-C++ WASM 3.1.6（Native error fallback）';
-              } catch (_) {
-                scannerType = 'jsqr';
-                scannerName = 'jsQR fallback (Native error)';
-              }
-            } else {
-              scannerType = 'jsqr';
-              scannerName = 'jsQR fallback (Native error)';
-            }
-            $('scannerMode').textContent = '読み取り方式: ' + scannerName;
-          }
-        }
-        if (!detector && !raw) {
-          var canvas = $('scanCanvas');
-          var scale = Math.min(1, 1440 / video.videoWidth);
-          var width = Math.max(1, Math.round(video.videoWidth * scale));
-          var height = Math.max(1, Math.round(video.videoHeight * scale));
-          if (canvas.width !== width || canvas.height !== height) {
-            canvas.width = width;
-            canvas.height = height;
-          }
-          var context = canvas.getContext('2d', { willReadFrequently: true });
-          context.drawImage(video, 0, 0, width, height);
-          var image = context.getImageData(0, 0, width, height);
-          if (scannerType === 'zxing-wasm') {
-            var zxingResults = await zxingDecoder.readBarcodes(image, {
-              formats: ['QRCode'],
-              maxNumberOfSymbols: 1,
-              tryHarder: false
-            });
-            var zxingHit = zxingResults.find(function (item) {
-              return item && Wire.isAirgapFrame(item.text);
-            });
-            if (zxingHit) raw = zxingHit.text;
-          } else {
-            var decoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
-            if (decoded) raw = decoded.data;
-          }
-        }
+        raw = await detectQr(video);
       } finally {
         decodeElapsed = performance.now() - decodeStarted;
       }
+
+      var isHit = !!raw;
+      var isNovel = false;
       if (raw) {
         scanHits++;
+        scanConsecutiveNoQrCount = 0;
         if (!scanFirstHitAt) scanFirstHitAt = performance.now();
-        var ingestStarted = performance.now();
-        try {
-          await ingest(raw.replace(/^[\r\n]+|[\r\n]+$/g, ''));
-        } finally {
-          ingestElapsed = performance.now() - ingestStarted;
+        var clean = raw.replace(/^[\r\n]+|[\r\n]+$/g, '');
+
+        // 重複フレーム抑制: 直前と同一のQRコードが連続している間はプロトコル処理への重複投入をスキップ
+        if (clean !== scanLastIngestedRawText) {
+          isNovel = true;
+          scanLastIngestedRawText = clean;
+          enqueueIngest(clean);
+        }
+      } else {
+        // QRが検出されなかった場合、5フレーム以上未検出が続けば直前QR記憶をクリア
+        scanConsecutiveNoQrCount++;
+        if (scanConsecutiveNoQrCount >= 5) {
+          scanLastIngestedRawText = '';
         }
       }
     } catch (error) {
-      status('rxStatus', '解析・受信処理エラー: ' + error.message, 'error');
+      status('rxStatus', '解析エラー: ' + error.message, 'error');
     } finally {
       scanAttempts++;
       sampleBenchmarkMemory();
       scanDecodeSamples.push(decodeElapsed);
-      if (scanDecodeSamples.length > 4096) scanDecodeSamples.shift();
+      if (scanDecodeSamples.length > 256) scanDecodeSamples.shift();
       scanDecodeTotalMs += decodeElapsed;
-      scanIngestTotalMs += ingestElapsed;
       updateRxStats();
+
+      if (rxRateAdvisor) {
+        rxRateAdvisor.recordScanAttempt(isHit, isNovel, decodeElapsed);
+        rxRateAdvisor.recordQueueLength(scanIngestQueue.length);
+        rxRateAdvisor.evaluate(performance.now());
+      }
       scanBusy = false;
-      if (receivedDone) recordBenchmarkRun();
-      if (stream && !receivedDone) scheduleScan(0);
+
+      // 解析完了時点で、もし解析中に新しい映像フレームが届いていれば直ちに最新フレームの解析を開始
+      if (stream && !receivedDone) {
+        if (scanLatestPresentedFrames !== null &&
+            scanLatestPresentedFrames !== scanLastAnalyzedPresentedFrames) {
+          triggerScanIfIdle();
+        }
+      }
     }
   }
 
@@ -1644,7 +2349,37 @@
     status('txStatus', 'Airgap Linkプロトコルの初期化に失敗しました', 'error');
     $('prepareTx').disabled = true;
   }
+  txAutoRateController.reset();
+  rxRateAdvisor.reset();
   updateModeControls();
   resetRx();
   updateTxBlockMap();
+
+  if (typeof window !== 'undefined') {
+    window.__airgapTestHooks = {
+      detectQr: detectQr,
+      triggerScanIfIdle: triggerScanIfIdle,
+      enqueueIngest: enqueueIngest,
+      getScanState: function () {
+        return {
+          scanBusy: scanBusy,
+          scanLatestPresentedFrames: scanLatestPresentedFrames,
+          scanLastAnalyzedPresentedFrames: scanLastAnalyzedPresentedFrames,
+          scanLastIngestedRawText: scanLastIngestedRawText,
+          scanIngestQueueLength: scanIngestQueue.length,
+          scanIngestBusy: scanIngestBusy,
+          rxWorkerReady: rxWorkerReady,
+          rxWorkerBusy: rxWorkerBusy,
+          rxWorkerFailed: rxWorkerFailed,
+          rxScanSessionId: rxScanSessionId
+        };
+      },
+      initQrWorker: initQrWorker,
+      setScanLatestPresentedFrames: function (val) { scanLatestPresentedFrames = val; },
+      onScanVideoFrame: onScanVideoFrame,
+      rateController: rxRateAdvisor
+    };
+    window.airgapLinkTest = window.__airgapTestHooks;
+    window.airgapRateController = rxRateAdvisor;
+  }
 })();

@@ -95,6 +95,12 @@ async function main() {
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
     page.includes('<script src="airgap-link-ui-v14.js" defer></script>'),
     'Airgap page must load the unchanged ZXing loader before the V14 UI runtime');
+  assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"'),
+    'RX must expose the opt-in GF(2) Gaussian recovery experiment and diagnostics');
+  assert(ui.includes('fountainRx.gaussianEnabled = !!$(\'rxGaussianEnabled\').checked') &&
+    ui.includes('result.gaussian') &&
+    ui.includes('32個の新規パケット'),
+    'GF(2) recovery must be opt-in and invoked only after a bounded peeling stall');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&
     page.includes('value="native"') &&
@@ -490,6 +496,10 @@ async function main() {
   assert.equal(fountain.crcTamperRejected, true);
   assert.equal(fountain.mixedTransferRejected, true);
   assert.equal(fountain.randomAccessSeek, true);
+  assert.equal(fountain.gaussianFullRankRecovery, true,
+    'Sparse GF(2) elimination must recover a full-rank system with no degree-1 equation');
+  assert.equal(fountain.gaussianRank, 3);
+  assert.equal(fountain.gaussianRecoveredBlocks, 3);
 
   const hybridMessage = Uint8Array.from({ length: 20 * 128 - 37 }, (_, i) => (i * 73 + 19) & 0xff);
   const hybridPlan = globalThis.AirgapLinkCore.buildFrames(hybridMessage,
@@ -563,7 +573,7 @@ async function main() {
 
   process.stdout.write(
     'PASS legacy CMAL1/P0/P1; PASS LT chooser vectors; PASS out-of-order fountain recovery; ' +
-    'PASS duplicate/CRC/transfer isolation; PASS V6 second-frame stopwatch and legacy Data 2 start; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
+    'PASS duplicate/CRC/transfer isolation; PASS sparse GF(2) Gaussian recovery; PASS V6 second-frame stopwatch and legacy Data 2 start; PASS V5 seek API; PASS first-frame RX preflight; PASS Hybrid P0/P1-to-LT recovery including systematic seek\n'
   );
 }
 

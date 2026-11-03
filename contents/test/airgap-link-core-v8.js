@@ -121,7 +121,7 @@
   function buildFrames(input, options) {
     var bytes = asBytes(input).slice();
     options = options || {};
-    var chunkSize = Math.max(80, Math.min(800, Math.floor(Number(options.chunkSize) || 180)));
+    var chunkSize = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
     var wireFormat = options.wireFormat === 'base45' ? 'base45' : 'base64url';
     var parity = options.parity !== false;
     var total = Math.max(1, Math.ceil(bytes.length / chunkSize));
@@ -176,6 +176,7 @@
     if (dataMatch) {
       var index = Number(dataMatch[1]);
       if (Number(dataMatch[2]) !== total || index > total) throw new Error('データフレーム番号が不正です');
+      if (payload.length > 2800) throw new Error('データ片が上限2,800Bを超えています');
       return { type: 'data', index: index - 1, total: total, id: id.toUpperCase(), payload: payload, wireFormat: fields.wireFormat };
     }
     var parityMatch = /^P([01])-([0-9]+)\/([1-9][0-9]*)$/.exec(token);
@@ -214,6 +215,7 @@
     var maxLength = 0;
     for (var i = 0; i < count; i++) {
       var len = (payload[2 + i * 2] << 8) | payload[3 + i * 2];
+      if (len > 2800) throw new Error('パリティ内のデータ片が上限2,800Bを超えています');
       lengths.push(len);
       maxLength = Math.max(maxLength, len);
     }
@@ -402,7 +404,7 @@
     }
     if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1DEFL圧縮データですが、このブラウザはDeflate復号に対応していません');
     var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(8, false);
-    if (expected > 8000000) throw new Error('展開後サイズが試験上限8 MBを超えています');
+    if (expected > 67108864) throw new Error('展開後サイズが試験上限64 MiBを超えています');
     var compressed = bytes.subarray(12);
     var reader = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate')).getReader();
     var chunks = [];
@@ -411,7 +413,7 @@
       var item = await reader.read();
       if (item.done) break;
       total += item.value.length;
-      if (total > expected || total > 8000000) {
+      if (total > expected || total > 67108864) {
         await reader.cancel();
         throw new Error('圧縮データが宣言サイズを超えて展開されました');
       }

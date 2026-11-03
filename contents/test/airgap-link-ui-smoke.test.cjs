@@ -89,8 +89,8 @@ for (const filename of [
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
-vm.runInContext(fs.readFileSync(path.join(root, 'airgap-link-ui-v11.js'), 'utf8'), sandbox,
-  { filename: 'airgap-link-ui-v11.js' });
+const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v13.js'), 'utf8');
+vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
 
 (async () => {
   assert.equal(getElement('autoTxTest').listeners.click.length, 1,
@@ -98,9 +98,34 @@ vm.runInContext(fs.readFileSync(path.join(root, 'airgap-link-ui-v11.js'), 'utf8'
   assert.equal(getElement('copyBenchmarkText').listeners.click.length, 1,
     'Benchmark copy button must have exactly one click handler');
 
-  await getElement('autoTxTest').dispatch('click');
-  assert.match(getElement('txStatus').textContent, /自動テストを開始できません/,
-    'Automatic TX test must explain missing RX benchmark/camera prerequisites');
+  const autoStart = uiSource.indexOf('async function runTxAutoTest()');
+  const autoEnd = uiSource.indexOf("  $('autoTxTest').addEventListener", autoStart);
+  const autoBody = uiSource.slice(autoStart, autoEnd);
+  assert(autoStart >= 0 && autoEnd > autoStart, 'Automatic TX benchmark handler must exist');
+  assert(!autoBody.includes('autoBenchmarkReset') && !autoBody.includes('cameraVideo') &&
+    !autoBody.includes('stream.active'),
+    'TX benchmark must not gate its start on remote RX camera state');
+  assert.equal(getElement('chunkSizeNumber').listeners.input.length, 1,
+    'Expanded chunk-size numeric input must be wired');
+  getElement('chunkSizeNumber').value = '3000';
+  await getElement('chunkSizeNumber').dispatch('input');
+  assert.equal(getElement('chunkSizeNumber').value, '2800',
+    'Base45 chunk-size input must clamp to the 2,800-byte experiment ceiling');
+  getElement('wireFormat').value = 'base64url';
+  await getElement('wireFormat').dispatch('change');
+  assert.equal(getElement('chunkSize').max, '2100',
+    'Base64URL must expose its lower QR-capacity-aware maximum');
+  assert.equal(getElement('chunkSizeNumber').value, '2100',
+    'Changing to Base64URL must clamp the current chunk size');
+  assert.equal(getElement('benchmarkSizeRange').listeners.input.length, 1,
+    'Benchmark data-size slider must be wired');
+  assert.equal(getElement('benchmarkSizeInput').listeners.input.length, 1,
+    'Benchmark data-size numeric input must be wired');
+  await getElement('benchmarkPreset4MiB').dispatch('click');
+  assert.equal(getElement('benchmarkSizeInput').value, String(4 * 1024 * 1024),
+    'A benchmark size preset must update the numeric input');
+  assert.equal(getElement('benchmarkSizeRange').value, String(4 * 1024 * 1024),
+    'A benchmark size preset must update the range slider');
 
   await getElement('copyBenchmarkText').dispatch('click');
   assert.match(getElement('rxStatus').textContent, /コピーできる計測結果はまだありません/,
@@ -114,7 +139,7 @@ vm.runInContext(fs.readFileSync(path.join(root, 'airgap-link-ui-v11.js'), 'utf8'
   assert.match(fallback.value, /DEADBEEF/,
     'Clipboard fallback must contain the exact text being copied');
 
-  process.stdout.write('PASS UI initialization; PASS TX button click/precondition feedback; ' +
+  process.stdout.write('PASS UI initialization; PASS TX benchmark independent of RX state; PASS data-size controls; ' +
     'PASS empty benchmark-copy feedback; PASS visible clipboard fallback\n');
 })().catch(error => {
   process.stderr.write((error && error.stack ? error.stack : String(error)) + '\n');

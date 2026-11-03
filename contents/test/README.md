@@ -54,7 +54,9 @@ Encrypted data is already close to random and normally does not compress. For en
 
 ## UI/test settings
 
-- Fragment size: 80–800 bytes (default 180 bytes)
+- Fragment size: 80–2,800 bytes for Base45 / 80–2,100 bytes for Base64URL (default 180 bytes)
+- Numeric input and slider share a 20-byte step; the selected wire format determines the maximum
+- QR encoder auto-selects Versions 1–40; large Base45 frames may fall back from ECC-M to ECC-L when required
 - TX frame rate: 3–30 fps (default 6 fps)
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
@@ -62,7 +64,7 @@ Encrypted data is already close to random and normally does not compress. For en
 - RX scanner: selectable Auto / Native BarcodeDetector / ZXing-C++ WASM / jsQR
 - Auto preference: Native BarcodeDetector → ZXing-C++ WASM → jsQR
 - ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
-- Maximum source file size: 8,000,000 bytes in the UI (the protocol limits each transfer to at most 100,000 data fragments)
+- Maximum source file size: 67,108,864 bytes (64 MiB) in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 
 ## Self-test coverage
 
@@ -81,7 +83,7 @@ Additional development checks performed before publishing this branch:
 - Two missing data frames at the beginning, middle, and end of a parity group
 - Last partial group handling
 - Single-erasure recovery when P0 is missing
-- 180-byte and 800-byte frame strings accepted by the local QR matrix generator (65 and 125 modules respectively)
+- 180-byte and 2,800-byte Base45 parity/Fountain frame strings accepted by the local QR matrix generator (up to 177 modules / Version 40)
 - JavaScript syntax checks for the core and UI modules
 
 Camera-to-camera testing still needs to be performed on real target devices. QR generation and decoder behavior vary with display pixel density, camera exposure, autofocus, device/browser implementation, and ambient light.
@@ -180,9 +182,9 @@ Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-c
 
 ## UI control smoke test
 
-`airgap-link-ui-smoke.test.cjs` runs the actual V10 UI script against a lightweight DOM stub and verifies:
+`airgap-link-ui-smoke.test.cjs` runs the actual V13 UI script against a lightweight DOM stub and verifies:
 
-- Automatic TX test button event registration and prerequisite feedback when RX benchmark mode/camera are not ready
+- Automatic TX benchmark registration and independence from remote RX camera state
 - Benchmark copy button event registration and the zero-results message
 - Visible selectable-text fallback when Clipboard API / `execCommand('copy')` is unavailable
 
@@ -192,3 +194,25 @@ The protocol test invokes this smoke test automatically. This does not replace r
 ## V11 — UI cache-bust release
 
 V11 republishes the corrected benchmark UI from V10 under the new immutable runtime filename `airgap-link-ui-v11.js`. The standalone page now loads that file, and the app Service Worker cache key is incremented to `cm-v2.20.0-airgap-link-test-lab-v11-zxing-wasm` with the V11 runtime in its precache list. This avoids reusing a previously cached V10 UI script after the V10 behavior fix. The ZXing loader remains V10 because its contents and interface are unchanged. CI checks the page/runtime filename, cache key, precache entry, and UI smoke-test target together. Real camera-to-camera testing on iPhone Safari and Android Chrome remains a separate required validation.
+
+
+## V12 — Large-payload benchmark and one-way TX/RX separation
+
+V12 adds a dedicated benchmark payload-size control to the TX panel. The range slider is adjustable in 1 KiB steps, the byte count can be entered directly, and presets are available at 1, 2, 4, 8, 16, 32, and 64 MiB. If neither a file nor text is selected, **転送データを準備** creates a deterministic pseudo-random test payload at the selected size. The automatic benchmark always uses this generated payload so the requested byte count is repeatable.
+
+The benchmark payload and protocol limit are 64 MiB. The protocol still limits a transfer to 100,000 source fragments; therefore the largest payload is available only with a sufficiently large chunk size (for example, 64 MiB needs a chunk size of at least 672 bytes). The UI rejects a setting that would exceed the fragment-count limit instead of silently truncating the data. Large transfers can consume several times the payload size in browser memory because the experiment prebuilds frame strings and fragment arrays. Increase chunk size for large payloads and monitor device memory.
+
+The TX automatic benchmark now uses the currently selected mode, chunk size, frame rate, and payload size for one timed run. It does **not** inspect the RX camera, RX checkbox, or remote readiness. The sender cannot know whether the receiver is ready because the protocol is one-way and has no ACK/status channel. Start the RX camera independently, read the static first QR, then start the TX benchmark. The TX duration is an estimate based on the selected frame rate and expected packet count; it is not a receiver-completion signal.
+
+Completed RX measurements include reconstructed transfer-payload bytes, final output-file bytes, received/total/missing source blocks, camera FPS, unique valid frames per second, decode mean/P95, and completion time. Where `performance.memory` is exposed, the run also records peak observed JavaScript heap usage and the reported heap limit. This is a JS-heap estimate only; it does not include all native camera, GPU, or WebAssembly allocations. Browsers without this API report the measurement as unavailable.
+
+The Service Worker cache key and immutable UI runtime were advanced to V12 to prevent stale V11 UI code from being reused.
+
+
+## V13 — Large QR chunk-size experiment
+
+V13 raises the experimental fragment ceiling from 800 bytes to 2,800 bytes for Base45 / QR Alphanumeric frames. Base64URL / QR Byte mode is capped at 2,100 bytes in the UI because its encoded text expands more and reaches the Version 40 capacity sooner. The numeric input and slider use 20-byte increments; changing wire format adjusts the maximum automatically.
+
+The QR encoder now evaluates Version 40 during automatic version selection and reports an explicit overflow when the payload exceeds Version 40. The renderer first tries ECC-M and falls back to ECC-L if necessary. Core and Fountain encode/decode paths accept up to 2,800-byte source fragments; the Legacy parser also rejects oversized data/parity fragment declarations. The 100,000-source-fragment and 64 MiB transfer limits remain unchanged.
+
+The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guarantee of camera readability. At the upper end, the QR occupies Version 40 (177 × 177 modules) before the four-module quiet zone. Real throughput and decode stability must be measured on the target iPhone Safari and Android Chrome devices.

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V11 — ZXing-C++ WASM Receiver</title>
+<title>Airgap Link V13 — ZXing-C++ WASM Receiver</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -18,12 +18,12 @@ h1 span{color:var(--accent)}.subtitle{color:var(--muted);margin:3px 0 0;font-siz
 .panel{border:1px solid var(--line);border-radius:16px;background:linear-gradient(160deg,#13243aee,#0d1826f2);padding:16px;box-shadow:0 12px 35px #0003;min-width:0}
 .panel h2{margin:0 0 12px;font-size:1.15rem}.panel h3{font-size:.95rem;margin:18px 0 8px}
 label{display:block;font-size:.86rem;font-weight:650;margin:10px 0 5px}
-input,textarea,button,select{font:inherit}input[type=file],textarea,input[type=text],select{width:100%;border:1px solid #36536f;background:#081522;color:var(--text);border-radius:9px;padding:9px 10px}
+input,textarea,button,select{font:inherit}input[type=number]{width:100%;border:1px solid #36536f;background:#081522;color:var(--text);border-radius:9px;padding:9px 10px}input[type=file],textarea,input[type=text],select{width:100%;border:1px solid #36536f;background:#081522;color:var(--text);border-radius:9px;padding:9px 10px}
 textarea{min-height:96px;resize:vertical}input[type=range]{width:100%;accent-color:var(--accent)}
 input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;vertical-align:middle}
 small,.muted{color:var(--muted)}small{font-size:.77rem}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.range-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.range-head output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:750}
+.range-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.range-head output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:750}.range-head #chunkSizeNumber{width:7rem;flex:0 0 7rem;padding:5px 7px}.benchmark-size{margin:12px 0;padding:11px;border:1px solid #29445f;border-radius:11px;background:#091724}.benchmark-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.benchmark-presets button{padding:6px 9px;font-size:.8rem}.benchmark-size-grid{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:12px;align-items:end}.benchmark-size-grid label{margin-top:0}
 .checkrow{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.checkrow label{font-weight:500;margin:0}
 button{border:1px solid #42627e;color:var(--text);background:#1b324b;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
 button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#3cbba3;color:#fff}
@@ -67,13 +67,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="airgap-link-core-v8.js"></script>
 <script src="airgap-link-fountain-v8.js"></script>
 <script src="airgap-link-zxing-loader-v10.js" defer></script>
-<script src="airgap-link-ui-v11.js" defer></script>
+<script src="airgap-link-ui-v13.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V11</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
- <span class="pill">OFFLINE TEST PAGE · V11</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V13</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V13</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
@@ -86,6 +86,28 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="muted" style="text-align:center;margin:4px">または</div>
  <label for="txText">テキスト入力</label>
  <textarea id="txText" placeholder="ファイルを選択しない場合、ここにテキストを入力"></textarea>
+ <div class="benchmark-size">
+  <div class="benchmark-size-grid">
+   <div>
+    <div class="range-head"><label for="benchmarkSizeRange">テストデータ量</label><output id="benchmarkSizeValue">711.0 KiB</output></div>
+    <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
+   </div>
+   <div>
+    <label for="benchmarkSizeInput">数値指定（bytes）</label>
+    <input id="benchmarkSizeInput" type="number" min="1024" max="67108864" step="1024" value="728064" inputmode="numeric">
+   </div>
+  </div>
+  <div class="benchmark-presets" aria-label="テストデータ量プリセット">
+   <button id="benchmarkPreset1MiB" type="button">1 MiB</button>
+   <button id="benchmarkPreset2MiB" type="button">2 MiB</button>
+   <button id="benchmarkPreset4MiB" type="button">4 MiB</button>
+   <button id="benchmarkPreset8MiB" type="button">8 MiB</button>
+   <button id="benchmarkPreset16MiB" type="button">16 MiB</button>
+   <button id="benchmarkPreset32MiB" type="button">32 MiB</button>
+   <button id="benchmarkPreset64MiB" type="button">64 MiB</button>
+  </div>
+  <small>ファイル／テキスト未指定時は、指定サイズの決定的な疑似ランダムデータを生成します。自動ベンチマークもこのサイズを使用します。上限64 MiB。データ片数は最大100,000片のため、大容量ではチャンクサイズを大きくしてください。端末のメモリ使用量に注意。</small>
+ </div>
 
  <label for="transferMode">転送方式</label>
  <select id="transferMode" class="mode-select">
@@ -105,9 +127,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
  <div class="controls">
   <div>
-   <div class="range-head"><label for="chunkSize">密度 / チャンクサイズ</label><output id="chunkSizeValue">180 B</output></div>
-   <input id="chunkSize" type="range" min="80" max="800" step="20" value="180">
-   <small>1フレームに格納する元データ量。増やすほどQRが高密度になります。</small>
+   <div class="range-head"><label for="chunkSize">密度 / チャンクサイズ</label><output id="chunkSizeValue">180 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="180" inputmode="numeric" aria-label="チャンクサイズ（バイト）"></div>
+   <input id="chunkSize" type="range" min="80" max="2800" step="20" value="180">
+   <small>1フレームの元データ量。Base45は最大2,800B、Base64URLはQR容量を考慮して最大2,100B。大きいほどQR密度が上がり、読み取り難度も上がります。</small>
   </div>
   <div>
    <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">6 fps</output></div>
@@ -123,9 +145,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
   <button id="playTx" type="button" disabled>再生</button>
   <button id="pauseTx" type="button" disabled>停止</button>
-  <button id="autoTxTest" type="button">送信条件の自動テスト</button>
-  <label for="autoTxLog">自動テスト条件ログ（受信側のテキスト結果とTransfer IDで照合）</label>
-  <textarea id="autoTxLog" rows="5" readonly placeholder="自動テスト実行後、条件とtransfer IDがここに記録されます"></textarea>
+  <button id="autoTxTest" type="button">選択条件で自動ベンチマーク</button>
+  <label for="autoTxLog">送信条件ログ（Transfer IDで受信側の結果と照合）</label>
+  <textarea id="autoTxLog" rows="5" readonly placeholder="自動ベンチマーク開始後、送信条件とTransfer IDが記録されます"></textarea>
    <button id="copyTxTestLog" type="button">送信条件ログをテキストコピー</button>
  </div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
@@ -200,6 +222,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="stat"><b id="rxRate">0.0</b><small>ユニーク有効フレーム / 秒（2枚目QRから）</small></div>
   <div class="stat"><b id="rxElapsed">—</b><small>転送経過時間（2枚目QRから）</small></div>
   <div class="stat"><b id="rxThroughput">—</b><small>転送データ実効速度</small></div>
+  <div class="stat"><b id="rxWireBytes">—</b><small>受信した転送データ量</small></div>
+  <div class="stat"><b id="rxOutputBytes">—</b><small>復元ファイル量</small></div>
+  <div class="stat"><b id="rxMemoryPeak">—</b><small>JSヒープ最大（取得可能時）</small></div>
   <div class="stat"><b id="rxFileRate">—</b><small>保存ファイル実効速度</small></div>
   <div class="stat"><b id="rxAvgMs">0 ms</b><small>QR解析平均時間</small></div>
   <div class="stat"><b id="rxP50Ms">—</b><small>QR解析中央値（P50）</small></div>
@@ -237,7 +262,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V11 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
+<p class="footer">Airgap Link Test Lab V13 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>
 </body>
 </html>

@@ -860,7 +860,7 @@ QRCode.prototype = {
 		// Calculate automatically typeNumber if provided is < 1
 		if (this.typeNumber < 1 ){
 			var typeNumber = 1;
-			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+			for (typeNumber = 1; typeNumber <= 40; typeNumber++) {
 				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
 
 				var buffer = new QRBitBuffer();
@@ -877,6 +877,9 @@ QRCode.prototype = {
 				}
 				if (buffer.getLengthInBits() <= totalDataCount * 8)
 					break;
+			}
+			if (typeNumber > 40) {
+				throw new Error("code length overflow. Payload exceeds QR Version 40 capacity.");
 			}
 			this.typeNumber = typeNumber;
 		}

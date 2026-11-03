@@ -90,6 +90,7 @@ for (const filename of [
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
+sandbox.MatrixQRCode = window.MatrixQRCode;
 const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v13.js'), 'utf8');
 vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
 

@@ -64,7 +64,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v13.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v14.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -83,9 +83,9 @@ async function main() {
   assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
   assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V13 — ZXing-C++ WASM Receiver</title>'), 'Page title must show V13');
-  assert(page.includes('/ Test Lab <span>V13</span>'), 'Page heading must show V13');
-  assert(page.includes('Airgap Link Test Lab V13'), 'Footer must show V13');
+  assert(page.includes('<title>Airgap Link V14 — TX/RX Adaptive Separation</title>'), 'Page title must show V14');
+  assert(page.includes('/ Test Lab <span>V14</span>'), 'Page heading must show V14');
+  assert(page.includes('Airgap Link Test Lab V14'), 'Footer must show V14');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
     page.includes('<script src="airgap-link-core-v8.js"></script>') &&
     page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
@@ -93,28 +93,28 @@ async function main() {
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
-    page.includes('<script src="airgap-link-ui-v13.js" defer></script>'),
-    'Airgap page must load the unchanged ZXing loader before the V13 UI runtime');
+    page.includes('<script src="airgap-link-ui-v14.js" defer></script>'),
+    'Airgap page must load the unchanged ZXing loader before the V14 UI runtime');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&
     page.includes('value="native"') &&
     page.includes('value="jsqr"'),
     'RX must offer explicit Native, ZXing-C++ WASM and jsQR decoder selection');
   assert(serviceWorker.includes('"test/airgap-link-zxing-loader-v10.js"') &&
-    serviceWorker.includes('"test/airgap-link-ui-v13.js"') &&
+    serviceWorker.includes('"test/airgap-link-ui-v14.js"') &&
     serviceWorker.includes("const ZXING_WASM_VERSION = '3.1.6'"),
-    'Service Worker must precache V13 scripts and expose the pinned ZXing virtual script route');
+    'Service Worker must precache V14 scripts and expose the pinned ZXing virtual script route');
   assert(['benchmarkSizeRange', 'benchmarkSizeInput', 'benchmarkSizeValue',
     'benchmarkPreset1MiB', 'benchmarkPreset2MiB', 'benchmarkPreset4MiB',
     'benchmarkPreset8MiB', 'benchmarkPreset16MiB', 'benchmarkPreset32MiB',
     'benchmarkPreset64MiB'].every((id) => page.includes('id="' + id + '"')),
-    'V13 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
+    'V14 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
   assert(['rxWireBytes', 'rxOutputBytes', 'rxMemoryPeak'].every((id) => page.includes('id="' + id + '"')),
-    'V13 must expose received payload size, reconstructed file size and optional heap measurement');
+    'V14 must expose received payload size, reconstructed file size and optional heap measurement');
   assert(ui.includes('var MAX_BENCHMARK_BYTES = 64 * 1024 * 1024') &&
     ui.includes('missingBlocks: Math.max(0, progress.total - progress.have)') &&
     ui.includes('wireBytes: rxWireByteCount') && ui.includes('memoryPeakBytes: benchmarkPeakHeapBytes'),
-    'V13 must record payload size, missing blocks and optional JS heap usage');
+    'V14 must record payload size, missing blocks and optional JS heap usage');
   const autoStart = ui.indexOf('async function runTxAutoTest()');
   const autoEnd = ui.indexOf("  $('autoTxTest').addEventListener", autoStart);
   const autoBody = ui.slice(autoStart, autoEnd);
@@ -127,11 +127,11 @@ async function main() {
     'RX must offer the 640x480, 1280x720 and 1920x1080 requested resolution profiles with 1080p as baseline');
   assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'copyBenchmarkText', 'benchmarkRunCount']
     .every((id) => page.includes('id="' + id + '"')),
-    'V13 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
+    'V14 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
   assert(page.includes('<button id="copyBenchmarkText" type="button">'),
     'The text-copy button must remain clickable when there are zero benchmark runs');
   assert(!page.includes('id="exportBenchmarkCsv"') && !ui.includes('function exportBenchmarkCsv'),
-    'V13 must not expose the retired CSV export control');
+    'V14 must not expose the retired CSV export control');
   assert(ui.includes("window.addEventListener('error'") && ui.includes("window.addEventListener('unhandledrejection'"),
     'Initialization and asynchronous runtime errors must be surfaced in the UI');
   assert(ui.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
@@ -145,18 +145,18 @@ async function main() {
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
   assert(serviceWorker.includes("const VERSION = 'cm-v2.21.0-airgap-link-test-lab-v13-large-chunks-zxing-wasm'") &&
-    serviceWorker.includes('"test/airgap-link-ui-v13.js"'),
-    'Service Worker must cache-bust and precache the V13 runtime');
+    serviceWorker.includes('"test/airgap-link-ui-v14.js"'),
+    'Service Worker must cache-bust and precache the V14 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
-    'V13 must expose the expanded numeric and range chunk-size controls');
+    'V14 must expose the expanded numeric and range chunk-size controls');
   assert(ui.includes('maximum = $(\'wireFormat\').value === \'base64url\' ? 2100 : 2800'),
-    'V13 must apply wire-format-specific chunk limits');
-  new vm.Script(ui, { filename: 'airgap-link-ui-v13.js' });
+    'V14 must apply wire-format-specific chunk limits');
+  new vm.Script(ui, { filename: 'airgap-link-ui-v14.js' });
   new vm.Script(zxingLoader, { filename: 'airgap-link-zxing-loader-v10.js' });
   assert(ui.includes("zxingDecoder.readBarcodes(image,") &&
     ui.includes("formats: ['QRCode']") &&
     ui.includes("scannerType === 'zxing-wasm'"),
-    'V13 must pass canvas ImageData to the ZXing-C++ QR reader');
+    'V14 must pass canvas ImageData to the ZXing-C++ QR reader');
   assert(zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/iife/reader/index.js") &&
     zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm") &&
     zxingLoader.includes("SCRIPT_LOCAL_URL = 'zxing-wasm-reader-v10.js'") &&
@@ -169,9 +169,9 @@ async function main() {
   assert(ui.includes('cameraTrack.getSettings()'),
     'RX must record the actual camera track settings, not just the requested profile');
   assert(ui.includes('detector.detect(video)'),
-    'V13 must retain direct Video input so the resolution-only experiment has a stable baseline');
+    'V14 must retain direct Video input so the resolution-only experiment has a stable baseline');
   assert(ui.includes('function percentileValue('),
-    'V13 must calculate decode-time percentiles');
+    'V14 must calculate decode-time percentiles');
   const percentileValue = vm.runInNewContext('(' + extractFunctionDeclaration(ui, 'percentileValue') + ')');
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.50), 30);
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.95), 48);
@@ -179,7 +179,7 @@ async function main() {
   assert(ui.includes('scanDecodeSamples.push(decodeElapsed)') &&
     ui.includes('if (receivedDone) recordBenchmarkRun()') &&
     ui.includes('run.samples.forEach'),
-    'V13 must retain bounded per-attempt measurements and log completed runs with raw samples');
+    'V14 must retain bounded per-attempt measurements and log completed runs with raw samples');
 
   assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
     'TX must offer Base45 and legacy Base64URL wire-format selection');

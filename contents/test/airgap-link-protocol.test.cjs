@@ -157,7 +157,7 @@ async function main() {
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.25.0-airgap-link-test-lab-tx-first-pass-seek'") &&
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.26.0-airgap-link-test-lab-tx-replay-preserve-sequence'") &&
     serviceWorker.includes('"test/airgap-link-ui-v15.js"'),
     'Service Worker must cache-bust and precache the V15 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),

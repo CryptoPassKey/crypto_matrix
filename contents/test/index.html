@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V12 — ZXing-C++ WASM Receiver</title>
+<title>Airgap Link V13 — ZXing-C++ WASM Receiver</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -67,13 +67,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="airgap-link-core-v8.js"></script>
 <script src="airgap-link-fountain-v8.js"></script>
 <script src="airgap-link-zxing-loader-v10.js" defer></script>
-<script src="airgap-link-ui-v12.js" defer></script>
+<script src="airgap-link-ui-v13.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V12</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
- <span class="pill">OFFLINE TEST PAGE · V12</span>
+ <div><h1>Airgap <span>Link</span> / Test Lab <span>V13</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
+ <span class="pill">OFFLINE TEST PAGE · V13</span>
 </header>
 
 <div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
@@ -127,9 +127,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
  <div class="controls">
   <div>
-   <div class="range-head"><label for="chunkSize">密度 / チャンクサイズ</label><output id="chunkSizeValue">180 B</output></div>
-   <input id="chunkSize" type="range" min="80" max="800" step="20" value="180">
-   <small>1フレームに格納する元データ量。増やすほどQRが高密度になります。</small>
+   <div class="range-head"><label for="chunkSize">密度 / チャンクサイズ</label><output id="chunkSizeValue">180 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="180" inputmode="numeric" aria-label="チャンクサイズ（バイト）"></div>
+   <input id="chunkSize" type="range" min="80" max="2800" step="20" value="180">
+   <small>1フレームの元データ量。Base45は最大2,800B、Base64URLはQR容量を考慮して最大2,100B。大きいほどQR密度が上がり、読み取り難度も上がります。</small>
   </div>
   <div>
    <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">6 fps</output></div>
@@ -262,7 +262,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
 </section>
 
-<p class="footer">Airgap Link Test Lab V12 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
+<p class="footer">Airgap Link Test Lab V13 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>
 </body>
 </html>

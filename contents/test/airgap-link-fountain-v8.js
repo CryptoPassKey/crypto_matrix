@@ -350,6 +350,10 @@
     this.receivedPartCount = 0;
     this.error = '';
     this.result = null;
+    this.gaussianEnabled = false;
+    this.gaussianStallPackets = 0;
+    this.gaussianRuns = 0;
+    this.gaussianStats = null;
   };
 
   FountainReceiver.prototype._key = function (indexes) {
@@ -490,6 +494,114 @@
     }
   };
 
+  function xorSortedIndexes(a, b) {
+    var out = [];
+    var i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; }
+      else if (a[i] < b[j]) out.push(a[i++]);
+      else out.push(b[j++]);
+    }
+    while (i < a.length) out.push(a[i++]);
+    while (j < b.length) out.push(b[j++]);
+    return out;
+  }
+
+  function isZeroBytes(data) {
+    for (var i = 0; i < data.length; i++) if (data[i] !== 0) return false;
+    return true;
+  }
+
+  // Experimental sparse GF(2) elimination. Rows are XOR equations over source
+  // block indexes; payload bytes are the corresponding right-hand side.
+  // Strict limits keep this optional fallback from allocating a dense K×K matrix.
+  FountainReceiver.prototype.runGaussianElimination = function (options) {
+    options = options || {};
+    var startedAt = (root.performance && root.performance.now) ? root.performance.now() : Date.now();
+    var maxRows = Number.isSafeInteger(options.maxRows) ? options.maxRows : 4096;
+    var maxNonZeros = Number.isSafeInteger(options.maxNonZeros) ? options.maxNonZeros : 250000;
+    var maxPayloadBytes = Number.isSafeInteger(options.maxPayloadBytes) ? options.maxPayloadBytes : 16 * 1024 * 1024;
+    var sourceRows = Array.from(this.mixedParts.values());
+    var nonZeros = sourceRows.reduce(function (sum, row) { return sum + row.indexes.length; }, 0);
+    var estimatedPayloadBytes = sourceRows.length * this.fragmentLen;
+    var stats = {
+      attempted: true,
+      equationCount: sourceRows.length,
+      nonZeros: nonZeros,
+      rank: 0,
+      variables: 0,
+      recoveredBlocks: 0,
+      durationMs: 0,
+      skipped: ''
+    };
+    if (sourceRows.length > maxRows || nonZeros > maxNonZeros || estimatedPayloadBytes > maxPayloadBytes) {
+      stats.skipped = 'safety-limit';
+      stats.durationMs = ((root.performance && root.performance.now) ? root.performance.now() : Date.now()) - startedAt;
+      this.gaussianRuns++;
+      this.gaussianStats = stats;
+      return stats;
+    }
+
+    var variables = new Set();
+    var rows = [];
+    for (var i = 0; i < sourceRows.length; i++) {
+      var indexes = sourceRows[i].indexes.filter(function (index) { return !this.simpleParts.has(index); }, this);
+      if (!indexes.length) continue;
+      indexes.sort(function (a, b) { return a - b; });
+      for (var v = 0; v < indexes.length; v++) variables.add(indexes[v]);
+      rows.push({ indexes: indexes, data: sourceRows[i].data.slice() });
+    }
+    stats.variables = variables.size;
+    rows.sort(function (a, b) { return a.indexes.length - b.indexes.length; });
+
+    var pivots = new Map();
+    for (var r = 0; r < rows.length; r++) {
+      var row = rows[r];
+      while (row.indexes.length) {
+        var pivot = row.indexes[0];
+        var existing = pivots.get(pivot);
+        if (!existing) {
+          pivots.set(pivot, row);
+          break;
+        }
+        row.indexes = xorSortedIndexes(row.indexes, existing.indexes);
+        fastXor(row.data, existing.data, row.data.length);
+      }
+      if (!row.indexes.length && !isZeroBytes(row.data)) {
+        throw new Error('GF(2)ガウス消去で矛盾する修復式を検出しました');
+      }
+    }
+    stats.rank = pivots.size;
+
+    // Back-substitute only variables that are uniquely determined. Free
+    // columns remain unknown; no guessed values are ever introduced.
+    var pivotIndexes = Array.from(pivots.keys()).sort(function (a, b) { return b - a; });
+    var solved = new Map();
+    for (var p = 0; p < pivotIndexes.length; p++) {
+      var pivotIndex = pivotIndexes[p];
+      var pivotRow = pivots.get(pivotIndex);
+      var value = pivotRow.data.slice();
+      var determined = true;
+      for (var c = 1; c < pivotRow.indexes.length; c++) {
+        var knownValue = solved.get(pivotRow.indexes[c]);
+        if (!knownValue) { determined = false; break; }
+        fastXor(value, knownValue, value.length);
+      }
+      if (determined) solved.set(pivotIndex, value);
+    }
+
+    var recovered = Array.from(solved.keys()).sort(function (a, b) { return a - b; });
+    for (var x = 0; x < recovered.length; x++) {
+      var index = recovered[x];
+      if (!this.simpleParts.has(index)) this._processSimple(index, solved.get(index), false);
+    }
+    stats.recoveredBlocks = recovered.length;
+    stats.durationMs = ((root.performance && root.performance.now) ? root.performance.now() : Date.now()) - startedAt;
+    this.gaussianRuns++;
+    this.gaussianStats = stats;
+    return stats;
+  };
+
   FountainReceiver.prototype._validate = function (packet) {
     if (this.id === null) {
       this.id = packet.id;
@@ -556,6 +668,7 @@
       };
     }
 
+    var decodedBefore = this.simpleParts.size;
     var indexes = await this.chooser.choose(packet.seqNum);
     this.lastIndexes = indexes.slice();
     var equationKey = this._key(indexes);
@@ -582,6 +695,16 @@
       this._processComplex(indexes, packet.data);
     }
 
+    var gaussianResult = null;
+    if (this.gaussianEnabled && !this.result) {
+      if (this.simpleParts.size > decodedBefore) {
+        this.gaussianStallPackets = 0;
+      } else if (++this.gaussianStallPackets >= 32 && this.mixedParts.size >= 16) {
+        this.gaussianStallPackets = 0;
+        gaussianResult = this.runGaussianElimination();
+      }
+    }
+
     return {
       duplicate: false,
       complete: !!this.result,
@@ -592,7 +715,8 @@
       equationCount: this.seenEquations.size,
       directCount: this.directIndexes.size,
       recoveredCount: this.recoveredIndexes.size,
-      lastIndexes: this.lastIndexes
+      lastIndexes: this.lastIndexes,
+      gaussian: gaussianResult
     };
   };
 

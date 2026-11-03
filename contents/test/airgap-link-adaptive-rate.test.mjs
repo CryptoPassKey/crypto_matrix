@@ -359,12 +359,15 @@ server.listen(PORT, async () => {
           const maxSliderValue = fpsSlider.max;
           const manualLabel = fpsValueLabel.textContent;
           const rxAdvisorMax = controller.maxFps;
+          controller.updateUi();
+          const sliderAfterRxUpdate = fpsSlider.value;
 
           results.R8_TX_FPS_120_LIMIT = {
-            passed: maxSliderValue === '120' && manualLabel === '120 fps' && rxAdvisorMax === 120,
+            passed: maxSliderValue === '120' && manualLabel === '120 fps' && rxAdvisorMax === 120 && sliderAfterRxUpdate === '120',
             maxSliderValue,
             manualLabel,
-            rxAdvisorMax
+            rxAdvisorMax,
+            sliderAfterRxUpdate
           };
         }
 

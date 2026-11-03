@@ -237,3 +237,11 @@ The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guara
 - RX側からTXのFPSスライダー・送信コントローラーを変更しない。
 - 固定モードでは手動FPSを維持。
 - 転送プロトコル、ワイヤー形式、暗号処理は変更しない。
+
+
+## V15 — TX block-map first-pass seek
+
+- Clicking a TX block-map cell now restarts playback at that block's position in the **first systematic pass**, regardless of whether the current transmission has already advanced into later cycles or the LT repair phase.
+- In LT Fountain mode, the encoder resets its sequence cursor to the selected block index. The next packet is the corresponding systematic Data packet, followed by the remaining first-pass packets and then new repair equations.
+- This deliberately discards the previous repair-pass sequence high-water mark on seek. It does not change the encoded payload, chooser algorithm, or wire format.
+- Legacy CMAL1/P0/P1 seek continues to jump to the selected block's Data frame within the initial frame sequence.

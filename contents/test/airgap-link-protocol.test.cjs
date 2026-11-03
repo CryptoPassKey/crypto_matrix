@@ -64,7 +64,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v14.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v15.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -93,7 +93,7 @@ async function main() {
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
-    page.includes('<script src="airgap-link-ui-v14.js" defer></script>'),
+    page.includes('<script src="airgap-link-ui-v15.js" defer></script>'),
     'Airgap page must load the unchanged ZXing loader before the V14 UI runtime');
   assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"') &&
     page.includes('id="runRxGaussian"'),
@@ -113,14 +113,14 @@ async function main() {
     page.includes('value="jsqr"'),
     'RX must offer explicit Native, ZXing-C++ WASM and jsQR decoder selection');
   assert(serviceWorker.includes('"test/airgap-link-zxing-loader-v10.js"') &&
-    serviceWorker.includes('"test/airgap-link-ui-v14.js"') &&
+    serviceWorker.includes('"test/airgap-link-ui-v15.js"') &&
     serviceWorker.includes("const ZXING_WASM_VERSION = '3.1.6'"),
     'Service Worker must precache V14 scripts and expose the pinned ZXing virtual script route');
   assert(['benchmarkSizeRange', 'benchmarkSizeInput', 'benchmarkSizeValue',
     'benchmarkPreset1MiB', 'benchmarkPreset2MiB', 'benchmarkPreset4MiB',
     'benchmarkPreset8MiB', 'benchmarkPreset16MiB', 'benchmarkPreset32MiB',
     'benchmarkPreset64MiB'].every((id) => page.includes('id="' + id + '"')),
-    'V14 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
+    'V15 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
   assert(['rxWireBytes', 'rxOutputBytes', 'rxMemoryPeak'].every((id) => page.includes('id="' + id + '"')),
     'V14 must expose received payload size, reconstructed file size and optional heap measurement');
   assert(ui.includes('var MAX_BENCHMARK_BYTES = 64 * 1024 * 1024') &&
@@ -156,14 +156,14 @@ async function main() {
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
   assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
     'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.24.0-airgap-link-test-lab-gf2-manual'") &&
-    serviceWorker.includes('"test/airgap-link-ui-v14.js"'),
-    'Service Worker must cache-bust and precache the V14 runtime');
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.25.0-airgap-link-test-lab-tx-first-pass-seek'") &&
+    serviceWorker.includes('"test/airgap-link-ui-v15.js"'),
+    'Service Worker must cache-bust and precache the V15 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
     'V14 must expose the expanded numeric and range chunk-size controls');
   assert(ui.includes('maximum = $(\'wireFormat\').value === \'base64url\' ? 2100 : 2800'),
     'V14 must apply wire-format-specific chunk limits');
-  new vm.Script(ui, { filename: 'airgap-link-ui-v14.js' });
+  new vm.Script(ui, { filename: 'airgap-link-ui-v15.js' });
   new vm.Script(zxingLoader, { filename: 'airgap-link-zxing-loader-v10.js' });
   assert(ui.includes("zxingDecoder.readBarcodes(image,") &&
     ui.includes("formats: ['QRCode']") &&
@@ -362,6 +362,11 @@ async function main() {
     'TX block map must support pointer and keyboard navigation');
   assert(ui.includes('txFountainEncoder.seekToBlock(blockIndex)'),
     'Fountain seek must jump to the selected systematic Data packet');
+  const seekMethod = fountain.match(/FountainEncoder\.prototype\.seekToBlock = function \(blockIndex\) \{[\\s\\S]*?\n  \};/);
+  assert(seekMethod && seekMethod[0].includes('this.seqNum = blockIndex;') &&
+    seekMethod[0].includes('this.pendingDirectIndex = null;') &&
+    !seekMethod[0].includes('Math.max(this.seqNum'),
+    'Fountain map seek must restart at the selected position in the first systematic pass');
   assert(ui.includes('legacyFrameIndexForBlock(blockIndex, txPlan)'),
     'Legacy seek must map source blocks to the corresponding Data frame');
   assert(ui.includes('renderGeneration !== txRenderGeneration'),

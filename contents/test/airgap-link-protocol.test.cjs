@@ -105,7 +105,7 @@ async function main() {
     ui.includes('カメラを停止して受信処理が終わってから実行'),
     'GF(2) elimination must refuse to run while camera capture or ingest is active');
   assert(!ui.includes('result.gaussian') &&
-    !fountain.includes('this.runGaussianElimination()'),
+    !fountainSource.includes('this.runGaussianElimination()'),
     'The live QR feed path must never invoke synchronous Gaussian elimination');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&

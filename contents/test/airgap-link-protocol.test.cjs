@@ -64,6 +64,7 @@ require('./airgap-link-qr-encoder-v8.js');
 async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
+  const fountainSource = fs.readFileSync('contents/test/airgap-link-fountain-v8.js', 'utf8');
   const ui = fs.readFileSync('contents/test/airgap-link-ui-v14.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
@@ -105,7 +106,7 @@ async function main() {
     ui.includes('カメラを停止して受信処理が終わってから実行'),
     'GF(2) elimination must refuse to run while camera capture or ingest is active');
   assert(!ui.includes('result.gaussian') &&
-    !fountain.includes('this.runGaussianElimination()'),
+    !fountainSource.includes('this.runGaussianElimination()'),
     'The live QR feed path must never invoke synchronous Gaussian elimination');
   assert(page.includes('id="rxScanner"') &&
     page.includes('value="zxing-wasm"') &&

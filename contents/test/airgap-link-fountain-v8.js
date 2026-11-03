@@ -687,7 +687,6 @@
       };
     }
 
-    var decodedBefore = this.simpleParts.size;
     var indexes = await this.chooser.choose(packet.seqNum);
     this.lastIndexes = indexes.slice();
     var equationKey = this._key(indexes);
@@ -714,16 +713,8 @@
       this._processComplex(indexes, packet.data);
     }
 
-    var gaussianResult = null;
-    if (this.gaussianEnabled && !this.result) {
-      if (this.simpleParts.size > decodedBefore) {
-        this.gaussianStallPackets = 0;
-      } else if (++this.gaussianStallPackets >= 32 && this.mixedParts.size >= 16) {
-        this.gaussianStallPackets = 0;
-        gaussianResult = this.runGaussianElimination();
-      }
-    }
-
+    // Gaussian elimination is deliberately never run from feed(). The QR
+    // camera/decode path must not be blocked by synchronous matrix work.
     return {
       duplicate: false,
       complete: !!this.result,
@@ -734,8 +725,7 @@
       equationCount: this.seenEquations.size,
       directCount: this.directIndexes.size,
       recoveredCount: this.recoveredIndexes.size,
-      lastIndexes: this.lastIndexes,
-      gaussian: gaussianResult
+      lastIndexes: this.lastIndexes
     };
   };
 

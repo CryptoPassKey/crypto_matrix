@@ -127,7 +127,20 @@ This is **not full BC-UR wire compatibility**. The mode borrows the MUR/LT fragm
 
 Fountain decoding is rateless in the sense that the sender can emit additional distinct equations without a fixed end frame. The QR link is one-way: the receiver does not send ACKs or acquisition status back to the sender, so the sender cannot adapt its output to receiver progress. The receiver can collect distinct packets over time and may need more than K packets to reconstruct the message. It does **not** mean every arbitrary K packets are guaranteed to reconstruct the message. The number of useful packets depends on the loss pattern, equation degrees, duplicate equations, and peeling progress. It is not RaptorQ.
 
-The receiver stores only distinct equation index-sets and applies a bounded equation budget of `min(250,000, max(1,024, 8 × K))` per transfer to prevent unbounded memory growth. Repeated equations do not consume the budget. Conflicting values for a previously recovered source block are rejected. A very lossy or unusually long-running transfer can reach this cap and require a reset/retry.
+The receiver stores only distinct equation index-sets and applies a bounded equation budget of `min(250,000, max(1,024, 8 × K))` per transfer to prevent unbounded memory growth. Repeated equations do not consume the budget. Conflicting values for a previously recovered source block are rejected.
+
+### Experimental sparse GF(2) recovery
+
+The RX page has an opt-in **GF(2)ガウス消去（実験・受信側のみ）** checkbox. It is OFF by default. When enabled, the receiver keeps using the existing peeling decoder; after 32 newly accepted packets without an increase in recovered source blocks, it attempts sparse GF(2) elimination over the retained unresolved equations. It retries only after another 32-packet stall.
+
+- Sender behavior, packet selection, frame encoding, and wire format are unchanged.
+- Only uniquely determined source blocks are committed. Free variables are never guessed.
+- The implementation uses sparse index lists and XORs of fragment byte arrays; it does not allocate a dense K×K matrix.
+- A single attempt is bounded to 4,096 equations, 250,000 non-zero coefficients, and 16 MiB of copied equation payload. Attempts beyond those limits are skipped and reported in the RX status.
+- Inconsistent zero-coefficient rows with non-zero payload are rejected as contradictory equations.
+- The self-test includes a rank-3 system with no degree-1 equation, proving a case where peeling stalls but Gaussian elimination can recover all source blocks.
+
+This is an experiment, not yet the default decoder. Compare the checkbox OFF/ON with the same missing-block fixture and record completion time, number of accepted packets, solver time, and device memory. A very lossy or unusually long-running transfer can reach the equation cap and require a reset/retry.
 
 The sender and receiver block maps display one cell per original source block. TX uses a distinct active fill for the source block(s) referenced by the currently displayed QR; it does not claim that the remote receiver has actually acquired a block. RX colors distinguish directly received blocks, blocks recovered from equations, the last valid QR position, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
 

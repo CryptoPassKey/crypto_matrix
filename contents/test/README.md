@@ -140,7 +140,7 @@ The RX page has an opt-in **GF(2)ガウス消去（実験・受信側のみ）**
 - Inconsistent zero-coefficient rows with non-zero payload are rejected as contradictory equations.
 - The self-test includes a rank-3 system with no degree-1 equation, proving a case where peeling stalls but Gaussian elimination can recover all source blocks.
 
-This is an experiment, not yet the default decoder. Compare the checkbox OFF/ON with the same missing-block fixture and record completion time, number of accepted packets, solver time, and device memory.A very lossy or unusually long-running transfer can reach this cap and require a reset/retry.
+This is an experiment, not yet the default decoder. Compare the checkbox OFF/ON with the same missing-block fixture and record completion time, number of accepted packets, solver time, and device memory. A very lossy or unusually long-running transfer can reach the equation cap and require a reset/retry.
 
 The sender and receiver block maps display one cell per original source block. TX uses a distinct active fill for the source block(s) referenced by the currently displayed QR; it does not claim that the remote receiver has actually acquired a block. RX colors distinguish directly received blocks, blocks recovered from equations, the last valid QR position, and missing blocks. A canvas heatmap is used instead of one DOM element per fragment so large transfers remain manageable.
 

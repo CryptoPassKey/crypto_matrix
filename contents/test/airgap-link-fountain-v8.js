@@ -189,7 +189,7 @@
     var checksum = readU32(payload, 5);
     var fragment = payload.slice(9);
     if (messageLen > MAX_MESSAGE_BYTES) throw new Error('転送サイズが試験上限64 MiBを超えています');
-    if (fragment.length < 1 || fragment.length > 800) throw new Error('Fountain片の長さが不正です');
+    if (fragment.length < 1 || fragment.length > 2800) throw new Error('Fountain片の長さが不正です');
     var expectedCount = Math.max(1, Math.ceil(messageLen / fragment.length));
     if (expectedCount !== seqLen) throw new Error('メッセージ長と元データ片数が一致しません');
     return {
@@ -208,7 +208,7 @@
     var source = bytes(input).slice();
     options = options || {};
     if (source.length > MAX_MESSAGE_BYTES) throw new Error('試験ページの上限は64 MiBです');
-    var maxFragmentLen = Math.max(80, Math.min(800, Math.floor(Number(options.chunkSize) || 180)));
+    var maxFragmentLen = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
     var fragmentCount = Math.max(1, Math.ceil(source.length / maxFragmentLen));
     // Fixed source-block geometry aligns Hybrid legacy Data/P0/P1 with LT shards.
     var fragmentLen = maxFragmentLen;

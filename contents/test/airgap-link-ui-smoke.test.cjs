@@ -170,6 +170,8 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
     }
   }
 
+  process.stdout.write('PASS V13 TX chunk-size UI regression (5 modes × 5 sizes)\\n');
+
   await getElement('copyBenchmarkText').dispatch('click');
   assert.match(getElement('rxStatus').textContent, /コピーできる計測結果はまだありません/,
     'Benchmark copy must explain the zero-results state');

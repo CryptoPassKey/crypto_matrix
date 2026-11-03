@@ -68,6 +68,7 @@ const document = {
 };
 const window = {
   document,
+  crypto: require('node:crypto').webcrypto,
   isSecureContext: false,
   addEventListener() {},
   requestAnimationFrame: callback => setTimeout(callback, 0),
@@ -89,6 +90,7 @@ for (const filename of [
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
+sandbox.MatrixQRCode = window.MatrixQRCode;
 const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v13.js'), 'utf8');
 vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
 
@@ -126,6 +128,49 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
     'A benchmark size preset must update the numeric input');
   assert.equal(getElement('benchmarkSizeRange').value, String(4 * 1024 * 1024),
     'A benchmark size preset must update the range slider');
+
+  // Exercise the real V13 UI event path: change the chunk-size control, click
+  // Prepare, and inspect the rendered block count for every TX mode.
+  const oneMiB = new Uint8Array(1024 * 1024);
+  for (let i = 0; i < oneMiB.length; i++) oneMiB[i] = (i * 73 + 19) & 0xff;
+  getElement('txFile').files = [{
+    name: 'chunk-size-regression.bin',
+    size: oneMiB.length,
+    arrayBuffer: async () => oneMiB.buffer
+  }];
+  getElement('compressionEnabled').checked = false;
+  getElement('wireFormat').value = 'base45';
+  await getElement('wireFormat').dispatch('change');
+
+  const expectedBlocks = new Map([
+    [600, 1748],
+    [800, 1311],
+    [1200, 874],
+    [1600, 656],
+    [2800, 375]
+  ]);
+  const txModes = ['legacy', 'legacy-data', 'fountain', 'hybrid', 'hybrid-data'];
+  for (const mode of txModes) {
+    getElement('transferMode').value = mode;
+    await getElement('transferMode').dispatch('change');
+    for (const [chunkSize, blocks] of expectedBlocks) {
+      getElement('chunkSizeNumber').value = String(chunkSize);
+      await getElement('chunkSizeNumber').dispatch('input');
+      assert.equal(getElement('chunkSize').value, String(chunkSize),
+        mode + ': range control must retain requested chunk size ' + chunkSize);
+      await getElement('prepareTx').dispatch('click');
+      assert.match(getElement('txStatus').textContent, /^準備完了:/,
+        mode + ' / ' + chunkSize + ': TX preparation must succeed; actual status: ' + getElement('txStatus').textContent);
+      assert.match(getElement('txBlockSummary').textContent,
+        new RegExp('元データ ' + blocks + 'ブロック'),
+        mode + ' / ' + chunkSize + ': UI block map must reflect the selected chunk size');
+      assert.match(getElement('txFrameCount').textContent,
+        new RegExp('^' + blocks + ' /'),
+        mode + ' / ' + chunkSize + ': TX frame counter must reflect the selected chunk size');
+    }
+  }
+
+  process.stdout.write('PASS V13 TX chunk-size UI regression (5 modes × 5 sizes)\\n');
 
   await getElement('copyBenchmarkText').dispatch('click');
   assert.match(getElement('rxStatus').textContent, /コピーできる計測結果はまだありません/,

@@ -62,7 +62,7 @@ Encrypted data is already close to random and normally does not compress. For en
 - RX scanner: selectable Auto / Native BarcodeDetector / ZXing-C++ WASM / jsQR
 - Auto preference: Native BarcodeDetector → ZXing-C++ WASM → jsQR
 - ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
-- Maximum source file size: 8,000,000 bytes in the UI (the protocol limits each transfer to at most 100,000 data fragments)
+- Maximum source file size: 67,108,864 bytes (64 MiB) in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 
 ## Self-test coverage
 
@@ -180,9 +180,9 @@ Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-c
 
 ## UI control smoke test
 
-`airgap-link-ui-smoke.test.cjs` runs the actual V10 UI script against a lightweight DOM stub and verifies:
+`airgap-link-ui-smoke.test.cjs` runs the actual V12 UI script against a lightweight DOM stub and verifies:
 
-- Automatic TX test button event registration and prerequisite feedback when RX benchmark mode/camera are not ready
+- Automatic TX benchmark registration and independence from remote RX camera state
 - Benchmark copy button event registration and the zero-results message
 - Visible selectable-text fallback when Clipboard API / `execCommand('copy')` is unavailable
 
@@ -192,3 +192,16 @@ The protocol test invokes this smoke test automatically. This does not replace r
 ## V11 — UI cache-bust release
 
 V11 republishes the corrected benchmark UI from V10 under the new immutable runtime filename `airgap-link-ui-v11.js`. The standalone page now loads that file, and the app Service Worker cache key is incremented to `cm-v2.20.0-airgap-link-test-lab-v11-zxing-wasm` with the V11 runtime in its precache list. This avoids reusing a previously cached V10 UI script after the V10 behavior fix. The ZXing loader remains V10 because its contents and interface are unchanged. CI checks the page/runtime filename, cache key, precache entry, and UI smoke-test target together. Real camera-to-camera testing on iPhone Safari and Android Chrome remains a separate required validation.
+
+
+## V12 — Large-payload benchmark and one-way TX/RX separation
+
+V12 adds a dedicated benchmark payload-size control to the TX panel. The range slider is adjustable in 1 KiB steps, the byte count can be entered directly, and presets are available at 1, 2, 4, 8, 16, 32, and 64 MiB. If neither a file nor text is selected, **転送データを準備** creates a deterministic pseudo-random test payload at the selected size. The automatic benchmark always uses this generated payload so the requested byte count is repeatable.
+
+The benchmark payload and protocol limit are 64 MiB. The protocol still limits a transfer to 100,000 source fragments; therefore the largest payload is available only with a sufficiently large chunk size (for example, 64 MiB needs a chunk size of at least 672 bytes). The UI rejects a setting that would exceed the fragment-count limit instead of silently truncating the data. Large transfers can consume several times the payload size in browser memory because the experiment prebuilds frame strings and fragment arrays. Increase chunk size for large payloads and monitor device memory.
+
+The TX automatic benchmark now uses the currently selected mode, chunk size, frame rate, and payload size for one timed run. It does **not** inspect the RX camera, RX checkbox, or remote readiness. The sender cannot know whether the receiver is ready because the protocol is one-way and has no ACK/status channel. Start the RX camera independently, read the static first QR, then start the TX benchmark. The TX duration is an estimate based on the selected frame rate and expected packet count; it is not a receiver-completion signal.
+
+Completed RX measurements include reconstructed transfer-payload bytes, final output-file bytes, received/total/missing source blocks, camera FPS, unique valid frames per second, decode mean/P95, and completion time. Where `performance.memory` is exposed, the run also records peak observed JavaScript heap usage and the reported heap limit. This is a JS-heap estimate only; it does not include all native camera, GPU, or WebAssembly allocations. Browsers without this API report the measurement as unavailable.
+
+The Service Worker cache key and immutable UI runtime were advanced to V12 to prevent stale V11 UI code from being reused.

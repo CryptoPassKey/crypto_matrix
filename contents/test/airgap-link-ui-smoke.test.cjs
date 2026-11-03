@@ -158,7 +158,7 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
         mode + ': range control must retain requested chunk size ' + chunkSize);
       await getElement('prepareTx').dispatch('click');
       assert.match(getElement('txStatus').textContent, /^準備完了:/,
-        mode + ' / ' + chunkSize + ': TX preparation must succeed');
+        mode + ' / ' + chunkSize + ': TX preparation must succeed; actual status: ' + getElement('txStatus').textContent);
       assert.match(getElement('txBlockSummary').textContent,
         new RegExp('元データ ' + blocks + 'ブロック'),
         mode + ' / ' + chunkSize + ': UI block map must reflect the selected chunk size');

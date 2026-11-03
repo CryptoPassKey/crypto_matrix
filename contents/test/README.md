@@ -57,7 +57,7 @@ Encrypted data is already close to random and normally does not compress. For en
 - Fragment size: 80–2,800 bytes for Base45 / 80–2,100 bytes for Base64URL (default 180 bytes)
 - Numeric input and slider share a 20-byte step; the selected wire format determines the maximum
 - QR encoder auto-selects Versions 1–40; large Base45 frames may fall back from ECC-M to ECC-L when required
-- TX frame rate: 3–30 fps (default 6 fps)
+- TX frame rate: 3–120 fps (default 6 fps)
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
 - QR canvas: 720 × 720

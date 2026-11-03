@@ -780,6 +780,32 @@
     var duplicate = await receiver.feed(fountainFrames[fountainFrames.length - 1]);
     if (!duplicate.duplicate && !duplicate.complete) throw new Error('重複フレームの処理テストに失敗しました');
 
+    // Three independent degree-2/3 equations: peeling cannot start, but GF(2)
+    // elimination has full rank and must recover all three source blocks.
+    var gaussianMessage = Uint8Array.from([1,2,3,4, 5,6,7,8, 9,10,11,12]);
+    var gaussianReceiver = new FountainReceiver();
+    gaussianReceiver.seqLen = 3;
+    gaussianReceiver.messageLen = gaussianMessage.length;
+    gaussianReceiver.fragmentLen = 4;
+    gaussianReceiver.checksum = Core.crc32(gaussianMessage);
+    var g0 = gaussianMessage.slice(0, 4);
+    var g1 = gaussianMessage.slice(4, 8);
+    var g2 = gaussianMessage.slice(8, 12);
+    var gx01 = g0.slice(); fastXor(gx01, g1, 4);
+    var gx12 = g1.slice(); fastXor(gx12, g2, 4);
+    var gx012 = gx01.slice(); fastXor(gx012, g2, 4);
+    gaussianReceiver._addEquation([0, 1], gx01);
+    gaussianReceiver._addEquation([1, 2], gx12);
+    gaussianReceiver._addEquation([0, 1, 2], gx012);
+    var gaussianStats = gaussianReceiver.runGaussianElimination();
+    if (gaussianStats.rank !== 3 || gaussianStats.recoveredBlocks !== 3 || !gaussianReceiver.isComplete()) {
+      throw new Error('GF(2)ガウス消去の全ランク復元に失敗しました');
+    }
+    var gaussianRestored = gaussianReceiver.bytes();
+    for (var gi = 0; gi < gaussianMessage.length; gi++) {
+      if (gaussianRestored[gi] !== gaussianMessage[gi]) throw new Error('GF(2)ガウス消去の復元内容が一致しません');
+    }
+
     var corrupt = fountainFrames[0].split(':');
     corrupt[3] = '00000000';
     var crcRejected = false;
@@ -802,7 +828,10 @@
       duplicate: true,
       crcTamperRejected: true,
       mixedTransferRejected: true,
-      randomAccessSeek: true
+      randomAccessSeek: true,
+      gaussianFullRankRecovery: true,
+      gaussianRank: gaussianStats.rank,
+      gaussianRecoveredBlocks: gaussianStats.recoveredBlocks
     };
   }
 

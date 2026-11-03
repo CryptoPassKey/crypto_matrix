@@ -500,6 +500,8 @@ async function main() {
     'Sparse GF(2) elimination must recover a full-rank system with no degree-1 equation');
   assert.equal(fountain.gaussianRank, 3);
   assert.equal(fountain.gaussianRecoveredBlocks, 3);
+  assert.equal(fountain.gaussianUnderdeterminedNoGuess, true,
+    'Sparse GF(2) elimination must leave free variables unknown');
 
   const hybridMessage = Uint8Array.from({ length: 20 * 128 - 37 }, (_, i) => (i * 73 + 19) & 0xff);
   const hybridPlan = globalThis.AirgapLinkCore.buildFrames(hybridMessage,

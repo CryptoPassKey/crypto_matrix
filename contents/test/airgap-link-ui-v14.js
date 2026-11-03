@@ -814,9 +814,7 @@
   $('txBlockMap').addEventListener('blur', updateTxBlockMap);
   updateControls();
 
-  function encodeQrMatrix(text) {
-    if (!window.MatrixQRCode) throw new Error('MatrixQRCode が読み込まれていません');
-    var matrix = MatrixQRCode.matrix(text);
+  function packQrMatrix(matrix) {
     var modules = matrix.length;
     var packed = new Uint8Array(Math.ceil(modules * modules / 8));
     for (var row = 0; row < modules; row++) {
@@ -827,22 +825,73 @@
         }
       }
     }
-    return { modules: modules, packed: packed };
+    return { modules: modules, packed: packed, bytes: packed.byteLength + 16 };
+  }
+
+  function encodeQrMatrix(text) {
+    if (!window.MatrixQRCode) throw new Error('MatrixQRCode が読み込まれていません');
+    return packQrMatrix(MatrixQRCode.matrix(text));
+  }
+
+  async function createQrCacheEntry(text, scratchCanvas) {
+    if (!window.MatrixQRCode) throw new Error('MatrixQRCode が読み込まれていません');
+    var matrix = MatrixQRCode.matrix(text);
+    var modules = matrix.length;
+    var total = modules + 8;
+    if (typeof createImageBitmap === 'function') {
+      scratchCanvas.width = total;
+      scratchCanvas.height = total;
+      var scratchContext = scratchCanvas.getContext('2d', { alpha: false });
+      var imageData = scratchContext.createImageData(total, total);
+      imageData.data.fill(255);
+      for (var row = 0; row < modules; row++) {
+        for (var col = 0; col < modules; col++) {
+          if (!matrix[row][col]) continue;
+          var offset = ((row + 4) * total + col + 4) * 4;
+          imageData.data[offset] = 0;
+          imageData.data[offset + 1] = 0;
+          imageData.data[offset + 2] = 0;
+        }
+      }
+      scratchContext.putImageData(imageData, 0, 0);
+      try {
+        var bitmap = await createImageBitmap(scratchCanvas);
+        return { bitmap: bitmap, width: total, height: total, bytes: total * total * 4 };
+      } catch (_) {
+        // Packed-matrix fallback remains available on browsers without a usable bitmap path.
+      }
+    }
+    return packQrMatrix(matrix);
+  }
+
+  function disposeQrCache(entries) {
+    if (!entries) return;
+    for (var i = 0; i < entries.length; i++) {
+      var qr = entries[i] && entries[i].qr;
+      if (qr && qr.bitmap && typeof qr.bitmap.close === 'function') qr.bitmap.close();
+    }
   }
 
   function renderQrMatrix(entry) {
-    if (!entry || !entry.packed) throw new Error('事前生成QRキャッシュがありません');
+    if (!entry) throw new Error('事前生成QRキャッシュがありません');
     var canvas = $('txCanvas');
     var context = canvas.getContext('2d', { alpha: false });
     var size = canvas.width;
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, size, size);
+
+    if (entry.bitmap) {
+      context.imageSmoothingEnabled = false;
+      context.drawImage(entry.bitmap, 0, 0, size, size);
+      context.imageSmoothingEnabled = true;
+      return { versionModules: entry.width - 8 };
+    }
+
     var quiet = 4;
     var modules = entry.modules;
     var total = modules + quiet * 2;
-    context.fillStyle = '#fff';
-    context.fillRect(0, 0, size, size);
     context.fillStyle = '#000';
     context.beginPath();
-
     for (var row = 0; row < modules; row++) {
       var run = -1;
       for (var col = 0; col <= modules; col++) {
@@ -868,6 +917,8 @@
   }
 
   async function prepareTxQrCache() {
+    disposeQrCache(txQrMatrixCache);
+    disposeQrCache(txFountainQrCache);
     txQrMatrixCache = [];
     txFountainQrCache = [];
     txFountainQrCacheIndex = 1;
@@ -878,6 +929,7 @@
       : (txPlan ? txPlan.frames.length : 0);
     var cache = [];
     var currentPart = txFountainPart;
+    var scratchCanvas = document.createElement('canvas');
     var startedAt = performance.now();
 
     for (var i = 0; i < total; i++) {
@@ -889,8 +941,8 @@
         frame = txPlan.frames[i];
       }
 
-      var qr = encodeQrMatrix(frame);
-      var entryBytes = qr.packed.byteLength + 16;
+      var qr = await createQrCacheEntry(frame, scratchCanvas);
+      var entryBytes = qr.bytes || (qr.packed.byteLength + 16);
       var cacheLimitReached = cache.length > 0 &&
         txQrCacheBytes + entryBytes > TX_QR_CACHE_MAX_BYTES;
       // Keep the frame already requested from the Fountain encoder; otherwise
@@ -1086,6 +1138,8 @@
       txPlan = null;
       txFountainEncoder = null;
       txFountainPart = null;
+      disposeQrCache(txQrMatrixCache);
+      disposeQrCache(txFountainQrCache);
       txQrMatrixCache = [];
       txFountainQrCache = [];
       txFountainQrCacheIndex = 1;

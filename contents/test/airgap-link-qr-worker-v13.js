@@ -79,6 +79,15 @@ function extractRoiImageData(srcBuffer, srcWidth, srcHeight, roiX, roiY, roiW, r
   return new ImageData(dstData, roiW, roiH);
 }
 
+function estimateQrRatio(pos, frameWidth) {
+  if (!pos) return null;
+  var p1 = pos.topLeft || pos.topLeftCorner;
+  var p2 = pos.topRight || pos.topRightCorner;
+  if (!p1 || !p2) return null;
+  var w = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  return Math.min(1.0, Math.max(0.0, Math.round((w / frameWidth) * 100) / 100));
+}
+
 async function decodeFrame(data) {
   var width = data.width;
   var height = data.height;
@@ -94,6 +103,7 @@ async function decodeFrame(data) {
 
   var roiImage = extractRoiImageData(buffer, width, height, roiX, roiY, roiW, roiH);
   var raw = null;
+  var qrRatio = null;
 
   // Try ZXing if available
   if (zxingApi && (scannerType === 'auto' || scannerType === 'zxing-wasm')) {
@@ -105,6 +115,7 @@ async function decodeFrame(data) {
       });
       if (roiResults && roiResults.length && roiResults[0].text) {
         raw = roiResults[0].text;
+        qrRatio = estimateQrRatio(roiResults[0].position, width);
       }
     } catch (_) {}
 
@@ -119,6 +130,7 @@ async function decodeFrame(data) {
         });
         if (fullResults && fullResults.length && fullResults[0].text) {
           raw = fullResults[0].text;
+          qrRatio = estimateQrRatio(fullResults[0].position, width);
         }
       } catch (_) {}
     }
@@ -130,6 +142,7 @@ async function decodeFrame(data) {
       var roiDecoded = jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
       if (roiDecoded && roiDecoded.data) {
         raw = roiDecoded.data;
+        qrRatio = estimateQrRatio(roiDecoded.location, width);
       }
     } catch (_) {}
 
@@ -139,12 +152,13 @@ async function decodeFrame(data) {
         var fullDecoded = jsQR(fullImageDataJs.data, fullImageDataJs.width, fullImageDataJs.height, { inversionAttempts: 'dontInvert' });
         if (fullDecoded && fullDecoded.data) {
           raw = fullDecoded.data;
+          qrRatio = estimateQrRatio(fullDecoded.location, width);
         }
       } catch (_) {}
     }
   }
 
-  return raw;
+  return { raw: raw, qrRatio: qrRatio };
 }
 
 self.onmessage = async function (e) {
@@ -172,16 +186,17 @@ self.onmessage = async function (e) {
 
   if (msg.type === 'decode') {
     var started = performance.now();
-    var raw = null;
+    var result = { raw: null, qrRatio: null };
     try {
-      raw = await decodeFrame(msg);
+      result = await decodeFrame(msg);
     } catch (_) {}
     var elapsed = performance.now() - started;
     self.postMessage({
       type: 'decode-result',
       id: msg.id,
       sessionId: msg.sessionId,
-      raw: raw,
+      raw: result.raw,
+      qrRatio: result.qrRatio,
       elapsedMs: elapsed
     });
   }

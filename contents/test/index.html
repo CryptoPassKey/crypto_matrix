@@ -92,8 +92,8 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 
-/* User-facing layout: keep diagnostic DOM available to the runtime, but do not expose tuning and block-level telemetry. */
-.controls{display:none!important}
+/* Device tuning is a normal user control: phones and cameras vary in QR readability and display cadence. */
+.controls{display:grid!important;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;padding:12px;border:1px solid #29445f;border-radius:11px;background:#091724}
 .tx-progress-meter,.tx-stats .stat:first-child,.blockmap-section,.rx-progress-stats{display:none!important}
 .progress-caption{font-size:.82rem;color:var(--muted);margin:12px 0 4px}
 </style>
@@ -132,16 +132,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  </div>
  <p id="txModeHint" class="muted">QRコードを受信側のカメラに向けてください。読み取り確認後、送信を開始します。</p>
 
- <div class="controls">
+ <div class="controls" aria-label="転送設定">
   <div>
-   <div class="range-head"><label for="chunkSize">QRの情報量</label><output id="chunkSizeValue">800 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="800" inputmode="numeric" aria-label="QRの情報量（バイト）"></div>
-   <input id="chunkSize" type="range" min="80" max="2800" step="20" value="800">
-   <small>値を大きくするとQRコードの読み取りが難しくなる場合があります。</small>
+   <div class="range-head"><label for="chunkSize">QR 1枚あたりのデータ量</label><output id="chunkSizeValue">800 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="800" inputmode="numeric" aria-label="QR 1枚あたりのデータ量（バイト）"></div>
+   <input id="chunkSize" type="range" min="80" max="2800" step="20" value="800" aria-describedby="chunkSizeHelp">
+   <small id="chunkSizeHelp">大きくすると転送は速くなりますが、読み取りにくくなります。読み取りが不安定な場合は小さくしてください。</small>
   </div>
   <div>
-   <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">10 fps</output></div>
-   <input id="fps" type="range" min="6" max="120" step="1" value="10">
-   <small>読み取りが追いつかない場合は、送信速度を下げてください。</small>
+   <div class="range-head"><label for="fps">QRの切り替え速度</label><output id="fpsValue">10 枚/秒</output></div>
+   <input id="fps" type="range" min="6" max="120" step="1" value="10" aria-describedby="fpsHelp">
+   <small id="fpsHelp">端末やカメラに合わせて調整してください。QRを読み取り損ねる場合は速度を下げてください。</small>
   </div>
  </div>
  <div style="display:none">

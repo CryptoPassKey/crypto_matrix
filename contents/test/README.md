@@ -44,7 +44,7 @@ The transfer protocol, QR payloads, and camera frames remain local. ZXing-C++ WA
 - Camera: `navigator.mediaDevices.getUserMedia`
 - Optional compression: browser-native `CompressionStream('deflate')` / `DecompressionStream('deflate')`
 
-The JavaScript reader is served through a same-origin Service Worker route and stored in a dedicated Cache Storage bucket. The WASM module is also cached there. After the first successful setup, ZXing can be initialized offline provided browser site data has not been cleared or evicted. The first ZXing load requires an Internet connection; Auto mode falls back to jsQR if the first load is offline. Frames and transferred payloads are not uploaded.
+The JavaScript reader and WASM module are served through same-origin Service Worker routes and cached as a validated pair. A partial or invalid cached pair is deleted and downloaded again. The first setup requires an Internet connection; after both assets have been cached, ZXing can initialize offline unless browser site data is cleared or evicted. The production receiver does not silently switch to jsQR: the explicit compatibility-mode switch is required before BarcodeDetector/jsQR fallback is permitted. Frames and transferred payloads are not uploaded.
 
 ## CMAL1 transport
 
@@ -84,10 +84,39 @@ Encrypted data is already close to random and normally does not compress. For en
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
 - QR canvas: 720 × 720
-- RX scanner: selectable Auto / Native BarcodeDetector / ZXing-C++ WASM / jsQR
-- Auto preference: Native BarcodeDetector → ZXing-C++ WASM → jsQR
+- RX scanner: ZXing-C++ WASM is the default; Native BarcodeDetector/jsQR are compatibility-only fallbacks
+- Compatibility mode OFF: ZXing-C++ WASM only; initialization failure is shown as an error
+- Compatibility mode ON: ZXing-C++ WASM first, then Native BarcodeDetector/jsQR when required
 - ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
 - Maximum source file size: 67,108,864 bytes (64 MiB) in the UI (the protocol limits each transfer to at most 100,000 data fragments)
+
+## ZXing worker policy tests
+
+Run with Node.js:
+
+```sh
+node --test contents/test/zxing-worker-policy.test.js
+```
+
+The tests verify that strict ZXing mode never imports or invokes jsQR, including when WASM initialization fails, and that jsQR is loaded only for explicit compatibility scanner modes.
+
+## ZXing release validation matrix
+
+The following browser/device checks are release gates and must be recorded separately from the Node worker-policy tests above:
+
+| Scenario | Expected result |
+| --- | --- |
+| First online visit with no Service Worker controller | Loader registers/waits for the scoped worker, then fetches the same-origin JS/WASM routes successfully |
+| Reload after Service Worker activation | Existing controller serves the validated cached pair |
+| GitHub Pages subpath (`/crypto_matrix/contents/`) | Worker registration, virtual asset URLs, and cache routing remain inside the deployed subpath |
+| Offline launch after a successful online setup | Cached JS/WASM pair initializes without CDN access |
+| One cached asset missing or corrupt | Both pair entries are discarded and refetched together; no partial pair is used |
+| CDN/network failure on first setup | Camera startup reports the failed asset URL, HTTP status when available, network detail, and Service Worker control state |
+| Compatibility mode OFF | ZXing-C++ WASM only; no jsQR import or decode fallback after any initialization/decode failure |
+| Compatibility mode ON | ZXing-C++ WASM is attempted first; BarcodeDetector/jsQR may be used only after a permitted fallback path |
+| Service Worker update with an older ZXing cache | New cache version is activated; stale ZXing pair cache is removed and revalidated |
+
+Required real-device coverage: **iPhone Safari** and **Android Chrome**. These camera/browser checks are not represented as passed by the automated Node tests. Record the device, OS/browser version, network state, and result before release.
 
 ## Self-test coverage
 

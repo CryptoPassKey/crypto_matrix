@@ -2488,8 +2488,7 @@ module.exports = QRCode;
       } catch (error) {
         zxingDecoder = null;
         wasmError = error;
-        // Automatic offline resilience: if WASM cannot be loaded (e.g. strict offline first boot),
-        // or if compatibility mode is checked, fall back cleanly to Native BarcodeDetector / jsQR.
+        // Fallback is permitted only when the explicit compatibility-mode switch is enabled.
       }
 
       // 2. Try Native BarcodeDetector when compatibility mode is checked

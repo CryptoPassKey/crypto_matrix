@@ -67,7 +67,7 @@ async function initZxing() {
     zxingApi = ZXingWASM;
     return zxingApi;
   } catch (err) {
-    loadJsQr();
+    // A failed ZXing initialization must never silently activate jsQR.
     throw err;
   }
 }
@@ -151,7 +151,7 @@ async function decodeFrame(data) {
   }
 
   // If still not found and jsQR is available, try jsQR
-  if (!raw && typeof jsQR === 'function') {
+  if (!raw && (scannerType === 'jsqr' || scannerType === 'native') && typeof jsQR === 'function') {
     try {
       var roiDecoded = jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
       if (roiDecoded && roiDecoded.data) {
@@ -181,21 +181,26 @@ self.onmessage = async function (e) {
 
   if (msg.type === 'init') {
     try {
-      loadJsQr();
       if (msg.scannerType === 'zxing-wasm') {
-        try {
-          await initZxing();
-        } catch (_) {}
+        // Strict mode: ZXing only. Do not import or initialize jsQR here.
+        await initZxing();
+      } else if (msg.scannerType === 'jsqr' || msg.scannerType === 'native') {
+        // Native BarcodeDetector runs on the main thread. jsQR is permitted here
+        // only because these scanner modes are selected in compatibility mode.
+        if (!loadJsQr()) throw new Error('jsQR compatibility decoder could not be loaded');
+      } else {
+        throw new Error('Unsupported scanner type: ' + msg.scannerType);
       }
       isInitialized = true;
       self.postMessage({
         type: 'init-ready',
-        success: !!(zxingApi || typeof jsQR === 'function'),
+        success: msg.scannerType === 'zxing-wasm' ? !!zxingApi :
+          (msg.scannerType === 'jsqr' || msg.scannerType === 'native') && typeof jsQR === 'function',
         hasZxing: !!zxingApi,
         hasJsQr: typeof jsQR === 'function'
       });
     } catch (err) {
-      self.postMessage({ type: 'init-ready', success: false, error: err.message });
+      self.postMessage({ type: 'init-ready', success: false, error: err && err.message ? err.message : String(err) });
     }
     return;
   }

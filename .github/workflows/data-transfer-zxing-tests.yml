@@ -1,0 +1,38 @@
+name: Data Transfer ZXing validation
+
+on:
+  pull_request:
+    paths:
+      - "contents/data-transfer-*.js"
+      - "contents/sw.js"
+      - "contents/test/**"
+      - ".github/workflows/data-transfer-zxing-tests.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "contents/data-transfer-*.js"
+      - "contents/sw.js"
+      - "contents/test/**"
+      - ".github/workflows/data-transfer-zxing-tests.yml"
+
+jobs:
+  zxing-worker-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: |
+          node --check contents/data-transfer-zxing-loader.js
+          node --check contents/sw.js
+          node --check contents/data-transfer-worker.js
+          node --check contents/data-transfer.js
+          node --check contents/test/data-transfer-zxing-loader.js
+          node --check contents/test/data-transfer-worker.js
+      - name: Test strict and compatibility worker policies
+        run: node --test contents/test/zxing-worker-policy.test.js

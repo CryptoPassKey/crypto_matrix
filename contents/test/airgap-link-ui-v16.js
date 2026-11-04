@@ -993,10 +993,14 @@
       }
       if (sourceBytes.length > MAX_BENCHMARK_BYTES) throw new Error('試験ページの上限は64 MiBです');
 
-      var wireBytes = sourceBytes;
+      var namedPayload = packNamedPayload(sourceBytes, sourceName);
+      if (namedPayload.length > MAX_BENCHMARK_BYTES) {
+        throw new Error('ファイル名メタデータを含む転送データが64 MiBを超えています');
+      }
+      var wireBytes = namedPayload;
       var compressionNote = '圧縮なし';
       if ($('compressionEnabled').checked) {
-        var packed = await Core.compressIfSmaller(sourceBytes);
+        var packed = await Core.compressIfSmaller(namedPayload);
         wireBytes = packed.bytes;
         compressionNote = packed.compressed
           ? 'Deflate: ' + formatBytes(sourceBytes.length) + ' → ' + formatBytes(wireBytes.length)
@@ -1643,7 +1647,8 @@
     benchmarkRunRecorded = true;
     $('benchmarkRunCount').textContent =
       '完了した計測: ' + benchmarkRuns.length + '件（このページを開いている間保持）';
-    $('copyBenchmarkText').disabled = false;
+    var copyBenchmarkButton = $('copyBenchmarkText');
+    if (copyBenchmarkButton) copyBenchmarkButton.disabled = false;
   }
 
   function benchmarkResultsText() {
@@ -1734,6 +1739,46 @@
   }
 
 
+  function packNamedPayload(payload, filename) {
+    if (!(payload instanceof Uint8Array)) payload = new Uint8Array(payload);
+    var nameBytes = new TextEncoder().encode(String(filename || 'received-file.bin'));
+    if (!nameBytes.length || nameBytes.length > 4096) {
+      throw new Error('ファイル名メタデータの長さが不正です');
+    }
+    var headerLength = 16;
+    var output = new Uint8Array(headerLength + nameBytes.length + payload.length);
+    output.set([0x41, 0x47, 0x4c, 0x46, 0x4e, 0x30, 0x30, 0x31], 0); // AGLFN001
+    var view = new DataView(output.buffer);
+    view.setUint32(8, nameBytes.length, false);
+    view.setUint32(12, payload.length, false);
+    output.set(nameBytes, headerLength);
+    output.set(payload, headerLength + nameBytes.length);
+    return output;
+  }
+
+  function unpackNamedPayload(value) {
+    var payload = value instanceof Uint8Array ? value : new Uint8Array(value);
+    var magic = [0x41, 0x47, 0x4c, 0x46, 0x4e, 0x30, 0x30, 0x31]; // AGLFN001
+    if (payload.length < 8 || magic.some(function (byte, index) { return payload[index] !== byte; })) {
+      return { bytes: payload.slice(), filename: null, named: false };
+    }
+    if (payload.length < 16) throw new Error('ファイル名メタデータのヘッダーが途中で切れています');
+    var view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+    var nameLength = view.getUint32(8, false);
+    var dataLength = view.getUint32(12, false);
+    if (!nameLength || nameLength > 4096 || dataLength > MAX_BENCHMARK_BYTES ||
+        16 + nameLength + dataLength !== payload.length) {
+      throw new Error('ファイル名メタデータの長さが不正です');
+    }
+    var filename = new TextDecoder('utf-8', { fatal: true })
+      .decode(payload.subarray(16, 16 + nameLength));
+    return {
+      bytes: payload.slice(16 + nameLength),
+      filename: filename,
+      named: true
+    };
+  }
+
   function safeFilename(value) {
     var name = String(value || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim();
     return name;
@@ -1821,10 +1866,9 @@
     if (receivedDone) return;
     receivedDone = true;
     var unpacked = await Core.decompressIfWrapped(bytes);
-    var finalBytes = unpacked.bytes;
-    var inputName = ($('rxFilename') ? $('rxFilename').value : '').trim();
-    var defaultName = ($('txFile') && $('txFile').files && $('txFile').files[0] ? $('txFile').files[0].name : '') || 'received-file.bin';
-    var name = safeFilename(inputName) || defaultName;
+    var named = unpackNamedPayload(unpacked.bytes);
+    var finalBytes = named.bytes;
+    var name = safeFilename(named.filename) || 'received-file.bin';
     var blob = new Blob([finalBytes], { type: 'application/octet-stream' });
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = URL.createObjectURL(blob);

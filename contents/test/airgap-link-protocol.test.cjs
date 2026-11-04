@@ -371,6 +371,33 @@ async function main() {
     'Airgap Link input and receiver sections must be displayed directly without collapsible details');
   assert(!ui.includes("copyTxTestLog').addEventListener"),
     'Removed copy-log UI must not leave a null addEventListener startup failure');
+  const packNamedPayload = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'packNamedPayload') + ')',
+    { Uint8Array, DataView, TextEncoder }
+  );
+  const unpackNamedPayload = vm.runInNewContext(
+    '(' + extractFunctionDeclaration(ui, 'unpackNamedPayload') + ')',
+    { Uint8Array, DataView, TextDecoder, MAX_BENCHMARK_BYTES: 64 * 1024 * 1024 }
+  );
+  const namedSourceBytes = Uint8Array.from([0, 1, 2, 127, 128, 255]);
+  const namedPayload = packNamedPayload(namedSourceBytes, '撮影データ 01.png');
+  const namedResult = unpackNamedPayload(namedPayload);
+  assert.equal(namedResult.named, true);
+  assert.equal(namedResult.filename, '撮影データ 01.png',
+    'UTF-8 source filename must survive the transfer envelope');
+  assert.deepEqual(Array.from(namedResult.bytes), Array.from(namedSourceBytes),
+    'Filename metadata must not alter the original file bytes');
+  const legacyNamedResult = unpackNamedPayload(namedSourceBytes);
+  assert.equal(legacyNamedResult.named, false,
+    'Previously created transfers without filename metadata must remain readable');
+  assert.deepEqual(Array.from(legacyNamedResult.bytes), Array.from(namedSourceBytes));
+  assert.throws(() => unpackNamedPayload(namedPayload.subarray(0, namedPayload.length - 1)),
+    'Truncated filename envelopes must be rejected');
+  assert(ui.includes('packNamedPayload(sourceBytes, sourceName)') &&
+    ui.includes('unpackNamedPayload(unpacked.bytes)'),
+    'Sender must package filename metadata and receiver must restore it after decompression');
+  assert(ui.includes('if (copyBenchmarkButton) copyBenchmarkButton.disabled = false;'),
+    'Completion benchmark recording must not dereference a removed copy button');
   assert(ui.includes('txFountainEncoder.seekToBlock(blockIndex)'),
     'Fountain seek must jump to the selected systematic Data packet');
   assert(ui.includes("txStage.addEventListener('click'") &&

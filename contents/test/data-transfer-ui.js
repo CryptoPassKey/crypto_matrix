@@ -2361,7 +2361,6 @@ module.exports = QRCode;
       $('txPlaceholder').classList.add('hidden');
       if ($('txInputDetails')) $('txInputDetails').open = false;
       $('playTx').disabled = false;
-      $('restartTx').disabled = false;
       $('pauseTx').disabled = true;
       updateTxPlayBadge();
       $('txPayloadSize').textContent = formatBytes(wireBytes.length);
@@ -2387,7 +2386,6 @@ module.exports = QRCode;
       txQrCacheBytes = 0;
       $('txCacheStatus').textContent = 'QR事前生成: 失敗';
       $('playTx').disabled = true;
-      $('restartTx').disabled = true;
       $('pauseTx').disabled = true;
       $('txPlaceholder').classList.remove('hidden');
       status('txStatus', 'QRコードの準備に失敗しました: ' + error.message, 'error');
@@ -2409,7 +2407,6 @@ module.exports = QRCode;
     if (txTimer) clearTimeout(txTimer);
     txTimer = 0;
     $('playTx').disabled = !(txPlan || txFountainEncoder);
-    $('restartTx').disabled = !(txPlan || txFountainEncoder);
     $('pauseTx').disabled = true;
     updateTxPlayBadge();
   }
@@ -2633,7 +2630,11 @@ module.exports = QRCode;
   $('prepareTx').addEventListener('click', prepareTx);
   $('playTx').addEventListener('click', playTx);
   $('restartTx').addEventListener('click', async function () {
-    if ((!txPlan && !txFountainEncoder) || autoTestRunning) return;
+    if (autoTestRunning) return;
+    if (!txPlan && !txFountainEncoder) {
+      status('txStatus', '先に「QRコードを準備」を実行してください。', 'info');
+      return;
+    }
     stopTx();
     txIndex = txInitialIndex;
     txHybridPhase = 'legacy';

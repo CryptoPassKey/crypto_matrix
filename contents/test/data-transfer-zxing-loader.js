@@ -6,7 +6,7 @@
   var VERSION = '3.1.6';
   var CACHE_NAME = 'data-transfer-zxing-wasm-' + VERSION;
   var SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js';
-  var SCRIPT_LOCAL_URL = 'zxing-wasm-reader-v10.js';
+  var SCRIPT_LOCAL_URL = 'data-transfer-zxing-reader.js';
   var WASM_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm';
   var loadPromise = null;
   var wasmObjectUrl = null;

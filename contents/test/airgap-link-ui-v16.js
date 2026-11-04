@@ -1844,7 +1844,6 @@
     var cameraSize = cameraSettings.width && cameraSettings.height ? cameraSettings.width + '×' + cameraSettings.height : '—';
     $('rxResultMeta').textContent = 'CRC32検証済み · 転送ID ' +
       ((activeProtocol === 'fountain' || activeProtocol === 'hybrid') ? fountainRx.id : rx.id);
-    if ($('rxCompletionFilename')) $('rxCompletionFilename').textContent = name;
     if ($('rxCompletionSize')) $('rxCompletionSize').textContent =
       formatBytes(finalBytes.length) + ' (' + finalBytes.length.toLocaleString() + ' bytes)';
     if ($('rxCompletionTime')) $('rxCompletionTime').textContent =
@@ -2580,10 +2579,6 @@
     } catch (error) {
       $('rxGaussianStatus').textContent = 'GF(2)実験エラー: ' + (error && error.message ? error.message : String(error));
     }
-  });
-  $('copyTxTestLog').addEventListener('click', function () {
-    if (!$('autoTxLog').value.trim()) return;
-    copyTextToClipboard($('autoTxLog').value, '送信条件ログをコピーしました。');
   });
   $('ingestManual').addEventListener('click', function () {
     ingest($('manualFrame').value.replace(/^[\r\n]+|[\r\n]+$/g, ''));

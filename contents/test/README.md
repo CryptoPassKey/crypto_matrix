@@ -90,6 +90,16 @@ Encrypted data is already close to random and normally does not compress. For en
 - ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
 - Maximum source file size: 67,108,864 bytes (64 MiB) in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 
+## ZXing worker policy tests
+
+Run with Node.js:
+
+\`\`\`sh
+node --test contents/test/zxing-worker-policy.test.js
+\`\`\`
+
+The tests verify that strict ZXing mode never imports or invokes jsQR, including when WASM initialization fails, and that jsQR is loaded only for explicit compatibility scanner modes.
+
 ## Self-test coverage
 
 The page's **プロトコル自己テスト** checks:

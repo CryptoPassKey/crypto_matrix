@@ -61,8 +61,7 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .map-direct{background:#20d69a}.map-recovered{background:#ffc247}.map-active{background:transparent;border:2px solid #07111d;outline:2px solid #fff}.map-tx-current{background:#00e5ff;border:2px solid #07111d;outline:2px solid #fff}.map-missing{background:#405a75}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:0}}
-.tx-inputs,.rx-save-name{margin:8px 0;padding:8px 10px;border:1px solid #36536f;border-radius:10px;background:#091724}
-.tx-inputs summary,.rx-save-name summary{cursor:pointer;font-weight:700;color:#cfe3f7}
+.tx-inputs{margin:8px 0}
 .tx-inputs textarea{min-height:72px}
 .completion-card{margin:14px 0;padding:15px;border:1px solid #2b9b7f;border-radius:14px;background:linear-gradient(145deg,#102d2b,#102235);box-shadow:0 10px 28px #0004}
 .completion-card h3{margin:0 0 10px;color:#78f0c5;font-size:1.1rem}
@@ -113,14 +112,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
  <h2 id="tx-title">TX — 送信</h2>
- <details id="txInputDetails" class="tx-inputs" open>
-  <summary>送信するファイル / テキスト</summary>
+ <div id="txInputDetails" class="tx-inputs">
   <label for="txFile">ファイル</label>
   <input id="txFile" type="file">
   <div class="muted" style="text-align:center;margin:3px">または</div>
   <label for="txText">テキスト</label>
   <textarea id="txText" placeholder="送信するテキストを入力"></textarea>
- </details>
+ </div>
  <input id="transferMode" type="hidden" value="hybrid-data">
  <div style="display:none">
   <label for="wireFormat">QRペイロード形式</label>
@@ -233,15 +231,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <span id="benchmarkRunCount"></span>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
- <details class="rx-save-name">
-  <summary>保存ファイル名を変更</summary>
-  <label for="rxFilename">保存ファイル名（送信元の名前は転送されません）</label>
-  <input id="rxFilename" type="text" placeholder="空欄の場合 received-file.bin" autocomplete="off">
- </details>
- <section id="rxCompletionCard" class="completion-card hidden" aria-live="polite">
+  <section id="rxCompletionCard" class="completion-card hidden" aria-live="polite">
   <h3>転送完了</h3>
   <dl>
-   <div><dt>ファイル名</dt><dd id="rxCompletionFilename">—</dd></div>
    <div><dt>データサイズ</dt><dd id="rxCompletionSize">—</dd></div>
    <div><dt>所要時間</dt><dd id="rxCompletionTime">—</dd></div>
    <div><dt>実効速度</dt><dd id="rxCompletionSpeed">—</dd></div>

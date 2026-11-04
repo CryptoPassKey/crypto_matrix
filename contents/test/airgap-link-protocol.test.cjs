@@ -364,6 +364,13 @@ async function main() {
   assert(!page.includes('id="autoTxTest"') && !page.includes('id="autoTxLog"') &&
     !page.includes('id="copyTxTestLog"'),
     'Hidden automatic benchmark DOM must be removed with the test controls');
+  assert(!page.includes('保存ファイル名') && !page.includes('rxFilename') &&
+    !page.includes('rxCompletionFilename') && !page.includes('received-file.bin'),
+    'Receiver filename customization and filename display must be absent from the production UI');
+  assert(!page.includes('<details') && !page.includes('<summary'),
+    'Airgap Link input and receiver sections must be displayed directly without collapsible details');
+  assert(!ui.includes("copyTxTestLog').addEventListener"),
+    'Removed copy-log UI must not leave a null addEventListener startup failure');
   assert(ui.includes('txFountainEncoder.seekToBlock(blockIndex)'),
     'Fountain seek must jump to the selected systematic Data packet');
   assert(ui.includes("txStage.addEventListener('click'") &&

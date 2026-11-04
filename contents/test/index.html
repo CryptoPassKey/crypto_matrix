@@ -186,10 +186,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <p class="muted" style="margin-top:-4px">送信側に表示されたQRコードを読み取ってください。読み取り確認後、送信側で送信開始を押します。</p>
  <div class="hidden" aria-hidden="true">
   <select id="rxScanner"><option value="zxing-wasm" selected></option></select>
-  <input id="rxAllowFallback" type="checkbox">
   <select id="rxResolution"><option value="640x480" selected>640x480</option></select>
   <span id="rxCameraSettings"></span><span id="rxObservedFps"></span><span id="rxSpeedRecommendation"></span>
  </div>
+ <div class="checkrow" style="margin:10px 0 6px">
+  <label for="rxAllowFallback"><input id="rxAllowFallback" type="checkbox"> 互換モード（読み取り方式を自動切り替え）</label>
+ </div>
+ <small>通常はZXing-C++ WASM（SIMD）を使用します。起動できない場合、互換モードONで Native BarcodeDetector → jsQR の順に切り替えます。</small>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラを起動</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
@@ -216,8 +219,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
  </div>
  <div class="hidden" aria-hidden="true">
-  <span id="rxBlockSummary"></span><span id="scannerMode"></span><span id="txFrameInfo"></span>
+  <span id="rxBlockSummary"></span><span id="txFrameInfo"></span>
  </div>
+ <p id="scannerMode" class="status info" aria-live="polite">読み取り方式: カメラ起動時に判定します</p>
  <p class="progress-caption">受信状況</p>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid rx-progress-stats">

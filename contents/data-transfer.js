@@ -2807,6 +2807,7 @@ module.exports = QRCode;
             } else {
               scannerType = 'jsqr';
               if (!rxWorkerReady) {
+                rxWorkerFailed = false;
                 var fallbackReady = await initQrWorker();
                 if (!fallbackReady) throw new Error('互換モードのjsQR Workerを初期化できませんでした');
               }

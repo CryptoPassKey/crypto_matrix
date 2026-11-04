@@ -201,8 +201,10 @@ async function main() {
   assert(page.includes('QRの情報量') && !page.includes('チャンクサイズ') &&
     ui.includes("+ ' 枚/秒'") && !ui.includes("+ ' fps'"),
     'TX controls must use plain Japanese labels and units rather than implementation jargon');
-  assert(!page.includes('フレーム待機中') && page.includes('QRコードの表示待ち'),
-    'TX must use plain-language QR status text');
+  assert(!page.includes('フレーム待機中') && !page.includes('QRコードの表示待ち') &&
+    !page.includes('読み取り方式') && !page.includes('ZXing-C++ WASM') &&
+    !page.includes('Web Worker非同期') && !page.includes('最後に読取'),
+    'Production UI must hide scanner implementation details and redundant status copy');
   assert(!page.includes('80〜2,800B') && !page.includes('800〜1,000B') &&
     !page.includes('6〜120 fps') && !page.includes('10〜12 fps'),
     'Production UI must not expose implementation ranges or device-specific tuning recommendations');
@@ -212,11 +214,11 @@ async function main() {
     'Production UI must not expose internal transfer algorithm names or sequence counters');
   assert(!ui.includes("'元データ ' + total + 'ブロック") &&
     !ui.includes("'LT seq ' + fountainPacket.seqNum") &&
-    ui.includes("'受信したデータの状態を表示しています'"),
+    !ui.includes("'受信したデータの状態を表示しています'"),
     'RX block status must not expose internal packet and repair diagnostics');
   assert(ui.includes("$('txFrameCountLabel').textContent = '送信状態'") &&
-    ui.includes("$('txFrameInfo').textContent = 'QRコードを表示しています。'"),
-    'TX progress labels must remain understandable without protocol terminology');
+    !ui.includes("'QRコードを表示しています。'"),
+    'TX progress must not repeat an explanation of the visible QR code');
   assert(page.includes('<input id="transferMode" type="hidden" value="hybrid-data">') &&
     !page.includes('<select id="transferMode"'),
     'Production transport must be fixed to Data-only + LT without a selector');
@@ -234,8 +236,9 @@ async function main() {
   const rxSectionStart = page.indexOf('class="blockmap-section rx-blockmap"');
   const rxSectionEnd = page.indexOf('<p id="rxStatus"', rxSectionStart);
   const rxSection = page.slice(rxSectionStart, rxSectionEnd);
-  assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') && rxSection.includes('map-active'),
-    'RX map must retain acquisition state legend');
+  assert(rxSection.includes('直接取得') && rxSection.includes('復元済み') && rxSection.includes('未取得') &&
+    !rxSection.includes('最後に読取') && !rxSection.includes('map-active'),
+    'RX map must show acquisition/recovery state without a last-read marker');
   const wire = globalThis.AirgapLinkWire;
   const base45Sample = Uint8Array.from([0, 44, 0, 36, 0, 45, 0, 46, 255, 0, 128, 1]);
   const base45Text = wire.encodeBase45(base45Sample);
@@ -596,6 +599,9 @@ async function main() {
   const firstRepair = await hybridEncoder.nextPart();
   assert.equal(firstRepair.seqNum, hybridEncoder.seqLen + 1);
   assert.equal(firstRepair.direct, false);
+  assert.equal(firstRepair.data.length, hybridPlan.chunkSize,
+    'The first repair frame must carry a full fragment, not an empty transition marker');
+  assert(firstRepair.frame.length > 0, 'The first repair frame must contain a complete encoded packet');
   const repairMetadata = globalThis.AirgapLinkFountain.parseFrame(firstRepair.frame);
   const hybridReceiver = new globalThis.AirgapLinkFountain.Receiver();
   for (const [index, shard] of legacyReceiver.shards.entries()) {

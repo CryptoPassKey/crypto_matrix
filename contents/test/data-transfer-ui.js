@@ -2369,7 +2369,7 @@ module.exports = QRCode;
       updateTxBlockMap();
       status('txStatus',
         '準備完了: ' + sourceName + ' · ' + formatBytes(sourceBytes.length) +
-        '。先頭QRを受信側で読み取ってから再生してください。',
+        '。先頭QRを静止表示しています。RXで読み取り確認後に再生してください。',
         'ok');
       return true;
     } catch (error) {
@@ -3244,7 +3244,7 @@ module.exports = QRCode;
         if (targetBox) targetBox.style.display = 'none';
         status('rxStatus', '2枚目の有効なQRを受信しました。ここから転送時間を計測します。', 'ok');
       } else if (uniqueFrameCount <= 1) {
-        status('rxStatus', '先頭QRを確認しました。送信側で再生を開始してください。途中参加は対象外です。', 'ok');
+        status('rxStatus', '先頭QRを確認しました。TX側で再生を開始してください。2枚目の有効なQRから転送時間を計測します。途中参加は対象外です。', 'ok');
       } else {
         var modeLabel = activeProtocol === 'hybrid' ? 'LT Hybrid（P0/P1取得分 + LT修復）'
           : isFountain ? 'Pure LTファウンテン' : 'CMAL1';

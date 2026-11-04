@@ -104,7 +104,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <span class="pill">DATA TRANSFER · TEST LAB</span>
 </header>
 
-<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。受信側で先頭QRを読み取ったら、送信側の再生を開始してください。片方向転送のため、受信確認は送信側へ返りません。</div>
+<div class="note">
+ <strong>初回QR待ち — 転送開始手順</strong>
+ <ol>
+  <li>TXで「転送データを準備」すると、先頭QRが静止表示されます。</li>
+  <li>RXでカメラを開始し、TXに表示された先頭QRを読み取ります。</li>
+  <li>RXに確認メッセージが表示されたら、TXで再生を開始します。</li>
+  <li>2枚目以降の最初の有効なQRを受信した時点から転送時間を計測します。</li>
+ </ol>
+ 最初のQRは開始確認専用です。途中参加には対応しません。片方向転送のため、受信確認はTXへ返りません。
+</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
@@ -125,7 +134,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">受信側で先頭QRを読み取ってから、送信を開始してください。</p>
+ <p id="txModeHint" class="muted">先頭QRを静止表示します。RXで読み取り確認後に再生を開始してください。</p>
 
  <div class="controls">
   <div>
@@ -178,7 +187,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 <section class="panel" aria-labelledby="rx-title">
  <h2 id="rx-title">RX — 受信</h2>
- <p class="muted" style="margin-top:-4px">送信側の先頭QRを読み取ると受信を開始します。先頭QRを確認してから送信側の再生を開始してください。</p>
+ <p class="muted" style="margin-top:-4px">TXの先頭QRが静止表示されている状態で読み取ってください。確認後にTXの再生を開始します。2枚目の有効なQRから転送時間を計測します。</p>
  <div class="hidden" aria-hidden="true">
   <select id="rxScanner"><option value="zxing-wasm" selected></option></select>
   <input id="rxAllowFallback" type="checkbox">

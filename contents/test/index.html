@@ -92,9 +92,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 
-/* Device tuning is a normal user control: phones and cameras vary in QR readability and display cadence. */
+/* Device tuning and block maps are user-facing controls: device performance varies, and block maps make transfer progress visible. */
 .controls{display:grid!important;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;padding:12px;border:1px solid #29445f;border-radius:11px;background:#091724}
-.tx-progress-meter,.tx-stats .stat:first-child,.blockmap-section,.rx-progress-stats{display:none!important}
+.tx-progress-meter,.tx-stats .stat:first-child,.rx-progress-stats{display:none!important}
 .progress-caption{font-size:.82rem;color:var(--muted);margin:12px 0 4px}
 </style>
 <script src="../vendor/jsQR.js"></script>

@@ -2880,7 +2880,8 @@ module.exports = QRCode;
         var fullDecoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'attemptBoth' });
         if (fullDecoded && Wire.isAirgapFrame(fullDecoded.data)) return fullDecoded.data;
       }
-
+      return null;
+    }
 
     async function scanTick() {
       if (!stream || scanBusy || rxWorkerBusy || receivedDone) return;

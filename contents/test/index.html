@@ -111,11 +111,11 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
  <label for="transferMode">転送方式</label>
  <select id="transferMode" class="mode-select">
-  <option value="hybrid-data" selected>Hybrid — Dataのみを1周 → LT修復（推奨・最高速）</option>
-  <option value="fountain">Pure LT Fountain — Systematic + XOR修復</option>
-  <option value="hybrid">LT Hybrid — Data + P0/P1を1周 → LT修復（比較用）</option>
-  <option value="legacy">Legacy — Data + P0/P1</option>
-  <option value="legacy-data">Legacy — Dataのみ（比較用）</option>
+  <option value="hybrid-data" selected>Hybrid — 順次データ＋LT修復（推奨・最高速）</option>
+  <option value="fountain">Pure LT Fountain — 全編XOR噴水符号</option>
+  <option value="hybrid" style="display:none">LT Hybrid (互換)</option>
+  <option value="legacy" style="display:none">Legacy (互換)</option>
+  <option value="legacy-data" style="display:none">Legacy Data (互換)</option>
  </select>
  <div style="display:none">
   <label for="wireFormat">QRペイロード形式</label>
@@ -125,7 +125,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。</p>
+ <p id="txModeHint" class="muted">Hybrid: 順次データを1周送信後、未取得ブロックをLT噴水符号で即時補完します。</p>
 
  <div class="controls">
   <div>
@@ -134,34 +134,20 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
    <small>1フレームの元データ量（80〜2,800B。iPhone/Pixel実機推奨: 800〜1,000B）。大きいほどQR密度が上がり、読み取り難度も上がります。</small>
   </div>
   <div>
-   <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">15 fps</output></div>
-   <input id="fps" type="range" min="6" max="120" step="1" value="15">
-   <small>表示フレームの切り替え目標値（6〜120 fps。推奨: 12〜20 fps。高リフレッシュレート対応ディスプレイならさらに上限アップ可能）。</small>
+   <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">10 fps</output></div>
+   <input id="fps" type="range" min="6" max="120" step="1" value="10">
+   <small>表示フレームの切り替え目標値（6〜120 fps。Pixel/Android実機推奨: 10〜12 fps）。</small>
   </div>
  </div>
- <div class="checkrow" style="margin:6px 0 4px">
-  <label><input id="autoFpsEnabled" type="checkbox"> 送信速度の自動適応制御（送信端末自身のQR生成・描画負荷だけで調整）</label>
- </div>
- <div id="autoFpsControls" class="auto-fps-controls" style="display:none;margin-bottom:10px;padding:8px 12px;background:#f8f9fa;border:1px solid #dadce0;border-radius:6px">
-  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-   <div>
-    <label for="minFps" style="font-size:0.85em;display:block">下限 (min)</label>
-    <input id="minFps" type="number" min="1" max="120" value="3" style="width:64px" aria-label="自動速度調整の下限FPS">
-   </div>
-   <div>
-    <label for="maxFps" style="font-size:0.85em;display:block">上限 (max)</label>
-    <input id="maxFps" type="number" min="5" max="120" value="24" style="width:64px" aria-label="自動速度調整の上限FPS">
-   </div>
-   <div style="flex:1;min-width:180px">
-    <span style="font-size:0.85em;color:#555">TXローカル適応状態: </span>
-    <strong id="autoFpsStatus" style="font-size:0.85em;color:#1a73e8">待機中</strong>
-   </div>
+ <div style="display:none">
+  <input id="autoFpsEnabled" type="checkbox">
+  <div id="autoFpsControls">
+   <input id="minFps" type="number" value="3">
+   <input id="maxFps" type="number" value="24">
+   <strong id="autoFpsStatus">待機中</strong>
   </div>
-  <small style="display:block;margin-top:4px;color:#666">TX端末のQR生成時間を測定して送信FPSを調整します。RX側のカメラ・デコード・復元状況はTX速度に影響しません。</small>
- </div>
- <div class="checkrow">
-  <label><input id="parityEnabled" type="checkbox" checked> 2消失訂正パリティ（8片ごと）</label>
-  <label><input id="compressionEnabled" type="checkbox"> Deflate圧縮を試す</label>
+  <input id="parityEnabled" type="checkbox" checked>
+  <input id="compressionEnabled" type="checkbox" checked>
  </div>
  <div class="row">
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
@@ -203,12 +189,15 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。2枚目の有効なQRを読み込んだ時点から転送時間を計測します。同じQRの再読込は数えません。途中参加は受け付けません。</p>
  <label for="rxScanner">RX読み取り方式</label>
   <select id="rxScanner" class="mode-select">
-   <option value="auto" selected>自動（ZXing-C++ WASM → Native → jsQR）</option>
-   <option value="zxing-wasm">ZXing-C++ WASM 3.1.6（最高速・推奨）</option>
-   <option value="native">Native BarcodeDetector（ブラウザ組込）</option>
+   <option value="zxing-wasm" selected>ZXing-C++ WASM 3.1.6（最高速・推奨）</option>
+   <option value="auto">自動判定</option>
+   <option value="native">Native BarcodeDetector（ブラウザ組込・Androidでは低速）</option>
    <option value="jsqr">jsQR（純JSフォールバック）</option>
   </select>
-  <small>ZXingは初回起動時にJavaScriptとWASM（約1.1MB）を取得し、端末内にキャッシュします。初回準備後はオフラインでも利用できます。</small>
+  <div class="checkrow" style="margin:4px 0 6px">
+   <label><input id="rxAllowFallback" type="checkbox"> 互換フォールバックを許可（WASM利用不可端末のみNative/jsQRを使用）</label>
+  </div>
+  <small>ZXing WASMはAndroid/iOS/PCの全環境で最高速かつ決定論的に動作します。</small>
   <label for="rxResolution">RXカメラ解像度</label>
  <select id="rxResolution" class="mode-select">
   <option value="640x480" selected>640 × 480（推奨・最安定・高FPS）</option>
@@ -223,7 +212,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
-  <label class="checkrow"><input id="autoBenchmarkReset" type="checkbox"> ベンチマーク自動受信（完了後に計測保存・自動リセット）</label>
+  <div style="display:none"><input id="autoBenchmarkReset" type="checkbox"></div>
   <details style="margin-top:6px;font-size:0.85em;color:#666">
    <summary style="cursor:pointer;color:#555">高度な復元設定（GF(2) ガウス消去・実験）</summary>
    <div style="padding:6px 0">
@@ -233,21 +222,24 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
    </div>
   </details>
  </div>
- <div id="rxDistanceGuide" class="distance-guide" style="display:none;margin:8px 0;padding:10px 14px;border-radius:8px;background:#0c1926;border:1px solid #1f3a56;transition:all .2s ease">
+ <div id="rxDistanceGuide" class="distance-guide" style="margin:10px 0;padding:12px 14px;border-radius:10px;background:#0d2137;border:1px solid #1e456e;box-shadow:0 4px 14px rgba(0,0,0,0.25);transition:all .2s ease">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-   <div style="font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:6px">
-    <span id="guideIcon">📏</span>
-    <span id="guideDistanceText">カメラをQRコードに向けてください</span>
+   <div style="font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:7px">
+    <span id="guideIcon" style="font-size:1.2rem">📷</span>
+    <span id="guideDistanceText">距離＆検出力ガイド: カメラを開始して先頭QRをかざしてください</span>
    </div>
-   <div id="guideScoreBadge" style="padding:2px 8px;border-radius:12px;font-size:0.8rem;font-weight:700;background:#162b40;color:#8ab4f8">検出力: —</div>
+   <div id="guideScoreBadge" style="padding:3px 10px;border-radius:12px;font-size:0.8rem;font-weight:700;background:#162b40;color:#8ab4f8;white-space:nowrap">待機中</div>
   </div>
-  <div style="height:6px;width:100%;background:#162b40;border-radius:3px;overflow:hidden">
-   <div id="guideMeterBar" style="height:100%;width:0%;background:#8ab4f8;border-radius:3px;transition:width .2s ease, background .2s ease"></div>
+  <div style="height:8px;width:100%;background:#162b40;border-radius:4px;overflow:hidden">
+   <div id="guideMeterBar" style="height:100%;width:0%;background:#8ab4f8;border-radius:4px;transition:width .2s ease, background .2s ease"></div>
   </div>
-  <small id="guideHint" style="display:block;margin-top:5px;color:#9aa0a6;font-size:0.8rem">先頭QRの読取中に最適な距離・角度を調整してください（2枚目受信で自動的に非表示になります）</small>
+  <small id="guideHint" style="display:block;margin-top:6px;color:#9aa0a6;font-size:0.8rem">カメラ開始後、QRコードとの最適な距離（画面占有率30〜70%）と検出力をリアルタイムに表示します（2枚目受信で自動的に非表示になります）</small>
  </div>
  <div class="camera-stage" aria-label="受信カメラ映像">
   <video id="camera" playsinline muted autoplay></video>
+  <div id="rxCameraTargetBox" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(70%, 280px);aspect-ratio:1;border:2px dashed rgba(100,200,255,0.7);border-radius:16px;pointer-events:none;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 9999px rgba(0,0,0,0.3);transition:border-color .2s ease, transform .2s ease">
+   <span id="rxTargetBoxLabel" style="background:rgba(0,0,0,0.75);color:#8ab4f8;font-size:0.75rem;padding:3px 8px;border-radius:6px;font-weight:700">QRをこの枠に合わせてください</span>
+  </div>
  </div>
  <canvas id="scanCanvas"></canvas>
  <div class="blockmap-section rx-blockmap">
@@ -286,17 +278,19 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <small id="benchmarkRunCount" class="muted">完了した計測: 0件（このページを開いている間保持）</small>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
- <label for="rxFilename">保存ファイル名</label>
- <input id="rxFilename" type="text" value="airgap-link-received.bin" autocomplete="off">
+ <label for="rxFilename">保存ファイル名（元ファイル名または任意）</label>
+ <input id="rxFilename" type="text" value="airgap-link-received.bin" placeholder="airgap-link-received.bin（任意に変更可能）" autocomplete="off">
  <div class="row">
   <a id="downloadResult" class="button-link hidden" download="airgap-link-received.bin">復元ファイルを保存</a>
  </div>
  <p id="rxResultMeta" class="muted"></p>
- <div class="section-rule"></div>
- <h3>手動フレーム入力（デバッグ）</h3>
- <textarea id="manualFrame" placeholder="CMAL1フレームを貼り付け"></textarea>
- <button id="ingestManual" type="button">この1フレームを受信</button>
- <p class="muted">カメラが使えない場合や、CRC・順不同処理の確認に使用します。</p>
+ <div style="display:none">
+  <div class="section-rule"></div>
+  <h3>手動フレーム入力（デバッグ）</h3>
+  <textarea id="manualFrame" placeholder="CMAL1フレームを貼り付け"></textarea>
+  <button id="ingestManual" type="button">この1フレームを受信</button>
+  <p class="muted">カメラが使えない場合や、CRC・順不同処理の確認に使用します。</p>
+ </div>
 </section>
 </div>
 

@@ -1019,6 +1019,9 @@
         }
       }
       if (sourceBytes.length > MAX_BENCHMARK_BYTES) throw new Error('試験ページの上限は64 MiBです');
+      if (sourceName && $('rxFilename') && (!$('rxFilename').value || $('rxFilename').value === 'airgap-link-received.bin')) {
+        $('rxFilename').value = sourceName;
+      }
 
       var wireBytes = sourceBytes;
       var compressionNote = '圧縮なし';
@@ -1471,11 +1474,7 @@
     transferTiming.frameCount = 0;
     var guide = $('rxDistanceGuide');
     if (guide) {
-      if (stream) {
-        updateDistanceGuide(false, null, 0);
-      } else {
-        guide.style.display = 'none';
-      }
+      updateDistanceGuide(false, null, 0);
     }
     scanBusy = false;
     scanLatestPresentedFrames = null;
@@ -1806,7 +1805,8 @@
     receivedDone = true;
     var unpacked = await Core.decompressIfWrapped(bytes);
     var finalBytes = unpacked.bytes;
-    var name = safeFilename($('rxFilename').value);
+    var inputName = ($('rxFilename') ? $('rxFilename').value : '').trim();
+    var name = safeFilename(inputName || 'airgap-link-received.bin');
     var blob = new Blob([finalBytes], { type: 'application/octet-stream' });
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = URL.createObjectURL(blob);
@@ -1926,6 +1926,8 @@
       if (transferTimerStarted) {
         var guide = $('rxDistanceGuide');
         if (guide) guide.style.display = 'none';
+        var targetBox = $('rxCameraTargetBox');
+        if (targetBox) targetBox.style.display = 'none';
         status('rxStatus', '2枚目の有効なQRを受信しました。ここから転送時間を計測します。', 'ok');
       } else if (uniqueFrameCount <= 1) {
         status('rxStatus', '先頭QRを確認しました。送信側で再生を開始してください。途中参加は対象外です。', 'ok');
@@ -1950,7 +1952,8 @@
     detector = null;
     zxingDecoder = null;
     scannerType = '';
-    scannerPreference = $('rxScanner') ? $('rxScanner').value : 'auto';
+    scannerPreference = $('rxScanner') ? $('rxScanner').value : 'zxing-wasm';
+    var allowFallback = $('rxAllowFallback') ? $('rxAllowFallback').checked : false;
     var wasmError = null;
     var nativeError = null;
 
@@ -1968,28 +1971,29 @@
           throw new Error('ZXing WASMのreadBarcodes APIが見つかりません');
         }
         scannerType = 'zxing-wasm';
-        scannerName = 'ZXing-C++ WASM 3.1.6';
+        scannerName = 'ZXing-C++ WASM 3.1.6（最高速）';
         $('scannerMode').textContent = '読み取り方式: ' + scannerName;
         $('scannerMode').className = 'status info';
         return;
       } catch (error) {
         zxingDecoder = null;
         wasmError = error;
-        if (scannerPreference === 'zxing-wasm') {
-          throw new Error('ZXing-C++ WASMを起動できません: ' + error.message);
+        // フォールバック未許可時は遅いNativeに勝手に落とさずエラー提示
+        if (!allowFallback && scannerPreference === 'zxing-wasm') {
+          throw new Error('ZXing-C++ WASMを起動できません: ' + error.message + '（互換フォールバックをONにしてください）');
         }
       }
     }
 
-    // 2. Native BarcodeDetector へのフォールバック
-    if (scannerPreference === 'auto' || scannerPreference === 'native') {
+    // 2. 互換フォールバックが許可されている場合、または明示的に指定された場合のみ Native / jsQR を試行
+    if (scannerPreference === 'native' || (allowFallback && (scannerPreference === 'auto' || scannerPreference === 'zxing-wasm'))) {
       if (typeof window.BarcodeDetector === 'function') {
         try {
           var formats = await window.BarcodeDetector.getSupportedFormats();
           if (formats.indexOf('qr_code') !== -1) {
             detector = new window.BarcodeDetector({ formats: ['qr_code'] });
             scannerType = 'native';
-            scannerName = 'Native BarcodeDetector' + (scannerPreference === 'auto' ? '（WASM代替）' : '');
+            scannerName = 'Native BarcodeDetector' + (scannerPreference === 'auto' ? '（互換フォールバック）' : '');
           }
         } catch (error) {
           nativeError = error;
@@ -2009,37 +2013,59 @@
     }
 
     // 3. 最終フォールバック: jsQR
-    if (scannerPreference !== 'jsqr' && scannerPreference !== 'auto') {
-      throw new Error('未対応の読み取り方式です');
+    if (scannerPreference === 'jsqr' || (allowFallback && (scannerPreference === 'auto' || scannerPreference === 'zxing-wasm'))) {
+      if (typeof window.jsQR !== 'function') {
+        throw new Error('jsQR.jsを読み込めませんでした');
+      }
+      scannerType = 'jsqr';
+      scannerName = scannerPreference === 'jsqr' ? 'jsQR（指定）' : 'jsQR（最終フォールバック）';
+      var failReason = wasmError ? ' · WASM利用不可: ' + wasmError.message : (nativeError ? ' · Native利用不可: ' + nativeError.message : '');
+      $('scannerMode').textContent = '読み取り方式: ' + scannerName + failReason;
+      $('scannerMode').className = 'status info';
+      return;
     }
-    if (typeof window.jsQR !== 'function') {
-      throw new Error('jsQR.jsを読み込めませんでした');
-    }
-    scannerType = 'jsqr';
-    scannerName = scannerPreference === 'auto' ? 'jsQR fallback' : 'jsQR（指定）';
-    var failReason = wasmError ? ' · WASM利用不可: ' + wasmError.message : (nativeError ? ' · Native利用不可: ' + nativeError.message : '');
-    $('scannerMode').textContent = '読み取り方式: ' + scannerName +
-      (scannerPreference === 'auto' ? failReason : '');
-    $('scannerMode').className = 'status info';
+
+    throw new Error('読み取り方式を初期化できませんでした。ZXing WASMが動かない環境の場合は「互換フォールバックを許可」にチェックを入れてください');
   }
 
   function updateDistanceGuide(isHit, qrRatio, decodeElapsed) {
     var guide = $('rxDistanceGuide');
-    if (!guide || (transferTiming && transferTiming.startedAt !== null)) {
+    var targetBox = $('rxCameraTargetBox');
+    var targetLabel = $('rxTargetBoxLabel');
+
+    if (transferTiming && transferTiming.startedAt !== null) {
       if (guide) guide.style.display = 'none';
+      if (targetBox) targetBox.style.display = 'none';
       return;
     }
-    if (!stream) {
-      guide.style.display = 'none';
-      return;
-    }
-    guide.style.display = 'block';
+    if (guide) guide.style.display = 'block';
+    if (targetBox) targetBox.style.display = stream ? 'flex' : 'none';
 
     var icon = $('guideIcon');
     var text = $('guideDistanceText');
     var badge = $('guideScoreBadge');
     var bar = $('guideMeterBar');
     var hint = $('guideHint');
+
+    if (!stream) {
+      if (icon) icon.textContent = '📷';
+      if (text) text.textContent = '距離＆検出力ガイド: カメラを開始して先頭QRをかざしてください';
+      if (badge) {
+        badge.textContent = '待機中';
+        badge.style.background = '#162b40';
+        badge.style.color = '#8ab4f8';
+      }
+      if (bar) {
+        bar.style.width = '0%';
+        bar.style.background = '#8ab4f8';
+      }
+      if (guide) {
+        guide.style.background = '#0d2137';
+        guide.style.borderColor = '#1e456e';
+      }
+      if (hint) hint.textContent = 'カメラ開始後、QRコードとの最適な距離（画面占有率30〜70%）と検出力をリアルタイムに表示します（2枚目受信で自動的に非表示になります）';
+      return;
+    }
 
     if (!isHit) {
       if (text) text.textContent = 'カメラをQRコードに向けてください（探索中…）';
@@ -2057,6 +2083,11 @@
         guide.style.background = '#0c1926';
         guide.style.borderColor = '#1f3a56';
       }
+      if (targetBox) {
+        targetBox.style.borderColor = 'rgba(100,200,255,0.7)';
+        targetBox.style.borderStyle = 'dashed';
+      }
+      if (targetLabel) targetLabel.textContent = 'QRをこの枠に合わせてください';
       return;
     }
 
@@ -2079,6 +2110,11 @@
         guide.style.background = '#1f1a08';
         guide.style.borderColor = '#594408';
       }
+      if (targetBox) {
+        targetBox.style.borderColor = '#fdd663';
+        targetBox.style.borderStyle = 'dashed';
+      }
+      if (targetLabel) targetLabel.textContent = 'もう少し近づけてください';
     } else if (ratio > 0.72) {
       if (icon) icon.textContent = '⚠️';
       if (text) text.textContent = '近すぎます — 少し離してください（画面幅の ' + pct + '%）';
@@ -2095,6 +2131,11 @@
         guide.style.background = '#1f1a08';
         guide.style.borderColor = '#594408';
       }
+      if (targetBox) {
+        targetBox.style.borderColor = '#fdd663';
+        targetBox.style.borderStyle = 'dashed';
+      }
+      if (targetLabel) targetLabel.textContent = '少し離してください';
     } else {
       var speedBonus = decodeElapsed < 25 ? '爆速' : '良好';
       if (icon) icon.textContent = '🎯';
@@ -2112,6 +2153,11 @@
         guide.style.background = '#081d11';
         guide.style.borderColor = '#1a5c32';
       }
+      if (targetBox) {
+        targetBox.style.borderColor = '#27bd8d';
+        targetBox.style.borderStyle = 'solid';
+      }
+      if (targetLabel) targetLabel.textContent = '🎯 最適な距離です！';
     }
 
     if (hint) {
@@ -2346,13 +2392,12 @@
   function stopCamera() {
     cancelScanSchedule();
     stopCameraFpsMeasurement();
-    var guide = $('rxDistanceGuide');
-    if (guide) guide.style.display = 'none';
     rxScanSessionId++;
     if (stream) {
       stream.getTracks().forEach(function (track) { track.stop(); });
       stream = null;
     }
+    updateDistanceGuide(false, null, 0);
     var video = $('camera');
     if (video.srcObject) video.srcObject = null;
     scanBusy = false;

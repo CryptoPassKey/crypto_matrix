@@ -249,7 +249,7 @@
     if (!Number.isSafeInteger(blockIndex) || blockIndex < 0 || blockIndex >= this.seqLen) {
       throw new RangeError('指定ブロック番号が範囲外です');
     }
-    // Replay one systematic source packet, then continue from the previous sequence high-water mark.
+    // Re-emit the selected systematic Data packet once, preserving the LT sequence high-water mark.
     this.pendingDirectIndex = blockIndex;
     this.seqNum = Math.max(this.seqNum, blockIndex + 1);
     return blockIndex + 1;

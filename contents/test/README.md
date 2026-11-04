@@ -237,3 +237,12 @@ The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guara
 - RX側からTXのFPSスライダー・送信コントローラーを変更しない。
 - 固定モードでは手動FPSを維持。
 - 転送プロトコル、ワイヤー形式、暗号処理は変更しない。
+
+
+## V16 — Production UI and playback regression guards
+
+- The production transfer mode is fixed to Data-only + LT, with no transport-mode selector.
+- Test-payload size sliders, numeric inputs, presets and benchmark result copy controls are removed from the production UI and bindings.
+- QR playback uses a single click handler. Browser-synthesized clicks cover touch and mouse; parallel touch/pointer handlers are avoided to prevent double toggles.
+- TX block-map seeking restarts at the selected block's Data frame in the first systematic pass. LT seeking re-emits the selected Data without rewinding the sequence high-water mark.
+- UI smoke and protocol assertions now cover the fixed transport, absent experiment controls, QR tap/click toggle and block-map seek. Real iOS Safari and Android Chrome camera tests remain necessary.

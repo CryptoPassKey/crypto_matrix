@@ -23,6 +23,16 @@ On GitHub Pages, the expected path is:
 
 Local testing also works when served over HTTPS or localhost. Camera access requires a secure context.
 
+## First-QR handshake and transfer timing
+
+1. TX prepares the payload and holds the first QR frame static on screen.
+2. RX starts the camera and must accept that exact first frame (Data 1 or LT seq 1).
+3. RX confirms the first frame; the operator then starts TX playback manually.
+4. The transfer stopwatch starts on the second distinct, valid QR frame accepted by RX. Re-reading the preflight QR or another duplicate does not start or advance the measured frame count.
+5. Late join is intentionally unsupported. RX rejects a non-initial frame until the preflight frame has been accepted.
+
+The first QR is a readiness handshake, not part of the timed transfer. Completion time freezes when the final required frame is accepted, before decompression and file-save preparation. Because the link is one-way, TX receives no readiness acknowledgement.
+
 ## Dependencies
 
 The transfer protocol, QR payloads, and camera frames remain local. ZXing-C++ WASM is the optional first-use decoder dependency:

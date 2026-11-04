@@ -31,6 +31,10 @@
     var element = $(id);
     return element && element.value !== undefined ? element.value : fallback;
   };
+  var setValue = function (id, value) {
+    var element = $(id);
+    if (element) element.value = value;
+  };
   var Core = window.AirgapLinkCore;
   var Fountain = window.AirgapLinkFountain;
   var Wire = window.AirgapLinkWire;
@@ -405,9 +409,9 @@
     var bytes = source === 'range' ? Number(valueOf('benchmarkSizeRange', '1048576')) : Number(valueOf('benchmarkSizeInput', '1048576'));
     if (!Number.isFinite(bytes) || bytes < 1024) bytes = DEFAULT_BENCHMARK_BYTES;
     bytes = Math.max(1024, Math.min(MAX_BENCHMARK_BYTES, Math.round(bytes / 1024) * 1024));
-    valueOf('benchmarkSizeRange', '1048576') = String(bytes);
-    valueOf('benchmarkSizeInput', '1048576') = String(bytes);
-    $('benchmarkSizeValue').textContent = formatBytes(bytes) + ' · ' + bytes.toLocaleString() + ' B';
+    setValue('benchmarkSizeRange', String(bytes));
+    setValue('benchmarkSizeInput', String(bytes));
+    if ($('benchmarkSizeValue')) $('benchmarkSizeValue').textContent = formatBytes(bytes) + ' · ' + bytes.toLocaleString() + ' B';
   }
 
   function createBenchmarkPayload(length) {
@@ -2633,8 +2637,8 @@
   }
   txAutoRateController.reset();
   rxRateAdvisor.reset();
-  if ($('rxResolution')) valueOf('rxResolution', '640x480') = '640x480';
-  valueOf('transferMode', 'hybrid-data') = 'hybrid-data';
+  setValue('rxResolution', '640x480');
+  setValue('transferMode', 'hybrid-data');
   updateModeControls();
   resetRx();
   updateTxBlockMap();

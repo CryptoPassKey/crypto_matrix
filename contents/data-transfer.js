@@ -2658,7 +2658,7 @@ module.exports = QRCode;
         if ($('dt-stop-camera')) $('dt-stop-camera').disabled = false;
         setHeaderBadge('読み取り中', 'SCANNING');
         setStatus('dt-rx-status',
-          'カメラを起動しました。送信側でQRコードの連続表示を開始してください。先頭フレームから自動で受信します。',
+          'カメラを起動しました。送信側でQRコードの連続表示を開始してください。すべてのデータを受信すると自動で復元完了画面になります。',
           'info');
         scheduleScan(0);
       } catch (error) {

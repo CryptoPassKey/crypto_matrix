@@ -91,8 +91,8 @@ for (const filename of [
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
 sandbox.MatrixQRCode = window.MatrixQRCode;
-const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v13.js'), 'utf8');
-vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
+const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v15.js'), 'utf8');
+vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v15.js' });
 
 (async () => {
   assert.equal(getElement('autoTxTest').listeners.click.length, 1,
@@ -170,7 +170,7 @@ vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v13.js' });
     }
   }
 
-  process.stdout.write('PASS V13 TX chunk-size UI regression (5 modes × 5 sizes)\\n');
+  process.stdout.write('PASS V15 TX chunk-size UI regression (5 modes × 5 sizes)\\n');
 
   await getElement('copyBenchmarkText').dispatch('click');
   assert.match(getElement('rxStatus').textContent, /コピーできる計測結果はまだありません/,

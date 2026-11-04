@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link V14 — TX/RX Adaptive Separation</title>
+<title>Airgap Link — Offline File Transfer</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -28,8 +28,8 @@ small,.muted{color:var(--muted)}small{font-size:.77rem}
 button{border:1px solid #42627e;color:var(--text);background:#1b324b;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
 button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#3cbba3;color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.qr-stage{background:#fff;border-radius:12px;min-height:330px;display:grid;place-items:center;margin-top:12px;padding:10px;position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
-#txCanvas{display:block;width:min(100%,520px);height:auto;aspect-ratio:1;image-rendering:pixelated;cursor:pointer}
+.qr-stage{background:#fff;border-radius:12px;min-height:0;aspect-ratio:1;display:grid;place-items:center;margin-top:10px;padding:clamp(4px,1.5vw,12px);position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+#txCanvas{display:block;width:100%;max-width:720px;height:auto;aspect-ratio:1;image-rendering:pixelated;cursor:pointer}
 .qr-stage-badge{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);padding:4px 14px;border-radius:99px;font-size:0.75rem;font-weight:700;pointer-events:none;transition:opacity .15s ease;box-shadow:0 3px 10px rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:2;white-space:nowrap}
 .qr-stage-badge.paused{background:rgba(217,119,6,0.95);color:#fff}
 @keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:0.75}}
@@ -51,16 +51,45 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:cen
 .blockmap-section{margin:12px 0 10px;padding:10px;border:1px solid #29445f;border-radius:11px;background:#091724}
 .tx-blockmap{margin-top:11px}
 .blockmap-title{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-size:.84rem;margin-bottom:7px}
-.blockmap-viewport{max-height:210px;overflow:auto;border:1px solid #263e55;border-radius:7px;background:#07111d;padding:5px}
+.blockmap-viewport{max-height:160px;overflow:auto;border:1px solid #4b6682;border-radius:7px;background:#050d17;padding:5px}
 .blockmap-viewport canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
 #txBlockMap{cursor:pointer;touch-action:manipulation;outline-offset:-2px}#txBlockMap:focus{outline:2px solid var(--accent);outline-offset:-2px}
 .blockmap-summary{font-size:.78rem;color:var(--muted);margin:7px 0 0;overflow-wrap:anywhere}
 .map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:.74rem;color:var(--muted)}
 .map-key{display:inline-flex;align-items:center;gap:5px}
-.map-dot{display:inline-block;width:9px;height:9px;border-radius:2px}
-.map-direct{background:#27bd8d}.map-recovered{background:#e5b44f}.map-active{background:transparent;border:1px solid #07111d;outline:1px solid #fff}.map-tx-current{background:#20c9d7;border:1px solid #07111d;outline:1px solid #fff}.map-missing{background:#253b52}
+.map-dot{display:inline-block;width:11px;height:11px;border-radius:2px}
+.map-direct{background:#20d69a}.map-recovered{background:#ffc247}.map-active{background:transparent;border:2px solid #07111d;outline:2px solid #fff}.map-tx-current{background:#00e5ff;border:2px solid #07111d;outline:2px solid #fff}.map-missing{background:#405a75}
 code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
-@media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:280px}}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.qr-stage{min-height:0}}
+.tx-inputs,.rx-save-name{margin:8px 0;padding:8px 10px;border:1px solid #36536f;border-radius:10px;background:#091724}
+.tx-inputs summary,.rx-save-name summary{cursor:pointer;font-weight:700;color:#cfe3f7}
+.tx-inputs textarea{min-height:72px}
+.completion-card{margin:14px 0;padding:15px;border:1px solid #2b9b7f;border-radius:14px;background:linear-gradient(145deg,#102d2b,#102235);box-shadow:0 10px 28px #0004}
+.completion-card h3{margin:0 0 10px;color:#78f0c5;font-size:1.1rem}
+.completion-card dl{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 14px}
+.completion-card dl div{min-width:0;padding:8px 10px;border:1px solid #31544f;border-radius:9px;background:#071b1b}
+.completion-card dt{font-size:.75rem;color:#a9c8bf}
+.completion-card dd{margin:3px 0 0;font-weight:750;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.primary-download{display:block;text-align:center;width:100%;padding:13px 16px;font-size:1rem}
+@media(max-width:480px){
+ main{padding:7px 7px 24px}
+ header{margin-bottom:8px;gap:8px}
+ h1{font-size:1.35rem}
+ .subtitle{font-size:.8rem}
+ .pill{font-size:.65rem;padding:3px 7px}
+ .panel{padding:9px;border-radius:12px}
+ .panel h2{font-size:1rem;margin-bottom:7px}
+ .controls{grid-template-columns:1fr 1fr;gap:7px}
+ .controls small{font-size:.69rem}
+ .qr-stage{margin-top:7px;border-radius:9px;padding:3px}
+ .blockmap-section{padding:7px;margin:8px 0}
+ .blockmap-title{font-size:.78rem}
+ .blockmap-summary{font-size:.72rem}
+ .completion-card{padding:11px}
+ .completion-card dl{gap:6px}
+ .completion-card dl div{padding:7px}
+ .completion-card dd{font-size:.88rem}
+}
 
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -70,56 +99,36 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <script src="airgap-link-core-v8.js"></script>
 <script src="airgap-link-fountain-v8.js"></script>
 <script src="airgap-link-zxing-loader-v10.js" defer></script>
-<script src="airgap-link-ui-v14.js" defer></script>
+<script src="airgap-link-ui-v15.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span> / Test Lab <span>V14</span></h1><p class="subtitle">Base45 / Alphanumeric + CMAL1 compatibility · camera resolution benchmark · throughput measurement</p></div>
- <span class="pill">OFFLINE TEST PAGE · V14</span>
+ <div><h1>Airgap <span>Link</span></h1><p class="subtitle">QRコードによるオフライン端末間転送</p></div>
+ <span class="pill">OFFLINE TRANSFER · V15</span>
 </header>
 
-<div class="note">暗号化済みファイル（.cmtl など）をPC画面からスマホカメラへ転送する実験ページです。開始順序は TXで転送データを準備して先頭QRを静止表示 → RXでカメラを起動して先頭QRを1枚読み取る → RXの確認表示後にTXで再生、です。途中参加は対象外です。受信ACKや進捗はTXへ返りません。CRC32は偶発的な破損検出用で、暗号学的認証ではありません。</div>
+<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。TXでデータを準備して先頭QRを表示し、RXで読み取ってからTXの再生を開始してください。受信ACKを使わない片方向転送です。</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
  <h2 id="tx-title">TX — 送信</h2>
- <label for="txFile">ファイル（暗号化済みデータを推奨）</label>
- <input id="txFile" type="file">
- <div class="muted" style="text-align:center;margin:4px">または</div>
- <label for="txText">テキスト入力</label>
- <textarea id="txText" placeholder="ファイルを選択しない場合、ここにテキストを入力"></textarea>
- <div class="benchmark-size">
-  <div class="benchmark-size-grid">
-   <div>
-    <div class="range-head"><label for="benchmarkSizeRange">テストデータ量</label><output id="benchmarkSizeValue">711.0 KiB</output></div>
-    <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
-   </div>
-   <div>
-    <label for="benchmarkSizeInput">数値指定（bytes）</label>
-    <input id="benchmarkSizeInput" type="number" min="1024" max="67108864" step="1024" value="728064" inputmode="numeric">
-   </div>
-  </div>
-  <div class="benchmark-presets" aria-label="テストデータ量プリセット">
-   <button id="benchmarkPreset1MiB" type="button">1 MiB</button>
-   <button id="benchmarkPreset2MiB" type="button">2 MiB</button>
-   <button id="benchmarkPreset4MiB" type="button">4 MiB</button>
-   <button id="benchmarkPreset8MiB" type="button">8 MiB</button>
-   <button id="benchmarkPreset16MiB" type="button">16 MiB</button>
-   <button id="benchmarkPreset32MiB" type="button">32 MiB</button>
-   <button id="benchmarkPreset64MiB" type="button">64 MiB</button>
-  </div>
-  <small>ファイル／テキスト未指定時は、指定サイズの決定的な疑似ランダムデータを生成します。自動ベンチマークもこのサイズを使用します。上限64 MiB。データ片数は最大100,000片のため、大容量ではチャンクサイズを大きくしてください。端末のメモリ使用量に注意。</small>
+ <details id="txInputDetails" class="tx-inputs" open>
+  <summary>送信するファイル / テキスト</summary>
+  <label for="txFile">ファイル</label>
+  <input id="txFile" type="file">
+  <div class="muted" style="text-align:center;margin:3px">または</div>
+  <label for="txText">テキスト</label>
+  <textarea id="txText" placeholder="送信するテキストを入力"></textarea>
+ </details>
+ <div class="hidden" aria-hidden="true">
+  <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
+  <input id="benchmarkSizeInput" type="number" value="728064"><output id="benchmarkSizeValue">711.0 KiB</output>
+  <button id="benchmarkPreset1MiB"></button><button id="benchmarkPreset2MiB"></button><button id="benchmarkPreset4MiB"></button>
+  <button id="benchmarkPreset8MiB"></button><button id="benchmarkPreset16MiB"></button><button id="benchmarkPreset32MiB"></button><button id="benchmarkPreset64MiB"></button>
  </div>
 
- <label for="transferMode">転送方式</label>
- <select id="transferMode" class="mode-select">
-  <option value="hybrid-data" selected>Hybrid — 順次データ＋LT修復（最高速・確実復元）</option>
-  <option value="fountain" style="display:none">Pure LT Fountain (互換)</option>
-  <option value="hybrid" style="display:none">LT Hybrid (互換)</option>
-  <option value="legacy" style="display:none">Legacy (互換)</option>
-  <option value="legacy-data" style="display:none">Legacy Data (互換)</option>
- </select>
+ <label for="transferMode" class="hidden">転送方式</label><select id="transferMode" class="hidden" aria-hidden="true"><option value="hybrid-data" selected>Hybrid Data-only + LT</option></select>
  <div style="display:none">
   <label for="wireFormat">QRペイロード形式</label>
   <select id="wireFormat" class="mode-select">
@@ -128,7 +137,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">Hybrid: 順次データを1周送信後、未取得ブロックをLT噴水符号で即時補完します。</p>
+ <p id="txModeHint" class="muted">データを順番に送信し、受信側で不足があればLTで補完します。</p>
 
  <div class="controls">
   <div>
@@ -157,34 +166,25 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="playTx" type="button" disabled>再生</button>
   <button id="pauseTx" type="button" disabled>停止</button>
  </div>
- <div style="display:none">
-  <button id="autoTxTest" type="button">選択条件で自動ベンチマーク</button>
-  <label for="autoTxLog">送信条件ログ</label>
-  <textarea id="autoTxLog" rows="5" readonly></textarea>
-  <button id="copyTxTestLog" type="button">送信条件ログをテキストコピー</button>
- </div>
+ <div class="hidden" aria-hidden="true"><button id="autoTxTest" type="button"></button><textarea id="autoTxLog"></textarea><button id="copyTxTestLog" type="button"></button></div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
- <div class="statgrid">
-  <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データ / 総フレーム</small></div>
-  <div class="stat"><b id="txPayloadSize">—</b><small>転送データ</small></div>
-  <div class="stat"><b id="txQrGenMs">—</b><small>QR事前生成時間</small></div>
-  <div class="stat"><b id="txDisplayFps">—</b><small>TX実効表示FPS</small></div>
+ <div class="statgrid tx-stats">
+  <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データブロック</small></div>
+  <div class="stat"><b id="txPayloadSize">—</b><small>転送データ量</small></div>
  </div>
- <p id="txCacheStatus" class="muted">QR事前生成: 未準備</p>
+ <div class="hidden" aria-hidden="true"><span id="txQrGenMs">—</span><span id="txDisplayFps">—</span><span id="txCacheStatus">—</span></div>
  <div class="qr-stage" id="txStage">
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
   <div id="txPlayBadge" class="qr-stage-badge hidden">⏸ 一時停止中（タップで再生）</div>
  </div>
  <div class="blockmap-section tx-blockmap">
-  <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック · 色 = 現在のQR位置</small></div>
+  <div class="blockmap-title"><strong>送信ブロック</strong><small>水色 = 現在表示中のQRが参照するブロック</small></div>
   <div class="blockmap-viewport"><canvas id="txBlockMap" width="600" height="8" role="slider" tabindex="-1" aria-label="送信開始ブロックを選択" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-valuetext="転送データなし" aria-disabled="true" aria-describedby="txBlockHelp"></canvas></div>
   <p id="txBlockSummary" class="blockmap-summary">転送データを準備すると現在のQR位置が表示されます</p>
-  <p id="txBlockHelp" class="blockmap-summary">ブロックをクリックすると、そのブロックのDataから再生します。キーボード: Tabで選択、矢印キーで移動、Enterで再生位置を変更。</p>
-  <div class="map-legend>
-   <span class="map-key"><i class="map-dot map-tx-current"></i>現在表示中のQR位置</span>
-  </div>
+  <p id="txBlockHelp" class="blockmap-summary">ブロックをタップすると、その位置から再生できます。</p>
+  <div class="map-legend"><span class="map-key"><i class="map-dot map-tx-current"></i>現在表示中のQR位置</span></div>
  </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
 </section>
@@ -192,38 +192,20 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <section class="panel" aria-labelledby="rx-title">
  <h2 id="rx-title">RX — 受信</h2>
  <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。2枚目の有効なQRを読み込んだ時点から転送時間を計測します。同じQRの再読込は数えません。途中参加は受け付けません。</p>
- <label for="rxScanner">RX読み取り方式</label>
-  <select id="rxScanner" class="mode-select">
-   <option value="zxing-wasm" selected>ZXing-C++ WASM 3.1.6（最高速・推奨）</option>
-   <option value="auto">自動判定</option>
-   <option value="native">Native BarcodeDetector（ブラウザ組込・Androidでは低速）</option>
-   <option value="jsqr">jsQR（純JSフォールバック）</option>
-  </select>
-  <div class="checkrow" style="margin:4px 0 6px">
-   <label><input id="rxAllowFallback" type="checkbox"> 互換フォールバックを許可（WASM利用不可端末のみNative/jsQRを使用）</label>
-  </div>
-  <small>ZXing WASMはAndroid/iOS/PCの全環境で最高速かつ決定論的に動作します。</small>
-  <label for="rxResolution">RXカメラ解像度</label>
- <select id="rxResolution" class="mode-select">
-  <option value="640x480">640 × 480（最安定・推奨）</option>
-  <option value="1280x720">1280 × 720（標準）</option>
-  <option value="1920x1080" selected>1920 × 1080（高解像度）</option>
- </select>
- <p id="rxCameraSettings" class="muted">実解像度: 未取得（カメラ接続後に getSettings() で確認）</p>
- <p class="muted">映像フレーム実測FPS: <strong id="rxObservedFps">—</strong>（requestVideoFrameCallback基準。デコード試行FPSとは別指標）</p>
- <p class="muted">適応速度ステータス: <strong id="rxSpeedRecommendation">—</strong></p>
- <p class="muted">解像度比較中はTXのチャンクサイズ・FPS・QR表示サイズを固定してください。要求値ではなく、実際に適用されたカメラ解像度を記録します。</p>
+ <div class="hidden" aria-hidden="true">
+  <select id="rxScanner"><option value="zxing-wasm" selected>ZXing-C++ WASM</option></select>
+  <input id="rxAllowFallback" type="checkbox">
+  <select id="rxResolution"><option value="640x480" selected>640x480</option></select>
+  <span id="rxCameraSettings"></span><span id="rxObservedFps"></span><span id="rxSpeedRecommendation"></span>
+ </div>
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
-  <div style="display:none"><input id="autoBenchmarkReset" type="checkbox"></div>
-  <div style="display:none">
-   <input id="rxGaussianEnabled" type="checkbox">
-   <button id="runRxGaussian" type="button" disabled></button>
-   <p id="rxGaussianStatus" class="muted"></p>
-   <button id="runSelfTest" type="button"></button>
-   <p id="selfTestStatus"></p>
+  <div class="hidden" aria-hidden="true">
+   <input id="autoBenchmarkReset" type="checkbox"><input id="rxGaussianEnabled" type="checkbox">
+   <button id="runRxGaussian" type="button"></button><span id="rxGaussianStatus"></span>
+   <button id="runSelfTest" type="button"></button><span id="selfTestStatus"></span>
   </div>
  </div>
  
@@ -233,7 +215,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  </div>
  <canvas id="scanCanvas"></canvas>
  <div class="blockmap-section rx-blockmap">
-  <div class="blockmap-title"><strong>RX BLOCK MAP · 受信位置</strong><small>1マス = 1データブロック</small></div>
+  <div class="blockmap-title"><strong>受信ブロック</strong><small>緑 = 直接取得 / 黄 = 欠損から復元</small></div>
   <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの状態と最後に読み込んだQR位置"></canvas></div>
   <p id="rxBlockSummary" class="blockmap-summary">QRを読み取ると取得位置が表示されます</p>
   <div class="map-legend">
@@ -245,48 +227,42 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  </div>
  <p id="scannerMode" class="status info">読み取り方式：未初期化</p>
  <div class="meter"><div id="rxProgress"></div></div>
- <div class="statgrid">
+ <div class="statgrid rx-progress-stats">
   <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>
-  <div class="stat"><b id="rxRate">0.0</b><small>ユニーク有効フレーム / 秒（2枚目QRから）</small></div>
-  <div class="stat"><b id="rxElapsed">—</b><small>転送経過時間（2枚目QRから）</small></div>
-  <div class="stat"><b id="rxThroughput">—</b><small>転送データ実効速度</small></div>
-  <div class="stat"><b id="rxWireBytes">—</b><small>受信した転送データ量</small></div>
-  <div class="stat"><b id="rxOutputBytes">—</b><small>復元ファイル量</small></div>
-  <div class="stat"><b id="rxMemoryPeak">—</b><small>JSヒープ最大（取得可能時）</small></div>
-  <div class="stat"><b id="rxFileRate">—</b><small>保存ファイル実効速度</small></div>
-  <div class="stat"><b id="rxAvgMs">0 ms</b><small>QR解析平均時間</small></div>
-  <div class="stat"><b id="rxP50Ms">—</b><small>QR解析中央値（P50）</small></div>
-  <div class="stat"><b id="rxP95Ms">—</b><small>QR解析95パーセンタイル（P95）</small></div>
-  <div class="stat"><b id="rxIngestMs">0 ms</b><small>受信処理平均時間</small></div>
-  <div class="stat"><b id="rxLost">—</b><small>未取得データ片</small></div>
-  <div class="stat"><b id="rxRecovered">0</b><small>パリティ／LT復元</small></div>
-  <div class="stat"><b id="rxHitRate">0%</b><small>QR検出率（検出試行に対するヒット）</small></div>
-  <div class="stat"><b id="rxSamples">0 / 0</b><small>検出試行 / ヒット数</small></div>
+  <div class="stat"><b id="rxLost">—</b><small>残りブロック</small></div>
+  <div class="stat"><b id="rxRecovered">0</b><small>復元したブロック</small></div>
  </div>
- <div class="row" style="align-items:center;margin:10px 0">
-  <button id="copyBenchmarkText" type="button">計測結果をテキストコピー</button>
-  <small id="benchmarkRunCount" class="muted">完了した計測: 0件（このページを開いている間保持）</small>
+ <div class="hidden" aria-hidden="true">
+  <span id="rxRate">0.0</span><span id="rxElapsed">—</span><span id="rxThroughput">—</span>
+  <span id="rxWireBytes">—</span><span id="rxOutputBytes">—</span><span id="rxMemoryPeak">—</span>
+  <span id="rxFileRate">—</span><span id="rxAvgMs">—</span><span id="rxP50Ms">—</span>
+  <span id="rxP95Ms">—</span><span id="rxIngestMs">—</span><span id="rxHitRate">—</span>
+  <span id="rxSamples">—</span><span id="rxResultMeta"></span>
+  <button id="copyBenchmarkText" type="button"></button><span id="benchmarkRunCount"></span>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
- <label for="rxFilename">保存ファイル名（元ファイル名または任意）</label>
- <input id="rxFilename" type="text" placeholder="ファイル名（空欄時は自動命名）" autocomplete="off">
- <div class="row">
-  <a id="downloadResult" class="button-link hidden">復元ファイルを保存</a>
- </div>
- <p id="rxResultMeta" class="muted"></p>
- <div style="display:none">
-  <div class="section-rule"></div>
-  <h3>手動フレーム入力（デバッグ）</h3>
-  <textarea id="manualFrame" placeholder="CMAL1フレームを貼り付け"></textarea>
-  <button id="ingestManual" type="button">この1フレームを受信</button>
-  <p class="muted">カメラが使えない場合や、CRC・順不同処理の確認に使用します。</p>
- </div>
+ <details class="rx-save-name">
+  <summary>保存ファイル名を変更</summary>
+  <label for="rxFilename">保存ファイル名（送信元の名前は転送されません）</label>
+  <input id="rxFilename" type="text" placeholder="空欄の場合 received-file.bin" autocomplete="off">
+ </details>
+ <section id="rxCompletionCard" class="completion-card hidden" aria-live="polite">
+  <h3>転送完了</h3>
+  <dl>
+   <div><dt>ファイル名</dt><dd id="rxCompletionFilename">—</dd></div>
+   <div><dt>データサイズ</dt><dd id="rxCompletionSize">—</dd></div>
+   <div><dt>所要時間</dt><dd id="rxCompletionTime">—</dd></div>
+   <div><dt>実効速度</dt><dd id="rxCompletionSpeed">—</dd></div>
+  </dl>
+  <a id="downloadResult" class="button-link primary-download hidden">復元ファイルを保存</a>
+ </section>
+ <div class="hidden" aria-hidden="true"><textarea id="manualFrame"></textarea><button id="ingestManual" type="button"></button></div>
 </section>
 </div>
 
 
 
-<p class="footer">Airgap Link Test Lab V14 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
+<p class="footer">Airgap Link · QRコードによるローカル転送 · データは外部サーバーへ送信されません。</p>
 </main>
 </body>
 </html>

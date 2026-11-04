@@ -1,6 +1,650 @@
 (function (root) {
   'use strict';
 
+  var ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+
+  function asBytes(value) {
+    if (value instanceof Uint8Array) return value;
+    if (value instanceof ArrayBuffer) return new Uint8Array(value);
+    if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    throw new TypeError('Uint8Array または ArrayBuffer が必要です');
+  }
+
+  function encodeBase45(value) {
+    var data = asBytes(value);
+    var output = '';
+    for (var i = 0; i < data.length; i += 2) {
+      if (i + 1 < data.length) {
+        var number = data[i] * 256 + data[i + 1];
+        var c1 = number % 45;
+        var c2 = Math.floor(number / 45) % 45;
+        var c3 = Math.floor(number / 2025);
+        output += ALPHABET[c1] + ALPHABET[c2] + ALPHABET[c3];
+      } else {
+        var last = data[i];
+        output += ALPHABET[last % 45] + ALPHABET[Math.floor(last / 45)];
+      }
+    }
+    return output;
+  }
+
+  function decodeBase45(text) {
+    if (typeof text !== 'string') throw new TypeError('Base45文字列が必要です');
+    if (text.length % 3 === 1) throw new Error('Base45の文字数が不正です');
+    var outputLength = Math.floor(text.length / 3) * 2 + (text.length % 3 === 2 ? 1 : 0);
+    var output = new Uint8Array(outputLength);
+    var source = 0;
+    var target = 0;
+    while (source + 2 < text.length) {
+      var a = ALPHABET.indexOf(text[source]);
+      var b = ALPHABET.indexOf(text[source + 1]);
+      var c = ALPHABET.indexOf(text[source + 2]);
+      if (a < 0 || b < 0 || c < 0) throw new Error('Base45に未対応文字があります');
+      var number = a + b * 45 + c * 2025;
+      if (number > 65535) throw new Error('Base45の3文字値が範囲外です');
+      output[target++] = number >>> 8;
+      output[target++] = number & 0xff;
+      source += 3;
+    }
+    if (source < text.length) {
+      var first = ALPHABET.indexOf(text[source]);
+      var second = ALPHABET.indexOf(text[source + 1]);
+      if (first < 0 || second < 0) throw new Error('Base45に未対応文字があります');
+      var last = first + second * 45;
+      if (last > 255) throw new Error('Base45の2文字値が範囲外です');
+      output[target] = last;
+    }
+    return output;
+  }
+
+  // Split only the four structural separators. The Base45 payload itself may contain ':'.
+  // Do not trim ordinary spaces: space is part of the Base45 alphabet.
+  function splitFrame(text) {
+    if (typeof text !== 'string') throw new TypeError('フレームが文字列ではありません');
+    var value = text.replace(/^[\r\n]+|[\r\n]+$/g, '');
+    var parts = [];
+    var start = 0;
+    for (var i = 0; i < 4; i++) {
+      var separator = value.indexOf(':', start);
+      if (separator < 0) throw new Error('フレームヘッダーが途中で切れています');
+      parts.push(value.slice(start, separator));
+      start = separator + 1;
+    }
+    parts.push(value.slice(start));
+    if (parts.length !== 5) throw new Error('フレームのフィールド数が不正です');
+    if (parts[0] !== 'CMAL1' && parts[0] !== 'CMAL2') {
+      throw new Error('未対応のAirgap Link形式です');
+    }
+    return {
+      magic: parts[0],
+      wireFormat: parts[0] === 'CMAL2' ? 'base45' : 'base64url',
+      token: parts[1],
+      id: parts[2],
+      crc: parts[3],
+      payload: parts[4]
+    };
+  }
+
+  function isAirgapFrame(text) {
+    return typeof text === 'string' &&
+      (text.indexOf('CMAL1:') === 0 || text.indexOf('CMAL2:') === 0);
+  }
+
+  function isFountainFrame(text) {
+    return typeof text === 'string' &&
+      (text.indexOf('CMAL1:F') === 0 || text.indexOf('CMAL2:F') === 0);
+  }
+
+  root.AirgapLinkWire = {
+    ALPHABET: ALPHABET,
+    encodeBase45: encodeBase45,
+    decodeBase45: decodeBase45,
+    splitFrame: splitFrame,
+    isAirgapFrame: isAirgapFrame,
+    isFountainFrame: isFountainFrame
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ===== Next protocol module ===== */
+(function (root) {
+  'use strict';
+
+  var MAGIC = 'CMAL1';
+  var MAGIC_BASE45 = 'CMAL2';
+  var Wire = root.AirgapLinkWire;
+  if (!Wire) throw new Error('Airgap Link Wire V8 が読み込まれていません');
+  var GROUP_SIZE = 8;
+  var crcTable = new Uint32Array(256);
+
+  for (var c = 0; c < 256; c++) {
+    var value = c;
+    for (var bit = 0; bit < 8; bit++) {
+      value = (value & 1) ? ((value >>> 1) ^ 0xedb88320) : (value >>> 1);
+    }
+    crcTable[c] = value >>> 0;
+  }
+
+  function asBytes(value) {
+    if (value instanceof Uint8Array) return value;
+    if (value instanceof ArrayBuffer) return new Uint8Array(value);
+    if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    throw new TypeError('Uint8Array または ArrayBuffer が必要です');
+  }
+
+  function crc32(bytes) {
+    bytes = asBytes(bytes);
+    var crc = 0xffffffff;
+    for (var i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ bytes[i]) & 0xff];
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function hex32(value) {
+    return (value >>> 0).toString(16).toUpperCase().padStart(8, '0');
+  }
+
+  function bytesToBase64Url(bytes) {
+    bytes = asBytes(bytes);
+    var binary = '';
+    var step = 0x8000;
+    for (var i = 0; i < bytes.length; i += step) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + step, bytes.length)));
+    }
+    return root.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function base64UrlToBytes(text) {
+    if (typeof text !== 'string' || !/^[A-Za-z0-9_-]*$/.test(text)) throw new Error('Base64URL形式が不正です');
+    var base64 = text.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    var binary = root.atob(base64);
+    var out = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  }
+
+  function randomTransferId() {
+    var bytes = new Uint8Array(4);
+    if (!root.crypto || !root.crypto.getRandomValues) throw new Error('安全な乱数生成が利用できません');
+    root.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(function (v) { return v.toString(16).padStart(2, '0'); }).join('').toUpperCase();
+  }
+
+  function makeFrame(token, total, id, payload, wireFormat) {
+    var checksum = hex32(crc32(payload));
+    var magic = wireFormat === 'base45' ? MAGIC_BASE45 : MAGIC;
+    var encoded = wireFormat === 'base45' ? Wire.encodeBase45(payload) : bytesToBase64Url(payload);
+    return magic + ':' + token + '/' + total + ':' + id + ':' + checksum + ':' + encoded;
+  }
+
+  function gfMul(a, b) {
+    var result = 0;
+    while (b) {
+      if (b & 1) result ^= a;
+      var high = a & 0x80;
+      a = (a << 1) & 0xff;
+      if (high) a ^= 0x1d;
+      b >>>= 1;
+    }
+    return result;
+  }
+
+  function gfPow(a, n) {
+    var result = 1;
+    while (n > 0) {
+      if (n & 1) result = gfMul(result, a);
+      a = gfMul(a, a);
+      n >>>= 1;
+    }
+    return result;
+  }
+
+  function gfDiv(a, b) {
+    if (!b) throw new Error('GF(256) のゼロ除算です');
+    return a ? gfMul(a, gfPow(b, 254)) : 0;
+  }
+
+  function parityPayload(chunks, parityType) {
+    var count = chunks.length;
+    var maxLength = chunks.reduce(function (m, chunk) { return Math.max(m, chunk.length); }, 0);
+    var headerLength = 2 + count * 2;
+    var out = new Uint8Array(headerLength + maxLength);
+    out[0] = 1;
+    out[1] = count;
+    var offset = 2;
+    for (var i = 0; i < count; i++) {
+      out[offset++] = (chunks[i].length >>> 8) & 0xff;
+      out[offset++] = chunks[i].length & 0xff;
+    }
+    for (var pos = 0; pos < maxLength; pos++) {
+      var acc = 0;
+      for (var j = 0; j < count; j++) {
+        var byte = pos < chunks[j].length ? chunks[j][pos] : 0;
+        acc ^= parityType === 0 ? byte : gfMul(gfPow(2, j), byte);
+      }
+      out[headerLength + pos] = acc;
+    }
+    return out;
+  }
+
+  function buildFrames(input, options) {
+    var bytes = asBytes(input).slice();
+    options = options || {};
+    var chunkSize = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
+    var wireFormat = options.wireFormat === 'base45' ? 'base45' : 'base64url';
+    var parity = options.parity !== false;
+    var total = Math.max(1, Math.ceil(bytes.length / chunkSize));
+    if (total > 100000) throw new Error('フレーム数が上限を超えています');
+    var id = options.id || randomTransferId();
+    if (!/^[0-9A-F]{8}$/i.test(id)) throw new Error('転送IDが不正です');
+    id = id.toUpperCase();
+    var chunks = [];
+    for (var i = 0; i < total; i++) {
+      var start = i * chunkSize;
+      chunks.push(bytes.slice(start, Math.min(start + chunkSize, bytes.length)));
+    }
+
+    var dataFrames = chunks.map(function (chunk, index) {
+      return makeFrame(String(index + 1), total, id, chunk, wireFormat);
+    });
+    var frames = [];
+    for (var groupStart = 0; groupStart < total; groupStart += GROUP_SIZE) {
+      var group = chunks.slice(groupStart, Math.min(groupStart + GROUP_SIZE, total));
+      for (var j = 0; j < group.length; j++) frames.push(dataFrames[groupStart + j]);
+      if (parity && group.length >= 2) {
+        var groupNumber = Math.floor(groupStart / GROUP_SIZE);
+        frames.push(makeFrame('P0-' + groupNumber, total, id, parityPayload(group, 0), wireFormat));
+        frames.push(makeFrame('P1-' + groupNumber, total, id, parityPayload(group, 1), wireFormat));
+      }
+    }
+    return {
+      id: id,
+      total: total,
+      chunkSize: chunkSize,
+      payloadBytes: bytes.length,
+      dataFrames: dataFrames,
+      frames: frames,
+      parityFrames: frames.length - dataFrames.length,
+      groupSize: GROUP_SIZE
+    };
+  }
+
+  function parseFrame(text) {
+    var fields = Wire.splitFrame(text);
+    var token = fields.token;
+    var total = Number(token.slice(token.lastIndexOf('/') + 1));
+    if (!Number.isSafeInteger(total) || total < 1 || total > 100000) throw new Error('総フレーム数が不正です');
+    var id = fields.id;
+    if (!/^[0-9A-F]{8}$/i.test(id)) throw new Error('転送IDが不正です');
+    var crcText = fields.crc;
+    if (!/^[0-9A-F]{8}$/i.test(crcText)) throw new Error('CRC32ヘッダーが不正です');
+    var payload = fields.wireFormat === 'base45' ? Wire.decodeBase45(fields.payload) : base64UrlToBytes(fields.payload);
+    if (hex32(crc32(payload)) !== crcText.toUpperCase()) throw new Error('CRC32不一致：フレームが破損しています');
+
+    var dataMatch = /^([1-9][0-9]*)\/([1-9][0-9]*)$/.exec(token);
+    if (dataMatch) {
+      var index = Number(dataMatch[1]);
+      if (Number(dataMatch[2]) !== total || index > total) throw new Error('データフレーム番号が不正です');
+      if (payload.length > 2800) throw new Error('データ片が上限2,800Bを超えています');
+      return { type: 'data', index: index - 1, total: total, id: id.toUpperCase(), payload: payload, wireFormat: fields.wireFormat };
+    }
+    var parityMatch = /^P([01])-([0-9]+)\/([1-9][0-9]*)$/.exec(token);
+    if (parityMatch) {
+      var parityGroup = Number(parityMatch[2]);
+      if (Number(parityMatch[3]) !== total || parityGroup * GROUP_SIZE >= total) throw new Error('パリティフレーム番号が不正です');
+      return { type: 'parity', parityType: Number(parityMatch[1]), group: parityGroup, total: total, id: id.toUpperCase(), payload: payload, wireFormat: fields.wireFormat };
+    }
+    throw new Error('フレーム番号形式が不正です');
+  }
+
+  // Return the original-data block positions represented by one legacy CMAL1 QR.
+  // Data frames point to one block; P0/P1 frames refer to the entire 8-block group.
+  function packetBlockIndexes(packetOrText) {
+    var packet = typeof packetOrText === 'string' ? parseFrame(packetOrText) : packetOrText;
+    if (!packet || !Number.isSafeInteger(packet.total) || packet.total < 1) {
+      throw new Error('ブロック位置を計算できないフレームです');
+    }
+    if (packet.type === 'data') return [packet.index];
+    if (packet.type !== 'parity' || !Number.isSafeInteger(packet.group) || packet.group < 0) {
+      throw new Error('未対応のフレーム種別です');
+    }
+    var start = packet.group * GROUP_SIZE;
+    var count = Math.min(GROUP_SIZE, packet.total - start);
+    if (count < 1) throw new Error('パリティグループの範囲が不正です');
+    return Array.from({ length: count }, function (_, offset) { return start + offset; });
+  }
+
+  function decodeParityPayload(payload, expectedCount) {
+    if (payload.length < 2 || payload[0] !== 1) throw new Error('未対応のパリティ形式です');
+    var count = payload[1];
+    if (count !== expectedCount || count < 2 || count > GROUP_SIZE) throw new Error('パリティグループ数が一致しません');
+    var headerLength = 2 + count * 2;
+    if (payload.length < headerLength) throw new Error('パリティヘッダーが途中で切れています');
+    var lengths = [];
+    var maxLength = 0;
+    for (var i = 0; i < count; i++) {
+      var len = (payload[2 + i * 2] << 8) | payload[3 + i * 2];
+      if (len > 2800) throw new Error('パリティ内のデータ片が上限2,800Bを超えています');
+      lengths.push(len);
+      maxLength = Math.max(maxLength, len);
+    }
+    if (payload.length !== headerLength + maxLength) throw new Error('パリティデータ長が一致しません');
+    return { lengths: lengths, bytes: payload.subarray(headerLength), maxLength: maxLength };
+  }
+
+  function Receiver() {
+    this.reset();
+  }
+
+  Receiver.prototype.reset = function () {
+    this.id = null;
+    this.total = 0;
+    this.wireFormat = null;
+    this.shards = new Map();
+    this.parities = new Map();
+    this.recoveredCount = 0;
+    this.receivedCount = 0;
+    this.lastError = '';
+  };
+
+  Receiver.prototype._recoverGroup = function (groupNumber) {
+    var start = groupNumber * GROUP_SIZE;
+    var count = Math.min(GROUP_SIZE, this.total - start);
+    if (count < 2) return 0;
+    var paritySet = this.parities.get(groupNumber);
+    if (!paritySet) return 0;
+    var p0 = paritySet[0] ? decodeParityPayload(paritySet[0], count) : null;
+    var p1 = paritySet[1] ? decodeParityPayload(paritySet[1], count) : null;
+    if (p0 && p1 && (p0.maxLength !== p1.maxLength || p0.lengths.some(function (len, i) { return len !== p1.lengths[i]; }))) {
+      throw new Error('パリティ間のデータ長が一致しません');
+    }
+    var meta = p0 || p1;
+    if (!meta) return 0;
+    var missing = [];
+    for (var i = 0; i < count; i++) {
+      if (!this.shards.has(start + i)) missing.push(i);
+    }
+    if (!missing.length || missing.length > 2) return 0;
+    if (missing.length === 2 && !(p0 && p1)) return 0;
+    if (missing.length === 1 && !p0 && !p1) return 0;
+
+    var maxLength = meta.maxLength;
+    var recovered = [];
+    var knownXor = new Uint8Array(maxLength);
+    var knownWeighted = new Uint8Array(maxLength);
+
+    for (var local = 0; local < count; local++) {
+      if (missing.indexOf(local) !== -1) continue;
+      var known = this.shards.get(start + local);
+      var coefficient = gfPow(2, local);
+      for (var pos = 0; pos < known.length; pos++) {
+        knownXor[pos] ^= known[pos];
+        knownWeighted[pos] ^= gfMul(coefficient, known[pos]);
+      }
+    }
+
+    if (missing.length === 1) {
+      var m = missing[0];
+      var restored = new Uint8Array(maxLength);
+      if (p0) {
+        for (var x = 0; x < maxLength; x++) restored[x] = p0.bytes[x] ^ knownXor[x];
+      } else {
+        var coeff = gfPow(2, m);
+        for (var y = 0; y < maxLength; y++) restored[y] = gfDiv(p1.bytes[y] ^ knownWeighted[y], coeff);
+      }
+      recovered.push({ index: start + m, bytes: restored.slice(0, meta.lengths[m]) });
+    } else {
+      var a = missing[0];
+      var b = missing[1];
+      var ca = gfPow(2, a);
+      var cb = gfPow(2, b);
+      var xBytes = new Uint8Array(maxLength);
+      var yBytes = new Uint8Array(maxLength);
+      for (var z = 0; z < maxLength; z++) {
+        var r0 = p0.bytes[z] ^ knownXor[z];
+        var r1 = p1.bytes[z] ^ knownWeighted[z];
+        var xValue = gfDiv(r1 ^ gfMul(cb, r0), ca ^ cb);
+        xBytes[z] = xValue;
+        yBytes[z] = r0 ^ xValue;
+      }
+      recovered.push({ index: start + a, bytes: xBytes.slice(0, meta.lengths[a]) });
+      recovered.push({ index: start + b, bytes: yBytes.slice(0, meta.lengths[b]) });
+    }
+
+    for (var r = 0; r < recovered.length; r++) {
+      this.shards.set(recovered[r].index, recovered[r].bytes);
+      this.recoveredCount++;
+    }
+    return recovered.length;
+  };
+
+  Receiver.prototype._recoverAll = function () {
+    var self = this;
+    var recovered = 0;
+    this.parities.forEach(function (_value, group) {
+      recovered += self._recoverGroup(group);
+    });
+    return recovered;
+  };
+
+  Receiver.prototype.feed = function (text) {
+    var packet = parseFrame(text);
+    if (this.id === null) {
+      this.id = packet.id;
+      this.total = packet.total;
+      this.wireFormat = packet.wireFormat;
+    } else if (this.id !== packet.id || this.total !== packet.total || this.wireFormat !== packet.wireFormat) {
+      throw new Error('別の転送IDのフレームです。受信をリセットしてください');
+    }
+
+    if (packet.type === 'data') {
+      if (this.shards.has(packet.index)) return { duplicate: true, recovered: this.recoveredCount, progress: this.shards.size / this.total, complete: this.isComplete() };
+      this.shards.set(packet.index, packet.payload);
+      this.receivedCount++;
+    } else {
+      var group = this.parities.get(packet.group);
+      if (!group) { group = {}; this.parities.set(packet.group, group); }
+      if (group[packet.parityType]) return { duplicate: true, recovered: this.recoveredCount, progress: this.shards.size / this.total, complete: this.isComplete() };
+      group[packet.parityType] = packet.payload;
+      this._recoverGroup(packet.group);
+    }
+    this._recoverAll();
+    var complete = this.isComplete();
+    return {
+      duplicate: false,
+      recovered: this.recoveredCount,
+      received: this.receivedCount,
+      have: this.shards.size,
+      total: this.total,
+      progress: this.shards.size / this.total,
+      complete: complete,
+      bytes: complete ? this.bytes() : null
+    };
+  };
+
+  Receiver.prototype.isComplete = function () {
+    return this.total > 0 && this.shards.size === this.total;
+  };
+
+  Receiver.prototype.bytes = function () {
+    if (!this.isComplete()) throw new Error('まだ全データが揃っていません');
+    var length = 0;
+    for (var i = 0; i < this.total; i++) length += this.shards.get(i).length;
+    var output = new Uint8Array(length);
+    var offset = 0;
+    for (var j = 0; j < this.total; j++) {
+      var shard = this.shards.get(j);
+      output.set(shard, offset);
+      offset += shard.length;
+    }
+    return output;
+  };
+
+  function concatBytes(parts) {
+    var total = parts.reduce(function (sum, part) { return sum + part.length; }, 0);
+    var output = new Uint8Array(total);
+    var offset = 0;
+    parts.forEach(function (part) { output.set(part, offset); offset += part.length; });
+    return output;
+  }
+
+  async function compressIfSmaller(bytes) {
+    bytes = asBytes(bytes);
+    if (typeof root.CompressionStream !== 'function') return { bytes: bytes.slice(), compressed: false, reason: 'CompressionStream非対応' };
+    try {
+      var stream = new Blob([bytes]).stream().pipeThrough(new root.CompressionStream('deflate'));
+      var compressed = new Uint8Array(await new Response(stream).arrayBuffer());
+      var header = new Uint8Array(12);
+      header.set([0x43, 0x4d, 0x5a, 0x31, 0x44, 0x45, 0x46, 0x4c], 0); // CMZ1DEFL
+      new DataView(header.buffer).setUint32(8, bytes.length, false);
+      var wrapped = concatBytes([header, compressed]);
+      if (wrapped.length >= bytes.length) return { bytes: bytes.slice(), compressed: false, reason: '圧縮しても小さくならないため省略' };
+      return { bytes: wrapped, compressed: true, originalBytes: bytes.length, packedBytes: wrapped.length, reason: 'Deflate適用' };
+    } catch (error) {
+      return { bytes: bytes.slice(), compressed: false, reason: '圧縮できないため省略: ' + error.message };
+    }
+  }
+
+  async function decompressIfWrapped(bytes) {
+    bytes = asBytes(bytes);
+    var magic = [0x43, 0x4d, 0x5a, 0x31, 0x44, 0x45, 0x46, 0x4c]; // CMZ1DEFL
+    if (bytes.length < 12 || magic.some(function (value, index) { return bytes[index] !== value; })) {
+      return { bytes: bytes.slice(), decompressed: false };
+    }
+    if (typeof root.DecompressionStream !== 'function') throw new Error('CMZ1DEFL圧縮データですが、このブラウザはDeflate復号に対応していません');
+    var expected = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(8, false);
+    if (expected > 67108864) throw new Error('展開後サイズが試験上限64 MiBを超えています');
+    var compressed = bytes.subarray(12);
+    var reader = new Blob([compressed]).stream().pipeThrough(new root.DecompressionStream('deflate')).getReader();
+    var chunks = [];
+    var total = 0;
+    while (true) {
+      var item = await reader.read();
+      if (item.done) break;
+      total += item.value.length;
+      if (total > expected || total > 67108864) {
+        await reader.cancel();
+        throw new Error('圧縮データが宣言サイズを超えて展開されました');
+      }
+      chunks.push(item.value);
+    }
+    var result = concatBytes(chunks);
+    if (result.length !== expected) throw new Error('圧縮データの展開後サイズが一致しません');
+    return { bytes: result, decompressed: true };
+  }
+
+  function selfTest() {
+    var check = new Uint8Array([49, 50, 51, 52, 53, 54, 55, 56, 57]);
+    if (hex32(crc32(check)) !== 'CBF43926') throw new Error('CRC32既知テストに失敗しました');
+    var source = new Uint8Array(4000);
+    for (var i = 0; i < source.length; i++) source[i] = (i * 31 + 7) & 0xff;
+    var built = buildFrames(source, { chunkSize: 180, parity: true, id: 'A1B2C3D4' });
+    var receiver = new Receiver();
+    var skipped = { 1: true, 4: true };
+    var completion = null;
+    for (var f = 0; f < built.frames.length; f++) {
+      var parsed = parseFrame(built.frames[f]);
+      if (parsed.type === 'data' && skipped[parsed.index]) continue;
+      var result = receiver.feed(built.frames[f]);
+      if (result.complete) completion = result.bytes;
+    }
+    if (!completion || completion.length !== source.length) throw new Error('パリティ復元テストに失敗しました');
+    for (var j = 0; j < source.length; j++) if (completion[j] !== source[j]) throw new Error('復元データが元データと一致しません');
+    var pairTests = [[0, 1], [0, 7], [6, 7], [2, 5], [16, 21], [21, 22]];
+    for (var testIndex = 0; testIndex < pairTests.length; testIndex++) {
+      var pairReceiver = new Receiver();
+      var pairDone = null;
+      for (var packetIndex = 0; packetIndex < built.frames.length; packetIndex++) {
+        var packet = parseFrame(built.frames[packetIndex]);
+        if (packet.type === 'data' && pairTests[testIndex].indexOf(packet.index) !== -1) continue;
+        var pairResult = pairReceiver.feed(built.frames[packetIndex]);
+        if (pairResult.complete) pairDone = pairResult.bytes;
+      }
+      if (!pairDone || pairDone.length !== source.length) throw new Error('欠落位置 ' + pairTests[testIndex].join(',') + ' の復元に失敗しました');
+      for (var compareIndex = 0; compareIndex < source.length; compareIndex++) {
+        if (pairDone[compareIndex] !== source[compareIndex]) throw new Error('2消失訂正後のデータが一致しません');
+      }
+    }
+    var p1Receiver = new Receiver();
+    var p1Done = null;
+    for (var p1Index = 0; p1Index < built.frames.length; p1Index++) {
+      var p1Packet = parseFrame(built.frames[p1Index]);
+      if (p1Packet.type === 'data' && p1Packet.index === 2) continue;
+      if (p1Packet.type === 'parity' && p1Packet.parityType === 0) continue;
+      var p1Result = p1Receiver.feed(built.frames[p1Index]);
+      if (p1Result.complete) p1Done = p1Result.bytes;
+    }
+    if (!p1Done || p1Done.length !== source.length) throw new Error('P1単独の1消失訂正に失敗しました');
+
+    var legacy = buildFrames(source.subarray(0, 250), { chunkSize: 180, parity: false, id: '11223344' });
+    var legacyReceiver = new Receiver();
+    var legacyDone = null;
+    for (var legacyIndex = 0; legacyIndex < legacy.frames.length; legacyIndex++) {
+      var legacyResult = legacyReceiver.feed(legacy.frames[legacyIndex]);
+      if (legacyResult.complete) legacyDone = legacyResult.bytes;
+    }
+    if (!legacyDone || legacyDone.length !== 250) throw new Error('CMAL1旧形式の往復テストに失敗しました');
+    for (var legacyCompare = 0; legacyCompare < 250; legacyCompare++) {
+      if (legacyDone[legacyCompare] !== source[legacyCompare]) throw new Error('CMAL1旧形式の復元データが一致しません');
+    }
+
+    var firstDataMap = packetBlockIndexes(built.dataFrames[3]);
+    if (firstDataMap.length !== 1 || firstDataMap[0] !== 3) throw new Error('受信カーソルのデータ片位置テストに失敗しました');
+    var parityFrames = built.frames.map(function (frame) { return { frame: frame, parsed: parseFrame(frame) }; })
+      .filter(function (item) { return item.parsed.type === 'parity'; });
+    var firstParity = parityFrames.find(function (item) { return item.parsed.group === 0 && item.parsed.parityType === 0; });
+    if (!firstParity || packetBlockIndexes(firstParity.parsed).join(',') !== '0,1,2,3,4,5,6,7') {
+      throw new Error('受信カーソルのP0/P1グループ位置テストに失敗しました');
+    }
+    var finalParity = parityFrames.find(function (item) { return item.parsed.group === 2 && item.parsed.parityType === 1; });
+    if (!finalParity || packetBlockIndexes(finalParity.parsed).join(',') !== '16,17,18,19,20,21,22') {
+      throw new Error('受信カーソルの最終部分グループ位置テストに失敗しました');
+    }
+
+    var corruptedParts = built.dataFrames[0].split(':');
+    corruptedParts[3] = '00000000';
+    var corrupted = corruptedParts.join(':');
+    var crcRejected = false;
+    try { parseFrame(corrupted); } catch (_) { crcRejected = true; }
+    if (!crcRejected) throw new Error('CRC32改ざん検出テストに失敗しました');
+
+    return {
+      crc32: 'CBF43926',
+      simulatedBytes: source.length,
+      droppedFrames: 2,
+      recoveredFrames: receiver.recoveredCount,
+      packetFrames: built.frames.length,
+      legacyFrames: legacy.frames.length,
+      pairPositions: pairTests.length,
+      p1OnlyRecovery: true,
+      cursorDataBlock: firstDataMap[0],
+      cursorParityBlocks: packetBlockIndexes(firstParity.parsed).length,
+      cursorFinalGroupBlocks: packetBlockIndexes(finalParity.parsed).length,
+      crcTamperRejected: true
+    };
+  }
+
+  root.AirgapLinkCore = {
+    MAGIC: MAGIC,
+    MAGIC_BASE45: MAGIC_BASE45,
+    GROUP_SIZE: GROUP_SIZE,
+    crc32: crc32,
+    hex32: hex32,
+    bytesToBase64Url: bytesToBase64Url,
+    base64UrlToBytes: base64UrlToBytes,
+    buildFrames: buildFrames,
+    parseFrame: parseFrame,
+    packetBlockIndexes: packetBlockIndexes,
+    Receiver: Receiver,
+    compressIfSmaller: compressIfSmaller,
+    decompressIfWrapped: decompressIfWrapped,
+    selfTest: selfTest
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ===== Next protocol module ===== */
+(function (root) {
+  'use strict';
+
   var Core = root.AirgapLinkCore;
   var Wire = root.AirgapLinkWire;
   if (!Wire) throw new Error('Airgap Link Wire V8 が読み込まれていません');

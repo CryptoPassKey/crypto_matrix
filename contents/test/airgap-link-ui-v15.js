@@ -1011,27 +1011,17 @@
       var file = $('txFile').files && $('txFile').files[0];
       var sourceBytes;
       var sourceName;
-      if (autoTestPayloadBytes) {
-        sourceBytes = autoTestPayloadBytes;
-        sourceName = 'benchmark-' + formatBytes(sourceBytes.length) + '.bin';
-      } else if (file) {
-        if (file.size > MAX_BENCHMARK_BYTES) throw new Error('試験ページの上限は64 MiBです');
+      if (file) {
+        if (file.size > MAX_BENCHMARK_BYTES) throw new Error('最大転送サイズは64 MiBです');
         sourceBytes = new Uint8Array(await file.arrayBuffer());
         sourceName = file.name;
       } else {
         var text = $('txText').value;
-        if (text) {
-          sourceBytes = new TextEncoder().encode(text);
-          sourceName = 'message.txt';
-        } else {
-          sourceBytes = createBenchmarkPayload(selectedBenchmarkBytes());
-          sourceName = 'benchmark-' + formatBytes(sourceBytes.length) + '.bin';
-        }
+        if (!text) throw new Error('転送するファイルまたはテキストを指定してください');
+        sourceBytes = new TextEncoder().encode(text);
+        sourceName = 'message.txt';
       }
       if (sourceBytes.length > MAX_BENCHMARK_BYTES) throw new Error('試験ページの上限は64 MiBです');
-      if (sourceName && $('rxFilename') && !$('rxFilename').value) {
-        $('rxFilename').value = sourceName;
-      }
 
       var wireBytes = sourceBytes;
       var compressionNote = '圧縮なし';
@@ -1890,7 +1880,6 @@
       completedElapsedMs === null ? '—' : formatRate(finalBytes.length, completedElapsedMs);
     if ($('rxCompletionCard')) $('rxCompletionCard').classList.remove('hidden');
     status('rxStatus', '受信完了。復元データの整合性を確認しました。', 'ok');
-    status('rxStatus', '受信完了。ファイルを保存できます。', 'ok');
     updateRxStats();
     if ($('autoBenchmarkReset') && $('autoBenchmarkReset').checked) {
       // In benchmark mode, keep the camera alive; scanTick records this run before reset.

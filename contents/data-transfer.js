@@ -2472,7 +2472,7 @@ module.exports = QRCode;
 
       if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = 'QR読み取りエンジンを準備中…';
 
-      // ZXing-C++ WASM remains the primary engine in both modes.
+      // Always attempt the primary SIMD ZXing-C++ WASM engine first.
       try {
         if (!window.DataTransferZXingLoader || typeof window.DataTransferZXingLoader.load !== 'function') {
           throw new Error('ZXing WASMローダーが未読込です');
@@ -2490,16 +2490,18 @@ module.exports = QRCode;
         }
         return;
       } catch (error) {
-        zxingDecoder = null;
         wasmError = error;
-        if (!allowFallback) {
-          throw new Error('ZXing-C++ WASMを初期化できませんでした: ' + error.message +
-            '（互換モードを有効にすると代替方式を利用できます）');
-        }
+        zxingDecoder = null;
       }
 
-      // Only when compatibility mode is enabled, try native BarcodeDetector.
-      if (allowFallback && typeof window.BarcodeDetector === 'function') {
+      // Normal mode is strict: no native/jsQR fallback.
+      if (!allowFallback) {
+        throw new Error('ZXing-C++ WASMを初期化できませんでした: ' +
+          wasmError.message + '（互換モードを有効にすると代替方式を利用できます）');
+      }
+
+      // Compatibility mode tries native BarcodeDetector, then jsQR.
+      if (typeof window.BarcodeDetector === 'function') {
         try {
           var formats = await window.BarcodeDetector.getSupportedFormats();
           if (formats.indexOf('qr_code') !== -1) {
@@ -2509,26 +2511,25 @@ module.exports = QRCode;
             if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: Native BarcodeDetector（互換フォールバック）';
             return;
           }
+          nativeError = new Error('BarcodeDetectorがQRコード形式に対応していません');
         } catch (error) {
           nativeError = error;
           detector = null;
         }
-      } else if (allowFallback) {
+      } else {
         nativeError = new Error('BarcodeDetector APIを利用できません');
       }
 
-      // Last-resort compatibility decoder.
-      if (allowFallback && typeof window.jsQR === 'function') {
+      if (typeof window.jsQR === 'function') {
         scannerType = 'jsqr';
         scannerName = 'jsQR';
         if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（互換フォールバック）';
         return;
       }
 
-      throw new Error('利用可能なQR読み取りエンジンがありません: ZXing: ' +
-        (wasmError ? wasmError.message : '利用不可') +
-        ' / Native: ' + (nativeError ? nativeError.message : '利用不可') +
-        ' / jsQR: ' + (typeof window.jsQR === 'function' ? '利用可能' : '読み込み失敗'));
+      throw new Error('互換モードで利用可能なQR読み取りエンジンがありません: ZXing: ' +
+        wasmError.message + ' / Native: ' +
+        (nativeError ? nativeError.message : '利用不可') + ' / jsQR: 読み込み失敗');
     }
 
     function handleWorkerDecodeResult(msg) {

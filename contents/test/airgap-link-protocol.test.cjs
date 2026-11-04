@@ -201,7 +201,7 @@ async function main() {
   assert(page.includes('QRの情報量') && !page.includes('チャンクサイズ') &&
     ui.includes("+ ' 枚/秒'") && !ui.includes("+ ' fps'"),
     'TX controls must use plain Japanese labels and units rather than implementation jargon');
-  assert(!page.includes('フレーム待機中') && page.includes('QRコードの表示待ち') &&
+  assert(!page.includes('フレーム待機中') && !page.includes('QRコードの表示待ち') &&
     !page.includes('読み取り方式') && !page.includes('ZXing-C++ WASM') &&
     !page.includes('Web Worker非同期') && !page.includes('最後に読取'),
     'Production UI must hide scanner implementation details and redundant status copy');
@@ -599,6 +599,9 @@ async function main() {
   const firstRepair = await hybridEncoder.nextPart();
   assert.equal(firstRepair.seqNum, hybridEncoder.seqLen + 1);
   assert.equal(firstRepair.direct, false);
+  assert.equal(firstRepair.data.length, hybridPlan.chunkSize,
+    'The first repair frame must carry a full fragment, not an empty transition marker');
+  assert(firstRepair.frame.length > 0, 'The first repair frame must contain a complete encoded packet');
   const repairMetadata = globalThis.AirgapLinkFountain.parseFrame(firstRepair.frame);
   const hybridReceiver = new globalThis.AirgapLinkFountain.Receiver();
   for (const [index, shard] of legacyReceiver.shards.entries()) {

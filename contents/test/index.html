@@ -140,7 +140,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
   <div>
    <div class="range-head"><label for="fps">QRの切り替え速度</label><output id="fpsValue">10 枚/秒</output></div>
-   <input id="fps" type="range" min="6" max="120" step="1" value="10" aria-describedby="fpsHelp">
+   <input id="fps" type="range" min="6" max="60" step="1" value="10" aria-describedby="fpsHelp">
    <small id="fpsHelp">端末やカメラに合わせて調整してください。QRを読み取り損ねる場合は速度を下げてください。</small>
   </div>
  </div>
@@ -192,7 +192,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="checkrow" style="margin:10px 0 6px">
   <label for="rxAllowFallback"><input id="rxAllowFallback" type="checkbox"> 互換モード（読み取り方式を自動切り替え）</label>
  </div>
- <small>通常はZXing-C++ WASM（SIMD）を使用します。起動できない場合、互換モードONで Native BarcodeDetector → jsQR の順に切り替えます。</small>
+ 
  <div class="row">
   <button id="startCamera" class="primary" type="button">カメラを起動</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
@@ -221,7 +221,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="hidden" aria-hidden="true">
   <span id="rxBlockSummary"></span><span id="txFrameInfo"></span>
  </div>
- <p id="scannerMode" class="status info" aria-live="polite">読み取り方式: カメラ起動時に判定します</p>
+ <p id="scannerMode" class="status info" aria-live="polite">QR読み取り準備前</p>
  <p class="progress-caption">受信状況</p>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid rx-progress-stats">

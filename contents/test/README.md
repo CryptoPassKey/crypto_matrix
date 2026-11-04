@@ -100,6 +100,24 @@ node --test contents/test/zxing-worker-policy.test.js
 
 The tests verify that strict ZXing mode never imports or invokes jsQR, including when WASM initialization fails, and that jsQR is loaded only for explicit compatibility scanner modes.
 
+## ZXing release validation matrix
+
+The following browser/device checks are release gates and must be recorded separately from the Node worker-policy tests above:
+
+| Scenario | Expected result |
+| --- | --- |
+| First online visit with no Service Worker controller | Loader registers/waits for the scoped worker, then fetches the same-origin JS/WASM routes successfully |
+| Reload after Service Worker activation | Existing controller serves the validated cached pair |
+| GitHub Pages subpath (`/crypto_matrix/contents/`) | Worker registration, virtual asset URLs, and cache routing remain inside the deployed subpath |
+| Offline launch after a successful online setup | Cached JS/WASM pair initializes without CDN access |
+| One cached asset missing or corrupt | Both pair entries are discarded and refetched together; no partial pair is used |
+| CDN/network failure on first setup | Camera startup reports the failed asset URL, HTTP status when available, network detail, and Service Worker control state |
+| Compatibility mode OFF | ZXing-C++ WASM only; no jsQR import or decode fallback after any initialization/decode failure |
+| Compatibility mode ON | ZXing-C++ WASM is attempted first; BarcodeDetector/jsQR may be used only after a permitted fallback path |
+| Service Worker update with an older ZXing cache | New cache version is activated; stale ZXing pair cache is removed and revalidated |
+
+Required real-device coverage: **iPhone Safari** and **Android Chrome**. These camera/browser checks are not represented as passed by the automated Node tests. Record the device, OS/browser version, network state, and result before release.
+
 ## Self-test coverage
 
 The page's **プロトコル自己テスト** checks:

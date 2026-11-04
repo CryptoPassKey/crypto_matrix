@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.28.3-zxing-compat-receiver';
+const VERSION = 'cm-v2.28.4-rx-camera-completion';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const ZXING_WASM_VERSION = '3.1.6';
 const ZXING_WASM_CACHE = 'data-transfer-zxing-wasm-' + ZXING_WASM_VERSION + '-pair-v2';

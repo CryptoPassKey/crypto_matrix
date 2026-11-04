@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const js = fs.readFileSync(new URL('./airgap-link-ui-v14.js', import.meta.url), 'utf8');
+const js = fs.readFileSync(new URL('./airgap-link-ui-v17.js', import.meta.url), 'utf8');
 
 assert.match(js, /var txAutoRateController\s*=/, 'TX-local controller must exist');
 assert.match(js, /var rxRateAdvisor\s*=/, 'RX advisor must exist');

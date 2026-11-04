@@ -3266,79 +3266,77 @@ module.exports = QRCode;
     detector = null;
     zxingDecoder = null;
     scannerType = '';
-    scannerPreference = $('rxScanner') ? valueOf('rxScanner', 'zxing-wasm') : 'zxing-wasm';
+    scannerPreference = 'zxing-wasm';
     var allowFallback = $('rxAllowFallback') ? $('rxAllowFallback').checked : false;
     var wasmError = null;
     var nativeError = null;
 
-    // 1. ZXing-C++ WASM (3.1.6) を最優先で試行（実測でNativeより高速かつ安定）
-    if (scannerPreference === 'auto' || scannerPreference === 'zxing-wasm') {
-      $('scannerMode').textContent = '読み取り方式: ZXing-C++ WASMを準備中…';
+    // 1. ZXing-C++ WASM (SIMD) を常に最優先で試行
+    $('scannerMode').textContent = '読み取り方式: ZXing-C++ WASMを準備中…';
+    $('scannerMode').className = 'status info';
+    try {
+      if (!window.DataTransferZXingLoader ||
+          typeof window.DataTransferZXingLoader.load !== 'function') {
+        throw new Error('ZXing WASMローダーを読み込めません');
+      }
+      zxingDecoder = await window.DataTransferZXingLoader.load();
+      if (!zxingDecoder || typeof zxingDecoder.readBarcodes !== 'function') {
+        throw new Error('ZXing WASMのreadBarcodes APIが見つかりません');
+      }
+      scannerType = 'zxing-wasm';
+      scannerName = 'ZXing-C++ WASM（SIMD）';
+      $('scannerMode').textContent = '読み取り方式: ' + scannerName;
       $('scannerMode').className = 'status info';
-      try {
-        if (!window.DataTransferZXingLoader ||
-            typeof window.DataTransferZXingLoader.load !== 'function') {
-          throw new Error('ZXing WASMローダーを読み込めません');
-        }
-        zxingDecoder = await window.DataTransferZXingLoader.load();
-        if (!zxingDecoder || typeof zxingDecoder.readBarcodes !== 'function') {
-          throw new Error('ZXing WASMのreadBarcodes APIが見つかりません');
-        }
-        scannerType = 'zxing-wasm';
-        scannerName = 'ZXing-C++ WASM 3.1.6（最高速）';
-        $('scannerMode').textContent = '読み取り方式: ' + scannerName;
-        $('scannerMode').className = 'status info';
-        return;
-      } catch (error) {
-        zxingDecoder = null;
-        wasmError = error;
-        // フォールバック未許可時は遅いNativeに勝手に落とさずエラー提示
-        if (!allowFallback && scannerPreference === 'zxing-wasm') {
-          throw new Error('QRコード読み取り機能を起動できませんでした: ' + error.message);
-        }
+      return;
+    } catch (error) {
+      zxingDecoder = null;
+      wasmError = error;
+      if (!allowFallback) {
+        throw new Error('QRコード読み取り機能を起動できませんでした: ' + error.message +
+          '（互換モードを有効にすると別方式を試行できます）');
       }
     }
 
-    // 2. 互換フォールバックが許可されている場合、または明示的に指定された場合のみ Native / jsQR を試行
-    if (scannerPreference === 'native' || (allowFallback && (scannerPreference === 'auto' || scannerPreference === 'zxing-wasm'))) {
-      if (typeof window.BarcodeDetector === 'function') {
-        try {
-          var formats = await window.BarcodeDetector.getSupportedFormats();
-          if (formats.indexOf('qr_code') !== -1) {
-            detector = new window.BarcodeDetector({ formats: ['qr_code'] });
-            scannerType = 'native';
-            scannerName = 'Native BarcodeDetector' + (scannerPreference === 'auto' ? '（互換フォールバック）' : '');
-          }
-        } catch (error) {
-          nativeError = error;
-          detector = null;
+    // 2. 互換モード時のみ Native BarcodeDetector を試行
+    if (allowFallback && typeof window.BarcodeDetector === 'function') {
+      try {
+        var formats = await window.BarcodeDetector.getSupportedFormats();
+        if (formats.indexOf('qr_code') !== -1) {
+          detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+          scannerType = 'native';
+          scannerName = 'Native BarcodeDetector（互換フォールバック）';
+        } else {
+          throw new Error('QRコード形式に対応していません');
         }
+      } catch (error) {
+        nativeError = error;
+        detector = null;
       }
-      if (detector) {
-        $('scannerMode').textContent = '読み取り方式: ' + scannerName;
-        $('scannerMode').className = 'status info';
-        return;
-      }
-      if (scannerPreference === 'native') {
-        throw new Error(nativeError
-          ? 'Native BarcodeDetector初期化失敗: ' + nativeError.message
-          : 'このブラウザではQR対応のNative BarcodeDetectorを利用できません');
-      }
+    } else if (allowFallback) {
+      nativeError = new Error('BarcodeDetector APIを利用できません');
+    }
+    if (detector) {
+      $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+      $('scannerMode').className = 'status info';
+      return;
     }
 
     // 3. 最終フォールバック: jsQR
-    if (scannerPreference === 'jsqr' || (allowFallback && (scannerPreference === 'auto' || scannerPreference === 'zxing-wasm'))) {
-      if (typeof window.jsQR !== 'function') {
-        throw new Error('jsQR.jsを読み込めませんでした');
-      }
+    if (allowFallback && typeof window.jsQR === 'function') {
       scannerType = 'jsqr';
-      scannerName = scannerPreference === 'jsqr' ? 'jsQR（指定）' : 'jsQR（最終フォールバック）';
-      var failReason = wasmError ? ' · WASM利用不可: ' + wasmError.message : (nativeError ? ' · Native利用不可: ' + nativeError.message : '');
+      scannerName = 'jsQR（最終フォールバック）';
+      var failReason = ' · WASM利用不可: ' + wasmError.message +
+        (nativeError ? ' · Native利用不可: ' + nativeError.message : '');
       $('scannerMode').textContent = '読み取り方式: ' + scannerName + failReason;
       $('scannerMode').className = 'status info';
       return;
     }
 
+    if (allowFallback) {
+      throw new Error('利用可能なQR読み取り方式がありません。WASM: ' +
+        wasmError.message + ' / Native: ' +
+        (nativeError ? nativeError.message : '利用不可') + ' / jsQR: 読み込み失敗');
+    }
     throw new Error('QRコード読み取り機能を初期化できませんでした。ページを再読み込みしてください。');
   }
 
@@ -3647,21 +3645,14 @@ module.exports = QRCode;
         if (hit) return hit.rawValue;
       } catch (nativeError) {
         detector = null;
-        scannerType = 'jsqr';
-        if (scannerPreference === 'auto' && window.DataTransferZXingLoader) {
-          try {
-            zxingDecoder = await window.DataTransferZXingLoader.load();
-            scannerType = 'zxing-wasm';
-            scannerName = 'ZXing-C++ WASM 3.1.6（Native error fallback）';
-          } catch (_) {
-            scannerType = 'jsqr';
-            scannerName = 'jsQR fallback (Native error)';
-          }
-        } else {
+        if ($('rxAllowFallback') && $('rxAllowFallback').checked &&
+            typeof window.jsQR === 'function') {
           scannerType = 'jsqr';
-          scannerName = 'jsQR fallback (Native error)';
+          scannerName = 'jsQR（Native実行時エラーからのフォールバック）';
+          $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+        } else {
+          throw new Error('Native BarcodeDetectorの実行に失敗しました: ' + nativeError.message);
         }
-        $('scannerMode').textContent = '読み取り方式: ' + scannerName;
       }
     }
 

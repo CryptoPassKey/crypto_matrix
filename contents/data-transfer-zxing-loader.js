@@ -154,7 +154,8 @@
       })
     ]);
 
-    var api = window.ZXingWASM && typeof window.ZXingWASM.readBarcodes === 'function'
+    var api = window.ZXingWASM && typeof window.ZXingWASM.readBarcodes === 'function' &&
+      typeof window.ZXingWASM.prepareZXingModule === 'function'
       ? window.ZXingWASM
       : await loadScript(SCRIPT_LOCAL_URL);
     await api.prepareZXingModule({

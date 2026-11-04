@@ -1,5 +1,18 @@
 # Airgap Link Test Lab
 
+## Current runtime layout (V18)
+
+The Test Lab runtime is grouped by responsibility to keep the script surface small without mixing browser and worker execution contexts:
+
+- `airgap-link-ui-v18.js`: UI/controller and local QR matrix encoder.
+- `airgap-link-protocol-v9.js`: wire framing, CMAL core, and LT fountain codec in dependency order.
+- `airgap-link-qr-worker-v13.js`: dedicated decode worker; it must remain a separate script because it runs in a WorkerGlobalScope.
+- `airgap-link-zxing-loader-v10.js`: main-thread ZXing-C++ WASM loader.
+- `../vendor/jsQR.js`: compatibility decoder library.
+
+The protocol and QR encoder are bundled as plain scripts; no build step or module loader is required. The Service Worker precaches the worker script and uses cache version V23. The standalone WASM binary and third-party reader bundle remain independently version-pinned/cached.
+
+
 Independent experiment page for screen-to-camera, offline QR transport.
 
 ## Open

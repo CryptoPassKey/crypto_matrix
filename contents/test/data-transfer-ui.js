@@ -3919,7 +3919,7 @@ module.exports = QRCode;
   updateTxBlockMap();
 
   if (typeof window !== 'undefined') {
-    window.__airgapTestHooks = {
+    window.__dataTransferTestHooks = {
       detectQr: detectQr,
       triggerScanIfIdle: triggerScanIfIdle,
       enqueueIngest: enqueueIngest,
@@ -3942,7 +3942,7 @@ module.exports = QRCode;
       onScanVideoFrame: onScanVideoFrame,
       rateController: rxRateAdvisor
     };
-    window.dataTransfer = window.__airgapTestHooks;
-    window.airgapRateController = rxRateAdvisor;
+    window.dataTransfer = window.__dataTransferTestHooks;
+    window.dataTransferRateController = rxRateAdvisor;
   }
 })();

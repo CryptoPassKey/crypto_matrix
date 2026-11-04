@@ -198,6 +198,9 @@ async function main() {
     'RX must display elapsed time starting at the second valid QR');
   assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
     'RX must show wire-payload throughput, saved-file throughput, and ingest timing');
+  assert(page.includes('QRの情報量') && !page.includes('チャンクサイズ') &&
+    ui.includes("+ ' 枚/秒'") && !ui.includes("+ ' fps'"),
+    'TX controls must use plain Japanese labels and units rather than implementation jargon');
   assert(!page.includes('80〜2,800B') && !page.includes('800〜1,000B') &&
     !page.includes('6〜120 fps') && !page.includes('10〜12 fps'),
     'Production UI must not expose implementation ranges or device-specific tuning recommendations');

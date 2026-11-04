@@ -2271,6 +2271,8 @@ module.exports = QRCode;
         objectUrl = null;
       }
       if ($('dt-rx-completion-card')) $('dt-rx-completion-card').hidden = true;
+      if ($('dt-camera-complete')) $('dt-camera-complete').hidden = true;
+      if ($('dt-camera-placeholder')) $('dt-camera-placeholder').hidden = false;
       if ($('dt-rx-text-preview-wrap')) $('dt-rx-text-preview-wrap').hidden = true;
       if ($('dt-rx-text-preview')) $('dt-rx-text-preview').value = '';
       if ($('dt-copy-result')) $('dt-copy-result').hidden = true;
@@ -2665,6 +2667,7 @@ module.exports = QRCode;
         video.srcObject = stream;
         await video.play();
         if ($('dt-camera-placeholder')) $('dt-camera-placeholder').hidden = true;
+        if ($('dt-camera-complete')) $('dt-camera-complete').hidden = true;
         if ($('dt-start-camera')) $('dt-start-camera').disabled = true;
         if ($('dt-stop-camera')) $('dt-stop-camera').disabled = false;
         setHeaderBadge('読み取り中', 'SCANNING');
@@ -2743,7 +2746,8 @@ module.exports = QRCode;
       if (video && video.srcObject) {
         video.srcObject = null;
       }
-      if ($('dt-camera-placeholder')) $('dt-camera-placeholder').hidden = false;
+      if ($('dt-camera-placeholder')) $('dt-camera-placeholder').hidden = receivedDone;
+      if ($('dt-camera-complete')) $('dt-camera-complete').hidden = !receivedDone;
       scanBusy = false;
       scanLatestPresentedFrames = null;
       scanLastAnalyzedPresentedFrames = null;

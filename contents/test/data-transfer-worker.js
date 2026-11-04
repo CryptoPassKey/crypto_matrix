@@ -2,6 +2,9 @@
 'use strict';
 
 var VERSION = '3.1.6';
+var SCRIPT_LOCAL_URL = 'data-transfer-zxing-reader.js';
+var SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js';
+var WASM_LOCAL_URL = 'data-transfer-zxing-reader.wasm';
 var WASM_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm';
 var zxingApi = null;
 var isInitialized = false;
@@ -13,39 +16,50 @@ var cachedRoiHeight = 0;
 
 function loadJsQr() {
   if (typeof jsQR === 'function') return true;
-  try {
-    importScripts('../vendor/jsQR.js');
-    return typeof jsQR === 'function';
-  } catch (e) {
+  var candidates = ['vendor/jsQR.js', '../vendor/jsQR.js'];
+  for (var i = 0; i < candidates.length; i++) {
     try {
-      importScripts('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js');
-      return typeof jsQR === 'function';
-    } catch (_) {
-      return false;
-    }
+      importScripts(candidates[i]);
+      if (typeof jsQR === 'function') return true;
+    } catch (_) {}
   }
+  return false;
+}
+
+function isValidWasmHeader(bytes) {
+  return bytes && bytes.length >= 500000 &&
+    bytes[0] === 0x00 && bytes[1] === 0x61 && bytes[2] === 0x73 && bytes[3] === 0x6d;
+}
+
+async function fetchWorkerWasmBytes() {
+  var localResp = await fetch(WASM_LOCAL_URL, { credentials: 'same-origin' });
+  if (!localResp || !localResp.ok) {
+    throw new Error('WASM fetch failed: ' + (localResp ? localResp.status : 'network'));
+  }
+  var localBuf = await localResp.arrayBuffer();
+  if (!isValidWasmHeader(new Uint8Array(localBuf))) {
+    throw new Error('Invalid WASM binary');
+  }
+  return localBuf;
 }
 
 async function initZxing() {
   if (zxingApi) return zxingApi;
   try {
     if (typeof ZXingWASM === 'undefined' || typeof ZXingWASM.readBarcodes !== 'function') {
-      importScripts('https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js');
+      importScripts(SCRIPT_LOCAL_URL);
     }
     if (typeof ZXingWASM === 'undefined' || typeof ZXingWASM.readBarcodes !== 'function') {
       throw new Error('ZXingWASM not available in worker');
     }
 
-    var wasmResponse = await fetch(WASM_URL, { mode: 'cors', credentials: 'omit' });
-    if (!wasmResponse.ok) throw new Error('WASM fetch failed: ' + wasmResponse.status);
-    var wasmBytes = await wasmResponse.arrayBuffer();
-    var wasmBlob = new Blob([wasmBytes], { type: 'application/wasm' });
-    var wasmUrl = URL.createObjectURL(wasmBlob);
+    var wasmBytes = await fetchWorkerWasmBytes();
 
     await ZXingWASM.prepareZXingModule({
       overrides: {
+        wasmBinary: wasmBytes,
         locateFile: function (path, prefix) {
-          return path.slice(-5).toLowerCase() === '.wasm' ? wasmUrl : prefix + path;
+          return path.slice(-5).toLowerCase() === '.wasm' ? WASM_LOCAL_URL : prefix + path;
         }
       },
       fireImmediately: true
@@ -168,9 +182,11 @@ self.onmessage = async function (e) {
   if (msg.type === 'init') {
     try {
       loadJsQr();
-      try {
-        await initZxing();
-      } catch (_) {}
+      if (msg.scannerType === 'zxing-wasm') {
+        try {
+          await initZxing();
+        } catch (_) {}
+      }
       isInitialized = true;
       self.postMessage({
         type: 'init-ready',

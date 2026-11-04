@@ -2280,7 +2280,7 @@ module.exports = QRCode;
       }
       setStatus('dt-rx-status',
         stream
-          ? '受信状態をリセットしました。送信側の先頭QRコード（Data 1）をカメラに映してください。'
+          ? '受信状態をリセットしました。送信側でQRコードの連続表示を先頭から開始してください。'
           : '待機中です。「カメラを起動」を押し、送信側でQRコードの連続表示を開始してください。',
         'info');
     }
@@ -2631,9 +2631,12 @@ module.exports = QRCode;
       setStatus('dt-rx-status', 'カメラとQR読み取りエンジンを起動しています…', 'info');
       try {
         await initScanner();
-        var workerReady = await initQrWorker();
-        if (!detector && !workerReady) {
-          throw new Error('選択したQR読み取りエンジンのWorker初期化に失敗しました');
+        var workerReady = false;
+        if (!detector) {
+          workerReady = await initQrWorker();
+          if (!workerReady) {
+            throw new Error('選択したQR読み取りエンジンのWorker初期化に失敗しました');
+          }
         }
         stream = await navigator.mediaDevices.getUserMedia({
           video: {

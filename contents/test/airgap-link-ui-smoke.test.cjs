@@ -91,8 +91,8 @@ for (const filename of [
   vm.runInContext(fs.readFileSync(path.join(root, filename), 'utf8'), sandbox, { filename });
 }
 sandbox.MatrixQRCode = window.MatrixQRCode;
-const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v16.js'), 'utf8');
-vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v16.js' });
+const uiSource = fs.readFileSync(path.join(root, 'airgap-link-ui-v17.js'), 'utf8');
+vm.runInContext(uiSource, sandbox, { filename: 'airgap-link-ui-v17.js' });
 
 (async () => {
   assert.equal(getElement('transferMode').value, 'hybrid-data',

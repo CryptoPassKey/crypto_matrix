@@ -65,7 +65,7 @@ async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
   const fountainSource = fs.readFileSync('contents/test/airgap-link-fountain-v8.js', 'utf8');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v16.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v17.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -94,7 +94,7 @@ async function main() {
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
-    page.includes('<script src="airgap-link-ui-v16.js" defer></script>'),
+    page.includes('<script src="airgap-link-ui-v17.js" defer></script>'),
     'Airgap page must load the unchanged ZXing loader before the V16 UI runtime');
   assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"') &&
     page.includes('id="runRxGaussian"'),
@@ -112,7 +112,7 @@ async function main() {
     !page.includes('value="native"') && !page.includes('value="jsqr"'),
     'Production RX must use the fixed ZXing-C++ WASM decoder');
   assert(serviceWorker.includes('"test/airgap-link-zxing-loader-v10.js"') &&
-    serviceWorker.includes('"test/airgap-link-ui-v16.js"') &&
+    serviceWorker.includes('"test/airgap-link-ui-v17.js"') &&
     serviceWorker.includes("const ZXING_WASM_VERSION = '3.1.6'"),
     'Service Worker must precache V16 scripts and expose the pinned ZXing virtual script route');
   assert(!page.includes('benchmarkSizeRange') && !page.includes('benchmarkSizeInput') &&
@@ -154,13 +154,13 @@ async function main() {
     !page.includes('copyBenchmarkText'),
     'Production UI must not expose benchmark or debug controls');
   assert(serviceWorker.includes("const VERSION = 'cm-v2.26.0-airgap-link-production-v18'") &&
-    serviceWorker.includes('"test/airgap-link-ui-v16.js"'),
+    serviceWorker.includes('"test/airgap-link-ui-v17.js"'),
     'Service Worker must cache-bust and precache the V16 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
     'V16 must expose the expanded numeric and range chunk-size controls');
   assert(ui.includes('maximum = $(\'wireFormat\').value === \'base64url\' ? 2100 : 2800'),
     'V16 must apply wire-format-specific chunk limits');
-  new vm.Script(ui, { filename: 'airgap-link-ui-v16.js' });
+  new vm.Script(ui, { filename: 'airgap-link-ui-v17.js' });
   new vm.Script(zxingLoader, { filename: 'airgap-link-zxing-loader-v10.js' });
   assert(ui.includes("zxingDecoder.readBarcodes(image,") &&
     ui.includes("formats: ['QRCode']") &&

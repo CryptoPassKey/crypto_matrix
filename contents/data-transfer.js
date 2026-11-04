@@ -2572,29 +2572,36 @@ module.exports = QRCode;
         rxWorker = null;
       }
       return new Promise(function (resolve) {
+        var settled = false;
+        function finish(value) {
+          if (settled) return;
+          settled = true;
+          clearTimeout(initTimer);
+          resolve(value);
+        }
+        var initTimer = null;
         try {
           rxWorker = new Worker('data-transfer-worker.js');
-          var initTimer = setTimeout(function () {
+          initTimer = setTimeout(function () {
             rxWorkerFailed = true;
             rxWorkerReady = false;
             try { if (rxWorker) rxWorker.terminate(); } catch (_) {}
             rxWorker = null;
-            resolve(false);
+            finish(false);
           }, 10000);
 
           rxWorker.onmessage = function (e) {
             var msg = e.data;
             if (!msg) return;
             if (msg.type === 'init-ready') {
-              clearTimeout(initTimer);
               if (msg.success) {
                 rxWorkerReady = true;
                 rxWorkerFailed = false;
-                resolve(true);
+                finish(true);
               } else {
                 rxWorkerFailed = true;
                 rxWorkerReady = false;
-                resolve(false);
+                finish(false);
               }
             } else if (msg.type === 'decode-result') {
               handleWorkerDecodeResult(msg);
@@ -2602,13 +2609,12 @@ module.exports = QRCode;
           };
 
           rxWorker.onerror = function () {
-            clearTimeout(initTimer);
             rxWorkerBusy = false;
             rxWorkerFailed = true;
             rxWorkerReady = false;
             try { rxWorker.terminate(); } catch (_) {}
             rxWorker = null;
-            resolve(false);
+            finish(false);
           };
 
           rxWorker.postMessage({
@@ -2618,7 +2624,7 @@ module.exports = QRCode;
         } catch (_) {
           rxWorkerFailed = true;
           rxWorkerReady = false;
-          resolve(false);
+          finish(false);
         }
       });
     }

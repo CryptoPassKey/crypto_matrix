@@ -94,9 +94,9 @@ Encrypted data is already close to random and normally does not compress. For en
 
 Run with Node.js:
 
-\`\`\`sh
+```sh
 node --test contents/test/zxing-worker-policy.test.js
-\`\`\`
+```
 
 The tests verify that strict ZXing mode never imports or invokes jsQR, including when WASM initialization fails, and that jsQR is loaded only for explicit compatibility scanner modes.
 

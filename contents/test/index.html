@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07111d">
-<title>Airgap Link — Offline File Transfer</title>
+<title>Data Transfer — Offline File Transfer</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#07111d;--panel:#101d2d;--panel2:#14243a;--line:#29425c;--text:#e6f0fa;--muted:#9bb0c5;--accent:#47d7b0;--accent2:#65b7ff;--danger:#ff7777;--ok:#62d69d}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#132943 0,#07111d 52%);color:var(--text);line-height:1.55}
@@ -93,15 +93,15 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="../vendor/jsQR.js"></script>
-<script src="airgap-link-protocol-v9.js"></script>
-<script src="airgap-link-zxing-loader-v10.js" defer></script>
-<script src="airgap-link-ui-v18.js" defer></script>
+<script src="data-transfer-protocol.js"></script>
+<script src="data-transfer-zxing-loader.js" defer></script>
+<script src="data-transfer-ui.js" defer></script>
 </head>
 <body>
 <main>
 <header>
- <div><h1>Airgap <span>Link</span></h1><p class="subtitle">QRコードによるオフライン端末間転送</p></div>
- <span class="pill">OFFLINE TRANSFER · V21</span>
+ <div><h1>Data <span>Transfer</span></h1><p class="subtitle">QRコードによるオフライン端末間転送</p></div>
+ <span class="pill">DATA TRANSFER · TEST LAB</span>
 </header>
 
 <div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。受信側で先頭QRを読み取ったら、送信側の再生を開始してください。片方向転送のため、受信確認は送信側へ返りません。</div>
@@ -243,7 +243,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 
 
-<p class="footer">Airgap Link · QRコードによるローカル転送 · データは外部サーバーへ送信されません。</p>
+<p class="footer">Data Transfer · QRコードによるローカル転送 · データは外部サーバーへ送信されません。</p>
 </main>
 </body>
 </html>

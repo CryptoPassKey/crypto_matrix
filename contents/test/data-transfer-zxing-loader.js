@@ -4,9 +4,9 @@
   // Version-pinned reader-only IIFE. The service worker serves its JS through
   // a same-origin virtual URL and stores it in this independent cache.
   var VERSION = '3.1.6';
-  var CACHE_NAME = 'airgap-link-zxing-wasm-' + VERSION;
+  var CACHE_NAME = 'data-transfer-zxing-wasm-' + VERSION;
   var SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js';
-  var SCRIPT_LOCAL_URL = 'zxing-wasm-reader-v10.js';
+  var SCRIPT_LOCAL_URL = 'data-transfer-zxing-reader.js';
   var WASM_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm';
   var loadPromise = null;
   var wasmObjectUrl = null;
@@ -90,7 +90,7 @@
     return loadPromise;
   }
 
-  window.AirgapLinkZXingLoader = {
+  window.DataTransferZXingLoader = {
     version: VERSION,
     cacheName: CACHE_NAME,
     load: load

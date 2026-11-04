@@ -73,7 +73,7 @@
     parts.push(value.slice(start));
     if (parts.length !== 5) throw new Error('フレームのフィールド数が不正です');
     if (parts[0] !== 'CMAL1' && parts[0] !== 'CMAL2') {
-      throw new Error('未対応のAirgap Link形式です');
+      throw new Error('未対応のData Transfer形式です');
     }
     return {
       magic: parts[0],
@@ -95,7 +95,7 @@
       (text.indexOf('CMAL1:F') === 0 || text.indexOf('CMAL2:F') === 0);
   }
 
-  root.AirgapLinkWire = {
+  root.DataTransferWire = {
     ALPHABET: ALPHABET,
     encodeBase45: encodeBase45,
     decodeBase45: decodeBase45,
@@ -111,8 +111,8 @@
 
   var MAGIC = 'CMAL1';
   var MAGIC_BASE45 = 'CMAL2';
-  var Wire = root.AirgapLinkWire;
-  if (!Wire) throw new Error('Airgap Link Wire V8 が読み込まれていません');
+  var Wire = root.DataTransferWire;
+  if (!Wire) throw new Error('Data Transfer Wire V8 が読み込まれていません');
   var GROUP_SIZE = 8;
   var crcTable = new Uint32Array(256);
 
@@ -623,7 +623,7 @@
     };
   }
 
-  root.AirgapLinkCore = {
+  root.DataTransferCore = {
     MAGIC: MAGIC,
     MAGIC_BASE45: MAGIC_BASE45,
     GROUP_SIZE: GROUP_SIZE,
@@ -645,9 +645,9 @@
 (function (root) {
   'use strict';
 
-  var Core = root.AirgapLinkCore;
-  var Wire = root.AirgapLinkWire;
-  if (!Wire) throw new Error('Airgap Link Wire V8 が読み込まれていません');
+  var Core = root.DataTransferCore;
+  var Wire = root.DataTransferWire;
+  if (!Wire) throw new Error('Data Transfer Wire V8 が読み込まれていません');
   var MAGIC = 'CMAL1';
   var MAGIC_BASE45 = 'CMAL2';
   var VERSION = 1;
@@ -1502,7 +1502,7 @@
     };
   }
 
-  root.AirgapLinkFountain = {
+  root.DataTransferFountain = {
     VERSION: VERSION,
     Encoder: FountainEncoder,
     Receiver: FountainReceiver,

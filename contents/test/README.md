@@ -1,13 +1,13 @@
-# Airgap Link Test Lab
+# Data Transfer Test Lab
 
 ## Current runtime layout (V18)
 
 The Test Lab runtime is grouped by responsibility to keep the script surface small without mixing browser and worker execution contexts:
 
-- `airgap-link-ui-v18.js`: UI/controller and local QR matrix encoder.
-- `airgap-link-protocol-v9.js`: wire framing, CMAL core, and LT fountain codec in dependency order.
-- `airgap-link-qr-worker-v13.js`: dedicated decode worker; it must remain a separate script because it runs in a WorkerGlobalScope.
-- `airgap-link-zxing-loader-v10.js`: main-thread ZXing-C++ WASM loader.
+- `data-transfer-ui.js`: UI/controller and local QR matrix encoder.
+- `data-transfer-protocol.js`: wire framing, CMAL core, and LT fountain codec in dependency order.
+- `data-transfer-worker.js`: dedicated decode worker; it must remain a separate script because it runs in a WorkerGlobalScope.
+- `data-transfer-zxing-loader.js`: main-thread ZXing-C++ WASM loader.
 - `../vendor/jsQR.js`: compatibility decoder library.
 
 The protocol and QR encoder are bundled as plain scripts; no build step or module loader is required. The Service Worker precaches the worker script and uses cache version V23. The standalone WASM binary and third-party reader bundle remain independently version-pinned/cached.
@@ -103,7 +103,7 @@ Camera-to-camera testing still needs to be performed on real target devices. QR 
 
 ## Security notes
 
-- Airgap Link is a transport mechanism, not an encryption layer. Transfer encrypted files.
+- Data Transfer is a transport mechanism, not an encryption layer. Transfer encrypted files.
 - CRC32 detects accidental frame corruption; it is not an authentication tag and cannot prevent intentional tampering.
 - Do not treat a successfully reconstructed file as authentic solely because all CRC32 checks pass. The encrypted file's own authenticated-encryption verification remains authoritative.
 - Camera access is requested only after the user presses **カメラ開始**.
@@ -169,13 +169,14 @@ The TX block map is placed immediately below the animated QR display. The RX blo
 
 For small transfers, the map uses fewer columns (up to 75) so each source block remains large enough to track visually. Both maps use the same mapping and sizing logic.
 
-## Test Lab versioning
+## Naming and versioning
 
-The standalone experiment page is labelled **Airgap Link / Test Lab V4**. The visible page title, heading, offline pill, and footer carry the version. Every test-lab UI/runtime behavior change should increment the displayed Test Lab version, use a fresh versioned UI script filename when stale Service Worker caches may survive, and increment the Service Worker cache version.
+Runtime filenames describe their role and do not contain release numbers. Git history and commits track source revisions. The visible Test Lab label and Service Worker cache key are updated when runtime behavior changes; the cache key remains versioned to invalidate stale offline assets.
+
 
 ## Test Lab V3 — TX position-only map
 
-Starting with **Airgap Link / Test Lab V3**, TX's block map communicates only the current QR position. All source blocks use the same neutral base color; only the active QR's source block(s) receive the high-contrast cursor. TX does not claim that a block is sent or unsent because the page controls what is displayed, not what the remote camera has actually received.
+Starting with **Data Transfer / Test Lab V3**, TX's block map communicates only the current QR position. All source blocks use the same neutral base color; only the active QR's source block(s) receive the high-contrast cursor. TX does not claim that a block is sent or unsent because the page controls what is displayed, not what the remote camera has actually received.
 
 The TX summary reports the source-block count and current packet information (Data/P0/P1 or LT sequence and XOR target indexes). RX retains persistent acquisition state: directly received, recovered, and missing blocks, plus a cursor for the last valid QR read.
 

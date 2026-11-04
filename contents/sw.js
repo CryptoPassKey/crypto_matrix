@@ -1,9 +1,9 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.27.0-airgap-link-test-assets-v23';
+const VERSION = 'cm-v2.27.0-data-transfer-test-assets-v24';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const ZXING_WASM_VERSION = '3.1.6';
-const ZXING_WASM_CACHE = 'airgap-link-zxing-wasm-' + ZXING_WASM_VERSION;
+const ZXING_WASM_CACHE = 'data-transfer-zxing-wasm-' + ZXING_WASM_VERSION;
 const ZXING_READER_SCRIPT = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + ZXING_WASM_VERSION + '/dist/iife/reader/index.js';
 const FILES = [
   "./",
@@ -60,10 +60,10 @@ const FILES = [
   "timesecret.js",
   "test/",
   "test/index.html",
-  "test/airgap-link-protocol-v9.js",
-  "test/airgap-link-qr-worker-v13.js",
-  "test/airgap-link-zxing-loader-v10.js",
-  "test/airgap-link-ui-v18.js",
+  "test/data-transfer-protocol.js",
+  "test/data-transfer-worker.js",
+  "test/data-transfer-zxing-loader.js",
+  "test/data-transfer-ui.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];
@@ -116,7 +116,7 @@ self.addEventListener('fetch', (e) => {
 
   // Virtual same-origin script URL: cache the version-pinned ZXing reader IIFE
   // in its own cache so it remains available after the app shell is upgraded.
-  if (requestUrl.pathname.endsWith('/contents/test/zxing-wasm-reader-v10.js')) {
+  if (requestUrl.pathname.endsWith('/contents/test/data-transfer-zxing-reader.js')) {
     e.respondWith((async () => {
       const cache = await caches.open(ZXING_WASM_CACHE);
       const cached = await cache.match(ZXING_READER_SCRIPT);

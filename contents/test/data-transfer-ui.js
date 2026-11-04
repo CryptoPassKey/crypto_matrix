@@ -1272,7 +1272,7 @@ module.exports = QRCode;
 
 }};const cache={};function req(name){if(cache[name])return cache[name].exports;const m={exports:{}};cache[name]=m;if(!modules[name])throw Error('QR module missing');modules[name](m,m.exports,req);return m.exports;}const QR=req('./index'),level=req('./QRErrorCorrectLevel');window.MatrixQRCode={matrix:function(text){if(!/^[\x00-\x7f]*$/.test(text))throw Error('QR payload must be ASCII');try{const q=new QR(-1,level.M);q.addData(text);q.make();return q.modules;}catch(_){const q=new QR(-1,level.L);q.addData(text);q.make();return q.modules;}},modeFor:function(text){if(!/^[\x00-\x7f]*$/.test(text))throw Error('QR payload must be ASCII');const q=new QR(-1,level.M);q.addData(text);return q.dataList[0].mode;}};})();
 
-/* ===== Airgap Link UI controller ===== */
+/* ===== Data Transfer UI controller ===== */
 (function () {
   'use strict';
 
@@ -1310,9 +1310,9 @@ module.exports = QRCode;
     var element = $(id);
     if (element) element.value = value;
   };
-  var Core = window.AirgapLinkCore;
-  var Fountain = window.AirgapLinkFountain;
-  var Wire = window.AirgapLinkWire;
+  var Core = window.DataTransferCore;
+  var Fountain = window.DataTransferFountain;
+  var Wire = window.DataTransferWire;
   var txPlan = null;
   var txFountainEncoder = null;
   var txFountainPart = null;
@@ -2900,7 +2900,7 @@ module.exports = QRCode;
 
   function benchmarkResultsText() {
     var lines = [
-      'Airgap Link Test Lab — 計測結果',
+      'Data Transfer Test Lab — 計測結果',
       '計測日時\tTransfer ID\tモード\t要求解像度\t実解像度\t実測映像FPS\t読み取り方式\t検出率(%)\t解析平均(ms)\t解析P95(ms)\t有効フレーム/秒\t受信ブロック\t総ブロック\t欠損ブロック\t転送データ量(B)\t復元ファイル量(B)\tJSヒープ最大(B)\tJSヒープ上限(B)\t完了時間(ms)'
     ];
     benchmarkRuns.forEach(function (run) {
@@ -3276,11 +3276,11 @@ module.exports = QRCode;
       $('scannerMode').textContent = '読み取り方式: ZXing-C++ WASMを準備中…';
       $('scannerMode').className = 'status info';
       try {
-        if (!window.AirgapLinkZXingLoader ||
-            typeof window.AirgapLinkZXingLoader.load !== 'function') {
+        if (!window.DataTransferZXingLoader ||
+            typeof window.DataTransferZXingLoader.load !== 'function') {
           throw new Error('ZXing WASMローダーを読み込めません');
         }
-        zxingDecoder = await window.AirgapLinkZXingLoader.load();
+        zxingDecoder = await window.DataTransferZXingLoader.load();
         if (!zxingDecoder || typeof zxingDecoder.readBarcodes !== 'function') {
           throw new Error('ZXing WASMのreadBarcodes APIが見つかりません');
         }
@@ -3410,7 +3410,7 @@ module.exports = QRCode;
     }
     return new Promise(function (resolve) {
       try {
-        rxWorker = new Worker('airgap-link-qr-worker-v13.js');
+        rxWorker = new Worker('data-transfer-worker.js');
         var initTimer = setTimeout(function () {
           rxWorkerFailed = true;
           rxWorkerReady = false;
@@ -3648,9 +3648,9 @@ module.exports = QRCode;
       } catch (nativeError) {
         detector = null;
         scannerType = 'jsqr';
-        if (scannerPreference === 'auto' && window.AirgapLinkZXingLoader) {
+        if (scannerPreference === 'auto' && window.DataTransferZXingLoader) {
           try {
-            zxingDecoder = await window.AirgapLinkZXingLoader.load();
+            zxingDecoder = await window.DataTransferZXingLoader.load();
             scannerType = 'zxing-wasm';
             scannerName = 'ZXing-C++ WASM 3.1.6（Native error fallback）';
           } catch (_) {
@@ -3907,7 +3907,7 @@ module.exports = QRCode;
       !Fountain.Encoder.prototype || typeof Fountain.Encoder.prototype.seekToBlock !== 'function' ||
       typeof Fountain.Encoder.prototype.startRepairPhase !== 'function' ||
       !Fountain.Receiver.prototype || typeof Fountain.Receiver.prototype.addKnownBlock !== 'function') {
-    status('txStatus', 'Airgap Linkプロトコルの初期化に失敗しました', 'error');
+    status('txStatus', 'Data Transferプロトコルの初期化に失敗しました', 'error');
     $('prepareTx').disabled = true;
   }
   txAutoRateController.reset();
@@ -3919,7 +3919,7 @@ module.exports = QRCode;
   updateTxBlockMap();
 
   if (typeof window !== 'undefined') {
-    window.__airgapTestHooks = {
+    window.__dataTransferTestHooks = {
       detectQr: detectQr,
       triggerScanIfIdle: triggerScanIfIdle,
       enqueueIngest: enqueueIngest,
@@ -3942,7 +3942,7 @@ module.exports = QRCode;
       onScanVideoFrame: onScanVideoFrame,
       rateController: rxRateAdvisor
     };
-    window.airgapLinkTest = window.__airgapTestHooks;
-    window.airgapRateController = rxRateAdvisor;
+    window.dataTransfer = window.__dataTransferTestHooks;
+    window.dataTransferRateController = rxRateAdvisor;
   }
 })();

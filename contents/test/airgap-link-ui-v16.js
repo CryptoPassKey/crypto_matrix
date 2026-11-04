@@ -1193,7 +1193,7 @@
             ? '対象 ' + txFountainPart.indexes.map(function (index) { return index + 1; }).join(',')
             : txFountainPart.indexes.length + 'ブロック合成');
         $('txFrameCount').textContent = '送信中';
-        $('txFrameInfo').textContent = 'QRコードを表示しています。';
+        $('txFrameInfo').textContent = '';
         $('txProgress').style.width =
           (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) / txFountainEncoder.seqLen * 100).toFixed(1) + '%';
       } else {
@@ -1207,7 +1207,7 @@
           ' · block ' + (parsed.group * Core.GROUP_SIZE + 1) + '–' +
           Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
         var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
-        $('txFrameInfo').textContent = 'QRコードを表示しています。';
+        $('txFrameInfo').textContent = '';
         $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
         if (hybridMode) txIndex++;
         else txIndex = (txIndex + 1) % txPlan.frames.length;
@@ -1523,8 +1523,8 @@
       recovered = fountainRx.recoveredIndexes.size;
       directSet = fountainRx.directIndexes;
       recoveredSet = fountainRx.recoveredIndexes;
-      activeSet = rxCurrentBlocks;
-      $('rxBlockSummary').textContent = '受信したデータの状態を表示しています';
+      activeSet = null;
+      $('rxBlockSummary').textContent = '';
     } else {
       have = rx.shards.size;
       total = rx.total;
@@ -1534,10 +1534,8 @@
       rx.shards.forEach(function (_value, index) {
         if (!rxDirectBlocks.has(index)) recoveredSet.add(index);
       });
-      activeSet = rxCurrentBlocks;
-      $('rxBlockSummary').textContent = total
-        ? '受信したデータの状態を表示しています'
-        : '受信を開始するとブロック状態が表示されます';
+      activeSet = null;
+      $('rxBlockSummary').textContent = '';
     }
     $('rxProgressText').textContent = have + ' / ' + total;
     $('rxProgress').style.width = total ? (have / total * 100).toFixed(1) + '%' : '0%';

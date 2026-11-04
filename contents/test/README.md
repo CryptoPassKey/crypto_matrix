@@ -105,7 +105,7 @@ Both sides display one cell per original data block.
 - The cursor is independent from persistent block state: green means directly received, amber means reconstructed from parity/fountain equations, dark means still missing. A direct frame received later changes that block from reconstructed to directly received.
 - The RX summary names the last packet sequence or P0/P1 group and its block range. The cursor therefore continues to show the latest scanned QR even after all source blocks have already been recovered.
 
-The legacy receiver exposes this location through `packetBlockIndexes`; the Node protocol test covers data frames, full 8-block groups, and the final partial group. The canvas uses a dark outline with a light halo for contrast over the green/amber state fills.
+The legacy receiver exposes this location through `packetBlockIndexes`. The canvas uses a dark outline with a light halo for contrast over the green/amber state fills.
 
 ## LT fountain experiment mode
 
@@ -188,20 +188,9 @@ V10 adds an RX decoder selector while leaving the CMAL1 wire format, TX QR encod
 - ZXing receives the same downsized canvas `ImageData` used by jsQR and is restricted to `QRCode`, one symbol per frame, with `tryHarder: false`.
 - The JavaScript IIFE is served through a virtual same-origin URL handled by the Service Worker and retained in the independent `airgap-link-zxing-wasm-3.1.6` cache. The WASM binary is cached in the same bucket.
 - First use needs an Internet connection to fetch the reader bundle and approximately 1.04 MiB WASM module. This is decoder setup only; QR frames and data remain local. After caching, the scanner can be used offline unless site data is cleared or evicted.
-- Real iPhone camera testing is still required. CI validates code wiring and protocol regression tests, not camera performance.
+- Real iPhone camera testing is still required. The standalone page can be checked manually; this documentation does not claim automated CI coverage. Real camera-to-camera testing on iPhone Safari and Android Chrome remains necessary.
 
 Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-cpp` is Apache-2.0. See the upstream [zxing-wasm package](https://www.npmjs.com/package/zxing-wasm) and [ZXing-C++ project](https://github.com/zxing-cpp/zxing-cpp).
-
-
-## UI control smoke test
-
-`airgap-link-ui-smoke.test.cjs` runs the actual V13 UI script against a lightweight DOM stub and verifies:
-
-- Automatic TX benchmark registration and independence from remote RX camera state
-- Benchmark copy button event registration and the zero-results message
-- Visible selectable-text fallback when Clipboard API / `execCommand('copy')` is unavailable
-
-The protocol test invokes this smoke test automatically. This does not replace real-device camera-to-camera E2E testing.
 
 
 ## V11 — UI cache-bust release
@@ -245,4 +234,4 @@ The 2,800-byte setting is a software/QR-capacity experiment ceiling, not a guara
 - Test-payload size sliders, numeric inputs, presets and benchmark result copy controls are removed from the production UI and bindings.
 - QR playback uses a single click handler. Browser-synthesized clicks cover touch and mouse; parallel touch/pointer handlers are avoided to prevent double toggles.
 - TX block-map seeking restarts at the selected block's Data frame in the first systematic pass. LT seeking re-emits the selected Data without rewinding the sequence high-water mark.
-- UI smoke and protocol assertions now cover the fixed transport, absent experiment controls, QR tap/click toggle and block-map seek. Real iOS Safari and Android Chrome camera tests remain necessary.
+- The fixed transport, removal of experiment-only controls, QR tap/click toggle and block-map seek are part of the current UI behavior. Real iOS Safari and Android Chrome camera tests remain necessary.

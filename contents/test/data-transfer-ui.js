@@ -3316,7 +3316,7 @@ module.exports = QRCode;
       nativeError = new Error('BarcodeDetector APIを利用できません');
     }
     if (detector) {
-      $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+      $('scannerMode').textContent = 'QR読み取り準備完了';
       $('scannerMode').className = 'status info';
       return;
     }
@@ -3649,7 +3649,7 @@ module.exports = QRCode;
             typeof window.jsQR === 'function') {
           scannerType = 'jsqr';
           scannerName = 'jsQR（Native実行時エラーからのフォールバック）';
-          $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+          $('scannerMode').textContent = 'QR読み取り準備完了';
         } else {
           throw new Error('Native BarcodeDetectorの実行に失敗しました: ' + nativeError.message);
         }

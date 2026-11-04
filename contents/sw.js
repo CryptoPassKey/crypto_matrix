@@ -133,7 +133,7 @@ async function getZxingPair(cache) {
 
   const [scriptText, wasmBytes] = await Promise.all([
     scriptResponse.clone().text(),
-    scriptResponse.clone().text().then(() => wasmResponse.clone().arrayBuffer())
+    wasmResponse.clone().arrayBuffer()
   ]);
   if (!isValidZxingScript(scriptText)) {
     const error = new Error('Downloaded JavaScript bundle failed integrity checks');

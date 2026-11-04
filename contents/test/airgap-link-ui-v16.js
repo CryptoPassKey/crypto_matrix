@@ -503,7 +503,6 @@
     $('fpsValue').textContent = txAutoRateController.enabled
       ? txAutoRateController.currentFps + ' fps (TXローカル自動)'
       : $('fps').value + ' fps';
-    updateBenchmarkSizeControls();
   }
 
   function packetBlockIndexes(packet) {
@@ -1458,7 +1457,6 @@
       }
     }
   }
-  $('autoTxTest').addEventListener('click', runTxAutoTest);
 
   function resetRx() {
     if (autoResetTimer) { clearTimeout(autoResetTimer); autoResetTimer = 0; }

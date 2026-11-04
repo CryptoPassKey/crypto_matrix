@@ -89,7 +89,22 @@ function isValidZxingWasm(bytes) {
     WebAssembly.validate(bytes);
 }
 
+let zxingPairPromise = null;
+
 async function getZxingPair(cache) {
+  // Both virtual asset requests can arrive together. Share one pair fetch so
+  // simultaneous JS/WASM requests do not race or download the same bundle twice.
+  if (!zxingPairPromise) {
+    zxingPairPromise = getZxingPairInternal(cache);
+  }
+  try {
+    return await zxingPairPromise;
+  } finally {
+    zxingPairPromise = null;
+  }
+}
+
+async function getZxingPairInternal(cache) {
   const cachedScript = await cache.match(ZXING_READER_SCRIPT);
   const cachedWasm = await cache.match(ZXING_READER_WASM);
   if (cachedScript && cachedWasm) {

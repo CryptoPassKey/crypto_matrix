@@ -206,16 +206,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <canvas id="scanCanvas"></canvas>
  <div class="blockmap-section rx-blockmap">
   <div class="blockmap-title"><strong>受信ブロック</strong><small>緑 = 直接取得 / 黄 = 欠損から復元</small></div>
-  <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの状態と最後に読み込んだQR位置"></canvas></div>
-  <p id="rxBlockSummary" class="blockmap-summary">QRを読み取ると取得位置が表示されます</p>
+  <div class="blockmap-viewport"><canvas id="rxBlockMap" width="600" height="8" aria-label="受信ブロックの取得状態"></canvas></div>
   <div class="map-legend">
    <span class="map-key"><i class="map-dot map-direct"></i>直接取得</span>
    <span class="map-key"><i class="map-dot map-recovered"></i>復元済み</span>
-   <span class="map-key"><i class="map-dot map-active"></i>最後に読取</span>
    <span class="map-key"><i class="map-dot map-missing"></i>未取得</span>
   </div>
  </div>
- <p id="scannerMode" class="status info">読み取り方式：未初期化</p>
+ <div class="hidden" aria-hidden="true">
+  <span id="rxBlockSummary"></span><span id="scannerMode"></span><span id="txFrameInfo"></span>
+ </div>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid rx-progress-stats">
   <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>

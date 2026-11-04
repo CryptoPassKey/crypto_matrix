@@ -367,7 +367,7 @@ async function main() {
   assert(!page.includes('保存ファイル名') && !page.includes('rxFilename') &&
     !page.includes('rxCompletionFilename') && !page.includes('received-file.bin'),
     'Receiver filename customization and filename display must be absent from the production UI');
-  assert(!/<details\\b|<summary\\b/.test(page),
+  assert(!page.includes('<details') && !page.includes('<summary'),
     'Airgap Link input and receiver sections must be displayed directly without collapsible details');
   assert(!ui.includes("copyTxTestLog').addEventListener"),
     'Removed copy-log UI must not leave a null addEventListener startup failure');

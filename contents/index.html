@@ -1832,7 +1832,7 @@
   </div></section>
   <section aria-label="設定">
     <div class="cm-tablist" role="tablist">
-      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムロック</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button>
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムロック</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><svg class="cm-tab-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>データ転送</button>
     </div>
     <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
     <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
@@ -2743,19 +2743,262 @@
         </div>
       </div>
     </div>
+    <div id="tab-datatransfer" class="cm-panel cm-legacy" role="tabpanel" hidden>
+      <div class="section-card no-print" id="datatransfer-section">
+        <div class="dt-header-row">
+          <h2 class="dt-title">
+            <svg class="cm-tab-ico" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>
+            <span>データ転送（オフラインQR高速送受信）</span>
+            <button type="button" class="help-btn" aria-label="データ転送の説明を表示" data-help="ネットワークやBluetoothを使わず、連続再生されるQRコードとカメラだけで端末間のファイル・テキスト転送を行います。1周目で全データブロックを順番に送り、2周目以降はLT修復フレーム（Fountain符号）を送るため、途中で取りこぼしがあっても最小限の枚数で自動復元されます。">?</button>
+          </h2>
+          <span id="dt-state-badge" class="dt-state-pill" data-state="IDLE">待機中</span>
+        </div>
+
+        <p class="dt-lead">
+          インターネット・Wi-Fi・Bluetoothを一切使わず、画面の<strong>連続QRコード再生</strong>と<strong>カメラ読み取り</strong>だけで、スマートフォンやPC間でのファイル・テキスト転送を完全オフラインで行います（Systematic LT Fountain ハイブリッド自動修復・CRC32完全性検証付き）。
+        </p>
+
+        <!-- Sub-Tab Switcher (送信 / 受信) -->
+        <div class="dt-subtab-bar" role="tablist" aria-label="データ転送の送信・受信切り替え">
+          <button type="button" class="dt-subtab-btn is-active" id="dt-tab-btn-tx" role="tab" aria-selected="true" aria-controls="dt-panel-tx">
+            <span class="dt-subtab-main">📤 送信</span>
+            <span class="dt-subtab-sub">ファイル・データをQRコードに変換して送信</span>
+          </button>
+          <button type="button" class="dt-subtab-btn" id="dt-tab-btn-rx" role="tab" aria-selected="false" aria-controls="dt-panel-rx">
+            <span class="dt-subtab-main">📥 受信</span>
+            <span class="dt-subtab-sub">カメラ・画像からQRコードを読み取って復元</span>
+          </button>
+        </div>
+
+        <!-- ==================== SUB-PANEL 1: TRANSMIT (送信) ==================== -->
+        <div id="dt-panel-tx" class="dt-subpanel" role="tabpanel" aria-labelledby="dt-tab-btn-tx">
+          <div id="dt-tx-status" class="dt-status-bar">送信するファイルを選択するか、テキストを入力して「QRコードを準備」を押してください。</div>
+
+          <!-- Step 1: Data Input (File or Text) -->
+          <div class="dt-card">
+            <h3 class="dt-card-title">1. 送信するファイルまたはテキストの選択</h3>
+
+            <div class="dt-dropzone" id="dt-tx-dropzone">
+              <label for="dt-tx-file" class="dt-dropzone-label">
+                📁 送信するファイルを選択（クリックまたはドラッグ＆ドロップ / 最大64 MiB）
+              </label>
+              <input type="file" id="dt-tx-file" class="dt-file-input">
+              <div id="dt-tx-file-chip" class="dt-file-chip" hidden>
+                <span id="dt-tx-file-name"></span>
+                <button type="button" class="dt-btn dt-btn-sm" id="dt-tx-file-clear">✕ 選択解除</button>
+              </div>
+            </div>
+
+            <div class="dt-field" style="margin-top:10px; margin-bottom:0;">
+              <label for="dt-tx-text">テキストを直接送信する場合（ファイル未選択時に使用）:</label>
+              <textarea id="dt-tx-text" rows="3" placeholder="送信したいテキスト・メモ・設定データなどを入力してください（ファイルを選択している場合はファイルが優先されます）。"></textarea>
+              <div id="dt-tx-text-meta" class="dt-hint">ファイル未選択時は、ここに入力したテキストが message.txt として送信されます。</div>
+            </div>
+          </div>
+
+          <!-- Step 2: Transfer Settings (FPS & Chunk Size) -->
+          <div class="dt-card">
+            <h3 class="dt-card-title">2. 送信設定（変更は自動保存され、準備後・送信中でも速度変更可能）</h3>
+            <div class="dt-settings-grid">
+              <div class="dt-setting-box">
+                <div class="dt-setting-head">
+                  <label for="dt-fps">送信速度 (FPS):</label>
+                  <output id="dt-fps-value" for="dt-fps" class="dt-setting-val">10 枚/秒</output>
+                </div>
+                <input type="range" id="dt-fps" min="3" max="60" step="1" value="10" class="dt-slider">
+                <div class="dt-hint">読み取りづらい場合は 6〜10 枚/秒 に下げて「先頭QRに戻す」をお試しください。</div>
+              </div>
+
+              <div class="dt-setting-box">
+                <div class="dt-setting-head">
+                  <label for="dt-chunk-size">1枚あたりのデータ量:</label>
+                  <output id="dt-chunk-size-value" for="dt-chunk-size" class="dt-setting-val">800 B</output>
+                </div>
+                <div class="dt-chunk-row">
+                  <input type="range" id="dt-chunk-size" min="80" max="2800" step="20" value="800" class="dt-slider">
+                  <input type="number" id="dt-chunk-size-number" min="80" max="2800" step="20" value="800" class="dt-chunk-num" aria-label="1枚あたりのデータ量（バイト）">
+                </div>
+                <div class="dt-hint">スマホ画面同士では 400〜800 B が読み取りやすく安定します。</div>
+              </div>
+            </div>
+
+            <div class="dt-action-row" style="margin-top:12px; margin-bottom:0;">
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx">⚡ QRコードを準備</button>
+              <button type="button" class="dt-btn dt-btn-play" id="dt-play-tx" disabled>▶ 送信開始</button>
+              <button type="button" class="dt-btn" id="dt-pause-tx" disabled>⏸ 一時停止</button>
+              <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled>⏮ 先頭QRに戻す</button>
+              <button type="button" class="dt-btn dt-btn-sm dt-btn-danger" id="dt-clear-tx">🗑️ クリア</button>
+            </div>
+          </div>
+
+          <!-- Step 3: QR Code Display Stage & Progress -->
+          <div class="dt-card">
+            <div class="dt-stage-header">
+              <h3 class="dt-card-title" style="margin:0;">3. QRコード表示（タップで再生／一時停止）</h3>
+              <span class="dt-stage-tip">まずは先頭QR（Data 1）を受信側で読み取ってから送信開始</span>
+            </div>
+
+            <div class="dt-qr-stage" id="dt-tx-stage" title="タップして送信開始／一時停止を切り替え">
+              <canvas id="dt-tx-canvas" width="900" height="900" aria-label="送信QRコード表示キャンバス"></canvas>
+              <div id="dt-tx-placeholder" class="dt-stage-placeholder">
+                <div class="dt-placeholder-icon">📤</div>
+                <div class="dt-placeholder-title">QRコード未準備</div>
+                <div class="dt-placeholder-sub">上の「⚡ QRコードを準備」を押すと、ここに先頭QRコードが大きく表示されます</div>
+              </div>
+              <div id="dt-tx-play-badge" class="dt-play-badge" hidden>⏸ 一時停止中（タップで再開）</div>
+            </div>
+
+            <div class="dt-progress-track" aria-label="1周目送信進捗">
+              <div id="dt-tx-progress-bar" class="dt-progress-fill"></div>
+            </div>
+
+            <div class="dt-stats-grid">
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">状態</div>
+                <div id="dt-tx-stat-state" class="dt-stat-value">待機中</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">データサイズ / 総ブロック</div>
+                <div id="dt-tx-stat-size" class="dt-stat-value">—</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">現在のフレーム</div>
+                <div id="dt-tx-stat-frame" class="dt-stat-value">—</div>
+              </div>
+            </div>
+
+            <div class="dt-blockmap-box">
+              <div class="dt-blockmap-header">
+                <span class="dt-blockmap-title">送信ブロックマップ（任意のブロックをタップすると、1周目のその位置から再生します）</span>
+              </div>
+              <canvas id="dt-tx-blockmap" class="dt-blockmap-canvas" width="500" height="24" role="slider" tabindex="-1" aria-label="送信ブロック位置の選択" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-valuetext="転送データなし" aria-disabled="true"></canvas>
+              <div id="dt-tx-block-summary" class="dt-hint">「QRコードを準備」を実行すると、送信ブロックマップが表示されます。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SUB-PANEL 2: RECEIVE (受信) ==================== -->
+        <div id="dt-panel-rx" class="dt-subpanel" role="tabpanel" aria-labelledby="dt-tab-btn-rx" hidden>
+          <div id="dt-rx-status" class="dt-status-bar">待機中です。「カメラを起動」を押して、送信側のQRコードを映してください。</div>
+
+          <!-- Completion Card (shown on completion) -->
+          <div id="dt-rx-completion-card" class="dt-completion-card" hidden>
+            <div class="dt-completion-header">
+              <span class="dt-completion-badge">✅ 受信・復元完了（CRC32整合性確認済み）</span>
+            </div>
+            <div class="dt-stats-grid" style="margin-bottom:10px;">
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">復元サイズ</div>
+                <div id="dt-rx-completion-size" class="dt-stat-value">—</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">所要時間</div>
+                <div id="dt-rx-completion-time" class="dt-stat-value">—</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">実効速度</div>
+                <div id="dt-rx-completion-speed" class="dt-stat-value">—</div>
+              </div>
+            </div>
+
+            <div class="dt-field">
+              <label for="dt-rx-filename-input">保存するファイル名（送信元のファイル名が自動設定されます・変更可能）:</label>
+              <input type="text" id="dt-rx-filename-input" value="received-file.bin" placeholder="保存するファイル名">
+            </div>
+
+            <div id="dt-rx-text-preview-wrap" class="dt-field" hidden>
+              <label for="dt-rx-text-preview">復元されたテキスト内容（読み取り専用プレビュー）:</label>
+              <textarea id="dt-rx-text-preview" rows="4" readonly></textarea>
+            </div>
+
+            <div class="dt-action-row" style="margin-bottom:0;">
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result">💾 ファイルを保存</button>
+              <button type="button" class="dt-btn dt-btn-play" id="dt-copy-result" hidden>📋 テキストをコピー</button>
+              <button type="button" class="dt-btn" id="dt-rx-again">🔄 もう一度受信する</button>
+            </div>
+          </div>
+
+          <!-- Camera & Image Controls -->
+          <div class="dt-card">
+            <h3 class="dt-card-title">1. カメラから読み取り</h3>
+            <div class="dt-action-row">
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera">📷 カメラを起動</button>
+              <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ カメラ停止</button>
+              <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx">🔄 最初からリセット</button>
+            </div>
+
+            <div class="dt-compat-row">
+              <label class="dt-compat-label">
+                <input type="checkbox" id="dt-rx-allow-fallback">
+                <span>互換モード（WASM非対応環境などで端末標準のBarcodeDetector / jsQRを優先利用する）</span>
+              </label>
+              <span id="dt-scanner-mode" class="dt-scanner-badge">読み取り方式: 自動選択（ZXing-C++ WASM / jsQR）</span>
+            </div>
+
+            <!-- Camera Preview Stage -->
+            <div class="dt-camera-stage" id="dt-camera-stage">
+              <video id="dt-camera" playsinline muted aria-label="QRコード読み取りカメラプレビュー"></video>
+              <div id="dt-camera-placeholder" class="dt-stage-placeholder">
+                <div class="dt-placeholder-icon">📷</div>
+                <div class="dt-placeholder-title">カメラ停止中</div>
+                <div class="dt-placeholder-sub">「📷 カメラを起動」を押して、送信側の先頭QRコード（Data 1）を映してください</div>
+              </div>
+              <canvas id="dt-scan-canvas" hidden></canvas>
+            </div>
+
+            <!-- Receive Progress & Block Map -->
+            <div class="dt-progress-track" aria-label="受信進捗">
+              <div id="dt-rx-progress-bar" class="dt-progress-fill"></div>
+            </div>
+
+            <div class="dt-stats-grid">
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">取得済み / 総ブロック</div>
+                <div id="dt-rx-stat-progress" class="dt-stat-value">0 / 0</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">残りブロック</div>
+                <div id="dt-rx-stat-remaining" class="dt-stat-value">—</div>
+              </div>
+              <div class="dt-stat-item">
+                <div class="dt-stat-label">LT修復で復元</div>
+                <div id="dt-rx-stat-recovered" class="dt-stat-value">0</div>
+              </div>
+            </div>
+
+            <div class="dt-blockmap-box">
+              <div class="dt-blockmap-header">
+                <span class="dt-blockmap-title">受信ブロックマップ</span>
+                <span class="dt-blockmap-legend">
+                  <span class="dt-legend-dot dt-dot-direct"></span>直接取得
+                  <span class="dt-legend-dot dt-dot-recovered"></span>LT修復復元
+                  <span class="dt-legend-dot dt-dot-missing"></span>未取得
+                </span>
+              </div>
+              <canvas id="dt-rx-blockmap" class="dt-blockmap-canvas" width="500" height="24" aria-label="受信ブロック取得状況マップ"></canvas>
+              <div id="dt-rx-block-summary" class="dt-hint">QRコードの読み取りを開始すると、ブロックごとの取得状態が表示されます。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.12.0 <span>· build timesecret-auth-sep</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.13.0 <span>· build data-transfer-integrated</span></div>
 </div>
 <script src="layout.js"></script>
 <script src="qr-encoder.js"></script>
 <script src="argon2.umd.min.js"></script>
 <script src="vendor/tlock.bundle.js"></script>
+<script src="vendor/jsQR.js"></script>
+<script src="data-transfer-protocol.js"></script>
+<script src="data-transfer-zxing-loader.js"></script>
 <script src="index.js"></script>
 <script src="backup-qr.js"></script>
 <script src="timelock.js"></script>
 <script src="timesecret.js"></script>
+<script src="data-transfer.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,10 +1,11 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.27.0-data-transfer-restart-v31';
+const VERSION = 'cm-v2.28.0-data-transfer-main-v1';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const ZXING_WASM_VERSION = '3.1.6';
 const ZXING_WASM_CACHE = 'data-transfer-zxing-wasm-' + ZXING_WASM_VERSION;
 const ZXING_READER_SCRIPT = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + ZXING_WASM_VERSION + '/dist/iife/reader/index.js';
+const ZXING_READER_WASM = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + ZXING_WASM_VERSION + '/dist/reader/zxing_reader.wasm';
 const FILES = [
   "./",
   "app.css",
@@ -12,6 +13,10 @@ const FILES = [
   "apple-touch-icon.png",
   "argon2.umd.min.js",
   "backup-qr.js",
+  "data-transfer-protocol.js",
+  "data-transfer-worker.js",
+  "data-transfer-zxing-loader.js",
+  "data-transfer.js",
   "emblem.png",
   "favicon.png",
   "fonts/FiraCode-Bold.woff2",
@@ -114,21 +119,24 @@ self.addEventListener('fetch', (e) => {
   const requestUrl = new URL(req.url);
   if (req.method !== 'GET' || requestUrl.origin !== location.origin) return;
 
-  // Virtual same-origin script URL: cache the version-pinned ZXing reader IIFE
-  // in its own cache so it remains available after the app shell is upgraded.
-  if (requestUrl.pathname.endsWith('/contents/test/data-transfer-zxing-reader.js')) {
+  // Virtual same-origin script & WASM URLs: cache the version-pinned ZXing reader IIFE
+  // and WASM binary in their own cache so they remain available offline and satisfy strict 'self' CSP.
+  if (requestUrl.pathname.endsWith('/data-transfer-zxing-reader.js') ||
+      requestUrl.pathname.endsWith('/data-transfer-zxing-reader.wasm')) {
+    const isWasm = requestUrl.pathname.endsWith('.wasm');
+    const upstreamUrl = isWasm ? ZXING_READER_WASM : ZXING_READER_SCRIPT;
     e.respondWith((async () => {
       const cache = await caches.open(ZXING_WASM_CACHE);
-      const cached = await cache.match(ZXING_READER_SCRIPT);
+      const cached = await cache.match(upstreamUrl);
       if (cached) return cached;
-      const upstream = await fetch(ZXING_READER_SCRIPT, { mode: 'cors', credentials: 'omit' });
+      const upstream = await fetch(upstreamUrl, { mode: 'cors', credentials: 'omit' });
       if (!upstream.ok || upstream.type === 'opaque') {
         return new Response('ZXing reader download failed', {
           status: 502,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' }
         });
       }
-      await cache.put(ZXING_READER_SCRIPT, upstream.clone());
+      await cache.put(upstreamUrl, upstream.clone());
       return upstream;
     })().catch(() => new Response('ZXing reader is not cached and could not be downloaded', {
       status: 503,

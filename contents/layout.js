@@ -10,6 +10,7 @@
     'bonus-vault': 'tab-vault',
     'timelock-section': 'tab-timelock',
     'timesecret-section': 'tab-timesecret',
+    'datatransfer-section': 'tab-datatransfer',
     'page-footer': 'cm-footer-slot'
   };
   Object.keys(slots).forEach(function (id) {

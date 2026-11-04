@@ -2800,12 +2800,17 @@ module.exports = QRCode;
           // In compatibility mode only, fall through to ZXing/jsQR fallback.
           detector = null;
           if ($('dt-rx-allow-fallback') && $('dt-rx-allow-fallback').checked) {
-            // Prefer an already initialized ZXing decoder if native BarcodeDetector
-            // fails at runtime; only switch to jsQR when ZXing is unavailable.
+            // Native failed at runtime. Switch to the next available compatibility
+            // decoder instead of repeatedly calling the failed native implementation.
             if (zxingDecoder && typeof zxingDecoder.readBarcodes === 'function') {
               scannerType = 'zxing-wasm';
+              if (!rxWorkerReady) {
+                rxWorkerFailed = false;
+                var zxingWorkerReady = await initQrWorker();
+                if (!zxingWorkerReady) throw new Error('互換モードのZXing Workerを初期化できませんでした');
+              }
               if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: ZXing-C++ WASM（Native実行時フォールバック）';
-            } else {
+            } else if (typeof window.jsQR === 'function') {
               scannerType = 'jsqr';
               if (!rxWorkerReady) {
                 rxWorkerFailed = false;
@@ -2813,6 +2818,8 @@ module.exports = QRCode;
                 if (!fallbackReady) throw new Error('互換モードのjsQR Workerを初期化できませんでした');
               }
               if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（Native実行時フォールバック）';
+            } else {
+              throw new Error('互換モードの代替デコーダーが利用できません');
             }
           } else {
             throw error;

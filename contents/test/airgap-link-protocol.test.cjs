@@ -65,7 +65,7 @@ async function main() {
   const page = fs.readFileSync('contents/test/index.html', 'utf8');
   const serviceWorker = fs.readFileSync('contents/sw.js', 'utf8');
   const fountainSource = fs.readFileSync('contents/test/airgap-link-fountain-v8.js', 'utf8');
-  const ui = fs.readFileSync('contents/test/airgap-link-ui-v14.js', 'utf8');
+  const ui = fs.readFileSync('contents/test/airgap-link-ui-v15.js', 'utf8');
   const zxingLoader = fs.readFileSync('contents/test/airgap-link-zxing-loader-v10.js', 'utf8');
   const qrPosition = page.indexOf('id="txCanvas"');
   const txMapPosition = page.indexOf('id="txBlockMap"');
@@ -81,12 +81,12 @@ async function main() {
     rxMapSectionPosition > scanCanvasPosition && rxMapPosition > rxMapSectionPosition,
     'RX block map must be a separate section immediately below the camera preview');
   assert(!page.includes('rx-blockmap-hud'), 'RX block map must not be overlaid on camera preview');
-  assert(page.includes('RX BLOCK MAP · 受信位置'), 'RX block map label must be present');
-  assert(page.includes('TX BLOCK MAP · 送信位置'), 'TX block map label must be present');
+  assert(page.includes('受信ブロック'), 'RX block map label must be present');
+  assert(page.includes('送信ブロック'), 'TX block map label must be present');
 
-  assert(page.includes('<title>Airgap Link V14 — TX/RX Adaptive Separation</title>'), 'Page title must show V14');
-  assert(page.includes('/ Test Lab <span>V14</span>'), 'Page heading must show V14');
-  assert(page.includes('Airgap Link Test Lab V14'), 'Footer must show V14');
+  assert(page.includes('<title>Airgap Link — Offline File Transfer</title>'), 'Page title must use the production name');
+  assert(page.includes('<h1>Airgap <span>Link</span></h1>'), 'Page heading must use the production name');
+  assert(page.includes('OFFLINE TRANSFER · V15'), 'Page must identify the V15 runtime');
   assert(page.includes('<script src="airgap-link-wire-v8.js"></script>') &&
     page.includes('<script src="airgap-link-core-v8.js"></script>') &&
     page.includes('<script src="airgap-link-fountain-v8.js"></script>'),
@@ -94,8 +94,8 @@ async function main() {
   assert(page.includes('<script src="airgap-link-qr-encoder-v8.js"></script>'),
     'Airgap page must load the V8 Alphanumeric QR encoder');
   assert(page.includes('<script src="airgap-link-zxing-loader-v10.js" defer></script>') &&
-    page.includes('<script src="airgap-link-ui-v14.js" defer></script>'),
-    'Airgap page must load the unchanged ZXing loader before the V14 UI runtime');
+    page.includes('<script src="airgap-link-ui-v15.js" defer></script>'),
+    'Airgap page must load the unchanged ZXing loader before the V15 UI runtime');
   assert(page.includes('id="rxGaussianEnabled"') && page.includes('id="rxGaussianStatus"') &&
     page.includes('id="runRxGaussian"'),
     'RX must expose opt-in GF(2) recovery with a manual execution control');
@@ -108,43 +108,40 @@ async function main() {
   assert(!ui.includes('result.gaussian') &&
     !fountainSource.includes('this.runGaussianElimination()'),
     'The live QR feed path must never invoke synchronous Gaussian elimination');
-  assert(page.includes('id="rxScanner"') &&
-    page.includes('value="zxing-wasm"') &&
-    page.includes('value="native"') &&
-    page.includes('value="jsqr"'),
-    'RX must offer explicit Native, ZXing-C++ WASM and jsQR decoder selection');
+  assert(page.includes('id="rxScanner"') && page.includes('value="zxing-wasm"') &&
+    !page.includes('value="native"') && !page.includes('value="jsqr"'),
+    'Production RX must use the fixed ZXing-C++ WASM decoder');
   assert(serviceWorker.includes('"test/airgap-link-zxing-loader-v10.js"') &&
-    serviceWorker.includes('"test/airgap-link-ui-v14.js"') &&
+    serviceWorker.includes('"test/airgap-link-ui-v15.js"') &&
     serviceWorker.includes("const ZXING_WASM_VERSION = '3.1.6'"),
-    'Service Worker must precache V14 scripts and expose the pinned ZXing virtual script route');
+    'Service Worker must precache V15 scripts and expose the pinned ZXing virtual script route');
   assert(['benchmarkSizeRange', 'benchmarkSizeInput', 'benchmarkSizeValue',
     'benchmarkPreset1MiB', 'benchmarkPreset2MiB', 'benchmarkPreset4MiB',
     'benchmarkPreset8MiB', 'benchmarkPreset16MiB', 'benchmarkPreset32MiB',
     'benchmarkPreset64MiB'].every((id) => page.includes('id="' + id + '"')),
-    'V14 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
+    'V15 must expose a continuous benchmark-size slider, numeric input and 1–64 MiB presets');
   assert(['rxWireBytes', 'rxOutputBytes', 'rxMemoryPeak'].every((id) => page.includes('id="' + id + '"')),
-    'V14 must expose received payload size, reconstructed file size and optional heap measurement');
+    'V15 must expose received payload size, reconstructed file size and optional heap measurement');
   assert(ui.includes('var MAX_BENCHMARK_BYTES = 64 * 1024 * 1024') &&
     ui.includes('missingBlocks: Math.max(0, progress.total - progress.have)') &&
     ui.includes('wireBytes: rxWireByteCount') && ui.includes('memoryPeakBytes: benchmarkPeakHeapBytes'),
-    'V14 must record payload size, missing blocks and optional JS heap usage');
+    'V15 must record payload size, missing blocks and optional JS heap usage');
   const autoStart = ui.indexOf('async function runTxAutoTest()');
   const autoEnd = ui.indexOf("  $('autoTxTest').addEventListener", autoStart);
   const autoBody = ui.slice(autoStart, autoEnd);
   assert(!autoBody.includes('autoBenchmarkReset') && !autoBody.includes('cameraVideo') &&
     !autoBody.includes('stream.active'),
     'TX automatic benchmark must not require access to RX camera state');
-  assert(page.includes('id="rxResolution"') &&
-    ['640x480', '1280x720', '1920x1080'].every((value) => page.includes('value="' + value + '"')) &&
-    page.includes('value="1920x1080" selected'),
-    'RX must offer the 640x480, 1280x720 and 1920x1080 requested resolution profiles with 1080p as baseline');
+  assert(page.includes('id="rxResolution"') && page.includes('value="640x480" selected') &&
+    !page.includes('value="1280x720"') && !page.includes('value="1920x1080"'),
+    'Production RX must use a fixed 640x480 camera request');
   assert(['rxCameraSettings', 'rxP50Ms', 'rxP95Ms', 'rxSamples', 'copyBenchmarkText', 'benchmarkRunCount']
     .every((id) => page.includes('id="' + id + '"')),
-    'V14 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
-  assert(page.includes('<button id="copyBenchmarkText" type="button">'),
-    'The text-copy button must remain clickable when there are zero benchmark runs');
+    'V15 must expose actual camera settings, P50/P95, attempt counts and text-copy results');
+  assert(page.includes('<button id="copyBenchmarkText" type="button"></button>') && !page.includes('計測結果をテキストコピー'),
+    'Benchmark text-copy control must not be visible in the production UI');
   assert(!page.includes('id="exportBenchmarkCsv"') && !ui.includes('function exportBenchmarkCsv'),
-    'V14 must not expose the retired CSV export control');
+    'V15 must not expose the retired CSV export control');
   assert(ui.includes("window.addEventListener('error'") && ui.includes("window.addEventListener('unhandledrejection'"),
     'Initialization and asynchronous runtime errors must be surfaced in the UI');
   assert(ui.includes("$('autoTxTest').addEventListener('click', runTxAutoTest)"),
@@ -155,21 +152,22 @@ async function main() {
     'The TX sweep must stop and report when preparation fails instead of silently ending as success');
   assert(ui.includes('if (!benchmarkRuns.length)') && ui.includes('clipboardFallback'),
     'The benchmark copy flow must explain the empty state and provide a visible clipboard fallback');
-  assert(page.includes('チャンクサイズ・FPS・QR表示サイズを固定'),
-    'The page must instruct the operator to keep TX conditions fixed during resolution comparison');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.24.0-airgap-link-test-lab-gf2-manual'") &&
-    serviceWorker.includes('"test/airgap-link-ui-v14.js"'),
-    'Service Worker must cache-bust and precache the V14 runtime');
+  assert(!page.includes('テストデータ量') && !page.includes('自動ベンチマーク') &&
+    !page.includes('計測結果をテキストコピー') && !page.includes('手動フレーム入力'),
+    'Production UI must not expose benchmark or debug controls');
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.25.0-airgap-link-production-v15'") &&
+    serviceWorker.includes('"test/airgap-link-ui-v15.js"'),
+    'Service Worker must cache-bust and precache the V15 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
-    'V14 must expose the expanded numeric and range chunk-size controls');
+    'V15 must expose the expanded numeric and range chunk-size controls');
   assert(ui.includes('maximum = $(\'wireFormat\').value === \'base64url\' ? 2100 : 2800'),
-    'V14 must apply wire-format-specific chunk limits');
-  new vm.Script(ui, { filename: 'airgap-link-ui-v14.js' });
+    'V15 must apply wire-format-specific chunk limits');
+  new vm.Script(ui, { filename: 'airgap-link-ui-v15.js' });
   new vm.Script(zxingLoader, { filename: 'airgap-link-zxing-loader-v10.js' });
   assert(ui.includes("zxingDecoder.readBarcodes(image,") &&
     ui.includes("formats: ['QRCode']") &&
     ui.includes("scannerType === 'zxing-wasm'"),
-    'V14 must pass canvas ImageData to the ZXing-C++ QR reader');
+    'V15 must pass canvas ImageData to the ZXing-C++ QR reader');
   assert(zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/iife/reader/index.js") &&
     zxingLoader.includes("zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm") &&
     zxingLoader.includes("SCRIPT_LOCAL_URL = 'zxing-wasm-reader-v10.js'") &&
@@ -182,9 +180,9 @@ async function main() {
   assert(ui.includes('cameraTrack.getSettings()'),
     'RX must record the actual camera track settings, not just the requested profile');
   assert(ui.includes('detector.detect(video)'),
-    'V14 must retain direct Video input so the resolution-only experiment has a stable baseline');
+    'V15 must retain direct Video input so the resolution-only experiment has a stable baseline');
   assert(ui.includes('function percentileValue('),
-    'V14 must calculate decode-time percentiles');
+    'V15 must calculate decode-time percentiles');
   const percentileValue = vm.runInNewContext('(' + extractFunctionDeclaration(ui, 'percentileValue') + ')');
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.50), 30);
   assert.equal(percentileValue([10, 20, 30, 40, 50], 0.95), 48);
@@ -192,7 +190,7 @@ async function main() {
   assert(ui.includes('scanDecodeSamples.push(decodeElapsed)') &&
     ui.includes('if (receivedDone) recordBenchmarkRun()') &&
     ui.includes('run.samples.forEach'),
-    'V14 must retain bounded per-attempt measurements and log completed runs with raw samples');
+    'V15 must retain bounded per-attempt measurements and log completed runs with raw samples');
 
   assert(page.includes('id="wireFormat"') && page.includes('value="base45"') && page.includes('value="base64url"'),
     'TX must offer Base45 and legacy Base64URL wire-format selection');
@@ -202,17 +200,17 @@ async function main() {
     'RX must display elapsed time starting at the second valid QR');
   assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
     'RX must show wire-payload throughput, saved-file throughput, and ingest timing');
-  assert(page.includes('value="hybrid"') && page.includes('value="hybrid-data"'),
-    'Test Lab must expose LT Hybrid and Data-only Hybrid comparison modes');
-  assert(page.includes('先頭QRを1枚読み取る') && page.includes('途中参加は対象外'),
+  assert(page.includes('value="hybrid-data"') && !page.includes('value="hybrid"'),
+    'Production TX must use the Data-only + LT transfer mode');
+  assert(page.includes('先頭QRを最初に読み取って待機') && page.includes('途中参加は受け付けません'),
     'RX must require a first-frame preflight before TX playback');
-  assert(page.includes('そのブロックのDataから再生します'), 'TX block map must explain click-to-seek');
+  assert(page.includes('ブロックをタップすると、その位置から再生できます'), 'TX block map must explain tap-to-seek');
   assert(page.includes('role="slider" tabindex="-1"'), 'TX block map must be keyboard-focusable after data preparation');
   const txSectionStart = page.indexOf('class="blockmap-section tx-blockmap"');
   const txSectionEnd = page.indexOf('</div>\n <p class="muted" id="txFrameInfo">', txSectionStart);
   const txSection = page.slice(txSectionStart, txSectionEnd);
   assert(txSection.includes('現在表示中のQR位置') && txSection.includes('map-tx-current'), 'TX map legend must describe the colored active QR position');
-  assert(txSection.includes('クリックで') || txSection.includes('クリックすると'), 'TX map must document click-to-seek');
+  assert(txSection.includes('タップすると'), 'TX map must document tap-to-seek');
   assert(!txSection.includes('直接送信済み') && !txSection.includes('未送信'),
     'TX map must not imply sent/unsent state');
   const rxSectionStart = page.indexOf('class="blockmap-section rx-blockmap"');

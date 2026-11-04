@@ -81,10 +81,11 @@ function isValidZxingScript(text) {
 }
 
 function isValidZxingWasm(bytes) {
-  return bytes && bytes.byteLength >= 500000 &&
-    bytes[0] === 0x00 && bytes[1] === 0x61 &&
-    bytes[2] === 0x73 && bytes[3] === 0x6d &&
-    typeof WebAssembly !== 'undefined' &&
+  if (!bytes || bytes.byteLength < 500000 ||
+      typeof WebAssembly === 'undefined') return false;
+  const view = new Uint8Array(bytes);
+  return view[0] === 0x00 && view[1] === 0x61 &&
+    view[2] === 0x73 && view[3] === 0x6d &&
     WebAssembly.validate(bytes);
 }
 

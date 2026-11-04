@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.26.0-airgap-link-production-v20';
+const VERSION = 'cm-v2.26.0-airgap-link-production-v21';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const ZXING_WASM_VERSION = '3.1.6';
 const ZXING_WASM_CACHE = 'airgap-link-zxing-wasm-' + ZXING_WASM_VERSION;
@@ -81,6 +81,7 @@ const FILES = [
   "test/airgap-link-ui-v12.js",
   "test/airgap-link-ui-v15.js",
   "test/airgap-link-ui-v16.js",
+  "test/airgap-link-ui-v17.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];

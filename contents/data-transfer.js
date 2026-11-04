@@ -2641,6 +2641,8 @@ module.exports = QRCode;
           if (!workerReady) {
             throw new Error('選択したQR読み取りエンジンのWorker初期化に失敗しました');
           }
+        } else if ($('dt-scanner-mode')) {
+          $('dt-scanner-mode').textContent = '読み取り方式: Native BarcodeDetector（互換モード）';
         }
         stream = await navigator.mediaDevices.getUserMedia({
           video: {

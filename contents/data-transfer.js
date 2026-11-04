@@ -2577,8 +2577,10 @@ module.exports = QRCode;
           var initTimer = setTimeout(function () {
             rxWorkerFailed = true;
             rxWorkerReady = false;
+            try { if (rxWorker) rxWorker.terminate(); } catch (_) {}
+            rxWorker = null;
             resolve(false);
-          }, 3000);
+          }, 10000);
 
           rxWorker.onmessage = function (e) {
             var msg = e.data;

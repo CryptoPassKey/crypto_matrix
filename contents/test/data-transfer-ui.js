@@ -1321,6 +1321,7 @@ module.exports = QRCode;
   var txCurrentBlocks = new Set();
   var txMapSelectedIndex = 0;
   var txIndex = 0;
+  var txInitialIndex = 0;
   var txTimer = 0;
   var txRafId = 0;
   var txFrameStartTime = 0;
@@ -2349,6 +2350,7 @@ module.exports = QRCode;
           frameLabel = '先頭QRコード · 受信側で読み取り待ち';
         }
       }
+      txInitialIndex = txIndex;
       var cacheResult = await prepareTxQrCache();
       var planStart = performance.now();
       var firstCacheEntry = txMode === 'fountain' ? txFountainQrCache[0] : txQrMatrixCache[0];
@@ -2359,6 +2361,7 @@ module.exports = QRCode;
       $('txPlaceholder').classList.add('hidden');
       if ($('txInputDetails')) $('txInputDetails').open = false;
       $('playTx').disabled = false;
+      $('restartTx').disabled = false;
       $('pauseTx').disabled = true;
       updateTxPlayBadge();
       $('txPayloadSize').textContent = formatBytes(wireBytes.length);
@@ -2384,6 +2387,7 @@ module.exports = QRCode;
       txQrCacheBytes = 0;
       $('txCacheStatus').textContent = 'QR事前生成: 失敗';
       $('playTx').disabled = true;
+      $('restartTx').disabled = true;
       $('pauseTx').disabled = true;
       $('txPlaceholder').classList.remove('hidden');
       status('txStatus', 'QRコードの準備に失敗しました: ' + error.message, 'error');
@@ -2405,6 +2409,7 @@ module.exports = QRCode;
     if (txTimer) clearTimeout(txTimer);
     txTimer = 0;
     $('playTx').disabled = !(txPlan || txFountainEncoder);
+    $('restartTx').disabled = !(txPlan || txFountainEncoder);
     $('pauseTx').disabled = true;
     updateTxPlayBadge();
   }
@@ -2627,6 +2632,46 @@ module.exports = QRCode;
 
   $('prepareTx').addEventListener('click', prepareTx);
   $('playTx').addEventListener('click', playTx);
+  $('restartTx').addEventListener('click', async function () {
+    if ((!txPlan && !txFountainEncoder) || autoTestRunning) return;
+    stopTx();
+    txIndex = txInitialIndex;
+    txHybridPhase = 'legacy';
+    txFountainQrCacheIndex = 1;
+    if (txFountainEncoder && txMode === 'fountain') {
+      try {
+        txFountainEncoder.seekToBlock(0);
+        txFountainPart = await txFountainEncoder.nextPart();
+        txCurrentBlocks = new Set(txFountainPart.indexes);
+        txCurrentLabel = 'LT seq 1 · Data · 対象 1';
+        var first = txFountainQrCache[0];
+        if (first && first.qr) renderQrMatrix(first.qr);
+        else renderQr(txFountainPart.frame);
+      } catch (error) {
+        status('txStatus', '先頭からの再開に失敗しました: ' + error.message, 'error');
+        return;
+      }
+    } else if (txMode === 'hybrid' || txMode === 'hybrid-data') {
+      if (txFountainEncoder && typeof txFountainEncoder.startRepairPhase === 'function') {
+        txFountainEncoder.startRepairPhase();
+      }
+    }
+    txMapSelectedIndex = 0;
+    txCurrentBlocks = new Set();
+    if (txPlan && txPlan.frames[0]) {
+      var firstPacket = Core.parseFrame(txPlan.frames[0]);
+      txCurrentBlocks = new Set(packetBlockIndexes(firstPacket));
+      if (txQrMatrixCache[0] && txQrMatrixCache[0].qr) renderQrMatrix(txQrMatrixCache[0].qr);
+      else renderQr(txPlan.frames[0]);
+    }
+    updateTxBlockMap();
+    $('txProgress').style.width = (txMode === 'fountain' || txMode === 'hybrid' || txMode === 'hybrid-data'
+      ? (txPlan ? 1 / Math.max(1, txPlan.dataFrames.length) * 100 : 0) : 0).toFixed(1) + '%';
+    $('txFrameInfo').textContent = '先頭QRコード · 受信側で読み取り待ち';
+    txFrameStartTime = performance.now();
+    playTx();
+    status('txStatus', '先頭から送信を再開しました。', 'info');
+  });
   $('pauseTx').addEventListener('click', function () {
     stopTx();
     status('txStatus', '送信を一時停止しました。送信開始またはQRコードのタップで再開できます。', 'info');

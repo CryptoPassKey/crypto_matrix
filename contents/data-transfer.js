@@ -2842,13 +2842,13 @@ module.exports = QRCode;
           if (roiHit) roiRaw = roiHit.text;
         } catch (_) {}
       }
-      if (!roiRaw && $('dt-rx-allow-fallback') && $('dt-rx-allow-fallback').checked && typeof window.jsQR === 'function') {
+      if (!roiRaw && scannerType === 'jsqr' && typeof window.jsQR === 'function') {
         var roiDecoded = window.jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
         if (roiDecoded && Wire.isAirgapFrame(roiDecoded.data)) roiRaw = roiDecoded.data;
       }
       if (roiRaw) return roiRaw;
 
-      // Full image fallback
+      // Full-frame pass follows the same selected fallback policy.
       var image = context.getImageData(0, 0, width, height);
       if (zxingDecoder) {
         try {
@@ -2863,12 +2863,11 @@ module.exports = QRCode;
           if (zxingHit) return zxingHit.text;
         } catch (_) {}
       }
-      if ($('dt-rx-allow-fallback') && $('dt-rx-allow-fallback').checked && typeof window.jsQR === 'function') {
-        var decoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'attemptBoth' });
-        if (decoded && Wire.isAirgapFrame(decoded.data)) return decoded.data;
+      if (scannerType === 'jsqr' && typeof window.jsQR === 'function') {
+        var fullDecoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'attemptBoth' });
+        if (fullDecoded && Wire.isAirgapFrame(fullDecoded.data)) return fullDecoded.data;
       }
-      return null;
-    }
+
 
     async function scanTick() {
       if (!stream || scanBusy || rxWorkerBusy || receivedDone) return;

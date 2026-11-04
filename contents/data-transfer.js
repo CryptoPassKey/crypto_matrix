@@ -1827,6 +1827,20 @@ module.exports = QRCode;
       context.fillRect(0, 0, canvas.width, canvas.height);
     }
 
+    function setTxPreparationProgress(message, completed, total) {
+      var panel = $('dt-tx-prep-progress');
+      var label = $('dt-tx-prep-progress-text');
+      var bar = $('dt-tx-prep-progress-bar');
+      if (!panel) return;
+      panel.hidden = false;
+      if (label) label.textContent = message;
+      if (bar) {
+        var safeTotal = Math.max(1, Number(total) || 1);
+        bar.max = safeTotal;
+        bar.value = Math.max(0, Math.min(safeTotal, Number(completed) || 0));
+      }
+    }
+
     async function prepareTxQrCache() {
       disposeQrCache(txQrMatrixCache);
       disposeQrCache(txFountainQrCache);
@@ -1837,6 +1851,7 @@ module.exports = QRCode;
       var total = txPlan ? txPlan.frames.length : 0;
       var cache = [];
       var scratchCanvas = document.createElement('canvas');
+      setTxPreparationProgress('QRコードを事前生成しています: 0 / ' + total + ' 枚…', 0, total);
 
       for (var i = 0; i < total; i++) {
         var frame = txPlan.frames[i];
@@ -1846,13 +1861,16 @@ module.exports = QRCode;
           txQrCacheBytes + entryBytes > TX_QR_CACHE_MAX_BYTES;
         cache.push({ frame: frame, qr: qr, part: null });
         txQrCacheBytes += entryBytes;
-        if (cacheLimitReached) break;
 
-        if ((i + 1) % 16 === 0) {
+        if ((i + 1) % 16 === 0 || i === total - 1 || cacheLimitReached) {
+          var progressMessage = 'QRコードを事前生成しています: ' + cache.length + ' / ' + total + ' 枚…';
           setHeaderBadge('準備中 (' + cache.length + '/' + total + ')', 'PREPARING');
-          setStatus('dt-tx-status', 'QRコードを事前生成しています: ' + cache.length + ' / ' + total + ' 枚…', 'info');
+          setStatus('dt-tx-status', progressMessage, 'info');
+          setTxPreparationProgress(progressMessage, cache.length, total);
+          // Yield to the browser so the progress text and bar can repaint on mobile.
           await new Promise(function (resolve) { setTimeout(resolve, 0); });
         }
+        if (cacheLimitReached) break;
       }
       txQrMatrixCache = cache;
       return { cachedFrames: cache.length, totalFrames: total };
@@ -1877,6 +1895,7 @@ module.exports = QRCode;
       stopTx();
       if ($('dt-prepare-tx')) $('dt-prepare-tx').disabled = true;
       setHeaderBadge('準備中', 'PREPARING');
+      setTxPreparationProgress('送信データを処理しています…', 0, 1);
       try {
         var file = txSelectedFile || ($('dt-tx-file') && $('dt-tx-file').files && $('dt-tx-file').files[0]);
         var sourceBytes;
@@ -1976,6 +1995,7 @@ module.exports = QRCode;
         setStatus('dt-tx-status', 'QRコードの準備に失敗しました: ' + error.message, 'err');
         return false;
       } finally {
+        if ($('dt-tx-prep-progress')) $('dt-tx-prep-progress').hidden = true;
         if ($('dt-prepare-tx')) $('dt-prepare-tx').disabled = false;
       }
     }

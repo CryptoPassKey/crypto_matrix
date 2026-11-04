@@ -646,15 +646,22 @@
       txIsRendering = false;
       txPausedByVisibility = false;
       var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
-      var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
-      if (fountainPhase && txFountainEncoder) {
+      if (hybridMode && txPlan) {
+        // 何周目（LT修復フェーズ等）であっても、1周目のそのブロックのDataフレームから再生再開
+        txHybridPhase = 'legacy';
+        var frameIndex = legacyFrameIndexForBlock(blockIndex, txPlan);
+        if (frameIndex < 0 || frameIndex >= txPlan.frames.length) throw new Error('指定ブロックのフレーム位置が見つかりません');
+        var packet = Core.parseFrame(txPlan.frames[frameIndex]);
+        if (packet.type !== 'data' || packet.index !== blockIndex) throw new Error('指定ブロックとDataフレームの位置が一致しません');
+        txIndex = frameIndex;
+      } else if (txMode === 'fountain' && txFountainEncoder) {
         if (typeof txFountainEncoder.seekToBlock !== 'function') {
           throw new Error('Fountain EncoderとUIのAPI版が一致しません。ページを再読み込みしてください');
         }
         txFountainEncoder.seekToBlock(blockIndex);
         // Random access invalidates the precomputed Fountain sequence; continue from the seek point.
         txFountainQrCacheIndex = txFountainQrCache.length;
-      } else {
+      } else if (txPlan) {
         var frameIndex = legacyFrameIndexForBlock(blockIndex, txPlan);
         if (frameIndex < 0 || frameIndex >= txPlan.frames.length) throw new Error('指定ブロックのフレーム位置が見つかりません');
         var packet = Core.parseFrame(txPlan.frames[frameIndex]);
@@ -665,6 +672,7 @@
       txPlaying = true;
       $('playTx').disabled = true;
       $('pauseTx').disabled = false;
+      updateTxPlayBadge();
       status('txStatus', 'ブロック ' + (blockIndex + 1) + ' から再生を開始しました。', 'info');
       showNextFrame();
     } catch (error) {
@@ -772,10 +780,12 @@
   if ($('autoFpsEnabled')) {
     $('autoFpsEnabled').addEventListener('change', function () {
       txAutoRateController.enabled = this.checked;
+      rxRateAdvisor.enabled = this.checked;
       if ($('autoFpsControls')) {
         $('autoFpsControls').style.display = this.checked ? 'block' : 'none';
       }
       txAutoRateController.reset();
+      rxRateAdvisor.reset();
       updateControls();
     });
   }
@@ -1019,7 +1029,7 @@
         }
       }
       if (sourceBytes.length > MAX_BENCHMARK_BYTES) throw new Error('試験ページの上限は64 MiBです');
-      if (sourceName && $('rxFilename') && (!$('rxFilename').value || $('rxFilename').value === 'airgap-link-received.bin')) {
+      if (sourceName && $('rxFilename') && !$('rxFilename').value) {
         $('rxFilename').value = sourceName;
       }
 
@@ -1123,6 +1133,7 @@
       $('txPlaceholder').classList.add('hidden');
       $('playTx').disabled = false;
       $('pauseTx').disabled = true;
+      updateTxPlayBadge();
       $('txPayloadSize').textContent = formatBytes(wireBytes.length);
       $('txQrGenMs').textContent = cacheResult.durationMs.toFixed(1) + ' ms';
       $('txCacheStatus').textContent = 'QR事前生成: ' + cacheResult.cachedFrames + ' / ' + cacheResult.totalFrames + ' 枚';
@@ -1171,6 +1182,7 @@
     txTimer = 0;
     $('playTx').disabled = !(txPlan || txFountainEncoder);
     $('pauseTx').disabled = true;
+    updateTxPlayBadge();
   }
 
   function txAnimationLoop(now) {
@@ -1238,8 +1250,10 @@
         frame = txFountainPart.frame;
         txCurrentBlocks = new Set(txFountainPart.indexes);
         txCurrentLabel = 'LT seq ' + txFountainPart.seqNum + ' · ' +
-          (txFountainPart.direct ? 'Data再送' : 'XOR修復') + ' · 対象 ' +
-          txFountainPart.indexes.map(function (index) { return index + 1; }).join(',');
+          (txFountainPart.direct ? 'Data再送' : 'XOR修復') + ' · ' +
+          (txFountainPart.indexes.length <= 4
+            ? '対象 ' + txFountainPart.indexes.map(function (index) { return index + 1; }).join(',')
+            : txFountainPart.indexes.length + 'ブロック合成');
         $('txFrameCount').textContent = txFountainEncoder.seqLen + ' / ∞';
         $('txFrameInfo').textContent =
           (hybridMode ? 'Hybrid LT修復' : 'LT') + ' seq ' + txFountainPart.seqNum + ' · ' +
@@ -1307,6 +1321,7 @@
     txPausedByVisibility = false;
     $('playTx').disabled = true;
     $('pauseTx').disabled = false;
+    updateTxPlayBadge();
     // 再生開始時、現在画面に表示されているフレームの表示開始時刻を現在時刻に設定
     txFrameStartTime = performance.now();
     txDisplayWindowStart = txFrameStartTime;
@@ -1347,6 +1362,42 @@
           scheduleScan(0);
         }
       }
+    });
+  }
+
+  function updateTxPlayBadge() {
+    var badge = $('txPlayBadge');
+    if (!badge) return;
+    if (!txPlan && !txFountainEncoder) {
+      badge.classList.add('hidden');
+      return;
+    }
+    badge.classList.remove('hidden');
+    if (txPlaying) {
+      badge.textContent = '▶ 再生中（タップで停止）';
+      badge.className = 'qr-stage-badge playing';
+    } else {
+      badge.textContent = '⏸ 一時停止（タップで再生）';
+      badge.className = 'qr-stage-badge paused';
+    }
+  }
+
+  function toggleTxPlayback() {
+    if (!txPlan && !txFountainEncoder) return;
+    if (txPlaying) {
+      stopTx();
+      status('txStatus', '送信を一時停止しました（QRタップで再開できます）。', 'info');
+    } else {
+      playTx();
+      status('txStatus', '送信を再開しました（QRタップで一時停止できます）。', 'info');
+    }
+  }
+
+  var txStage = $('txStage');
+  if (txStage) {
+    txStage.addEventListener('click', function (e) {
+      if (!txPlan && !txFountainEncoder) return;
+      toggleTxPlayback();
     });
   }
 
@@ -1719,7 +1770,7 @@
 
   function safeFilename(value) {
     var name = String(value || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim();
-    return name || 'airgap-link-received.bin';
+    return name;
   }
 
   function stopCameraFpsMeasurement() {
@@ -1806,7 +1857,8 @@
     var unpacked = await Core.decompressIfWrapped(bytes);
     var finalBytes = unpacked.bytes;
     var inputName = ($('rxFilename') ? $('rxFilename').value : '').trim();
-    var name = safeFilename(inputName || 'airgap-link-received.bin');
+    var defaultName = ($('txFile') && $('txFile').files && $('txFile').files[0] ? $('txFile').files[0].name : '') || 'received-file.bin';
+    var name = safeFilename(inputName) || defaultName;
     var blob = new Blob([finalBytes], { type: 'application/octet-stream' });
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = URL.createObjectURL(blob);
@@ -1890,7 +1942,10 @@
         result = await fountainRx.feed(rawText);
         var indexes = result.lastIndexes || await fountainRx.chooser.choose(fountainPacket.seqNum);
         rxCurrentBlocks = new Set(indexes);
-        rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · blocks ' + indexes.map(function (index) { return index + 1; }).join(',');
+        rxCurrentLabel = 'LT seq ' + fountainPacket.seqNum + ' · ' +
+          (indexes.length <= 4
+            ? 'blocks ' + indexes.map(function (index) { return index + 1; }).join(',')
+            : indexes.length + ' blocks');
         have = fountainRx.simpleParts.size;
         total = fountainRx.seqLen;
         recovered = fountainRx.recoveredIndexes.size;
@@ -2028,146 +2083,7 @@
     throw new Error('読み取り方式を初期化できませんでした。ZXing WASMが動かない環境の場合は「互換フォールバックを許可」にチェックを入れてください');
   }
 
-  function updateDistanceGuide(isHit, qrRatio, decodeElapsed) {
-    var guide = $('rxDistanceGuide');
-    var targetBox = $('rxCameraTargetBox');
-    var targetLabel = $('rxTargetBoxLabel');
-
-    if (transferTiming && transferTiming.startedAt !== null) {
-      if (guide) guide.style.display = 'none';
-      if (targetBox) targetBox.style.display = 'none';
-      return;
-    }
-    if (guide) guide.style.display = 'block';
-    if (targetBox) targetBox.style.display = stream ? 'flex' : 'none';
-
-    var icon = $('guideIcon');
-    var text = $('guideDistanceText');
-    var badge = $('guideScoreBadge');
-    var bar = $('guideMeterBar');
-    var hint = $('guideHint');
-
-    if (!stream) {
-      if (icon) icon.textContent = '📷';
-      if (text) text.textContent = '距離＆検出力ガイド: カメラを開始して先頭QRをかざしてください';
-      if (badge) {
-        badge.textContent = '待機中';
-        badge.style.background = '#162b40';
-        badge.style.color = '#8ab4f8';
-      }
-      if (bar) {
-        bar.style.width = '0%';
-        bar.style.background = '#8ab4f8';
-      }
-      if (guide) {
-        guide.style.background = '#0d2137';
-        guide.style.borderColor = '#1e456e';
-      }
-      if (hint) hint.textContent = 'カメラ開始後、QRコードとの最適な距離（画面占有率30〜70%）と検出力をリアルタイムに表示します（2枚目受信で自動的に非表示になります）';
-      return;
-    }
-
-    if (!isHit) {
-      if (text) text.textContent = 'カメラをQRコードに向けてください（探索中…）';
-      if (icon) icon.textContent = '🔍';
-      if (badge) {
-        badge.textContent = '検出力: 0%';
-        badge.style.background = '#162b40';
-        badge.style.color = '#8ab4f8';
-      }
-      if (bar) {
-        bar.style.width = '10%';
-        bar.style.background = '#8ab4f8';
-      }
-      if (guide) {
-        guide.style.background = '#0c1926';
-        guide.style.borderColor = '#1f3a56';
-      }
-      if (targetBox) {
-        targetBox.style.borderColor = 'rgba(100,200,255,0.7)';
-        targetBox.style.borderStyle = 'dashed';
-      }
-      if (targetLabel) targetLabel.textContent = 'QRをこの枠に合わせてください';
-      return;
-    }
-
-    var ratio = qrRatio !== null && qrRatio !== undefined ? qrRatio : 0.5;
-    var pct = Math.round(ratio * 100);
-
-    if (ratio < 0.28) {
-      if (icon) icon.textContent = '⚠️';
-      if (text) text.textContent = '遠すぎます — もう少し近づけてください（画面幅の ' + pct + '%）';
-      if (badge) {
-        badge.textContent = '検出力: 55%（遠い）';
-        badge.style.background = '#3e2e04';
-        badge.style.color = '#fdd663';
-      }
-      if (bar) {
-        bar.style.width = '45%';
-        bar.style.background = '#fdd663';
-      }
-      if (guide) {
-        guide.style.background = '#1f1a08';
-        guide.style.borderColor = '#594408';
-      }
-      if (targetBox) {
-        targetBox.style.borderColor = '#fdd663';
-        targetBox.style.borderStyle = 'dashed';
-      }
-      if (targetLabel) targetLabel.textContent = 'もう少し近づけてください';
-    } else if (ratio > 0.72) {
-      if (icon) icon.textContent = '⚠️';
-      if (text) text.textContent = '近すぎます — 少し離してください（画面幅の ' + pct + '%）';
-      if (badge) {
-        badge.textContent = '検出力: 60%（近すぎ）';
-        badge.style.background = '#3e2e04';
-        badge.style.color = '#fdd663';
-      }
-      if (bar) {
-        bar.style.width = '60%';
-        bar.style.background = '#fdd663';
-      }
-      if (guide) {
-        guide.style.background = '#1f1a08';
-        guide.style.borderColor = '#594408';
-      }
-      if (targetBox) {
-        targetBox.style.borderColor = '#fdd663';
-        targetBox.style.borderStyle = 'dashed';
-      }
-      if (targetLabel) targetLabel.textContent = '少し離してください';
-    } else {
-      var speedBonus = decodeElapsed < 25 ? '爆速' : '良好';
-      if (icon) icon.textContent = '🎯';
-      if (text) text.textContent = '◎ 最適な距離です！この位置をキープしてください（画面幅の ' + pct + '%）';
-      if (badge) {
-        badge.textContent = '検出力: 最大 100% ◎（' + Math.round(decodeElapsed) + 'ms · ' + speedBonus + '）';
-        badge.style.background = '#0e3a1f';
-        badge.style.color = '#81c995';
-      }
-      if (bar) {
-        bar.style.width = '100%';
-        bar.style.background = '#81c995';
-      }
-      if (guide) {
-        guide.style.background = '#081d11';
-        guide.style.borderColor = '#1a5c32';
-      }
-      if (targetBox) {
-        targetBox.style.borderColor = '#27bd8d';
-        targetBox.style.borderStyle = 'solid';
-      }
-      if (targetLabel) targetLabel.textContent = '🎯 最適な距離です！';
-    }
-
-    if (hint) {
-      if (rxFirstFrameCaptured) {
-        hint.innerHTML = '<strong style="color:#81c995">【先頭QR確認済み！】</strong> 送信側（TX）の再生を開始してください。2枚目を読み取ると自動で転送計測が始まります。';
-      } else {
-        hint.textContent = '先頭QRを読み取り中… 最も検出力の高い距離に合わせてください';
-      }
-    }
-  }
+  function updateDistanceGuide() {}
 
   function handleWorkerDecodeResult(msg) {
     rxWorkerBusy = false;
@@ -2705,24 +2621,26 @@
     ingest($('manualFrame').value.replace(/^[\r\n]+|[\r\n]+$/g, ''));
   });
 
-  $('runSelfTest').addEventListener('click', async function () {
-    var button = $('runSelfTest');
-    button.disabled = true;
-    try {
-      var legacyResult = Core.selfTest();
-      var fountainResult = await Fountain.selfTest();
-      status('selfTestStatus',
-        'PASS · 旧CMAL1/P0/P1 ' + legacyResult.pairPositions + '欠落位置 · ' +
-        'LT公式chooserベクトル seq12=' + fountainResult.sequence12 +
-        ' / seq13=' + fountainResult.sequence13 +
-        ' · 順不同復元 · 2片欠落 · 重複処理 · CRC検証 · 転送混在拒否',
-        'ok');
-    } catch (error) {
-      status('selfTestStatus', 'FAIL · ' + error.message, 'error');
-    } finally {
-      button.disabled = false;
-    }
-  });
+  if ($('runSelfTest')) {
+    $('runSelfTest').addEventListener('click', async function () {
+      var button = $('runSelfTest');
+      button.disabled = true;
+      try {
+        var legacyResult = Core.selfTest();
+        var fountainResult = await Fountain.selfTest();
+        status('selfTestStatus',
+          'PASS · 旧CMAL1/P0/P1 ' + legacyResult.pairPositions + '欠落位置 · ' +
+          'LT公式chooserベクトル seq12=' + fountainResult.sequence12 +
+          ' / seq13=' + fountainResult.sequence13 +
+          ' · 順不同復元 · 2片欠落 · 重複処理 · CRC検証 · 転送混在拒否',
+          'ok');
+      } catch (error) {
+        status('selfTestStatus', 'FAIL · ' + error.message, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
 
   window.addEventListener('pagehide', function () {
     stopTx();
@@ -2740,6 +2658,7 @@
   }
   txAutoRateController.reset();
   rxRateAdvisor.reset();
+  if ($('rxResolution')) $('rxResolution').value = '640x480';
   updateModeControls();
   resetRx();
   updateTxBlockMap();

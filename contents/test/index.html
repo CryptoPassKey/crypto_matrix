@@ -28,8 +28,12 @@ small,.muted{color:var(--muted)}small{font-size:.77rem}
 button{border:1px solid #42627e;color:var(--text);background:#1b324b;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
 button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#3cbba3;color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.qr-stage{background:#fff;border-radius:12px;min-height:330px;display:grid;place-items:center;margin-top:12px;padding:10px;position:relative}
-#txCanvas{display:block;width:min(100%,520px);height:auto;aspect-ratio:1;image-rendering:pixelated}
+.qr-stage{background:#fff;border-radius:12px;min-height:330px;display:grid;place-items:center;margin-top:12px;padding:10px;position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+#txCanvas{display:block;width:min(100%,520px);height:auto;aspect-ratio:1;image-rendering:pixelated;cursor:pointer}
+.qr-stage-badge{position:absolute;bottom:12px;right:12px;padding:5px 12px;border-radius:99px;font-size:0.78rem;font-weight:700;pointer-events:none;transition:all .2s ease;box-shadow:0 3px 10px rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:2}
+.qr-stage-badge.playing{background:rgba(20,124,104,0.92);color:#fff}
+.qr-stage-badge.paused{background:rgba(217,119,6,0.95);color:#fff;animation:pulseBadge 2s infinite ease-in-out}
+@keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:0.75}}
 .placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#415366;text-align:center;padding:30px;pointer-events:none}.button-link{display:inline-block;text-decoration:none;border:1px solid #3cbba3;color:#fff;background:linear-gradient(135deg,#147c68,#146f87);border-radius:9px;padding:9px 13px;font-weight:700}
 .status{min-height:1.5em;margin:8px 0 4px;font-size:.87rem;overflow-wrap:anywhere}
 .status.ok{color:var(--ok)}.status.error{color:var(--danger)}.status.info{color:var(--accent2)}
@@ -153,10 +157,12 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="prepareTx" class="primary" type="button">転送データを準備</button>
   <button id="playTx" type="button" disabled>再生</button>
   <button id="pauseTx" type="button" disabled>停止</button>
+ </div>
+ <div style="display:none">
   <button id="autoTxTest" type="button">選択条件で自動ベンチマーク</button>
-  <label for="autoTxLog">送信条件ログ（Transfer IDで受信側の結果と照合）</label>
-  <textarea id="autoTxLog" rows="5" readonly placeholder="自動ベンチマーク開始後、送信条件とTransfer IDが記録されます"></textarea>
-   <button id="copyTxTestLog" type="button">送信条件ログをテキストコピー</button>
+  <label for="autoTxLog">送信条件ログ</label>
+  <textarea id="autoTxLog" rows="5" readonly></textarea>
+  <button id="copyTxTestLog" type="button">送信条件ログをテキストコピー</button>
  </div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
@@ -167,9 +173,10 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="stat"><b id="txDisplayFps">—</b><small>TX実効表示FPS</small></div>
  </div>
  <p id="txCacheStatus" class="muted">QR事前生成: 未準備</p>
- <div class="qr-stage">
+ <div class="qr-stage" id="txStage">
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
+  <div id="txPlayBadge" class="qr-stage-badge hidden">⏸ 一時停止中（タップで再生）</div>
  </div>
  <div class="blockmap-section tx-blockmap">
   <div class="blockmap-title"><strong>TX BLOCK MAP · 送信位置</strong><small>1マス = 1データブロック · 色 = 現在のQR位置</small></div>
@@ -181,7 +188,6 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </div>
  </div>
  <p class="muted" id="txFrameInfo">フレーム待機中</p>
- <div class="note warn">30 fpsは上限値です。カメラの露光・フォーカス・デコーダー処理が追いつかない場合は、FPSを下げるか密度を下げてください。</div>
 </section>
 
 <section class="panel" aria-labelledby="rx-title">
@@ -200,9 +206,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <small>ZXing WASMはAndroid/iOS/PCの全環境で最高速かつ決定論的に動作します。</small>
   <label for="rxResolution">RXカメラ解像度</label>
  <select id="rxResolution" class="mode-select">
-  <option value="640x480" selected>640 × 480（推奨・最安定・高FPS）</option>
+  <option value="640x480">640 × 480（最安定・推奨）</option>
   <option value="1280x720">1280 × 720（標準）</option>
-  <option value="1920x1080">1920 × 1080（高解像度・重負荷）</option>
+  <option value="1920x1080" selected>1920 × 1080（高解像度）</option>
  </select>
  <p id="rxCameraSettings" class="muted">実解像度: 未取得（カメラ接続後に getSettings() で確認）</p>
  <p class="muted">映像フレーム実測FPS: <strong id="rxObservedFps">—</strong>（requestVideoFrameCallback基準。デコード試行FPSとは別指標）</p>
@@ -213,33 +219,16 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
   <div style="display:none"><input id="autoBenchmarkReset" type="checkbox"></div>
-  <details style="margin-top:6px;font-size:0.85em;color:#666">
-   <summary style="cursor:pointer;color:#555">高度な復元設定（GF(2) ガウス消去・実験）</summary>
-   <div style="padding:6px 0">
-    <label class="checkrow"><input id="rxGaussianEnabled" type="checkbox"> GF(2)ガウス消去を使用可能にする（実験）</label>
-    <button id="runRxGaussian" type="button" disabled>蓄積した式でGF(2)ガウス消去を実行</button>
-    <p id="rxGaussianStatus" class="muted">通常受信中はpeelingのみ。ガウス消去はカメラ停止後に手動実行します。</p>
-   </div>
-  </details>
- </div>
- <div id="rxDistanceGuide" class="distance-guide" style="margin:10px 0;padding:12px 14px;border-radius:10px;background:#0d2137;border:1px solid #1e456e;box-shadow:0 4px 14px rgba(0,0,0,0.25);transition:all .2s ease">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-   <div style="font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:7px">
-    <span id="guideIcon" style="font-size:1.2rem">📷</span>
-    <span id="guideDistanceText">距離＆検出力ガイド: カメラを開始して先頭QRをかざしてください</span>
-   </div>
-   <div id="guideScoreBadge" style="padding:3px 10px;border-radius:12px;font-size:0.8rem;font-weight:700;background:#162b40;color:#8ab4f8;white-space:nowrap">待機中</div>
+  <div style="display:none">
+   <input id="rxGaussianEnabled" type="checkbox">
+   <button id="runRxGaussian" type="button" disabled></button>
+   <p id="rxGaussianStatus" class="muted"></p>
   </div>
-  <div style="height:8px;width:100%;background:#162b40;border-radius:4px;overflow:hidden">
-   <div id="guideMeterBar" style="height:100%;width:0%;background:#8ab4f8;border-radius:4px;transition:width .2s ease, background .2s ease"></div>
-  </div>
-  <small id="guideHint" style="display:block;margin-top:6px;color:#9aa0a6;font-size:0.8rem">カメラ開始後、QRコードとの最適な距離（画面占有率30〜70%）と検出力をリアルタイムに表示します（2枚目受信で自動的に非表示になります）</small>
  </div>
+ 
  <div class="camera-stage" aria-label="受信カメラ映像">
   <video id="camera" playsinline muted autoplay></video>
-  <div id="rxCameraTargetBox" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(70%, 280px);aspect-ratio:1;border:2px dashed rgba(100,200,255,0.7);border-radius:16px;pointer-events:none;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 9999px rgba(0,0,0,0.3);transition:border-color .2s ease, transform .2s ease">
-   <span id="rxTargetBoxLabel" style="background:rgba(0,0,0,0.75);color:#8ab4f8;font-size:0.75rem;padding:3px 8px;border-radius:6px;font-weight:700">QRをこの枠に合わせてください</span>
-  </div>
+  
  </div>
  <canvas id="scanCanvas"></canvas>
  <div class="blockmap-section rx-blockmap">
@@ -279,9 +268,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
  <label for="rxFilename">保存ファイル名（元ファイル名または任意）</label>
- <input id="rxFilename" type="text" value="airgap-link-received.bin" placeholder="airgap-link-received.bin（任意に変更可能）" autocomplete="off">
+ <input id="rxFilename" type="text" placeholder="ファイル名（空欄時は自動命名）" autocomplete="off">
  <div class="row">
-  <a id="downloadResult" class="button-link hidden" download="airgap-link-received.bin">復元ファイルを保存</a>
+  <a id="downloadResult" class="button-link hidden">復元ファイルを保存</a>
  </div>
  <p id="rxResultMeta" class="muted"></p>
  <div style="display:none">
@@ -294,13 +283,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 </section>
 </div>
 
-<section class="panel" style="margin-top:16px">
- <h2>内部テスト</h2>
- <p class="muted">従来CMAL1/P0/P1とLTファウンテンの順不同・重複・欠落復元をカメラなしで確認します。</p>
- <button id="runSelfTest" class="primary" type="button">プロトコル自己テスト</button>
- <p id="selfTestStatus" class="status" aria-live="polite">未実行</p>
- <div class="note">従来CMAL1は <code>index/total</code> とP0/P1を使うブロック消失訂正です。LTファウンテン実験は <code>FseqNum/seqLen</code> の決定的XOR合成パケットを使います。MURのLT符号アルゴリズムを参考にした独自CMAL1フレームであり、UR/CBOR/Bytewordsを含むBC-URワイヤー形式との互換性はありません。RaptorQでもありません。</div>
-</section>
+
 
 <p class="footer">Airgap Link Test Lab V14 · TX/RXはローカル処理のみ · データは外部へ送信されません。LT方式は受信ACKなしの片方向転送で、受信側が復元できるまで追加パケットを読み取ります。</p>
 </main>

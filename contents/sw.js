@@ -116,7 +116,7 @@ self.addEventListener('fetch', (e) => {
 
   // Virtual same-origin script URL: cache the version-pinned ZXing reader IIFE
   // in its own cache so it remains available after the app shell is upgraded.
-  if (requestUrl.pathname.endsWith('/contents/test/zxing-wasm-reader-v10.js')) {
+  if (requestUrl.pathname.endsWith('/contents/test/data-transfer-zxing-reader.js')) {
     e.respondWith((async () => {
       const cache = await caches.open(ZXING_WASM_CACHE);
       const cached = await cache.match(ZXING_READER_SCRIPT);

@@ -2434,7 +2434,7 @@ module.exports = QRCode;
             setStatus('dt-rx-status', '転送を開始しました。そのままカメラをQRコードに向け続けてください。', 'ok');
           } else if (uniqueFrameCount <= 1) {
             setHeaderBadge('先頭QR確認済み', 'READY');
-            setStatus('dt-rx-status', '先頭QRコードを確認しました！送信側で「送信開始」を押してください。', 'ok');
+            setStatus('dt-rx-status', '先頭フレームを確認しました。送信側のQRコードを連続表示すると、残りのデータを自動で受信・復元します。', 'ok');
           } else if (isFountain) {
             setHeaderBadge('データ復元中', 'RECOVERING');
             setStatus('dt-rx-status',
@@ -2472,27 +2472,7 @@ module.exports = QRCode;
 
       if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = 'QR読み取りエンジンを準備中…';
 
-      // Compatibility mode explicitly prefers the native browser decoder.
-      if (allowFallback && typeof window.BarcodeDetector === 'function') {
-        try {
-          var formats = await window.BarcodeDetector.getSupportedFormats();
-          if (formats.indexOf('qr_code') !== -1) {
-            detector = new window.BarcodeDetector({ formats: ['qr_code'] });
-            scannerType = 'native';
-            scannerName = 'Native BarcodeDetector';
-            if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: Native BarcodeDetector（互換モード）';
-            return;
-          }
-        } catch (error) {
-          nativeError = error;
-          detector = null;
-        }
-      } else if (allowFallback) {
-        nativeError = new Error('BarcodeDetector APIを利用できません');
-      }
-
-      // ZXing remains the primary engine when compatibility mode is disabled,
-      // and the second choice when compatibility mode explicitly requests fallback.
+      // ZXing-C++ WASM remains the primary engine in both modes.
       try {
         if (!window.DataTransferZXingLoader || typeof window.DataTransferZXingLoader.load !== 'function') {
           throw new Error('ZXing WASMローダーが未読込です');
@@ -2505,27 +2485,50 @@ module.exports = QRCode;
         scannerName = 'ZXing-C++ WASM';
         if ($('dt-scanner-mode')) {
           $('dt-scanner-mode').textContent = allowFallback
-            ? '読み取り方式: ZXing-C++ WASM（互換モード・第2候補）'
+            ? '読み取り方式: ZXing-C++ WASM（互換モード・優先）'
             : '読み取り方式: ZXing-C++ WASM（高速モード）';
         }
         return;
       } catch (error) {
         zxingDecoder = null;
         wasmError = error;
+        if (!allowFallback) {
+          throw new Error('ZXing-C++ WASMを初期化できませんでした: ' + error.message +
+            '（互換モードを有効にすると代替方式を利用できます）');
+        }
       }
 
-      // jsQR is the final compatibility-only fallback.
+      // Only when compatibility mode is enabled, try native BarcodeDetector.
+      if (allowFallback && typeof window.BarcodeDetector === 'function') {
+        try {
+          var formats = await window.BarcodeDetector.getSupportedFormats();
+          if (formats.indexOf('qr_code') !== -1) {
+            detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            scannerType = 'native';
+            scannerName = 'Native BarcodeDetector';
+            if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: Native BarcodeDetector（互換フォールバック）';
+            return;
+          }
+        } catch (error) {
+          nativeError = error;
+          detector = null;
+        }
+      } else if (allowFallback) {
+        nativeError = new Error('BarcodeDetector APIを利用できません');
+      }
+
+      // Last-resort compatibility decoder.
       if (allowFallback && typeof window.jsQR === 'function') {
         scannerType = 'jsqr';
         scannerName = 'jsQR';
-        if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（互換モード）';
+        if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（互換フォールバック）';
         return;
       }
 
-      throw new Error('利用可能なQR読み取りエンジンがありません: ' +
-        (nativeError ? 'Native: ' + nativeError.message : '') +
-        (wasmError ? ' / ZXing: ' + wasmError.message : '') +
-        (allowFallback ? ' / jsQR: 読み込み失敗' : ' / 互換モードをONにすると代替方式を利用できます'));
+      throw new Error('利用可能なQR読み取りエンジンがありません: ZXing: ' +
+        (wasmError ? wasmError.message : '利用不可') +
+        ' / Native: ' + (nativeError ? nativeError.message : '利用不可') +
+        ' / jsQR: ' + (typeof window.jsQR === 'function' ? '利用可能' : '読み込み失敗'));
     }
 
     function handleWorkerDecodeResult(msg) {

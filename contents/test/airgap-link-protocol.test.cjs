@@ -358,6 +358,12 @@ async function main() {
     'TX map must fill current packet blocks with a distinct active color');
   assert(ui.includes('onTxBlockMapClick') && ui.includes('onTxBlockMapKeyDown'),
     'TX block map must support pointer and keyboard navigation');
+  assert(!ui.includes('updateBenchmarkSizeControls();') &&
+    !ui.includes("autoTxTest').addEventListener"),
+    'Removed benchmark controls must not be referenced during V16 startup or wired as UI actions');
+  assert(!page.includes('id="autoTxTest"') && !page.includes('id="autoTxLog"') &&
+    !page.includes('id="copyTxTestLog"'),
+    'Hidden automatic benchmark DOM must be removed with the test controls');
   assert(ui.includes('txFountainEncoder.seekToBlock(blockIndex)'),
     'Fountain seek must jump to the selected systematic Data packet');
   assert(ui.includes("txStage.addEventListener('click'") &&

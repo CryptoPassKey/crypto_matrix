@@ -1304,7 +1304,7 @@
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           rpId,
           allowCredentials: [{ type: 'public-key', id: allowCredentialId }],
-          userVerification: 'required',
+          userVerification: 'preferred',
           timeout: 60000,
           extensions: { prf: { eval: { first: prfInput } } }
         }
@@ -1331,7 +1331,7 @@
           publicKey: {
             challenge: crypto.getRandomValues(new Uint8Array(32)),
             rpId,
-            userVerification: 'required',
+            userVerification: 'preferred',
             timeout: 60000,
             extensions: { prf: { eval: { first: prfInput } } }
           }
@@ -1382,7 +1382,7 @@
             { type: 'public-key', alg: -257 },
             { type: 'public-key', alg: -8 }
           ],
-          authenticatorSelection: { userVerification: 'required', residentKey: 'preferred' },
+          authenticatorSelection: { userVerification: 'preferred', residentKey: 'preferred' },
           timeout: 60000,
           extensions: { prf: { eval: { first: prfInput } } }
         }
@@ -1417,7 +1417,7 @@
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           rpId,
           allowCredentials: [{ type: 'public-key', id: rawCredId }],
-          userVerification: 'required',
+          userVerification: 'preferred',
           timeout: 60000,
           extensions: { prf: { eval: { first: prfInput } } }
         }

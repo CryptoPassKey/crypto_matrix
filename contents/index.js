@@ -4282,7 +4282,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const saved = getSavedPasskeyCredential();
    if(saved && saved.credentialId && saved.credentialId.length){
     try {
-     return await derivePasskeyPrf(salt32, saved.credentialId, opts);
+     return await derivePasskeyPrf(salt32, saved.credentialId, { ...opts, userVerification: 'preferred' });
     } catch(err) {
      if(err.name === 'AbortError') throw err;
      const msg = err?.message || '';
@@ -4297,7 +4297,7 @@ document.addEventListener('DOMContentLoaded', () => {
      publicKey: {
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       rpId,
-      userVerification: 'required',
+      userVerification: 'preferred',
       timeout: 60000,
       extensions: { prf: { eval: { first: prfInput } } }
      }
@@ -4345,7 +4345,7 @@ document.addEventListener('DOMContentLoaded', () => {
       rp:{name:'Crypto Matrix Backup',id:rpId},
       user:{id:userSecret,name:'cryptomatrix-backup-2fa',displayName:'Crypto Matrix 2FA Passkey'},
       pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257},{type:'public-key',alg:-8}],
-      authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
+      authenticatorSelection:{userVerification:'preferred',residentKey:'preferred'},
       timeout:60000,
       extensions:{prf:{eval:{first:prfInput}}}
      }
@@ -4411,7 +4411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     challenge:crypto.getRandomValues(new Uint8Array(32)),
     rpId,
     allowCredentials:[{type:'public-key',id:credentialId}],
-    userVerification:'required',
+    userVerification:opts?.userVerification==='preferred'?'preferred':'required',
     timeout:60000,
     extensions:{prf:{eval:{first:prfInput}}}
    }

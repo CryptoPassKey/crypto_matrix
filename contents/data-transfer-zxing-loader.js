@@ -87,9 +87,14 @@
     }
     if (!response || !response.ok) {
       var body = '';
-      try { body = (await response.clone().text()).slice(0, 240); } catch (_) {}
+      var upstreamUrl = '';
+      try {
+        body = (await response.clone().text()).slice(0, 240);
+        upstreamUrl = response.headers.get('X-CM-ZXing-Source') || '';
+      } catch (_) {}
       throw diagnostic(kind + ' HTTPエラー', url,
         'HTTP ' + (response ? response.status : 'no response') +
+        (upstreamUrl ? ' / upstream URL: ' + upstreamUrl : '') +
         (body ? ' / ' + body : ''));
     }
     return response;

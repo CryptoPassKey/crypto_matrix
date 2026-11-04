@@ -36,7 +36,18 @@
         scope: scopeUrl.pathname,
         updateViaCache: 'none'
       });
-      await navigator.serviceWorker.ready;
+      await new Promise(function (resolve, reject) {
+        var readyTimer = setTimeout(function () {
+          reject(new Error('Service Worker activation timeout (12000ms)'));
+        }, 12000);
+        navigator.serviceWorker.ready.then(function (registration) {
+          clearTimeout(readyTimer);
+          resolve(registration);
+        }, function (error) {
+          clearTimeout(readyTimer);
+          reject(error);
+        });
+      });
     } catch (error) {
       throw diagnostic('Service Worker登録失敗', swUrl.href,
         error && error.message ? error.message : String(error));

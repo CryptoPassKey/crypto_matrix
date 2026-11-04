@@ -2822,6 +2822,8 @@ module.exports = QRCode;
                 rxWorkerFailed = false;
                 var zxingWorkerReady = await initQrWorker();
                 if (!zxingWorkerReady) throw new Error('互換モードのZXing Workerを初期化できませんでした');
+                rxWorkerReady = true;
+                rxWorkerFailed = false;
               }
               if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: ZXing-C++ WASM（Native実行時フォールバック）';
             } else if (typeof window.jsQR === 'function') {
@@ -2830,6 +2832,8 @@ module.exports = QRCode;
                 rxWorkerFailed = false;
                 var fallbackReady = await initQrWorker();
                 if (!fallbackReady) throw new Error('互換モードのjsQR Workerを初期化できませんでした');
+                rxWorkerReady = true;
+                rxWorkerFailed = false;
               }
               if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（Native実行時フォールバック）';
             } else {

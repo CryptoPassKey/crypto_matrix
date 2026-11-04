@@ -1861,16 +1861,7 @@ module.exports = QRCode;
     function updateTxPlayBadge() {
       var badge = $('dt-tx-play-badge');
       if (!badge) return;
-      if (!txPlan && !txFountainEncoder) {
-        badge.hidden = true;
-        return;
-      }
-      if (txPlaying) {
-        badge.hidden = true;
-      } else {
-        badge.textContent = '⏸ 一時停止中（タップで再開）';
-        badge.hidden = false;
-      }
+      badge.hidden = true;
     }
 
     function updateTxActionButtons() {
@@ -2518,8 +2509,8 @@ module.exports = QRCode;
         }
       }
 
-      // 3. Fallback to local jsQR (always available offline in vendor/jsQR.js)
-      if (typeof window.jsQR === 'function') {
+      // jsQR is only available when the user explicitly enables compatibility mode.
+      if (allowFallback && typeof window.jsQR === 'function') {
         scannerType = 'jsqr';
         scannerName = 'jsQR（オフライン標準）';
         if ($('dt-scanner-mode')) $('dt-scanner-mode').textContent = '読み取り方式: jsQR（オフライン互換モード）';
@@ -2828,7 +2819,7 @@ module.exports = QRCode;
           if (roiHit) roiRaw = roiHit.text;
         } catch (_) {}
       }
-      if (!roiRaw && typeof window.jsQR === 'function') {
+      if (!roiRaw && $('dt-rx-allow-fallback') && $('dt-rx-allow-fallback').checked && typeof window.jsQR === 'function') {
         var roiDecoded = window.jsQR(roiImage.data, roiImage.width, roiImage.height, { inversionAttempts: 'dontInvert' });
         if (roiDecoded && Wire.isAirgapFrame(roiDecoded.data)) roiRaw = roiDecoded.data;
       }
@@ -2849,7 +2840,7 @@ module.exports = QRCode;
           if (zxingHit) return zxingHit.text;
         } catch (_) {}
       }
-      if (typeof window.jsQR === 'function') {
+      if ($('dt-rx-allow-fallback') && $('dt-rx-allow-fallback').checked && typeof window.jsQR === 'function') {
         var decoded = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'attemptBoth' });
         if (decoded && Wire.isAirgapFrame(decoded.data)) return decoded.data;
       }

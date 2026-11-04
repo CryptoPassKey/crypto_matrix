@@ -1372,13 +1372,14 @@
       badge.classList.add('hidden');
       return;
     }
-    badge.classList.remove('hidden');
     if (txPlaying) {
-      badge.textContent = '▶ 再生中（タップで停止）';
-      badge.className = 'qr-stage-badge playing';
+      // 再生中はQRコード読み取りの邪魔になるためバッジを完全非表示にする
+      badge.classList.add('hidden');
     } else {
+      // 一時停止中のみタップ再生案内を表示
       badge.textContent = '⏸ 一時停止（タップで再生）';
       badge.className = 'qr-stage-badge paused';
+      badge.classList.remove('hidden');
     }
   }
 

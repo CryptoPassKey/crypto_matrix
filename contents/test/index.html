@@ -30,9 +30,8 @@ button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#
 button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .qr-stage{background:#fff;border-radius:12px;min-height:330px;display:grid;place-items:center;margin-top:12px;padding:10px;position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
 #txCanvas{display:block;width:min(100%,520px);height:auto;aspect-ratio:1;image-rendering:pixelated;cursor:pointer}
-.qr-stage-badge{position:absolute;bottom:12px;right:12px;padding:5px 12px;border-radius:99px;font-size:0.78rem;font-weight:700;pointer-events:none;transition:all .2s ease;box-shadow:0 3px 10px rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:2}
-.qr-stage-badge.playing{background:rgba(20,124,104,0.92);color:#fff}
-.qr-stage-badge.paused{background:rgba(217,119,6,0.95);color:#fff;animation:pulseBadge 2s infinite ease-in-out}
+.qr-stage-badge{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);padding:4px 14px;border-radius:99px;font-size:0.75rem;font-weight:700;pointer-events:none;transition:opacity .15s ease;box-shadow:0 3px 10px rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:2;white-space:nowrap}
+.qr-stage-badge.paused{background:rgba(217,119,6,0.95);color:#fff}
 @keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:0.75}}
 .placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#415366;text-align:center;padding:30px;pointer-events:none}.button-link{display:inline-block;text-decoration:none;border:1px solid #3cbba3;color:#fff;background:linear-gradient(135deg,#147c68,#146f87);border-radius:9px;padding:9px 13px;font-weight:700}
 .status{min-height:1.5em;margin:8px 0 4px;font-size:.87rem;overflow-wrap:anywhere}
@@ -223,6 +222,8 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
    <input id="rxGaussianEnabled" type="checkbox">
    <button id="runRxGaussian" type="button" disabled></button>
    <p id="rxGaussianStatus" class="muted"></p>
+   <button id="runSelfTest" type="button"></button>
+   <p id="selfTestStatus"></p>
   </div>
  </div>
  

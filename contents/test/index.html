@@ -91,6 +91,11 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 }
 
 @media(max-width:480px){main{padding:15px 10px 40px}.panel{padding:12px}.controls{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}}
+
+/* User-facing layout: keep diagnostic DOM available to the runtime, but do not expose tuning and block-level telemetry. */
+.controls{display:none!important}
+.tx-progress-meter,.tx-stats .stat:first-child,.blockmap-section,.rx-progress-stats{display:none!important}
+.progress-caption{font-size:.82rem;color:var(--muted);margin:12px 0 4px}
 </style>
 <script src="../vendor/jsQR.js"></script>
 <script src="data-transfer-protocol.js"></script>
@@ -100,24 +105,15 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <body>
 <main>
 <header>
- <div><h1>Data <span>Transfer</span></h1><p class="subtitle">QRコードによるオフライン端末間転送</p></div>
- <span class="pill">DATA TRANSFER · TEST LAB</span>
+ <div><h1>Data <span>Transfer</span></h1><p class="subtitle">QRコードで端末間転送</p></div>
+ <span class="pill">オフライン転送</span>
 </header>
 
-<div class="note">
- <strong>初回QR待ち — 転送開始手順</strong>
- <ol>
-  <li>TXで「転送データを準備」すると、先頭QRが静止表示されます。</li>
-  <li>RXでカメラを開始し、TXに表示された先頭QRを読み取ります。</li>
-  <li>RXに確認メッセージが表示されたら、TXで再生を開始します。</li>
-  <li>2枚目以降の最初の有効なQRを受信した時点から転送時間を計測します。</li>
- </ol>
- 最初のQRは開始確認専用です。途中参加には対応しません。片方向転送のため、受信確認はTXへ返りません。
-</div>
+<div class="note">送信側でファイルまたはテキストを選んでQRコードを準備し、受信側でカメラを起動してください。QRコードの読み取りを確認したら、送信側で送信を開始します。</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
- <h2 id="tx-title">TX — 送信</h2>
+ <h2 id="tx-title">送信</h2>
  <div id="txInputDetails" class="tx-inputs">
   <label for="txFile">ファイル</label>
   <input id="txFile" type="file">
@@ -134,7 +130,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">先頭QRを静止表示します。RXで読み取り確認後に再生を開始してください。</p>
+ <p id="txModeHint" class="muted">QRコードを受信側のカメラに向けてください。読み取り確認後、送信を開始します。</p>
 
  <div class="controls">
   <div>
@@ -159,20 +155,20 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <input id="compressionEnabled" type="checkbox" checked>
  </div>
  <div class="row">
-  <button id="prepareTx" class="primary" type="button">転送データを準備</button>
-  <button id="playTx" type="button" disabled>再生</button>
-  <button id="pauseTx" type="button" disabled>停止</button>
+  <button id="prepareTx" class="primary" type="button">QRコードを準備</button>
+  <button id="playTx" type="button" disabled>送信開始</button>
+  <button id="pauseTx" type="button" disabled>一時停止</button>
  </div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
- <div class="meter"><div id="txProgress"></div></div>
+ <div class="meter tx-progress-meter"><div id="txProgress"></div></div>
  <div class="statgrid tx-stats">
   <div class="stat"><b id="txFrameCount">—</b><small id="txFrameCountLabel">データブロック</small></div>
-  <div class="stat"><b id="txPayloadSize">—</b><small>転送データ量</small></div>
+  <div class="stat"><b id="txPayloadSize">—</b><small>データ全体のサイズ</small></div>
  </div>
  <div class="hidden" aria-hidden="true"><span id="txQrGenMs">—</span><span id="txDisplayFps">—</span><span id="txCacheStatus">—</span></div>
  <div class="qr-stage" id="txStage">
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
-  <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
+  <div id="txPlaceholder" class="placeholder">「QRコードを準備」を押すとQRが表示されます</div>
   <div id="txPlayBadge" class="qr-stage-badge hidden">⏸ 一時停止中（タップで再生）</div>
  </div>
  <div class="blockmap-section tx-blockmap">
@@ -186,8 +182,8 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 </section>
 
 <section class="panel" aria-labelledby="rx-title">
- <h2 id="rx-title">RX — 受信</h2>
- <p class="muted" style="margin-top:-4px">TXの先頭QRが静止表示されている状態で読み取ってください。確認後にTXの再生を開始します。2枚目の有効なQRから転送時間を計測します。</p>
+ <h2 id="rx-title">受信</h2>
+ <p class="muted" style="margin-top:-4px">送信側に表示されたQRコードを読み取ってください。読み取り確認後、送信側で送信開始を押します。</p>
  <div class="hidden" aria-hidden="true">
   <select id="rxScanner"><option value="zxing-wasm" selected></option></select>
   <input id="rxAllowFallback" type="checkbox">
@@ -195,9 +191,9 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <span id="rxCameraSettings"></span><span id="rxObservedFps"></span><span id="rxSpeedRecommendation"></span>
  </div>
  <div class="row">
-  <button id="startCamera" class="primary" type="button">カメラ開始</button>
+  <button id="startCamera" class="primary" type="button">カメラを起動</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
-  <button id="resetRx" type="button">受信リセット</button>
+  <button id="resetRx" type="button">最初から</button>
   <div class="hidden" aria-hidden="true">
    <input id="autoBenchmarkReset" type="checkbox"><input id="rxGaussianEnabled" type="checkbox">
    <button id="runRxGaussian" type="button"></button><span id="rxGaussianStatus"></span>
@@ -222,6 +218,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <div class="hidden" aria-hidden="true">
   <span id="rxBlockSummary"></span><span id="scannerMode"></span><span id="txFrameInfo"></span>
  </div>
+ <p class="progress-caption">受信状況</p>
  <div class="meter"><div id="rxProgress"></div></div>
  <div class="statgrid rx-progress-stats">
   <div class="stat"><b id="rxProgressText">0 / 0</b><small>復元済みブロック</small></div>
@@ -252,7 +249,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 
 
 
-<p class="footer">Data Transfer · QRコードによるローカル転送 · データは外部サーバーへ送信されません。</p>
+<p class="footer">QRコードによるローカル転送 · データは外部サーバーへ送信されません。</p>
 </main>
 </body>
 </html>

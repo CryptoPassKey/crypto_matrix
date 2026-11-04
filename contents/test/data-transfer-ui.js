@@ -2001,7 +2001,7 @@ module.exports = QRCode;
   }
 
   function updateModeControls() {
-    $('txModeHint').textContent = '受信側で先頭QRを読み取ってから、送信を開始してください。';
+    $('txModeHint').textContent = 'QRコードを受信側のカメラに向けてください。読み取り確認後、送信を開始します。';
     $('txFrameCountLabel').textContent = '送信状態';
   }
 
@@ -2369,7 +2369,7 @@ module.exports = QRCode;
       updateTxBlockMap();
       status('txStatus',
         '準備完了: ' + sourceName + ' · ' + formatBytes(sourceBytes.length) +
-        '。先頭QRを静止表示しています。RXで読み取り確認後に再生してください。',
+        '。QRコードを受信側のカメラに向け、読み取り確認後に送信を開始してください。',
         'ok');
       return true;
     } catch (error) {
@@ -2459,7 +2459,7 @@ module.exports = QRCode;
       var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
       if (hybridMode && txHybridPhase === 'legacy' && txIndex >= txPlan.frames.length) {
         txHybridPhase = 'fountain';
-        status('txStatus', '初回データ送信が終了しました。受信側で不足ブロックがある場合、LT修復フレームで補完します。', 'info');
+        status('txStatus', '送信を続けています…', 'info');
       }
       var fountainPhase = txMode === 'fountain' || (hybridMode && txHybridPhase === 'fountain');
       if (fountainPhase) {
@@ -2596,7 +2596,7 @@ module.exports = QRCode;
       badge.classList.add('hidden');
     } else {
       // 一時停止中のみタップ再生案内を表示
-      badge.textContent = '⏸ 一時停止（タップで再生）';
+      badge.textContent = '⏸ 一時停止中（タップで再開）';
       badge.className = 'qr-stage-badge paused';
       badge.classList.remove('hidden');
     }
@@ -2606,10 +2606,10 @@ module.exports = QRCode;
     if (!txPlan && !txFountainEncoder) return;
     if (txPlaying) {
       stopTx();
-      status('txStatus', '送信を一時停止しました（QRタップで再開できます）。', 'info');
+      status('txStatus', '送信を一時停止しました。QRコードをタップすると再開できます。', 'info');
     } else {
       playTx();
-      status('txStatus', '送信を再開しました（QRタップで一時停止できます）。', 'info');
+      status('txStatus', '送信中です。QRコードをタップすると一時停止できます。', 'info');
     }
   }
 
@@ -2629,7 +2629,7 @@ module.exports = QRCode;
   $('playTx').addEventListener('click', playTx);
   $('pauseTx').addEventListener('click', function () {
     stopTx();
-    status('txStatus', '送信を一時停止しました。再生ボタンまたはQRタップで続きから再開できます。', 'info');
+    status('txStatus', '送信を一時停止しました。送信開始またはQRコードのタップで再開できます。', 'info');
   });
 
   async function runTxAutoTest() {
@@ -2790,7 +2790,7 @@ module.exports = QRCode;
     $('downloadResult').removeAttribute('href');
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
-    status('rxStatus', '受信待機中', 'info');
+    status('rxStatus', '受信待機中です。カメラを起動してQRコードを読み取ってください。', 'info');
   }
 
   function updateRxStats() {
@@ -3142,7 +3142,7 @@ module.exports = QRCode;
     if ($('rxCompletionSpeed')) $('rxCompletionSpeed').textContent =
       completedElapsedMs === null ? '—' : formatRate(finalBytes.length, completedElapsedMs);
     if ($('rxCompletionCard')) $('rxCompletionCard').classList.remove('hidden');
-    status('rxStatus', '受信完了。復元データの整合性を確認しました。', 'ok');
+    status('rxStatus', '転送が完了しました。ファイルを保存できます。', 'ok');
     updateRxStats();
     if ($('autoBenchmarkReset') && $('autoBenchmarkReset').checked) {
       // In benchmark mode, keep the camera alive; scanTick records this run before reset.
@@ -3242,9 +3242,9 @@ module.exports = QRCode;
         if (guide) guide.style.display = 'none';
         var targetBox = $('rxCameraTargetBox');
         if (targetBox) targetBox.style.display = 'none';
-        status('rxStatus', '2枚目の有効なQRを受信しました。ここから転送時間を計測します。', 'ok');
+        status('rxStatus', '転送を開始しました。', 'ok');
       } else if (uniqueFrameCount <= 1) {
-        status('rxStatus', '先頭QRを確認しました。TX側で再生を開始してください。2枚目の有効なQRから転送時間を計測します。途中参加は対象外です。', 'ok');
+        status('rxStatus', 'QRコードを確認しました。送信側で送信開始を押してください。', 'ok');
       } else {
         var modeLabel = activeProtocol === 'hybrid' ? 'LT Hybrid（P0/P1取得分 + LT修復）'
           : isFountain ? 'Pure LTファウンテン' : 'CMAL1';
@@ -3506,11 +3506,11 @@ module.exports = QRCode;
       $('stopCamera').disabled = false;
       scanStartAt = performance.now();
       updateDistanceGuide(false, null, 0);
-      status('rxStatus', '初回QR待ち: TX側で先頭QRを静止表示し、このカメラで1枚目を確認してください。確認後にTXを再生します。2枚目の有効なQRを読み込んだ時点から転送時間を計測します。途中参加は対象外です。', 'info');
+      status('rxStatus', '送信側に表示されたQRコードをカメラに映してください。', 'info');
       scheduleScan(0);
     } catch (error) {
       stopCamera();
-      status('rxStatus', 'カメラ開始失敗: ' + error.message, 'error');
+      status('rxStatus', 'カメラを起動できませんでした: ' + error.message, 'error');
     }
   }
 
@@ -3907,7 +3907,7 @@ module.exports = QRCode;
       !Fountain.Encoder.prototype || typeof Fountain.Encoder.prototype.seekToBlock !== 'function' ||
       typeof Fountain.Encoder.prototype.startRepairPhase !== 'function' ||
       !Fountain.Receiver.prototype || typeof Fountain.Receiver.prototype.addKnownBlock !== 'function') {
-    status('txStatus', 'Data Transferプロトコルの初期化に失敗しました', 'error');
+    status('txStatus', '送信機能を初期化できませんでした。ページを再読み込みしてください。', 'error');
     $('prepareTx').disabled = true;
   }
   txAutoRateController.reset();

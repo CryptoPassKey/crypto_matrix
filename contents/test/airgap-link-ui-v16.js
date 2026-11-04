@@ -25,6 +25,16 @@
   });
 
   var $ = function (id) { return document.getElementById(id); };
+  // A page can briefly combine cached HTML and a newer script during SW updates.
+  // Read optional controls defensively so a missing stale-DOM node cannot abort startup.
+  var valueOf = function (id, fallback) {
+    var element = $(id);
+    return element && element.value !== undefined ? element.value : fallback;
+  };
+  var setValue = function (id, value) {
+    var element = $(id);
+    if (element) element.value = value;
+  };
   var Core = window.AirgapLinkCore;
   var Fountain = window.AirgapLinkFountain;
   var Wire = window.AirgapLinkWire;
@@ -129,7 +139,7 @@
   // No RX scan/decode/ingest measurements are read here.
   var txAutoRateController = {
     enabled: false,
-    currentFps: Number($('fps') ? $('fps').value : 6) || 6,
+    currentFps: Number($('fps') ? valueOf('fps', '10') : 6) || 6,
     minFps: 3,
     maxFps: 120,
     windowStartedAt: 0,
@@ -140,9 +150,9 @@
       this.renderSamples = [];
     },
     reset: function () {
-      this.currentFps = Number($('fps') ? $('fps').value : 6) || 6;
-      this.minFps = Math.max(1, Number($('minFps') ? $('minFps').value : 3) || 3);
-      this.maxFps = Math.max(this.minFps, Math.min(120, Number($('maxFps') ? $('maxFps').value : 24) || 24));
+      this.currentFps = Number($('fps') ? valueOf('fps', '10') : 6) || 6;
+      this.minFps = Math.max(1, Number($('minFps') ? valueOf('minFps', '3') : 3) || 3);
+      this.maxFps = Math.max(this.minFps, Math.min(120, Number($('maxFps') ? valueOf('maxFps', '24') : 24) || 24));
       this.statusText = this.enabled ? 'TXローカル性能を観測中' : '固定FPS';
       this.clearWindow();
       this.updateUi();
@@ -173,7 +183,7 @@
       var out = $('fpsValue');
       if (out) out.textContent = this.enabled
         ? this.currentFps + ' 枚/秒'
-        : ($('fps') ? $('fps').value : 6) + ' 枚/秒';
+        : ($('fps') ? valueOf('fps', '10') : 6) + ' 枚/秒';
       var badge = $('autoFpsStatus');
       if (badge) badge.textContent = this.statusText;
     }
@@ -204,7 +214,7 @@
     windowUsefulFountain: 0,
 
     reset: function () {
-      var manualFps = Number($('fps') ? $('fps').value : 6) || 6;
+      var manualFps = Number($('fps') ? valueOf('fps', '10') : 6) || 6;
       this.currentFps = manualFps;
       this.lastEvalTime = performance.now();
       this.cooldownUntil = 0;
@@ -272,8 +282,8 @@
       this.lastEvalTime = now;
 
       // ユーザー設定上限・下限の反映
-      var minVal = Number($('minFps') ? $('minFps').value : 3) || 3;
-      var maxVal = Number($('maxFps') ? $('maxFps').value : 24) || 24;
+      var minVal = Number($('minFps') ? valueOf('minFps', '3') : 3) || 3;
+      var maxVal = Number($('maxFps') ? valueOf('maxFps', '24') : 24) || 24;
       if (minVal > maxVal) { var tmp = minVal; minVal = maxVal; maxVal = tmp; }
       this.minFps = Math.max(1, minVal);
       this.maxFps = Math.min(120, maxVal);
@@ -300,7 +310,7 @@
 
       // 自動調整が無効な場合は推奨表示のみ更新してリターン
       if (!this.enabled) {
-        this.statusText = 'OFF (固定 ' + ($('fps') ? $('fps').value : 6) + ' fps)';
+        this.statusText = 'OFF (固定 ' + ($('fps') ? valueOf('fps', '10') : 6) + ' fps)';
         this.clearWindow();
         this.updateUi();
         return;
@@ -390,18 +400,18 @@
   }
 
   function selectedBenchmarkBytes() {
-    var value = Number($('benchmarkSizeInput').value);
+    var value = Number(valueOf('benchmarkSizeInput', '1048576'));
     if (!Number.isFinite(value) || value < 1024) value = DEFAULT_BENCHMARK_BYTES;
     return Math.max(1024, Math.min(MAX_BENCHMARK_BYTES, Math.round(value / 1024) * 1024));
   }
 
   function updateBenchmarkSizeControls(source) {
-    var bytes = source === 'range' ? Number($('benchmarkSizeRange').value) : Number($('benchmarkSizeInput').value);
+    var bytes = source === 'range' ? Number(valueOf('benchmarkSizeRange', '1048576')) : Number(valueOf('benchmarkSizeInput', '1048576'));
     if (!Number.isFinite(bytes) || bytes < 1024) bytes = DEFAULT_BENCHMARK_BYTES;
     bytes = Math.max(1024, Math.min(MAX_BENCHMARK_BYTES, Math.round(bytes / 1024) * 1024));
-    $('benchmarkSizeRange').value = String(bytes);
-    $('benchmarkSizeInput').value = String(bytes);
-    $('benchmarkSizeValue').textContent = formatBytes(bytes) + ' · ' + bytes.toLocaleString() + ' B';
+    setValue('benchmarkSizeRange', String(bytes));
+    setValue('benchmarkSizeInput', String(bytes));
+    if ($('benchmarkSizeValue')) $('benchmarkSizeValue').textContent = formatBytes(bytes) + ' · ' + bytes.toLocaleString() + ' B';
   }
 
   function createBenchmarkPayload(length) {
@@ -487,7 +497,8 @@
   function syncChunkSizeControls(source) {
     var range = $('chunkSize');
     var number = $('chunkSizeNumber');
-    var maximum = $('wireFormat').value === 'base64url' ? 2100 : 2800;
+    if (!range || !number) return;
+    var maximum = valueOf('wireFormat', 'base45') === 'base64url' ? 2100 : 2800;
     range.max = String(maximum);
     number.max = String(maximum);
     var requested = Number(source === 'number' ? number.value : range.value);
@@ -502,7 +513,7 @@
     syncChunkSizeControls('range');
     $('fpsValue').textContent = txAutoRateController.enabled
       ? txAutoRateController.currentFps + ' 枚/秒'
-      : $('fps').value + ' 枚/秒';
+      : valueOf('fps', '10') + ' 枚/秒';
   }
 
   function packetBlockIndexes(packet) {
@@ -962,7 +973,7 @@
         sourceBytes = new Uint8Array(await file.arrayBuffer());
         sourceName = file.name;
       } else {
-        var text = $('txText').value;
+        var text = valueOf('txText', '');
         if (!text) throw new Error('転送するファイルまたはテキストを指定してください');
         sourceBytes = new TextEncoder().encode(text);
         sourceName = 'message.txt';
@@ -983,13 +994,13 @@
           : 'Deflate省略: ' + packed.reason;
       }
 
-      txMode = $('transferMode').value;
-      var chunkBytes = Number($('chunkSize').value);
+      txMode = valueOf('transferMode', 'hybrid-data');
+      var chunkBytes = Number(valueOf('chunkSize', '800'));
       if (Math.ceil(wireBytes.length / chunkBytes) > 100000) {
         throw new Error('このデータ量ではデータ片数が100,000片を超えます。チャンクサイズを大きくしてください');
       }
       var hybridMode = txMode === 'hybrid' || txMode === 'hybrid-data';
-      var wireFormat = $('wireFormat').value === 'base64url' ? 'base64url' : 'base45';
+      var wireFormat = valueOf('wireFormat', 'base45') === 'base64url' ? 'base64url' : 'base45';
       txHybridPhase = 'legacy';
       txPlan = null;
       txFountainEncoder = null;
@@ -1004,7 +1015,7 @@
       var frameLabel;
       if (txMode === 'fountain') {
         txFountainEncoder = new Fountain.Encoder(wireBytes, {
-          chunkSize: Number($('chunkSize').value),
+          chunkSize: Number(valueOf('chunkSize', '800')),
           wireFormat: wireFormat
         });
         if (typeof txFountainEncoder.seekToBlock !== 'function') {
@@ -1022,7 +1033,7 @@
         var parityEnabled = txMode === 'hybrid' ? true
           : (txMode === 'legacy-data' || txMode === 'hybrid-data' ? false : $('parityEnabled').checked);
         txPlan = Core.buildFrames(wireBytes, {
-          chunkSize: Number($('chunkSize').value),
+          chunkSize: Number(valueOf('chunkSize', '800')),
           parity: parityEnabled,
           wireFormat: wireFormat
         });
@@ -1041,7 +1052,7 @@
         }
         if (hybridMode) {
           txFountainEncoder = new Fountain.Encoder(wireBytes, {
-            chunkSize: Number($('chunkSize').value),
+            chunkSize: Number(valueOf('chunkSize', '800')),
             id: txPlan.id,
             wireFormat: wireFormat
           });
@@ -1135,7 +1146,7 @@
       return;
     }
 
-    var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
+    var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number(valueOf('fps', '10'));
     var targetInterval = 1000 / Math.max(1, effectiveFps);
 
     // 初回描画時刻が未記録なら現在時刻で初期化
@@ -1206,7 +1217,7 @@
         else txCurrentLabel = 'P' + parsed.parityType + ' · group ' + (parsed.group + 1) +
           ' · block ' + (parsed.group * Core.GROUP_SIZE + 1) + '–' +
           Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
-        var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
+        var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number(valueOf('fps', '10'));
         $('txFrameInfo').textContent = '';
         $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
         if (hybridMode) txIndex++;
@@ -1362,14 +1373,14 @@
     }
 
     var requestedBytes = selectedBenchmarkBytes();
-    var selectedMode = $('transferMode').value;
-    var selectedChunk = Number($('chunkSize').value);
-    var selectedFps = Number($('fps').value);
+    var selectedMode = valueOf('transferMode', 'hybrid-data');
+    var selectedChunk = Number(valueOf('chunkSize', '800'));
+    var selectedFps = Number(valueOf('fps', '10'));
     autoTestPayloadBytes = createBenchmarkPayload(requestedBytes);
     autoTestRunning = true;
     autoTestWasCancelled = false;
     autoTestErrorMessage = '';
-    $('autoTxLog').value = 'case,mode,data_bytes,chunk_bytes,fps,transfer_id,estimated_duration_ms\n';
+    if ($('autoTxLog')) $('autoTxLog').value = 'case,mode,data_bytes,chunk_bytes,fps,transfer_id,estimated_duration_ms\n';
     $('autoTxTest').textContent = '自動ベンチマークを停止';
     $('prepareTx').disabled = true;
     status('txStatus',
@@ -1392,7 +1403,7 @@
       var duration = Math.min(2147483647,
         Math.max(10000, Math.ceil(units * 1000 / Math.max(1, selectedFps) * 1.35 + 3500)));
       var transferId = txMode === 'fountain' ? txFountainEncoder.id : txPlan.id;
-      $('autoTxLog').value += [
+      if ($('autoTxLog')) $('autoTxLog').value += [
         1, selectedMode, requestedBytes, selectedChunk, selectedFps, transferId, duration
       ].join(',') + '\n';
       status('txStatus',
@@ -1809,7 +1820,7 @@
     var height = Number(settings.height) || (video && video.videoHeight) || 0;
     var frameRate = Number(settings.frameRate) || 0;
     rxCameraSettings = {
-      requestedResolution: rxRequestedResolution || $('rxResolution').value,
+      requestedResolution: rxRequestedResolution || valueOf('rxResolution', '640x480'),
       width: width,
       height: height,
       frameRate: frameRate,
@@ -1980,7 +1991,7 @@
     detector = null;
     zxingDecoder = null;
     scannerType = '';
-    scannerPreference = $('rxScanner') ? $('rxScanner').value : 'zxing-wasm';
+    scannerPreference = $('rxScanner') ? valueOf('rxScanner', 'zxing-wasm') : 'zxing-wasm';
     var allowFallback = $('rxAllowFallback') ? $('rxAllowFallback').checked : false;
     var wasmError = null;
     var nativeError = null;
@@ -2188,7 +2199,7 @@
     try {
       await initScanner();
       await initQrWorker();
-      var resolutionParts = String($('rxResolution').value || '1920x1080').split('x');
+      var resolutionParts = String(valueOf('rxResolution', '640x480') || '1920x1080').split('x');
       var requestedWidth = Number(resolutionParts[0]);
       var requestedHeight = Number(resolutionParts[1]);
       if (!Number.isInteger(requestedWidth) || !Number.isInteger(requestedHeight) ||
@@ -2586,7 +2597,7 @@
     }
   });
   $('ingestManual').addEventListener('click', function () {
-    ingest($('manualFrame').value.replace(/^[\r\n]+|[\r\n]+$/g, ''));
+    ingest(valueOf('manualFrame', '').replace(/^[\r\n]+|[\r\n]+$/g, ''));
   });
 
   if ($('runSelfTest')) {
@@ -2626,8 +2637,8 @@
   }
   txAutoRateController.reset();
   rxRateAdvisor.reset();
-  if ($('rxResolution')) $('rxResolution').value = '640x480';
-  $('transferMode').value = 'hybrid-data';
+  setValue('rxResolution', '640x480');
+  setValue('transferMode', 'hybrid-data');
   updateModeControls();
   resetRx();
   updateTxBlockMap();

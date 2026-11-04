@@ -201,6 +201,10 @@ async function main() {
   assert(page.includes('QRの情報量') && !page.includes('チャンクサイズ') &&
     ui.includes("+ ' 枚/秒'") && !ui.includes("+ ' fps'"),
     'TX controls must use plain Japanese labels and units rather than implementation jargon');
+  assert(ui.includes('var valueOf = function (id, fallback)') &&
+    ui.includes("valueOf('wireFormat', 'base45')") &&
+    ui.includes("valueOf('transferMode', 'hybrid-data')"),
+    'UI startup must tolerate stale cached markup missing optional value controls');
   assert(!page.includes('フレーム待機中') && !page.includes('QRコードの表示待ち') &&
     !page.includes('読み取り方式') && !page.includes('ZXing-C++ WASM') &&
     !page.includes('Web Worker非同期') && !page.includes('最後に読取'),

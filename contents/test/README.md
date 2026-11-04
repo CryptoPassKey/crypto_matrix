@@ -195,7 +195,7 @@ Licenses: the `zxing-wasm` wrapper-specific code is MIT; the underlying `zxing-c
 
 ## V11 — UI cache-bust release
 
-V11 republishes the corrected benchmark UI from V10 under the new immutable runtime filename `airgap-link-ui-v11.js`. The standalone page now loads that file, and the app Service Worker cache key is incremented to `cm-v2.20.0-airgap-link-test-lab-v11-zxing-wasm` with the V11 runtime in its precache list. This avoids reusing a previously cached V10 UI script after the V10 behavior fix. The ZXing loader remains V10 because its contents and interface are unchanged. CI checks the page/runtime filename, cache key, precache entry, and UI smoke-test target together. Real camera-to-camera testing on iPhone Safari and Android Chrome remains a separate required validation.
+V11 republishes the corrected benchmark UI from V10 under the new immutable runtime filename `airgap-link-ui-v11.js`. The standalone page now loads that file, and the app Service Worker cache key is incremented to `cm-v2.20.0-airgap-link-test-lab-v11-zxing-wasm` with the V11 runtime in its precache list. This avoids reusing a previously cached V10 UI script after the V10 behavior fix. The ZXing loader remains V10 because its contents and interface are unchanged. The release updated the page/runtime filename and Service Worker cache key together. Real camera-to-camera testing on iPhone Safari and Android Chrome remains a separate required validation.
 
 
 ## V12 — Large-payload benchmark and one-way TX/RX separation

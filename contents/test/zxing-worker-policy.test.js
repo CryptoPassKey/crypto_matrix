@@ -95,3 +95,24 @@ test('native compatibility mode may prepare jsQR for native-decoder failure', as
   assert.equal(worker.messages[0].success, true);
   assert.equal(worker.messages[0].hasJsQr, true);
 });
+
+test('strict ZXing decode path never calls jsQR after initialization failure', async () => {
+  const options = { failWasm: true };
+  const worker = createWorker(options);
+  await worker.sandbox.self.onmessage({ data: { type: 'init', scannerType: 'zxing-wasm' } });
+  const pixels = new Uint8ClampedArray(16 * 16 * 4);
+  await worker.sandbox.self.onmessage({
+    data: {
+      type: 'decode',
+      id: 1,
+      sessionId: 1,
+      scannerType: 'zxing-wasm',
+      width: 16,
+      height: 16,
+      buffer: pixels.buffer
+    }
+  });
+  assert.equal(options.jsQrCalls || 0, 0);
+  assert.equal(worker.messages[1].type, 'decode-result');
+  assert.equal(worker.messages[1].raw, null);
+});

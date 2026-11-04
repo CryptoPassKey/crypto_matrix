@@ -2865,7 +2865,11 @@
               </div>
             </div>
 
-            <div class="dt-action-row" style="margin-top:12px; margin-bottom:0;">
+            <div id="dt-tx-prep-progress" role="status" aria-live="polite" hidden style="margin-top:12px; padding:9px 11px; border:1px solid var(--border-color, #475569); border-radius:8px; background:var(--surface-secondary, rgba(15,23,42,.55));">
+              <div id="dt-tx-prep-progress-text" style="font-size:0.82rem; font-weight:600; margin-bottom:7px;">送信データを処理しています…</div>
+              <progress id="dt-tx-prep-progress-bar" max="1" value="0" style="display:block; width:100%; height:8px;"></progress>
+            </div>
+            <div class="dt-action-row" style="margin-top:8px; margin-bottom:0;">
               <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx">⚡ QRコードを準備</button>
               <button type="button" class="dt-btn dt-btn-play" id="dt-play-tx" disabled>▶ 送信開始</button>
               <button type="button" class="dt-btn" id="dt-pause-tx" disabled>⏸ 一時停止</button>

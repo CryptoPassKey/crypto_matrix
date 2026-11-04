@@ -2666,6 +2666,10 @@ module.exports = QRCode;
         stopCamera();
         setHeaderBadge('エラー', 'ERROR');
         setStatus('dt-rx-status', 'カメラを起動できませんでした: ' + error.message, 'err');
+        if ($('dt-scanner-mode')) {
+          $('dt-scanner-mode').textContent = '読み取り方式: ' + (scannerName || '未選択') +
+            (error && error.message ? ' / ' + error.message : '');
+        }
       }
     }
 

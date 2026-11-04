@@ -3248,7 +3248,7 @@ module.exports = QRCode;
       } else {
         var modeLabel = activeProtocol === 'hybrid' ? 'LT Hybrid（P0/P1取得分 + LT修復）'
           : isFountain ? 'Pure LTファウンテン' : 'CMAL1';
-        status('rxStatus', '受信中です。'', 'info');
+        status('rxStatus', '受信中です。', 'info');
       }
       if (result.complete) {
         try { await finishReceive(result.bytes); }

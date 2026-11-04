@@ -153,7 +153,7 @@ async function main() {
     !page.includes('計測結果をテキストコピー') && !page.includes('手動フレーム入力') &&
     !page.includes('copyBenchmarkText'),
     'Production UI must not expose benchmark or debug controls');
-  assert(serviceWorker.includes("const VERSION = 'cm-v2.26.0-airgap-link-production-v16'") &&
+  assert(serviceWorker.includes("const VERSION = 'cm-v2.26.0-airgap-link-production-v18'") &&
     serviceWorker.includes('"test/airgap-link-ui-v16.js"'),
     'Service Worker must cache-bust and precache the V16 runtime');
   assert(page.includes('id="chunkSizeNumber"') && page.includes('max="2800"'),
@@ -194,14 +194,24 @@ async function main() {
     'TX must offer Base45 and legacy Base64URL wire-format selection');
   assert(page.indexOf('airgap-link-wire-v8.js') < page.indexOf('airgap-link-core-v8.js'),
     'Wire codec must load before the V8 protocol runtimes');
-  assert(page.includes('id="rxElapsed"') && page.includes('2枚目の有効なQR'),
+  assert(page.includes('id="rxElapsed"') && page.includes('先頭QRを読み取ると受信を開始します'),
     'RX must display elapsed time starting at the second valid QR');
   assert(['rxThroughput', 'rxFileRate', 'rxIngestMs'].every((id) => page.includes('id="' + id + '"')),
     'RX must show wire-payload throughput, saved-file throughput, and ingest timing');
+  assert(!page.includes('80〜2,800B') && !page.includes('800〜1,000B') &&
+    !page.includes('6〜120 fps') && !page.includes('10〜12 fps'),
+    'Production UI must not expose implementation ranges or device-specific tuning recommendations');
+  assert(!ui.includes('Data-only + LT:') && !ui.includes('Hybrid LT修復') &&
+    !ui.includes('XOR合成 degree=') && !ui.includes(' / ∞') &&
+    !ui.includes('初回 Data/Parity 周回 → LT補完'),
+    'Production UI must not expose internal transfer algorithm names or sequence counters');
+  assert(ui.includes("$('txFrameCountLabel').textContent = '送信状態'") &&
+    ui.includes("$('txFrameInfo').textContent = 'QRコードを表示しています。'"),
+    'TX progress labels must remain understandable without protocol terminology');
   assert(page.includes('<input id="transferMode" type="hidden" value="hybrid-data">') &&
     !page.includes('<select id="transferMode"'),
     'Production transport must be fixed to Data-only + LT without a selector');
-  assert(page.includes('先頭QRを最初に読み取って待機') && page.includes('途中参加は受け付けません'),
+  assert(page.includes('先頭QRを読み取ると受信を開始します') && page.includes('先頭QRを確認してから送信側の再生を開始してください'),
     'RX must require a first-frame preflight before TX playback');
   assert(page.includes('ブロックをタップすると、その位置から再生できます'), 'TX block map must explain tap-to-seek');
   assert(page.includes('role="slider" tabindex="-1"'), 'TX block map must be keyboard-focusable after data preparation');

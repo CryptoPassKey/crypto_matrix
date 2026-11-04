@@ -2657,7 +2657,6 @@ module.exports = QRCode;
       }
     }
     txMapSelectedIndex = 0;
-    txCurrentBlocks = new Set();
     if (txPlan && txPlan.frames[0]) {
       var firstPacket = Core.parseFrame(txPlan.frames[0]);
       txCurrentBlocks = new Set(packetBlockIndexes(firstPacket));

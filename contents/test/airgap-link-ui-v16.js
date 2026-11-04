@@ -1524,10 +1524,7 @@
       directSet = fountainRx.directIndexes;
       recoveredSet = fountainRx.recoveredIndexes;
       activeSet = rxCurrentBlocks;
-      $('rxBlockSummary').textContent =
-        '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
-        ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount +
-        ' · 直近読取: ' + (rxCurrentLabel || '—');
+      $('rxBlockSummary').textContent = '受信したデータの状態を表示しています';
     } else {
       have = rx.shards.size;
       total = rx.total;
@@ -1539,9 +1536,7 @@
       });
       activeSet = rxCurrentBlocks;
       $('rxBlockSummary').textContent = total
-        ? '元データ ' + total + 'ブロック · 直接取得 ' + rxDirectBlocks.size +
-          ' · パリティ復元 ' + recoveredSet.size + ' · 直近読取: ' +
-          (rxCurrentLabel || '—')
+        ? '受信したデータの状態を表示しています'
         : '受信を開始するとブロック状態が表示されます';
     }
     $('rxProgressText').textContent = have + ' / ' + total;

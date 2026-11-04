@@ -44,7 +44,7 @@ The transfer protocol, QR payloads, and camera frames remain local. ZXing-C++ WA
 - Camera: `navigator.mediaDevices.getUserMedia`
 - Optional compression: browser-native `CompressionStream('deflate')` / `DecompressionStream('deflate')`
 
-The JavaScript reader is served through a same-origin Service Worker route and stored in a dedicated Cache Storage bucket. The WASM module is also cached there. After the first successful setup, ZXing can be initialized offline provided browser site data has not been cleared or evicted. The first ZXing load requires an Internet connection; Auto mode falls back to jsQR if the first load is offline. Frames and transferred payloads are not uploaded.
+The JavaScript reader and WASM module are served through same-origin Service Worker routes and cached as a validated pair. A partial or invalid cached pair is deleted and downloaded again. The first setup requires an Internet connection; after both assets have been cached, ZXing can initialize offline unless browser site data is cleared or evicted. The production receiver does not silently switch to jsQR: the explicit compatibility-mode switch is required before BarcodeDetector/jsQR fallback is permitted. Frames and transferred payloads are not uploaded.
 
 ## CMAL1 transport
 
@@ -84,8 +84,9 @@ Encrypted data is already close to random and normally does not compress. For en
 - Parity: 2 parity frames per 8 data fragments
 - QR quiet zone: 4 modules
 - QR canvas: 720 × 720
-- RX scanner: selectable Auto / Native BarcodeDetector / ZXing-C++ WASM / jsQR
-- Auto preference: Native BarcodeDetector → ZXing-C++ WASM → jsQR
+- RX scanner: ZXing-C++ WASM is the default; Native BarcodeDetector/jsQR are compatibility-only fallbacks
+- Compatibility mode OFF: ZXing-C++ WASM only; initialization failure is shown as an error
+- Compatibility mode ON: ZXing-C++ WASM first, then Native BarcodeDetector/jsQR when required
 - ZXing-C++ WASM is cached in Cache Storage after first use and works offline after the assets have been cached
 - Maximum source file size: 67,108,864 bytes (64 MiB) in the UI (the protocol limits each transfer to at most 100,000 data fragments)
 

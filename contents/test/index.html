@@ -23,7 +23,7 @@ textarea{min-height:96px;resize:vertical}input[type=range]{width:100%;accent-col
 input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;vertical-align:middle}
 small,.muted{color:var(--muted)}small{font-size:.77rem}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.range-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.range-head output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:750}.range-head #chunkSizeNumber{width:7rem;flex:0 0 7rem;padding:5px 7px}
+.range-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.range-head output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:750}.range-head #chunkSizeNumber{width:7rem;flex:0 0 7rem;padding:5px 7px}.benchmark-size{margin:12px 0;padding:11px;border:1px solid #29445f;border-radius:11px;background:#091724}.benchmark-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.benchmark-presets button{padding:6px 9px;font-size:.8rem}.benchmark-size-grid{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:12px;align-items:end}.benchmark-size-grid label{margin-top:0}
 .checkrow{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.checkrow label{font-weight:500;margin:0}
 button{border:1px solid #42627e;color:var(--text);background:#1b324b;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
 button.primary{background:linear-gradient(135deg,#147c68,#146f87);border-color:#3cbba3;color:#fff}
@@ -108,7 +108,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
  <span class="pill">OFFLINE TRANSFER · V15</span>
 </header>
 
-<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。TXでデータを準備して先頭QRを表示し、RXで読み取ってからTXの再生を開始してください。受信ACKを使わない片方向転送です。</div></div>
+<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。TXでデータを準備して先頭QRを表示し、RXで読み取ってからTXの再生を開始してください。受信ACKを使わない片方向転送です。</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
@@ -120,20 +120,15 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="muted" style="text-align:center;margin:3px">または</div>
   <label for="txText">テキスト</label>
   <textarea id="txText" placeholder="送信するテキストを入力"></textarea>
- </details></textarea>
+ </details>
  <div class="hidden" aria-hidden="true">
-  <div class="benchmark-size">
-   <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
-   <input id="benchmarkSizeInput" type="number" value="728064">
-   <output id="benchmarkSizeValue">711.0 KiB</output>
-   <button id="benchmarkPreset1MiB"></button><button id="benchmarkPreset2MiB"></button>
-   <button id="benchmarkPreset4MiB"></button><button id="benchmarkPreset8MiB"></button>
-   <button id="benchmarkPreset16MiB"></button><button id="benchmarkPreset32MiB"></button>
-   <button id="benchmarkPreset64MiB"></button>
-  </div>
+  <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
+  <input id="benchmarkSizeInput" type="number" value="728064"><output id="benchmarkSizeValue">711.0 KiB</output>
+  <button id="benchmarkPreset1MiB"></button><button id="benchmarkPreset2MiB"></button><button id="benchmarkPreset4MiB"></button>
+  <button id="benchmarkPreset8MiB"></button><button id="benchmarkPreset16MiB"></button><button id="benchmarkPreset32MiB"></button><button id="benchmarkPreset64MiB"></button>
  </div>
- <label for="transferMode" class="hidden">転送方式</label><label for="transferMode">転送方式</label>
- <select id="transferMode" class="hidden" aria-hidden="true"><option value="hybrid-data" selected>Hybrid Data-only + LT</option></select></select>
+
+ <label for="transferMode" class="hidden">転送方式</label><select id="transferMode" class="hidden" aria-hidden="true"><option value="hybrid-data" selected>Hybrid Data-only + LT</option></select>
  <div style="display:none">
   <label for="wireFormat">QRペイロード形式</label>
   <select id="wireFormat" class="mode-select">
@@ -142,7 +137,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">データを順番に送信し、受信側で不足があればLTで補完します。</p></p>
+ <p id="txModeHint" class="muted">データを順番に送信し、受信側で不足があればLTで補完します。</p>
 
  <div class="controls">
   <div>
@@ -171,10 +166,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <button id="playTx" type="button" disabled>再生</button>
   <button id="pauseTx" type="button" disabled>停止</button>
  </div>
- <div class="hidden" aria-hidden="true">
-  <button id="autoTxTest" type="button"></button><textarea id="autoTxLog"></textarea>
-  <button id="copyTxTestLog" type="button"></button>
- </div>
+ <div class="hidden" aria-hidden="true"><button id="autoTxTest" type="button"></button><textarea id="autoTxLog"></textarea><button id="copyTxTestLog" type="button"></button></div>
  <div id="txStatus" class="status" aria-live="polite">ファイルまたはテキストを選択してください。</div>
  <div class="meter"><div id="txProgress"></div></div>
  <div class="statgrid tx-stats">
@@ -182,8 +174,6 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <div class="stat"><b id="txPayloadSize">—</b><small>転送データ量</small></div>
  </div>
  <div class="hidden" aria-hidden="true"><span id="txQrGenMs">—</span><span id="txDisplayFps">—</span><span id="txCacheStatus">—</span></div>
- <p id="txCacheStatus"</div>
- <p id="txCacheStatus" class="muted">QR事前生成: 未準備</p>
  <div class="qr-stage" id="txStage">
   <canvas id="txCanvas" width="720" height="720" aria-label="アニメーションQRコード"></canvas>
   <div id="txPlaceholder" class="placeholder">「転送データを準備」を押すとQRが表示されます</div>
@@ -209,17 +199,13 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <span id="rxCameraSettings"></span><span id="rxObservedFps"></span><span id="rxSpeedRecommendation"></span>
  </div>
  <div class="row">
-  <button id="startCamera"<div class="row">
   <button id="startCamera" class="primary" type="button">カメラ開始</button>
   <button id="stopCamera" type="button" disabled>カメラ停止</button>
   <button id="resetRx" type="button">受信リセット</button>
-  <div style="display:none"><input id="autoBenchmarkReset" type="checkbox"></div>
-  <div style="display:none">
-   <input id="rxGaussianEnabled" type="checkbox">
-   <button id="runRxGaussian" type="button" disabled></button>
-   <p id="rxGaussianStatus" class="muted"></p>
-   <button id="runSelfTest" type="button"></button>
-   <p id="selfTestStatus"></p>
+  <div class="hidden" aria-hidden="true">
+   <input id="autoBenchmarkReset" type="checkbox"><input id="rxGaussianEnabled" type="checkbox">
+   <button id="runRxGaussian" type="button"></button><span id="rxGaussianStatus"></span>
+   <button id="runSelfTest" type="button"></button><span id="selfTestStatus"></span>
   </div>
  </div>
  
@@ -252,6 +238,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <span id="rxFileRate">—</span><span id="rxAvgMs">—</span><span id="rxP50Ms">—</span>
   <span id="rxP95Ms">—</span><span id="rxIngestMs">—</span><span id="rxHitRate">—</span>
   <span id="rxSamples">—</span><span id="rxResultMeta"></span>
+  <button id="copyBenchmarkText" type="button"></button><span id="benchmarkRunCount"></span>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
  <details class="rx-save-name">
@@ -269,13 +256,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </dl>
   <a id="downloadResult" class="button-link primary-download hidden">復元ファイルを保存</a>
  </section>
- <div class="hidden" aria-hidden="true">
-  <input id="manualFrame" type="text"><button id="ingestManual" type="button"></button>
-  <input id="autoBenchmarkReset" type="checkbox">
-  <input id="rxGaussianEnabled" type="checkbox"><button id="runRxGaussian" type="button"></button>
-  <span id="rxGaussianStatus"></span><button id="runSelfTest" type="button"></button><span id="selfTestStatus"></span>
-  <button id="copyBenchmarkText" type="button"></button><span id="benchmarkRunCount"></span>
- </div>
+ <div class="hidden" aria-hidden="true"><textarea id="manualFrame"></textarea><button id="ingestManual" type="button"></button></div>
 </section>
 </div>
 

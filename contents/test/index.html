@@ -121,14 +121,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <label for="txText">テキスト</label>
   <textarea id="txText" placeholder="送信するテキストを入力"></textarea>
  </details>
- <div class="hidden" aria-hidden="true">
-  <input id="benchmarkSizeRange" type="range" min="1024" max="67108864" step="1024" value="728064">
-  <input id="benchmarkSizeInput" type="number" value="728064"><output id="benchmarkSizeValue">711.0 KiB</output>
-  <button id="benchmarkPreset1MiB"></button><button id="benchmarkPreset2MiB"></button><button id="benchmarkPreset4MiB"></button>
-  <button id="benchmarkPreset8MiB"></button><button id="benchmarkPreset16MiB"></button><button id="benchmarkPreset32MiB"></button><button id="benchmarkPreset64MiB"></button>
- </div>
-
- <label for="transferMode" class="hidden">転送方式</label><select id="transferMode" class="hidden" aria-hidden="true"><option value="hybrid-data" selected>Hybrid Data-only + LT</option></select>
+ <input id="transferMode" type="hidden" value="hybrid-data">
  <div style="display:none">
   <label for="wireFormat">QRペイロード形式</label>
   <select id="wireFormat" class="mode-select">
@@ -238,7 +231,7 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <span id="rxFileRate">—</span><span id="rxAvgMs">—</span><span id="rxP50Ms">—</span>
   <span id="rxP95Ms">—</span><span id="rxIngestMs">—</span><span id="rxHitRate">—</span>
   <span id="rxSamples">—</span><span id="rxResultMeta"></span>
-  <button id="copyBenchmarkText" type="button"></button><span id="benchmarkRunCount"></span>
+  <span id="benchmarkRunCount"></span>
  </div>
  <p id="rxStatus" class="status" aria-live="polite">待機中</p>
  <details class="rx-save-name">

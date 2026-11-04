@@ -3272,7 +3272,7 @@ module.exports = QRCode;
     var nativeError = null;
 
     // 1. ZXing-C++ WASM (SIMD) を常に最優先で試行
-    $('scannerMode').textContent = '読み取り方式: ZXing-C++ WASMを準備中…';
+    $('scannerMode').textContent = 'QR読み取りを準備中…';
     $('scannerMode').className = 'status info';
     try {
       if (!window.DataTransferZXingLoader ||
@@ -3285,7 +3285,7 @@ module.exports = QRCode;
       }
       scannerType = 'zxing-wasm';
       scannerName = 'ZXing-C++ WASM（SIMD）';
-      $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+      $('scannerMode').textContent = 'QR読み取り準備完了';
       $('scannerMode').className = 'status info';
       return;
     } catch (error) {
@@ -3316,7 +3316,7 @@ module.exports = QRCode;
       nativeError = new Error('BarcodeDetector APIを利用できません');
     }
     if (detector) {
-      $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+      $('scannerMode').textContent = 'QR読み取り準備完了';
       $('scannerMode').className = 'status info';
       return;
     }
@@ -3327,7 +3327,7 @@ module.exports = QRCode;
       scannerName = 'jsQR（最終フォールバック）';
       var failReason = ' · WASM利用不可: ' + wasmError.message +
         (nativeError ? ' · Native利用不可: ' + nativeError.message : '');
-      $('scannerMode').textContent = '読み取り方式: ' + scannerName + failReason;
+      $('scannerMode').textContent = 'QR読み取り準備完了';
       $('scannerMode').className = 'status info';
       return;
     }
@@ -3424,7 +3424,7 @@ module.exports = QRCode;
               rxWorkerReady = true;
               rxWorkerFailed = false;
               if (scannerType === 'zxing-wasm' || scannerType === 'jsqr') {
-                $('scannerMode').textContent = '読み取り方式: ' + scannerName + ' (Web Worker非同期)';
+                $('scannerMode').textContent = 'QR読み取り準備完了';
               }
               resolve(true);
             } else {
@@ -3649,7 +3649,7 @@ module.exports = QRCode;
             typeof window.jsQR === 'function') {
           scannerType = 'jsqr';
           scannerName = 'jsQR（Native実行時エラーからのフォールバック）';
-          $('scannerMode').textContent = '読み取り方式: ' + scannerName;
+          $('scannerMode').textContent = 'QR読み取り準備完了';
         } else {
           throw new Error('Native BarcodeDetectorの実行に失敗しました: ' + nativeError.message);
         }

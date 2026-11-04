@@ -172,8 +172,8 @@
     updateUi: function () {
       var out = $('fpsValue');
       if (out) out.textContent = this.enabled
-        ? this.currentFps + ' fps (TXローカル自動)'
-        : ($('fps') ? $('fps').value : 6) + ' fps';
+        ? this.currentFps + ' 枚/秒'
+        : ($('fps') ? $('fps').value : 6) + ' 枚/秒';
       var badge = $('autoFpsStatus');
       if (badge) badge.textContent = this.statusText;
     }
@@ -501,8 +501,8 @@
   function updateControls() {
     syncChunkSizeControls('range');
     $('fpsValue').textContent = txAutoRateController.enabled
-      ? txAutoRateController.currentFps + ' fps (TXローカル自動)'
-      : $('fps').value + ' fps';
+      ? txAutoRateController.currentFps + ' 枚/秒'
+      : $('fps').value + ' 枚/秒';
   }
 
   function packetBlockIndexes(packet) {

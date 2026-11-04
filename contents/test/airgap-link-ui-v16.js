@@ -172,8 +172,8 @@
     updateUi: function () {
       var out = $('fpsValue');
       if (out) out.textContent = this.enabled
-        ? this.currentFps + ' fps (TXローカル自動)'
-        : ($('fps') ? $('fps').value : 6) + ' fps';
+        ? this.currentFps + ' 枚/秒'
+        : ($('fps') ? $('fps').value : 6) + ' 枚/秒';
       var badge = $('autoFpsStatus');
       if (badge) badge.textContent = this.statusText;
     }
@@ -501,8 +501,8 @@
   function updateControls() {
     syncChunkSizeControls('range');
     $('fpsValue').textContent = txAutoRateController.enabled
-      ? txAutoRateController.currentFps + ' fps (TXローカル自動)'
-      : $('fps').value + ' fps';
+      ? txAutoRateController.currentFps + ' 枚/秒'
+      : $('fps').value + ' 枚/秒';
   }
 
   function packetBlockIndexes(packet) {
@@ -595,8 +595,7 @@
         txMapLastTotal = total;
         txMapLastFocusIndex = focusIndex;
       }
-      $('txBlockSummary').textContent = '元データ ' + total + 'ブロック · ' +
-        (txCurrentLabel || '現在のQR位置を表示します');
+      $('txBlockSummary').textContent = '現在の送信位置を表示しています';
     } else {
       canvas.tabIndex = -1;
       canvas.setAttribute('aria-disabled', 'true');
@@ -609,7 +608,7 @@
         txMapLastTotal = 0;
         txMapLastFocusIndex = -1;
       }
-      $('txBlockSummary').textContent = '転送データを準備するとブロックが表示されます';
+      $('txBlockSummary').textContent = '転送データを準備すると送信位置が表示されます';
     }
   }
 
@@ -716,31 +715,8 @@
   }
 
   function updateModeControls() {
-    var mode = $('transferMode').value;
-    var fountainMode = mode === 'fountain';
-    var hybridMode = mode === 'hybrid';
-    var dataOnlyMode = mode === 'legacy-data' || mode === 'hybrid-data';
-    var parityLocked = fountainMode || hybridMode || dataOnlyMode;
-    if (hybridMode) $('parityEnabled').checked = true;
-    if (dataOnlyMode) $('parityEnabled').checked = false;
-    $('parityEnabled').disabled = parityLocked;
-    $('parityEnabled').parentElement.style.opacity = parityLocked ? '.45' : '1';
-    if (fountainMode) {
-      $('txModeHint').textContent = 'Pure LT: 最初のK片を直接送信し、その後はXOR合成パケットを継続送信します。';
-    } else if (hybridMode) {
-      $('txModeHint').textContent = 'LT Hybrid: 最初に従来Data + P0/P1を1周し、その後LT XORパケットで残った欠落を補完します。先頭QRをRXで読み取ってから送信開始してください。';
-    } else if (mode === 'hybrid-data') {
-      $('txModeHint').textContent = 'Data-only + LT: 最初にDataのみを1周し、その後LT XORパケットで残った欠落を補完します。';
-    } else if (mode === 'legacy-data') {
-      $('txModeHint').textContent = '従来Data-only: パリティなしでデータ片を順番に1周します。';
-    } else {
-      $('txModeHint').textContent = '従来方式: 順次データ片と、任意のP0/P1ブロックパリティを送信します。';
-    }
-    $('txFrameCountLabel').textContent = fountainMode
-      ? '元データ片数 / 送信は継続'
-      : hybridMode || mode === 'hybrid-data'
-        ? '初回 Data/Parity 周回 → LT補完'
-        : 'データ / 総フレーム';
+    $('txModeHint').textContent = '受信側で先頭QRを読み取ってから、送信を開始してください。';
+    $('txFrameCountLabel').textContent = '送信状態';
   }
 
   $('chunkSize').addEventListener('input', function () {
@@ -1040,8 +1016,8 @@
         blockCount = txFountainEncoder.seqLen;
         txCurrentBlocks = new Set(txFountainPart.indexes);
         txCurrentLabel = 'LT seq 1 · Data · 対象 1';
-        $('txFrameCount').textContent = blockCount + ' / ∞';
-        frameLabel = 'LT seq 1 / K=' + blockCount + ' · system';
+        $('txFrameCount').textContent = '準備完了';
+        frameLabel = '先頭QRコード · 受信側で読み取り待ち';
       } else {
         var parityEnabled = txMode === 'hybrid' ? true
           : (txMode === 'legacy-data' || txMode === 'hybrid-data' ? false : $('parityEnabled').checked);
@@ -1079,12 +1055,12 @@
           txFountainEncoder.startRepairPhase();
           txHybridPhase = 'legacy';
           txIndex = 1;
-          $('txFrameCount').textContent = blockCount + ' / ' + txPlan.frames.length + ' → LT';
-          frameLabel = 'Hybrid 初回QR · Data 1 / ' + blockCount + ' · RX読取待ち';
+          $('txFrameCount').textContent = '準備完了';
+          frameLabel = '先頭QRコード · 受信側で読み取り待ち';
         } else {
           txIndex = nextLegacyFrameIndexAfterPreflight(txPlan.frames.length);
-          $('txFrameCount').textContent = txPlan.dataFrames.length + ' / ' + txPlan.frames.length;
-          frameLabel = 'フレーム 1 / ' + txPlan.frames.length + ' · ' + firstPacket.type;
+          $('txFrameCount').textContent = '準備完了';
+          frameLabel = '先頭QRコード · 受信側で読み取り待ち';
         }
       }
       var cacheResult = await prepareTxQrCache();
@@ -1106,11 +1082,8 @@
       $('txProgress').style.width = (txMode === 'fountain' || hybridMode ? (1 / blockCount * 100) : 0).toFixed(1) + '%';
       updateTxBlockMap();
       status('txStatus',
-        '準備完了: ' + sourceName + ' · 元データ ' + formatBytes(sourceBytes.length) +
-        ' · 転送 ' + formatBytes(wireBytes.length) + ' · ' + compressionNote +
-        ' · ' + (txMode === 'fountain' ? 'Pure LT' : hybridMode ? (txMode === 'hybrid' ? 'LT Hybrid Data+P0/P1' : 'Data-only + LT') : txMode === 'legacy-data' ? 'Data-only' : 'Legacy') +
-        ' · QR形式 ' + (wireFormat === 'base45' ? 'CMAL2 / Base45 / Alphanumeric' : 'CMAL1 / Base64URL / Byte') +
-        ' · ID ' + transferId,
+        '準備完了: ' + sourceName + ' · ' + formatBytes(sourceBytes.length) +
+        '。先頭QRを受信側で読み取ってから再生してください。',
         'ok');
       return true;
     } catch (error) {
@@ -1219,11 +1192,8 @@
           (txFountainPart.indexes.length <= 4
             ? '対象 ' + txFountainPart.indexes.map(function (index) { return index + 1; }).join(',')
             : txFountainPart.indexes.length + 'ブロック合成');
-        $('txFrameCount').textContent = txFountainEncoder.seqLen + ' / ∞';
-        $('txFrameInfo').textContent =
-          (hybridMode ? 'Hybrid LT修復' : 'LT') + ' seq ' + txFountainPart.seqNum + ' · ' +
-          (txFountainPart.direct ? '直接片再送' : 'XOR合成 degree=' + txFountainPart.indexes.length) +
-          ' · K=' + txFountainEncoder.seqLen;
+        $('txFrameCount').textContent = '送信中';
+        $('txFrameInfo').textContent = 'QRコードを表示しています。';
         $('txProgress').style.width =
           (Math.min(txFountainEncoder.seqLen, txFountainPart.seqNum) / txFountainEncoder.seqLen * 100).toFixed(1) + '%';
       } else {
@@ -1237,9 +1207,7 @@
           ' · block ' + (parsed.group * Core.GROUP_SIZE + 1) + '–' +
           Math.min(parsed.total, (parsed.group + 1) * Core.GROUP_SIZE);
         var effectiveFps = txAutoRateController.enabled ? txAutoRateController.currentFps : Number($('fps').value);
-        $('txFrameInfo').textContent =
-          (hybridMode ? 'Hybrid初回周回 ' : 'フレーム ') + (txIndex + 1) + ' / ' + txPlan.frames.length +
-          ' · ' + parsed.type + ' · ' + (1000 / Math.max(1, effectiveFps)).toFixed(1) + ' ms/frame';
+        $('txFrameInfo').textContent = 'QRコードを表示しています。';
         $('txProgress').style.width = ((txIndex + 1) / txPlan.frames.length * 100).toFixed(1) + '%';
         if (hybridMode) txIndex++;
         else txIndex = (txIndex + 1) % txPlan.frames.length;
@@ -1556,10 +1524,7 @@
       directSet = fountainRx.directIndexes;
       recoveredSet = fountainRx.recoveredIndexes;
       activeSet = rxCurrentBlocks;
-      $('rxBlockSummary').textContent =
-        '元データ ' + total + 'ブロック · 直接取得 ' + fountainRx.directIndexes.size +
-        ' · 合成片から復元 ' + recovered + ' · 受信パケット ' + fountainRx.receivedPartCount +
-        ' · 直近読取: ' + (rxCurrentLabel || '—');
+      $('rxBlockSummary').textContent = '受信したデータの状態を表示しています';
     } else {
       have = rx.shards.size;
       total = rx.total;
@@ -1571,9 +1536,7 @@
       });
       activeSet = rxCurrentBlocks;
       $('rxBlockSummary').textContent = total
-        ? '元データ ' + total + 'ブロック · 直接取得 ' + rxDirectBlocks.size +
-          ' · パリティ復元 ' + recoveredSet.size + ' · 直近読取: ' +
-          (rxCurrentLabel || '—')
+        ? '受信したデータの状態を表示しています'
         : '受信を開始するとブロック状態が表示されます';
     }
     $('rxProgressText').textContent = have + ' / ' + total;

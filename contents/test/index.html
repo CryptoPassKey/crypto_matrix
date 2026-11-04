@@ -104,10 +104,10 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
 <main>
 <header>
  <div><h1>Airgap <span>Link</span></h1><p class="subtitle">QRコードによるオフライン端末間転送</p></div>
- <span class="pill">OFFLINE TRANSFER · V17</span>
+ <span class="pill">OFFLINE TRANSFER · V18</span>
 </header>
 
-<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。TXでデータを準備して先頭QRを表示し、RXで読み取ってからTXの再生を開始してください。受信ACKを使わない片方向転送です。</div>
+<div class="note">送信側のQRコードを受信側のカメラで読み取ってファイルを転送します。受信側で先頭QRを読み取ったら、送信側の再生を開始してください。片方向転送のため、受信確認は送信側へ返りません。</div>
 
 <div class="grid">
 <section class="panel" aria-labelledby="tx-title">
@@ -128,18 +128,18 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   </select>
   <small>CMAL2はBase45＋QR英数字モード、CMAL1はBase64URL＋Byteモードです。受信側は両方に対応します。</small>
  </div>
- <p id="txModeHint" class="muted">データを順番に送信し、受信側で不足があればLTで補完します。</p>
+ <p id="txModeHint" class="muted">受信側で先頭QRを読み取ってから、送信を開始してください。</p>
 
  <div class="controls">
   <div>
-   <div class="range-head"><label for="chunkSize">密度 / チャンクサイズ</label><output id="chunkSizeValue">800 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="800" inputmode="numeric" aria-label="チャンクサイズ（バイト）"></div>
+   <div class="range-head"><label for="chunkSize">QRの情報量</label><output id="chunkSizeValue">800 B</output><input id="chunkSizeNumber" type="number" min="80" max="2800" step="20" value="800" inputmode="numeric" aria-label="QRの情報量（バイト）"></div>
    <input id="chunkSize" type="range" min="80" max="2800" step="20" value="800">
-   <small>1フレームの元データ量（80〜2,800B。iPhone/Pixel実機推奨: 800〜1,000B）。大きいほどQR密度が上がり、読み取り難度も上がります。</small>
+   <small>値を大きくするとQRコードの読み取りが難しくなる場合があります。</small>
   </div>
   <div>
    <div class="range-head"><label for="fps">送信速度</label><output id="fpsValue">10 fps</output></div>
    <input id="fps" type="range" min="6" max="120" step="1" value="10">
-   <small>表示フレームの切り替え目標値（6〜120 fps。Pixel/Android実機推奨: 10〜12 fps）。</small>
+   <small>読み取りが追いつかない場合は、送信速度を下げてください。</small>
   </div>
  </div>
  <div style="display:none">
@@ -176,12 +176,12 @@ code{color:#b5e5ff;overflow-wrap:anywhere}.hidden{display:none!important}
   <p id="txBlockHelp" class="blockmap-summary">ブロックをタップすると、その位置から再生できます。</p>
   <div class="map-legend"><span class="map-key"><i class="map-dot map-tx-current"></i>現在表示中のQR位置</span></div>
  </div>
- <p class="muted" id="txFrameInfo">フレーム待機中</p>
+ <p class="muted" id="txFrameInfo">QRコードの表示待ち</p>
 </section>
 
 <section class="panel" aria-labelledby="rx-title">
  <h2 id="rx-title">RX — 受信</h2>
- <p class="muted" style="margin-top:-4px">TXに表示された先頭QRを最初に読み取って待機します。先頭QRを確認してからTX側の再生を開始してください。2枚目の有効なQRを読み込んだ時点から転送時間を計測します。同じQRの再読込は数えません。途中参加は受け付けません。</p>
+ <p class="muted" style="margin-top:-4px">送信側の先頭QRを読み取ると受信を開始します。先頭QRを確認してから送信側の再生を開始してください。</p>
  <div class="hidden" aria-hidden="true">
   <select id="rxScanner"><option value="zxing-wasm" selected>ZXing-C++ WASM</option></select>
   <input id="rxAllowFallback" type="checkbox">

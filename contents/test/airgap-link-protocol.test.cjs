@@ -205,6 +205,10 @@ async function main() {
     !ui.includes('XOR合成 degree=') && !ui.includes(' / ∞') &&
     !ui.includes('初回 Data/Parity 周回 → LT補完'),
     'Production UI must not expose internal transfer algorithm names or sequence counters');
+  assert(!ui.includes("'元データ ' + total + 'ブロック") &&
+    !ui.includes("'LT seq ' + fountainPacket.seqNum") &&
+    ui.includes("'受信したデータの状態を表示しています'"),
+    'RX block status must not expose internal packet and repair diagnostics');
   assert(ui.includes("$('txFrameCountLabel').textContent = '送信状態'") &&
     ui.includes("$('txFrameInfo').textContent = 'QRコードを表示しています。'"),
     'TX progress labels must remain understandable without protocol terminology');

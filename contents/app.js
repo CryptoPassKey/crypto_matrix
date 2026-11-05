@@ -612,31 +612,48 @@
         cmShowUpdateStatus('オフラインのため更新を確認できません', 'error', 3500);
         return;
       }
+
       cmUpdateRunning = true;
       cmShowUpdateStatus('最新版を確認しています…', 'checking', 0);
       try {
         if (!cmSwRegistration) {
-          cmSwRegistration = await navigator.serviceWorker.getRegistration();
+          try {
+            cmSwRegistration = await navigator.serviceWorker.getRegistration();
+          } catch (registrationError) {
+            throw new Error('Service Worker登録情報の取得に失敗しました: ' +
+              (registrationError && registrationError.message ? registrationError.message : String(registrationError)));
+          }
         }
         if (!cmSwRegistration) {
           cmShowUpdateStatus('更新機能を利用できません。ページを再読み込みしてください', 'error', 4500);
           return;
         }
-        await cmSwRegistration.update();
+
+        // update() can reject for transient network/CDN errors. Keep the reason visible
+        // and do not treat an unchanged registration as proof of a new release.
+        try {
+          await cmSwRegistration.update();
+        } catch (updateError) {
+          throw new Error('最新版の取得に失敗しました: ' +
+            (updateError && updateError.message ? updateError.message : String(updateError)));
+        }
+
         var worker = null;
         if (cmSwRegistration.installing) {
           worker = await cmWaitForInstalled(cmSwRegistration, cmSwRegistration.installing);
-        } else {
+        }
+        if (cmSwRegistration.waiting && cmSwRegistration.waiting !== cmSwRegistration.active) {
           worker = cmSwRegistration.waiting;
         }
-        if (cmSwRegistration.waiting) worker = cmSwRegistration.waiting;
+
         if (worker && worker !== cmSwRegistration.active) {
           cmActivateWaitingWorker(worker);
         } else {
           cmShowUpdateStatus('最新版です', 'success', 2200);
         }
       } catch (error) {
-        cmShowUpdateStatus('更新確認に失敗しました：' + (error && error.message ? error.message : String(error)), 'error', 5000);
+        cmShowUpdateStatus('更新確認に失敗しました：' +
+          (error && error.message ? error.message : String(error)), 'error', 6500);
       } finally {
         cmUpdateRunning = false;
       }

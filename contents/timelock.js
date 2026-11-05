@@ -38,7 +38,7 @@
 
   function getTLBundle() {
     if (!window.TLockBundle) {
-      throw new Error('タイムロック暗号モジュール (tlock.bundle.js) が読み込まれていません。ページを再読み込みしてください。');
+      throw new Error('タイムカプセル暗号モジュール (tlock.bundle.js) が読み込まれていません。ページを再読み込みしてください。');
     }
     return window.TLockBundle;
   }
@@ -183,7 +183,7 @@
     };
   }
 
-  // ドメイン分離子（Domain Separator）: CryptoMatrixのタイムロック名前空間を他アプリケーションから論理分離するための固定コンテキスト文字列（RFC 5869準拠）。
+  // ドメイン分離子（Domain Separator）: CryptoMatrixのタイムカプセル名前空間を他アプリケーションから論理分離するための固定コンテキスト文字列（RFC 5869準拠）。
   // ※ 注意: これは公開ソースコードに含まれる固定文字列であり、「秘密鍵」ではありません。
   // 本機能の真の秘密保護エントロピーは、ユーザーが保持する物理「カード配列シード番号 (seed)」によって担保されます。
   const CM_APP_DOMAIN_PEPPER = 'CryptoMatrix:TimeLock:AppDomainSecret:v1:2026';
@@ -266,7 +266,7 @@
       throw new Error('CMTL1ヘッダーが空です。');
     }
     if (!(ageBinary instanceof Uint8Array) || ageBinary.length === 0) {
-      throw new Error('AGEタイムロック暗号文が空です。');
+      throw new Error('AGEタイムカプセル暗号文が空です。');
     }
     const out = new Uint8Array(4 + 1 + 4 + headerJsonBytes.length + ageBinary.length);
     const dv = new DataView(out.buffer);
@@ -281,29 +281,29 @@
 
   function unpackCMTL1(bytes) {
     if (!(bytes instanceof Uint8Array) || bytes.length < 16) {
-      throw new Error('タイムロックデータ (CMTL1) の長さが不足しています。');
+      throw new Error('タイムカプセルデータ (CMTL1) の長さが不足しています。');
     }
     if (bytes[0] !== 0x43 || bytes[1] !== 0x4d || bytes[2] !== 0x54 || bytes[3] !== 0x4c) {
-      throw new Error('タイムロックデータのマジックヘッダ (CMTL) が一致しません。');
+      throw new Error('タイムカプセルデータのマジックヘッダ (CMTL) が一致しません。');
     }
     const version = bytes[4];
     if (version !== 1) {
-      throw new Error(`未対応のタイムロック形式バージョンです (v${version})。`);
+      throw new Error(`未対応のタイムカプセル形式バージョンです (v${version})。`);
     }
     const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const hdrLen = dv.getUint32(5, false);
     if (hdrLen < 2 || hdrLen > 65536 || 9 + hdrLen >= bytes.length) {
-      throw new Error('タイムロックデータのヘッダー長が不正または破損しています。');
+      throw new Error('タイムカプセルデータのヘッダー長が不正または破損しています。');
     }
     const headerJsonBytes = bytes.slice(9, 9 + hdrLen);
     let meta;
     try {
       meta = JSON.parse(decFatal.decode(headerJsonBytes));
     } catch (_) {
-      throw new Error('タイムロックデータのメタデータJSONが破損しています。');
+      throw new Error('タイムカプセルデータのメタデータJSONが破損しています。');
     }
     if (!meta || meta.v !== 1 || (meta.mode !== 'A' && meta.mode !== 'B') || !Number.isInteger(meta.round) || meta.round < 1) {
-      throw new Error('タイムロックデータのメタデータ内容が不正です。');
+      throw new Error('タイムカプセルデータのメタデータ内容が不正です。');
     }
     const ageBinary = bytes.slice(9 + hdrLen);
     // Verify that the inner AGE header matches the outer metadata
@@ -341,10 +341,10 @@
 
   function unpackCMTSShare(bytes) {
     if (!(bytes instanceof Uint8Array) || bytes.length < 24) {
-      throw new Error('タイムロック秘密分散シェア (CMTS) のサイズが不足しています。');
+      throw new Error('タイムカプセル秘密分散シェア (CMTS) のサイズが不足しています。');
     }
     if (bytes[0] !== 0x43 || bytes[1] !== 0x4d || bytes[2] !== 0x54 || bytes[3] !== 0x53) {
-      throw new Error('タイムロック秘密分散シェアのヘッダ (CMTS) が一致しません。');
+      throw new Error('タイムカプセル秘密分散シェアのヘッダ (CMTS) が一致しません。');
     }
     const version = bytes[4];
     if (version !== 1) {
@@ -427,7 +427,7 @@
 
   function parseAnyTimelockPacket(bytes) {
     if (!(bytes instanceof Uint8Array) || bytes.length < 16) {
-      throw new Error('タイムロックデータのサイズが小さすぎます。');
+      throw new Error('タイムカプセルデータのサイズが小さすぎます。');
     }
     if (bytes[0] === 0x43 && bytes[1] === 0x4d && bytes[2] === 0x54 && bytes[3] === 0x4c) {
       return unpackCMTL1(bytes);
@@ -435,7 +435,7 @@
     if (bytes[0] === 0x43 && bytes[1] === 0x4d && bytes[2] === 0x54 && bytes[3] === 0x53) {
       return unpackCMTSShare(bytes);
     }
-    throw new Error('認識可能なタイムロックカプセル（.cmtl）ではありません。');
+    throw new Error('認識可能なタイムカプセルカプセル（.cmtl）ではありません。');
   }
 
   function combineTimelockShares(shareObjs) {
@@ -450,7 +450,7 @@
     for (const s of shareObjs) {
       if (s.kind !== 'cmts') throw new Error('秘密分散シェアではないデータが混在しています。');
       if (s.setIdHex !== setIdHex || s.m !== m || s.n !== n) {
-        throw new Error('異なるタイムロックカプセルから生成された秘密分散シェアが混在しています。同じカプセルのシェアを入力してください。');
+        throw new Error('異なるタイムカプセルカプセルから生成された秘密分散シェアが混在しています。同じカプセルのシェアを入力してください。');
       }
       if (!uniqueMap.has(s.index)) {
         uniqueMap.set(s.index, s);
@@ -695,7 +695,7 @@
     } = options || {};
 
     if (!Array.isArray(packets) || packets.length === 0) {
-      throw new Error('復号するタイムロックデータが入力されていません。');
+      throw new Error('復号するタイムカプセルデータが入力されていません。');
     }
 
     const parsedList = packets.map((b) => parseAnyTimelockPacket(b));
@@ -807,7 +807,7 @@
 
     return [
       '========================================================================',
-      '  CryptoPassKey / crypto_matrix — タイムロック リカバリーガイド (保管用)',
+      '  CryptoPassKey / crypto_matrix — タイムカプセル リカバリーガイド (保管用)',
       '========================================================================',
       '※このファイルにはパスワードや秘密鍵は一切含まれていません。',
       '  カプセルファイル (.cmtl) と一緒に長期保管してください。',
@@ -832,7 +832,7 @@
       `・解禁予定時刻       : ${unlockDateStr} (UTC: ${unlockIso})`,
       '',
       '【3. 解禁時刻到来後の復元手順（オンライン環境）】',
-      '1) Crypto Matrix アプリの「⏳ タイムロック」タブ →「🔓 タイムロック解禁・復元」を開く',
+      '1) Crypto Matrix アプリの「⏳ タイムカプセル」タブ →「🔓 タイムカプセル解禁・復元」を開く',
       ...(usesPasskey
         ? ['   ※パスキー保護が含まれるため、作成時と同一のドメイン上で開いてください。']
         : ['   （または同梱の単体ファイル「timelock-recover.html」を任意のブラウザで開く）']),
@@ -951,7 +951,7 @@
     switchToTimelockTab('encrypt');
     tlMessage(
       'tl-encrypt-status',
-      `✅ ${tlTransferredPayload.label}（${rawBytes.length.toLocaleString()} bytes・元の保護：${tlTransferredPayload.factorLabel}）をタイムロック作成欄へ転記しました。元のデータは消去・変更されていません。`
+      `✅ ${tlTransferredPayload.label}（${rawBytes.length.toLocaleString()} bytes・元の保護：${tlTransferredPayload.factorLabel}）をタイムカプセル作成欄へ転記しました。元のデータは消去・変更されていません。`
     );
   }
 
@@ -975,9 +975,9 @@
         <div style="font-size:0.8rem; color:#d1d5db; line-height:1.5;">
           ・データサイズ：<strong>${p.bytes.length.toLocaleString()} bytes</strong>（ファイル名：<code>${escapeHtml(p.filename)}</code>）<br>
           ・内側の既存保護：<strong>${escapeHtml(p.factorLabel)}</strong>${p.shamirN > 1 ? ` ＋ 秘密分散 (${p.shamirM}-of-${p.shamirN})` : ''}<br>
-          ・<strong>保護構造の説明：</strong> ${isSec2 ? 'セクション2のBIP39復元フレーズ（カード配列・レシピ設定）は未暗号化の平文データです。タイムロックによって暗号化カプセルとして保護されます。' : `内側の暗号化（${escapeHtml(p.factorLabel)}）はそのまま保護され、さらにタイムロック暗号が追加されます。`}<br>
+          ・<strong>保護構造の説明：</strong> ${isSec2 ? 'セクション2のBIP39復元フレーズ（カード配列・レシピ設定）は未暗号化の平文データです。タイムカプセルによって暗号化カプセルとして保護されます。' : `内側の暗号化（${escapeHtml(p.factorLabel)}）はそのまま保護され、さらにタイムカプセル暗号が追加されます。`}<br>
           　→ <strong>タイムカプセル（時間解禁のみ）</strong>を選ぶと、解禁時刻後にそのまま中身を取り出せます（追加パスワード不要）。<br>
-          　→ <strong>パスワード付きタイムカプセル</strong>を選ぶと、タイムロック解除時にも追加のパスワード等の保護要素を設定できます。
+          　→ <strong>パスワード付きタイムカプセル</strong>を選ぶと、タイムカプセル解除時にも追加のパスワード等の保護要素を設定できます。
         </div>
       `;
     }
@@ -1047,7 +1047,7 @@
           <div><span style="color:var(--text-sub);">drandネットワーク / 周期：</span><br><strong>quicknet</strong> (${TL.QUICKNET_CHAIN_INFO.period}秒周期 / RFC9380)</div>
           <div><span style="color:var(--text-sub);">対象ラウンド番号：</span><br><strong style="color:#fbbf24; font-family:monospace; font-size:0.95rem;">Round #${rInfo.round}</strong></div>
         </div>
-        ${isPast ? '<div style="margin-top:6px; font-size:0.78rem; color:#f97316;">ℹ️ 指定時刻が現在以前のため、既に発行済みのラウンドで暗号化されます（即時解禁テスト用としてはそのまま作成可能です）。本来のタイムロックには未来の日時を指定してください。</div>' : ''}
+        ${isPast ? '<div style="margin-top:6px; font-size:0.78rem; color:#f97316;">ℹ️ 指定時刻が現在以前のため、既に発行済みのラウンドで暗号化されます（即時解禁テスト用としてはそのまま作成可能です）。本来のタイムカプセルには未来の日時を指定してください。</div>' : ''}
       `;
     }
 
@@ -1094,10 +1094,10 @@
           ・<strong>保護対象データ：</strong> ${escapeHtml(payloadDesc)}<br>
           ・<strong>保護タイプ：</strong> <strong>${(() => {
             if (mode === 'A') {
-              return shamirN > 1 ? `タイムロック ＋ 秘密分散（${shamirM}-of-${shamirN}・時間解禁のみ）` : 'タイムカプセル（時間解禁のみ）';
+              return shamirN > 1 ? `タイムカプセル ＋ 秘密分散（${shamirM}-of-${shamirN}・時間解禁のみ）` : 'タイムカプセル（時間解禁のみ）';
             }
             if (!hasCmeFactors && shamirN > 1) {
-              return `タイムロック ＋ 秘密分散のみ（${shamirM}-of-${shamirN}・パスワード不要）`;
+              return `タイムカプセル ＋ 秘密分散のみ（${shamirM}-of-${shamirN}・パスワード不要）`;
             }
             if (!hasCmeFactors && shamirN <= 1) {
               return '<span style="color:#ef4444; font-weight:700;">⚠️ 保護方式未選択（パスワード、キーファイル、パスキー、または秘密分散を1つ以上選択してください）</span>';
@@ -1244,7 +1244,7 @@
             ${statusBadge}
           </div>
           <div style="font-size:0.82rem; line-height:1.65;">
-            ・<strong>保護タイプ：</strong> ${meta.mode === 'A' ? (meta.shamir && meta.shamir.n > 1 ? `タイムロック ＋ 秘密分散（${meta.shamir.m}-of-${meta.shamir.n}・パスワード不要）` : 'タイムカプセル（時間解禁のみ）') : `追加保護付きタイムカプセル（時刻解禁 ＋ ${escapeHtml(comboLabelTL(meta.combo))}）`}<br>
+            ・<strong>保護タイプ：</strong> ${meta.mode === 'A' ? (meta.shamir && meta.shamir.n > 1 ? `タイムカプセル ＋ 秘密分散（${meta.shamir.m}-of-${meta.shamir.n}・パスワード不要）` : 'タイムカプセル（時間解禁のみ）') : `追加保護付きタイムカプセル（時刻解禁 ＋ ${escapeHtml(comboLabelTL(meta.combo))}）`}<br>
             ・<strong>封入データ種別：</strong> ${escapeHtml(payloadKindLabel(meta.payloadKind))}<br>
             ・<strong>秘密分散：</strong> ${shamirStatusHtml}<br>
             ・<strong>drandネットワーク / 対象ラウンド：</strong> <code>${escapeHtml(meta.net)}</code> ／ <strong style="color:#fbbf24; font-family:monospace;">Round #${meta.round}</strong><br>
@@ -1483,7 +1483,7 @@
         return;
       }
 
-      tlMessage('tl-encrypt-status', '⏳ タイムロック・カプセルを作成しています…');
+      tlMessage('tl-encrypt-status', '⏳ タイムカプセル・カプセルを作成しています…');
       if ($('tl-encrypt-result')) $('tl-encrypt-result').hidden = true;
 
       try {
@@ -1649,7 +1649,7 @@
 
         tlMessage(
           'tl-encrypt-status',
-          `✅ タイムロック・カプセル（${res.meta.mode === 'A' ? (res.meta.shamir && res.meta.shamir.n > 1 ? `タイムロック ＋ 秘密分散 (${res.meta.shamir.m}-of-${res.meta.shamir.n})` : 'タイムカプセル') : '追加保護付きタイムカプセル'} ／ 解禁ラウンド #${res.meta.round}）を作成しました。保管前にリカバリーガイドの保存と復元タブへの転記確認をおすすめします。`
+          `✅ タイムカプセル・カプセル（${res.meta.mode === 'A' ? (res.meta.shamir && res.meta.shamir.n > 1 ? `タイムカプセル ＋ 秘密分散 (${res.meta.shamir.m}-of-${res.meta.shamir.n})` : 'タイムカプセル') : '追加保護付きタイムカプセル'} ／ 解禁ラウンド #${res.meta.round}）を作成しました。保管前にリカバリーガイドの保存と復元タブへの転記確認をおすすめします。`
         );
       } catch (err) {
         if (myToken !== tlOpToken) return;
@@ -1663,12 +1663,12 @@
       const Preset = getPreset();
       if (Preset.copyWithAutoClear) {
         await Preset.copyWithAutoClear(tlLastArtifact.armoredText, () =>
-          tlMessage('tl-encrypt-status', '🛡️ クリップボードのタイムロックデータを自動消去しました。')
+          tlMessage('tl-encrypt-status', '🛡️ クリップボードのタイムカプセルデータを自動消去しました。')
         );
       } else {
         await navigator.clipboard.writeText(tlLastArtifact.armoredText);
       }
-      tlMessage('tl-encrypt-status', '📋 タイムロックのアーマード文字列をコピーしました（30秒後に自動消去されます）。');
+      tlMessage('tl-encrypt-status', '📋 タイムカプセルのアーマード文字列をコピーしました（30秒後に自動消去されます）。');
     });
 
     $('tl-btn-save-cmtl')?.addEventListener('click', async () => {
@@ -1680,11 +1680,11 @@
           downloadBlob(new Blob([s.bytes], { type: 'application/octet-stream' }), fname);
           if (i < tlLastArtifact.shares.length - 1) await new Promise((r) => setTimeout(r, 250));
         }
-        tlMessage('tl-encrypt-status', `📁 全${tlLastArtifact.shamirN}シェアのタイムロックファイル (.cmtl) を一括保存しました。`);
+        tlMessage('tl-encrypt-status', `📁 全${tlLastArtifact.shamirN}シェアのタイムカプセルファイル (.cmtl) を一括保存しました。`);
       } else {
         const fname = `${tlLastArtifact.baseName}.cmtl`;
         downloadBlob(new Blob([tlLastArtifact.cmtl1Bytes], { type: 'application/octet-stream' }), fname);
-        tlMessage('tl-encrypt-status', `📁 タイムロックファイル（${fname}）を保存しました。`);
+        tlMessage('tl-encrypt-status', `📁 タイムカプセルファイル（${fname}）を保存しました。`);
       }
     });
 
@@ -1739,7 +1739,7 @@
         const isShamir = tlLastArtifact.shamirN > 1;
 
         if (!tlLastArtifact.cmtl1Bytes || !tlLastArtifact.armoredText) {
-          throw new Error('タイムロックカプセルデータが不足しているため添付を作成できません。');
+          throw new Error('タイムカプセルカプセルデータが不足しているため添付を作成できません。');
         }
 
         const attachments = [];
@@ -1750,7 +1750,7 @@
           if (!Preset.svgToPngBase64) throw new Error('QR画像変換モジュールが利用できません。');
           for (let i = 0; i < qrSvgs.length; i++) {
             const qrBase64 = await Preset.svgToPngBase64(qrSvgs[i], 640);
-            if (!qrBase64) throw new Error('タイムロックQRコード画像(PNG)の生成に失敗しました。');
+            if (!qrBase64) throw new Error('タイムカプセルQRコード画像(PNG)の生成に失敗しました。');
             const fname = qrSvgs.length > 1
               ? `${tlLastArtifact.baseName}-share${i + 1}-qr.png`
               : `${tlLastArtifact.baseName}-qr.png`;
@@ -1765,7 +1765,7 @@
           const chunk = 8192;
           for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
           const cmtlB64 = btoa(bin);
-          if (!cmtlB64) throw new Error('タイムロックカプセル(.cmtl)のエンコードに失敗しました。');
+          if (!cmtlB64) throw new Error('タイムカプセルカプセル(.cmtl)のエンコードに失敗しました。');
           attachments.push({
             filename: `${tlLastArtifact.baseName}.cmtl`,
             base64: cmtlB64,
@@ -1788,7 +1788,7 @@
             const chunk = 8192;
             for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
             const shB64 = btoa(bin);
-            if (!shB64 || !s.armored) throw new Error(`タイムロックシェア #${s.index} の添付変換に失敗しました。`);
+            if (!shB64 || !s.armored) throw new Error(`タイムカプセルシェア #${s.index} の添付変換に失敗しました。`);
             attachments.push({
               filename: `${tlLastArtifact.baseName}.share${s.index}.cmtl`,
               base64: shB64,
@@ -1828,13 +1828,13 @@
 
         const pw = tlLastArtifact.createdPassword || '';
         const modeLabel = meta.mode === 'A' ? 'タイムカプセル（時間解禁のみ）' : 'パスワード付きタイムカプセル';
-        const title = `CryptoPassKey - タイムロック - カプセル (${unlockDateStr} 解禁)`;
+        const title = `CryptoPassKey - タイムカプセル - カプセル (${unlockDateStr} 解禁)`;
         const baseAppUrl = window.location.href.split(/[?#]/)[0];
         const isHttp = /^https?:\/\//i.test(baseAppUrl);
         const activeSecret = ($('sim-secret')?.value || '').trim();
 
         const notes = [
-          '【CryptoPassKey タイムロックカプセル情報】',
+          '【CryptoPassKey タイムカプセルカプセル情報】',
           `■ 保護タイプ: ${modeLabel}`,
           `■ 連動カード配列シード番号: #${tlLastArtifact.seedNum || '0'} (復元時に必要)`,
           `■ 解禁予定日時: ${unlockDateStr}`,
@@ -1843,18 +1843,18 @@
           `■ 秘密分散: ${isShamir ? `${tlLastArtifact.shamirM}-of-${tlLastArtifact.shamirN} 秘密分散` : 'なし（単一カプセル）'}`,
           ...(pw ? ['■ 復元用パスワード: KeePassの保護された「パスワード」欄に保存（メモ欄には記録しません）'] : []),
           '',
-          '【タイムロック・アーマード文字列】',
+          '【タイムカプセル・アーマード文字列】',
           tlLastArtifact.armoredText,
           '',
           '【添付ファイルのご案内（原則全ファイル完全添付）】',
           `1. 暗号化カプセルバイナリ: ${tlLastArtifact.baseName}.cmtl`,
           `2. アーマードテキスト: ${tlLastArtifact.baseName}.txt`,
-          ...(qrSvgs.length ? ['3. タイムロックQRコード画像 (.png)'] : []),
+          ...(qrSvgs.length ? ['3. タイムカプセルQRコード画像 (.png)'] : []),
           `4. リカバリーガイド: ${tlLastArtifact.baseName}-recovery-guide.txt`,
           ...(tlCreationKeyfileBytes ? [`5. KeePassキーファイル: ${tlCreationKeyfileName || 'timelock.key'}`] : []),
           '',
           '【復元方法】',
-          '解禁予定時刻以降にCryptoMatrixの「⏳ タイムロック」タブ→「🔓 タイムロック解禁・復元」を開き、上記のアーマード文字列を貼り付けるか添付の.cmtl/QR画像を読み込ませてください。'
+          '解禁予定時刻以降にCryptoMatrixの「⏳ タイムカプセル」タブ→「🔓 タイムカプセル解禁・復元」を開き、上記のアーマード文字列を貼り付けるか添付の.cmtl/QR画像を読み込ませてください。'
         ].join('\n');
 
         const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
@@ -1895,7 +1895,7 @@
     });
 
     $('tl-btn-clear')?.addEventListener('click', () => {
-      clearTimelockCreationDisplay('画面上のタイムロック出力表示を消去しました（保存済みのファイルは消えません）。');
+      clearTimelockCreationDisplay('画面上のタイムカプセル出力表示を消去しました（保存済みのファイルは消えません）。');
     });
 
     $('tl-btn-test-restore')?.addEventListener('click', () => {
@@ -1972,7 +1972,7 @@
             }
             loadedNames.push(f.name);
           } else {
-            throw new Error(`ファイル「${f.name}」は有効なタイムロックデータ (.cmtl / アーマードテキスト) ではありません。`);
+            throw new Error(`ファイル「${f.name}」は有効なタイムカプセルデータ (.cmtl / アーマードテキスト) ではありません。`);
           }
         }
       }
@@ -2079,13 +2079,13 @@
     // Execute Decryption
     $('tl-btn-decrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
-      tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムロック復号を実行しています…');
+      tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
       try {
         const packets = collectRestorePacketsFromInput();
         if (!packets.length) {
-          throw new Error('復号するタイムロックファイル (.cmtl) を選択するか、アーマード文字列を貼り付けてください。');
+          throw new Error('復号するタイムカプセルファイル (.cmtl) を選択するか、アーマード文字列を貼り付けてください。');
         }
 
         const isManualBeacon = $('tl-beacon-mode-manual')?.checked;
@@ -2135,7 +2135,7 @@
         if ($('tl-restore-password')) $('tl-restore-password').value = '';
         tlMessage(
           'tl-decrypt-status',
-          `✅ タイムロックの解禁・復号に成功しました！（検証済みラウンド: #${res.beacon.round} ／ 取得元: ${res.beaconEndpoint === 'manual' ? '手動入力ビーコン' : res.beaconEndpoint}）`
+          `✅ タイムカプセルの解禁・復号に成功しました！（検証済みラウンド: #${res.beacon.round} ／ 取得元: ${res.beaconEndpoint === 'manual' ? '手動入力ビーコン' : res.beaconEndpoint}）`
         );
       } catch (err) {
         if (myToken !== tlOpToken) return;
@@ -2196,7 +2196,7 @@
       switchToTimelockTab('decrypt');
       if ($('tl-restore-text')) $('tl-restore-text').value = text;
       refreshRestoreCapsulePreview();
-      tlMessage('tl-decrypt-status', '⏳ タイムロックデータを検出したため、タイムロック解禁・復元タブへ自動入力しました。');
+      tlMessage('tl-decrypt-status', '⏳ タイムカプセルデータを検出したため、タイムカプセル解禁・復元タブへ自動入力しました。');
     });
 
     document.addEventListener('cm-route-timelock-files', async (e) => {
@@ -2205,7 +2205,7 @@
       switchToTimelockTab('decrypt');
       try {
         await handleRestoreFiles(files);
-        tlMessage('tl-decrypt-status', '⏳ タイムロックファイル (.cmtl) を読み込みました。');
+        tlMessage('tl-decrypt-status', '⏳ タイムカプセルファイル (.cmtl) を読み込みました。');
       } catch (err) {
         tlMessage('tl-decrypt-status', err.message, true);
       }
@@ -2361,7 +2361,7 @@
 
             try {
               if (!target.bytes || !target.bytes.length || !target.armored) {
-                throw new Error('タイムロックシェアデータが不足しています。');
+                throw new Error('タイムカプセルシェアデータが不足しています。');
               }
               const meta = art.meta;
               const unlockDateStr = formatLocalDateTime(meta.unlockTimeMs);
@@ -2374,7 +2374,7 @@
                 const chunk = 8192;
                 for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
                 const shB64 = btoa(bin);
-                if (!shB64) throw new Error('タイムロックシェア(.cmtl)のエンコードに失敗しました。');
+                if (!shB64) throw new Error('タイムカプセルシェア(.cmtl)のエンコードに失敗しました。');
                 attachments.push({
                   filename: `${art.baseName}.share${idx}.cmtl`,
                   base64: shB64,
@@ -2427,13 +2427,13 @@
                 });
               }
 
-              const title = `CryptoPassKey - タイムロック - 秘密分散シェア #${idx}/${art.shamirN} (${unlockDateStr} 解禁)`;
+              const title = `CryptoPassKey - タイムカプセル - 秘密分散シェア #${idx}/${art.shamirN} (${unlockDateStr} 解禁)`;
               const baseAppUrl = window.location.href.split(/[?#]/)[0];
               const isHttpShare = /^https?:\/\//i.test(baseAppUrl);
               const activeSecret = ($('sim-secret')?.value || '').trim();
 
               const notes = [
-                `【CryptoPassKey タイムロック 秘密分散シェア #${idx}/${art.shamirN}】`,
+                `【CryptoPassKey タイムカプセル 秘密分散シェア #${idx}/${art.shamirN}】`,
                 `■ 解禁予定日時: ${unlockDateStr}`,
                 `■ 復元条件: 全${art.shamirN}シェア中 任意の${art.shamirM}シェアが必要`,
                 `■ 連動カード配列シード番号: #${art.seedNum || '0'}`,
@@ -2444,14 +2444,14 @@
                 target.armored,
                 '',
                 '【添付ファイルのご案内（原則全ファイル完全添付）】',
-                `1. タイムロックシェアバイナリ: ${art.baseName}.share${idx}.cmtl`,
-                `2. タイムロックシェアテキスト: ${art.baseName}.share${idx}.txt`,
-                ...(shareSvg ? [`3. タイムロックQRコード画像: ${art.baseName}-share${idx}-qr.png`] : []),
+                `1. タイムカプセルシェアバイナリ: ${art.baseName}.share${idx}.cmtl`,
+                `2. タイムカプセルシェアテキスト: ${art.baseName}.share${idx}.txt`,
+                ...(shareSvg ? [`3. タイムカプセルQRコード画像: ${art.baseName}-share${idx}-qr.png`] : []),
                 `4. リカバリーガイド: ${art.baseName}-recovery-guide.txt`,
                 ...(tlCreationKeyfileBytes ? [`5. KeePassキーファイル: ${tlCreationKeyfileName || 'timelock.key'}`] : []),
                 '',
                 '【復元方法】',
-                `他の${art.shamirM - 1}個のシェアと一緒にCryptoMatrixタイムロック復元タブに貼り付けて復号してください。`
+                `他の${art.shamirM - 1}個のシェアと一緒にCryptoMatrixタイムカプセル復元タブに貼り付けて復号してください。`
               ].join('\n');
 
               const transferFn = window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer;
@@ -2601,7 +2601,7 @@
       if (rep.isSec3) {
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
-            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムロックの開封に成功しました！</strong><br>
+            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>セクション3の暗号化バックアップ</strong>】です。<br>
             データはセクション3作成時の復元用パスワード等で安全に保護されたまま取り出されました。<br>
             上の<strong>『🔄 セクション3（バックアップ復元欄）へ送る』</strong>ボタンを押してセクション3へ移動し、復元用パスワードを入力して【読み込み・検証して内容を確認】を実行すると、元の全パスワード・設定・合言葉が復元されます。
@@ -2610,7 +2610,7 @@
       } else if (rep.isSec4) {
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
-            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムロックの開封に成功しました！</strong><br>
+            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>
             上の<strong>『🔄 セクション4（保管庫復号欄）へ送る』</strong>ボタンを押してセクション4へ移動し、復元用パスワードを入力して復号してください。
           </div>
@@ -2646,7 +2646,7 @@
     if (!trimmed) return false;
     const dearmored = dearmorTimelock(trimmed);
     if (!dearmored.length) {
-      throw new Error('読み取ったQRコードはタイムロックデータ（CRYPTOMATRIX TIMELOCK）ではありません。');
+      throw new Error('読み取ったQRコードはタイムカプセルデータ（CRYPTOMATRIX TIMELOCK）ではありません。');
     }
     const cur = ($('tl-restore-text')?.value || '').trim();
     if ($('tl-restore-text')) {
@@ -2703,7 +2703,7 @@
       video.srcObject = media;
       video.hidden = false;
       await video.play();
-      tlMessage('tl-decrypt-status', '📷 タイムロックQRコードをカメラに映してください…');
+      tlMessage('tl-decrypt-status', '📷 タイムカプセルQRコードをカメラに映してください…');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       const tick = async () => {

@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.28.8-transfer-time-capsule-update';
+const VERSION = 'cm-v2.28.9-fix-precache-missing-tests';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const ZXING_WASM_VERSION = '3.1.6';
 const ZXING_WASM_CACHE = 'data-transfer-zxing-wasm-' + ZXING_WASM_VERSION + '-pair-v2';
@@ -64,12 +64,6 @@ const FILES = [
   "timelock.js",
   "timelock-recover.html",
   "timesecret.js",
-  "test/",
-  "test/index.html",
-  "test/data-transfer-protocol.js",
-  "test/data-transfer-worker.js",
-  "test/data-transfer-zxing-loader.js",
-  "test/data-transfer-ui.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js"
 ];

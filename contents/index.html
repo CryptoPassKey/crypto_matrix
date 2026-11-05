@@ -74,8 +74,8 @@
     <div class="cm-subtitle cm-mono">CryptoPassKey<span class="cm-sub-extra"> | Secure · Private · Offline</span></div>
   </div>
   <div class="cm-tools cm-mono">
-    <button type="button" id="cm-airgap" class="cm-badge cm-b-green" title="パスワード生成・バックアップ・保管庫・タイムロック暗号化はすべて端末内で完結し、外部通信を一切行いません（タイムロック復号時に自動取得を選んだ場合のみdrand公開乱数ビーコンを取得します。手動ビーコン入力なら完全オフラインで復号可能です）。"><span class="cm-dot"></span><span class="cm-hide-sm">AIR-GAP READY · 通常通信 0</span></button>
-    <button type="button" id="cm-csp" class="cm-badge cm-b-cyan" title="CSP（コンテンツ・セキュリティ・ポリシー）により、任意の外部サーバーへの通信はブラウザレベルで遮断されています（タイムロック解禁確認用の公開drandエンドポイントのみ許可）。"><svg class="cm-ico-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="cm-hide-sm">CSP 通信保護</span></button>
+    <button type="button" id="cm-airgap" class="cm-badge cm-b-green" title="パスワード生成・バックアップ・保管庫・タイムカプセル暗号化はすべて端末内で完結し、外部通信を一切行いません（タイムカプセル復号時に自動取得を選んだ場合のみdrand公開乱数ビーコンを取得します。手動ビーコン入力なら完全オフラインで復号可能です）。"><span class="cm-dot"></span><span class="cm-hide-sm">AIR-GAP READY · 通常通信 0</span></button>
+    <button type="button" id="cm-csp" class="cm-badge cm-b-cyan" title="CSP（コンテンツ・セキュリティ・ポリシー）により、任意の外部サーバーへの通信はブラウザレベルで遮断されています（タイムカプセル解禁確認用の公開drandエンドポイントのみ許可）。"><svg class="cm-ico-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="cm-hide-sm">CSP 通信保護</span></button>
     <button type="button" id="cm-net" class="cm-badge"></button>
     <button type="button" id="cm-install" class="cm-btn"><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="cm-hide-sm" id="cm-install-label">アプリを追加</span></button>
     <button type="button" id="cm-help" class="cm-btn" disabled><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span class="cm-hide-sm">ヘルプ / チュートリアル</span></button>
@@ -661,7 +661,7 @@
         <button type="button" class="btn btn-outline" id="btn-save-seed-txt" style="padding:6px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
         <button type="button" class="btn btn-outline" id="btn-save-seed-qr" style="padding:6px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
         <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
-        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="現在のBIP39復元フレーズ（カード配列・レシピ設定）をタイムロックタブへ転記して時間暗号化します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
+        <button type="button" class="btn btn-outline" id="btn-sec2-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="現在のBIP39復元フレーズ（カード配列・レシピ設定）をタイムカプセルタブへ転記して時間暗号化します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
       </div>
 
       <div class="cloud-warning">
@@ -830,7 +830,7 @@
    <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>暗号化ファイル保存 (.cmenc)</button>
    <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" disabled title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
     <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1affbe; border-color:#1affb8; background:#192922;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>復元テスト欄へ転記</button>
-    <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムロックタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
+    <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムカプセルタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
             <button type="button" class="btn btn-outline" id="bq-transfer-timesecret" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムシークレットタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
    <button type="button" class="btn btn-secondary" id="bq-clear"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>表示消去</button>
   </div>
@@ -1116,7 +1116,7 @@
 <section class="section-card no-print" id="timelock-section" style="margin-top:24px; border:2px solid #f59e0b; background:#192129;">
   <h2 class="section-title" style="color:#fbbf24; border-bottom-color:#78350f;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span>5. タイムロック（Time Lock / Time Capsule）— 指定時刻まで開けない暗号化カプセル<button type="button" class="help-btn" aria-label="説明を表示" data-help="League of Entropyの分散型ランダムネスビーコン（drand quicknet / BLS12-381 IBE）を利用し、指定した未来の時刻（ラウンド）に到達するまで作成者本人も含め誰も復号できないタイムロック暗号を作成します。暗号化時は外部通信ゼロで完全オフライン動作し、復号時も手動ビーコン貼り付けによるエアギャップ復元に対応しています。">?</button></span>
+      <span>5. タイムカプセル（Time Lock / Time Capsule）— 指定時刻まで開けない暗号化カプセル<button type="button" class="help-btn" aria-label="説明を表示" data-help="League of Entropyの分散型ランダムネスビーコン（drand quicknet / BLS12-381 IBE）を利用し、指定した未来の時刻（ラウンド）に到達するまで作成者本人も含め誰も復号できないタイムカプセル暗号を作成します。暗号化時は外部通信ゼロで完全オフライン動作し、復号時も手動ビーコン貼り付けによるエアギャップ復元に対応しています。">?</button></span>
       <span class="mode-pill" style="background:#292119; color:#fbbf24; border-color:#f59e0b;">⏳ drand quicknet (tlock IBE) ＋ CME3 二重保護</span>
     </div>
   </h2>
@@ -1128,13 +1128,13 @@
 
   <!-- サブタブ切り替え（作成 ／ 解禁・復元） -->
   <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #304257; padding-bottom:8px; flex-wrap:wrap;">
-    <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムロック作成（カプセル封入）</button>
-    <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>タイムロック解禁・復元</button>
+    <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムカプセル作成（カプセル封入）</button>
+    <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>タイムカプセル解禁・復元</button>
     <a href="timelock-recover.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline" id="tl-btn-open-standalone-top" style="font-size:0.8rem; margin-left:auto; border-color:#38bdf8; color:#38bdf8; text-decoration:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>独立復元ツール (timelock-recover.html) を開く</a>
   </div>
 
   <!-- =========================================================
-       パネル1：タイムロック作成（8ステップ構成）
+       パネル1：タイムカプセル作成（8ステップ構成）
        ========================================================= -->
   <div id="tl-panel-encrypt">
 
@@ -1161,7 +1161,7 @@
       <!-- テキスト入力欄 -->
       <div id="tl-input-text-area">
         <label for="tl-text-content" style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:4px;">
-          タイムロックで封入するテキスト／パスワード／文章:
+          タイムカプセルで封入するテキスト／パスワード／文章:
         </label>
         <textarea id="tl-text-content" class="seed-textarea" style="min-height:90px;" placeholder="指定時刻まで封印したいパスワード、秘密のメモ、日本語文章、絵文字、複数行テキストなどを入力してください。"></textarea>
       </div>
@@ -1196,7 +1196,7 @@
           <input type="radio" name="tl-mode" id="tl-mode-a" value="A" style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
             <strong style="color:#38bdf8; font-size:0.88rem;">📦 タイムカプセル（時間解禁のみ — 指定時刻まで開封不可）</strong><br>
-            指定時刻（対象ラウンド）が到来するまで誰も復号できません。<strong>解禁時刻の到来後は、追加のタイムロック用パスワードなしで開封できます。</strong><br>
+            指定時刻（対象ラウンド）が到来するまで誰も復号できません。<strong>解禁時刻の到来後は、追加のタイムカプセル用パスワードなしで開封できます。</strong><br>
             <span style="color:#94a3b8; font-size:0.76rem;">※すでにパスワード保護されたセクション3/4の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に最適です。</span>
           </div>
         </label>
@@ -1283,7 +1283,7 @@
       <div class="bq-row" style="margin-bottom:10px;">
         <label for="tl-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N 分散保管）:</label>
         <select id="tl-shamir">
-          <option value="1-1" selected>分割なし（通常：1個のタイムロックカプセル）</option>
+          <option value="1-1" selected>分割なし（通常：1個のタイムカプセルカプセル）</option>
           <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個＋解禁時刻到来で復元）</option>
           <option value="2-2">2-of-2 秘密分散（全2シェア両方＋解禁時刻到来で復元）</option>
           <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3個＋解禁時刻到来で復元）</option>
@@ -1362,7 +1362,7 @@
           ⚠️ <strong>【重要警告：パスキー併用時のドメイン拘束と独立復元ツール制限】</strong><br>
           WebAuthnパスキー（PRF拡張）はブラウザ仕様により<strong>「現在のドメイン（同一オリジン）」に厳密に拘束</strong>されます。<br>
           ・パスキーを有効にしたカプセルは、<strong>このドメインでしか開けない可能性があり、単体HTMLの「独立復元ツール（timelock-recover.html）」や別ドメインでは復元できません。</strong><br>
-          ・数ヶ月〜数年後の長期タイムロック保管では、端末買い替えやドメイン変更で開けなくなるリスクがあるため、パスキーを使わず<strong>「パスワード ＋ キーファイル」または「Shamir秘密分散」</strong>のご利用を強く推奨します。<br>
+          ・数ヶ月〜数年後の長期タイムカプセル保管では、端末買い替えやドメイン変更で開けなくなるリスクがあるため、パスキーを使わず<strong>「パスワード ＋ キーファイル」または「Shamir秘密分散」</strong>のご利用を強く推奨します。<br>
           <div id="tl-passkey-manager" class="cm-passkey-manager-slot"></div>
         </div>
       </div>
@@ -1374,7 +1374,7 @@
     <!-- ステップ6：暗号化実行ボタン -->
     <div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <button type="button" class="btn" id="tl-btn-encrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700; background:#f59e0b; border-color:#d97706; color:#111827;">
-        ⏳ タイムロック・カプセルを作成（暗号化実行）
+        ⏳ タイムカプセル・カプセルを作成（暗号化実行）
       </button>
     </div>
 
@@ -1388,7 +1388,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
         <span style="font-weight:700; font-size:0.9rem; color:#fbbf24;">ステップ7：カプセルの保存 ＆ リカバリーガイド出力</span>
         <div class="bv-no-print" style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>タイムロック保存 (.cmtl)</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>タイムカプセル保存 (.cmtl)</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-txt" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
           <button type="button" class="btn btn-secondary" id="tl-btn-copy" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後消去）</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-qr" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
@@ -1402,7 +1402,7 @@
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div id="tl-qr-container" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
         <div style="flex:1; min-width:260px; max-width:100%; box-sizing:border-box;">
-          <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">タイムロック・アーマード文字列（CRYPTOMATRIX TIMELOCK）:</label>
+          <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">タイムカプセル・アーマード文字列（CRYPTOMATRIX TIMELOCK）:</label>
           <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; background:#111827; color:#f3f4f6; border:1px solid #374151; border-radius:6px; padding:8px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;"></textarea>
         </div>
       </div>
@@ -1412,12 +1412,12 @@
   </div>
 
   <!-- =========================================================
-       パネル2：タイムロック解禁・復元
+       パネル2：タイムカプセル解禁・復元
        ========================================================= -->
   <div id="tl-panel-decrypt" hidden>
     <div id="tl-restore-dropzone" style="background:#1b2027; border:1.5px dashed #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <label style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
-        1. タイムロックカプセル (.cmtl / .txt / QR) の読み込み（ドラッグ＆ドロップ対応）:
+        1. タイムカプセルカプセル (.cmtl / .txt / QR) の読み込み（ドラッグ＆ドロップ対応）:
       </label>
       <div class="bv-no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
         <label for="tl-restore-file" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; margin:0;">
@@ -1505,7 +1505,7 @@
 
     <div style="margin:12px 0;">
       <button type="button" class="btn" id="tl-btn-decrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700;">
-        🔓 タイムロック解禁・復号を実行
+        🔓 タイムカプセル解禁・復号を実行
       </button>
     </div>
 
@@ -1514,7 +1514,7 @@
     <!-- 復号結果表示エリア -->
     <div id="tl-decrypt-result" hidden style="margin-top:14px; padding:12px 14px; background:#064e3b; border-radius:8px; border:1.5px solid #10b981;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-        <span style="font-weight:700; font-size:0.9rem; color:#34d399;">✅ タイムロックの解禁・復号に成功しました！</span>
+        <span style="font-weight:700; font-size:0.9rem; color:#34d399;">✅ タイムカプセルの解禁・復号に成功しました！</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイルをダウンロード</button>
@@ -1534,7 +1534,7 @@
       <hr style="margin-bottom:14px; border:0; border-top:1px solid var(--border-color, #304257);">
       <p style="margin:0 0 10px; font-size:12px; line-height:1.8; color:var(--text-sub, #8fa3bf);">
         🔒 このアプリは<strong style="color:var(--accent, #34f58a);">ローカル完結・オフラインファースト設計</strong>です。
-        パスワード算出・バックアップ・保管庫・タイムロック暗号化はすべてお使いの端末内で完結し、外部サーバーへの通信は一切行いません（タイムロック復号時にオンライン取得を選択した場合のみ公開drand乱数ビーコンを取得します。手動ビーコン入力なら復号も完全オフラインで実行可能）。<br>
+        パスワード算出・バックアップ・保管庫・タイムカプセル暗号化はすべてお使いの端末内で完結し、外部サーバーへの通信は一切行いません（タイムカプセル復号時にオンライン取得を選択した場合のみ公開drand乱数ビーコンを取得します。手動ビーコン入力なら復号も完全オフラインで実行可能）。<br>
         シード・合言葉・生成パスワードが外部に送信されることはありません。機密性の高い操作は、ネットワークを切断した環境（エアギャップ）での利用を推奨します。
       </p>
       <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" style="color:#1aff78; font-weight:600; text-decoration:underline;">Contact us</a>
@@ -1875,7 +1875,7 @@
   </div></section>
   <section aria-label="設定">
     <div class="cm-tablist" role="tablist">
-      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムロック</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><svg class="cm-tab-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>データ転送</button>
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">暗号化 / バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムカプセル</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><svg class="cm-tab-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>データ転送</button>
     </div>
     <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
     <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>

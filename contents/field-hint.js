@@ -126,10 +126,14 @@
     function onEdit() { clearField(fieldId); }
     el.addEventListener('input', onEdit, { once: true });
     el.addEventListener('change', onEdit, { once: true });
-    // Bring the field into view without focusing it, so mobile keyboards
-    // do not pop up unasked.
-    if (el.offsetParent !== null && typeof el.scrollIntoView === 'function') {
-      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Scroll only when the field is actually outside the viewport (an
+    // already-visible field must not make the screen jump), and never
+    // focus it, so mobile keyboards do not pop up unasked.
+    if (el.offsetParent !== null && typeof el.scrollIntoView === 'function' && typeof el.getBoundingClientRect === 'function') {
+      var rect = el.getBoundingClientRect();
+      var viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
+      var inView = rect.top >= 0 && rect.bottom <= viewportH;
+      if (!inView) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }
 

@@ -3224,3 +3224,20 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 
 /* Unit 1 (2026-11-07): legacy hero demoted to a section heading; the shell title is canonical */
 .cm-legacy .container h2.cm-legacy-hero-title { font-size: 1.06rem; font-weight: 700; line-height: 1.3; margin: 0 0 3px; text-align: left; letter-spacing: 0.02em; }
+
+/* =====================================================================
+ * Unit 3 (2026-11-07): button geometry unification
+ * Radius and padding only — colours, borders and hover states keep
+ * each area's identity. Buttons with inline padding styles keep
+ * their local tuning (inline styles win over these rules).
+ * ===================================================================== */
+:root {
+  --cm-btn-radius: 8px;
+  --cm-btn-pad: 9px 15px;
+  --cm-btn-sm-pad: 7px 12px;
+}
+.cm-legacy .btn { border-radius: var(--cm-btn-radius); padding: var(--cm-btn-pad); }
+#timesecret-section .ts-btn { border-radius: var(--cm-btn-radius); padding: var(--cm-btn-pad); }
+#datatransfer-section .dt-btn { border-radius: var(--cm-btn-radius); padding: var(--cm-btn-pad); }
+#timesecret-section .ts-btn-sm { padding: var(--cm-btn-sm-pad); }
+#datatransfer-section .dt-btn-sm { padding: var(--cm-btn-sm-pad); }

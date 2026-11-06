@@ -21,6 +21,9 @@
   const QR_MAX_CHARS = 2200;
 
   let tlOpToken = 0;
+  // UI-only owner counter for the decrypt button's disabled state (D3-2):
+  // a stale run's finally must not re-enable the button of a newer run.
+  let tlDecryptUiToken = 0;
   let tlSelectedFile = null;
   let tlSelectedFileBytes = null;
   let tlTransferredPayload = null; // { source: 'sec3'|'sec4', label, bytes, armoredText, factorLabel, shamirM, shamirN, createdPassword, filename }
@@ -2083,6 +2086,8 @@
     // Execute Decryption
     $('tl-btn-decrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
+      const myUiToken = ++tlDecryptUiToken;
+      if ($('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = true;
       tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
@@ -2144,6 +2149,8 @@
       } catch (err) {
         if (myToken !== tlOpToken) return;
         tlMessage('tl-decrypt-status', err.message || String(err), true);
+      } finally {
+        if (myUiToken === tlDecryptUiToken && $('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = false;
       }
     });
 

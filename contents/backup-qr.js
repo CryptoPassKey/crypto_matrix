@@ -1503,7 +1503,7 @@ async function ingest(text){
 
    document.dispatchEvent(new CustomEvent('cm-route-timelock-text',{detail:{text:trimmed}}));
 
-   message('bq-scan-status','タイムロック（⏳ タイムロックタブ）のデータを検出したため、解禁・復元欄へ自動的に移動しました。');
+   message('bq-scan-status','タイムカプセル（⏳ タイムカプセルタブ）のデータを検出したため、解禁・復元欄へ自動的に移動しました。');
 
    return true;
 
@@ -3633,7 +3633,7 @@ function initBonusVault(){
      tlAllBtn.id='bv-btn-tl-all';
      tlAllBtn.type='button';tlAllBtn.className='btn btn-outline bv-no-print';
      tlAllBtn.style.cssText='font-size:0.78rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;';
-     tlAllBtn.textContent='⏳ 全シェアをタイムロックへ転記';
+     tlAllBtn.textContent='⏳ 全シェアをタイムカプセルへ転記';
      tlAllBtn.addEventListener('click',()=>{
       if(window.TimeLockApp?.receiveTransferredPayload){
        const allArmored=shares.map(s=>s.arm).join('\n\n');
@@ -3767,7 +3767,7 @@ function initBonusVault(){
              <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
               <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePassに新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
-              <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムロックタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムロックへ転記</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムカプセルタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
               <button type="button" class="btn btn-outline" id="bv-btn-ts-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" title="この暗号化データを復号・削除せずそのままタイムシークレットタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
 
              ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>表示切替（PGP ⇄ BIP39）</button>`:''}
@@ -4426,7 +4426,7 @@ function initBonusVault(){
      }else if(rawFiles&&rawFiles.length){
       document.dispatchEvent(new CustomEvent('cm-route-timelock-files',{detail:{files:rawFiles}}));
      }
-     bvMessage('bv-decrypt-status','⏳ タイムロックカプセル (.cmtl) を検出したため、「⏳ タイムロック」タブへ移動しました。');
+     bvMessage('bv-decrypt-status','⏳ タイムカプセル (.cmtl) を検出したため、「⏳ タイムカプセル」タブへ移動しました。');
      return;
     }
    }
@@ -5323,7 +5323,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     createdPassword:artifact.createdPassword||'',
     filename:artifact.shamirN>1?`cryptomatrix-backup-${artifact.shamirM}of${artifact.shamirN}.txt`:'cryptomatrix-encrypted-backup.cmenc'
    });
-   message('bq-status','⏳ 作成された暗号化バックアップを復号・削除せず「⏳ タイムロック」タブへ転記しました。');
+   message('bq-status','⏳ 作成された暗号化バックアップを復号・削除せず「⏳ タイムカプセル」タブへ転記しました。');
   });
 
   $('bq-transfer-timesecret')?.addEventListener('click',()=>{

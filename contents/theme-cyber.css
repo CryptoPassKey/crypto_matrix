@@ -99,6 +99,13 @@ body { padding: 0 !important; }
 /* keep heavy inline light boxes readable */
 html:not(.light) .cm-legacy [style*="background:#f"], html:not(.light) .cm-legacy [style*="background: #f"] { background: #0f1828 !important; }
 
+/* T2-1: 保管庫の生成バー／カードはクラスでテーマ追随（旧 [style*= 依存を置換。
+   ダークは従来の汎用塗り替えと同じ #0f1828、ライトは app.css の保持ルールと同じ値） */
+html:not(.light) .cm-legacy .cm-bq-bar { background: #0f1828 !important; }
+html.light .cm-legacy .cm-bq-bar { background: #f1f5f9 !important; }
+html:not(.light) .cm-legacy .cm-bq-card { background: #0f1828 !important; }
+html.light .cm-legacy .cm-bq-card { background: #f8fafc !important; }
+
 @media print {
   html, body { background: #fff !important; color: #000 !important; }
   .cm-app > header, [role="tablist"] { display: none !important; }
@@ -485,11 +492,15 @@ html.light .duress-modal-header { background: #f1f5f9 !important; border-bottom-
 html.light .duress-modal-header h3 { color: #1e293b !important; }
 html.light .duress-modal-close { color: #475569 !important; }
 html.light .duress-modal-body, html.light .duress-modal-body * { color: #1e293b !important; }
-html.light .duress-modal-body [style*="background:#292619"], html.light .duress-modal-body [style*="background: #292619"] {
-  background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important;
-}
-html.light .duress-modal-body [style*="background:#292619"] *, html.light .duress-modal-body [style*="background: #292619"] * { color: #7c600f !important; }
-html.light .duress-modal-body [style*="color:#6d87ac"], html.light .duress-modal-body [style*="color: #6d87ac"] { color: #526077 !important; }
+/* T2-1: おとりモーダルの警告ボックス／補足テキストはクラスでテーマ追随（旧 [style*= 塗り替えを置換）。
+   注意: ライト側の実効値は、現行カスケードでダイアログ側の汎用ルールが優先された結果の値。
+   旧ルールが宣言していた警告色（#fdf3d7／#7c600f 等）は現行では実効しておらず、見た目を変えないため
+   そのまま持ち越さない。警告表現の再設計は T2-5 で扱う。 */
+.duress-modal-body .cm-duress-warn { background: #292619; }
+html.light .duress-modal-body .cm-duress-warn { background: #f4f7fb !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .duress-modal-body .cm-duress-warn *:not(button):not(button *) { color: #1e293b !important; }
+.duress-modal-body .cm-duress-muted { color: #6d87ac; }
+html.light .duress-modal-body .cm-duress-muted { color: #1e293b !important; }
 html.light .duress-modal-body input, html.light .duress-modal-body select, html.light .duress-modal-body textarea { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
 
 /* ===== Light mode: on-screen QR + remaining warning boxes ===== */
@@ -1168,35 +1179,23 @@ html.light .tl-guide-banner strong {
   color: #047857 !important;
 }
 
-/* Color remapping for Light Mode readability (excluding buttons) */
-html.light #timelock-section *:not(button):not(button *)[style*="color:#fbbf24"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #fbbf24"] {
-  color: #b45309 !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#38bdf8"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #38bdf8"] {
-  color: #0369a1 !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#34d399"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #34d399"] {
-  color: #047857 !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#93c5fd"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #93c5fd"] {
-  color: #1e3a8a !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#94a3b8"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #94a3b8"] {
-  color: #475569 !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#fcd34d"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #fcd34d"] {
-  color: #92400e !important;
-}
-html.light #timelock-section *:not(button):not(button *)[style*="color:#d1d5db"],
-html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"] {
-  color: #334155 !important;
-}
+/* T2-1: タイムカプセル内の色テキストはクラスでテーマ追随（旧 [style*= 塗り替えを置換）。
+   ダーク側は通常指定とし、.section-title の !important が優先される現行の競合関係を保存する。
+   ライト側は旧リマップと同じ !important で従来の計算値を維持する。 */
+.cm-legacy #timelock-section .tl-ink-amber { color: #fbbf24; }
+.cm-legacy #timelock-section .tl-ink-sky { color: #38bdf8; }
+.cm-legacy #timelock-section .tl-ink-emerald { color: #34d399; }
+.cm-legacy #timelock-section .tl-ink-blue { color: #93c5fd; }
+.cm-legacy #timelock-section .tl-ink-slate { color: #94a3b8; }
+.cm-legacy #timelock-section .tl-ink-yellow { color: #fcd34d; }
+.cm-legacy #timelock-section .tl-ink-gray { color: #d1d5db; }
+html.light .cm-legacy #timelock-section .tl-ink-amber { color: #b45309 !important; }
+html.light .cm-legacy #timelock-section .tl-ink-sky { color: #0369a1 !important; }
+html.light .cm-legacy #timelock-section .tl-ink-emerald { color: #047857 !important; }
+html.light .cm-legacy #timelock-section .tl-ink-blue { color: #1e3a8a !important; }
+html.light .cm-legacy #timelock-section .tl-ink-slate { color: #475569 !important; }
+html.light .cm-legacy #timelock-section .tl-ink-yellow { color: #92400e !important; }
+html.light .cm-legacy #timelock-section .tl-ink-gray { color: #334155 !important; }
 
 /* Ensure action buttons always keep white text */
 #tl-route-sec3, #tl-route-sec4,
@@ -1267,11 +1266,10 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
   word-break: break-all !important;
 }
 
-/* Prevent flex columns holding textareas / outputs from expanding wider than card */
-.cm-legacy #bonus-vault div[style*="min-width:240px"],
-.cm-legacy #timelock-section div[style*="min-width:260px"],
-.cm-legacy #bonus-vault div[style*="min-width: 240px"],
-.cm-legacy #timelock-section div[style*="min-width: 260px"] {
+/* Prevent flex columns holding textareas / outputs from expanding wider than card
+   T2-1: 対象はクラスで指定（旧 [style*= 塗り替えを置換） */
+.cm-legacy #bonus-vault .cm-pane-flex,
+.cm-legacy #timelock-section .cm-pane-flex {
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
@@ -1291,10 +1289,9 @@ html.light #timelock-section *:not(button):not(button *)[style*="color: #d1d5db"
     margin: 0 auto 10px auto !important;
     align-self: center !important;
   }
-  .cm-legacy #bonus-vault div[style*="min-width:240px"],
-  .cm-legacy #timelock-section div[style*="min-width:260px"],
-  .cm-legacy #bonus-vault div[style*="min-width: 240px"],
-  .cm-legacy #timelock-section div[style*="min-width: 260px"] {
+  /* T2-1: 対象はクラスで指定（旧 [style*= 塗り替えを置換） */
+  .cm-legacy #bonus-vault .cm-pane-flex,
+  .cm-legacy #timelock-section .cm-pane-flex {
     width: 100% !important;
     min-width: 0 !important;
     flex-basis: 100% !important;

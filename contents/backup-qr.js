@@ -1177,7 +1177,7 @@ async function review(){
 
    document.dispatchEvent(new CustomEvent('cm-route-vault-text',{detail:{text}}));
 
-   message('bq-scan-status','保管庫（セクション4）のデータを検出したため、復号欄へ自動的に移動しました。');
+   message('bq-scan-status','保管庫のデータを検出したため、復号欄へ自動的に移動しました。');
 
    return;
 
@@ -1349,7 +1349,7 @@ async function applyRestore(){
 
   const shamirNote=d.shamir?`・秘密分散 ${d.shamir.m}-of-${d.shamir.n} 合成済み`:'';
 
-  const pk2WarnNote=d.isLegacyPK2Migrated?'\n\n⚠️【データ救出完了】以前のパスキー保護形式から復元されました。安全のため、速やかにセクション3にて最新のバックアップ（パスキーまたはパスワード保護）を再作成してください。':'';
+  const pk2WarnNote=d.isLegacyPK2Migrated?'\n\n⚠️【データ救出完了】以前のパスキー保護形式から復元されました。安全のため、速やかに「拡張バックアップ」で最新のバックアップ（パスキーまたはパスワード保護）を再作成してください。':'';
 
   message('bq-scan-status',(d.full
 
@@ -1494,7 +1494,7 @@ async function ingest(text){
 
    document.dispatchEvent(new CustomEvent('cm-route-vault-text',{detail:{text:trimmed}}));
 
-   message('bq-scan-status','保管庫（セクション4）のデータを検出したため、復号欄へ自動的に移動しました。');
+   message('bq-scan-status','保管庫のデータを検出したため、復号欄へ自動的に移動しました。');
 
    return true;
 
@@ -3611,7 +3611,7 @@ function initBonusVault(){
        const allArmored=shares.map(s=>s.arm).join('\n\n');
        window.TimeLockApp.receiveTransferredPayload({
         source:'sec4',
-        label:`セクション4 保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
+        label:`保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
         bytes:enc.encode(allArmored),
         armoredText:allArmored,
         factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
@@ -3634,7 +3634,7 @@ function initBonusVault(){
        const allArmored=shares.map(s=>s.arm).join('\n\n');
        window.TimeSecretApp.receiveTransferredPayload({
         source:'sec4',
-        label:`セクション4 保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
+        label:`保管庫データ（秘密分散 ${shamirM}-of-${shamirN}）`,
         bytes:enc.encode(allArmored),
         armoredText:allArmored,
         factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
@@ -3811,7 +3811,7 @@ function initBonusVault(){
       if(window.TimeLockApp?.receiveTransferredPayload){
        window.TimeLockApp.receiveTransferredPayload({
         source:'sec4',
-        label:isFile?`セクション4 暗号化ファイル (${name})`:'セクション4 保管庫暗号化データ',
+        label:isFile?`保管庫 暗号化ファイル (${name})`:'保管庫暗号化データ',
         bytes:singleBytesCopy.slice(),
         armoredText:armored,
         factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
@@ -3826,7 +3826,7 @@ function initBonusVault(){
       if(window.TimeSecretApp?.receiveTransferredPayload){
        window.TimeSecretApp.receiveTransferredPayload({
         source:'sec4',
-        label:isFile?`セクション4 暗号化ファイル (${name})`:'セクション4 保管庫暗号化データ',
+        label:isFile?`保管庫 暗号化ファイル (${name})`:'保管庫暗号化データ',
         bytes:singleBytesCopy.slice(),
         armoredText:armored,
         factorLabel:$('bv-protection-badge')?.textContent?.replace(/^現在の保護方式：/,'')||'暗号化済み',
@@ -4710,7 +4710,7 @@ function initBonusVault(){
 
    document.dispatchEvent(new CustomEvent('cm-route-backup-text',{detail:{text:trimmed}}));
 
-   bvMessage('bv-decrypt-status','セクション3の暗号化バックアップを検出したため、復元欄へ自動的に移動しました。');
+   bvMessage('bv-decrypt-status','拡張バックアップを検出したため、復元欄へ自動的に移動しました。');
 
    return true;
 
@@ -5241,7 +5241,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     :(artifact.rawBytes?artifact.rawBytes.slice():enc.encode(payloadStr));
    window.TimeLockApp.receiveTransferredPayload({
     source:'sec3',
-    label:artifact.extended?'セクション3 拡張暗号化バックアップ':'セクション3 暗号化バックアップ',
+    label:artifact.extended?'拡張暗号化バックアップ':'暗号化バックアップ',
     bytes:payloadBytes,
     armoredText:payloadStr,
     factorLabel:artifact.factorLabel||'暗号化済み',
@@ -5261,7 +5261,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     :(artifact.rawBytes?artifact.rawBytes.slice():enc.encode(payloadStr));
    window.TimeSecretApp.receiveTransferredPayload({
     source:'sec3',
-    label:artifact.extended?'セクション3 拡張暗号化バックアップ':'セクション3 暗号化バックアップ',
+    label:artifact.extended?'拡張暗号化バックアップ':'暗号化バックアップ',
     bytes:payloadBytes,
     armoredText:payloadStr,
     factorLabel:artifact.factorLabel||'暗号化済み',
@@ -5282,7 +5282,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const siteVal=($('sim-site')?.value||'').trim();
   const cardPw=($('sim-output-pw')?.textContent||'').trim();
   const existingBqPw=($('bq-password')?.value||'').trim();
-  // セクション3のKeePass保存ではブラウザ標準promptを使わず、生成済み／入力済みの値を自動転送する。
+  // 拡張バックアップのKeePass保存ではブラウザ標準promptを使わず、生成済み／入力済みの値を自動転送する。
   const restorePw=artifact.usePass?(existingBqPw||String(artifact.createdPassword||'').trim()||cardPw||''):'';
   if(artifact.usePass&&!restorePw){
    message('bq-status','KeePass転送を中止しました。復元用パスワードはKeePassの保護されたパスワード欄に保存するため、入力が必要です。',true);

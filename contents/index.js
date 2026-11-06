@@ -2664,7 +2664,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     ITEMS: {
       2: {
-        title: '⚠️ セクション2：シード・レシピ管理の重要事項と同意確認',
+        title: '⚠️ シード・レシピ管理の重要事項と同意確認',
         intro: 'シードフレーズの再生成や復元を実行する前に、以下の決定論的導出の原則と自己管理リスクをご確認ください。',
         ack: 'シード番号やレシピ設定を失うと同じパスワードを再現不能になること、および安全な自己保管が必要であることを確認・同意しました',
         list: [
@@ -2674,7 +2674,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       },
       3: {
-        title: '⚠️ セクション3：暗号化バックアップ作成前の同意確認',
+        title: '⚠️ 暗号化バックアップ作成前の同意確認',
         intro: '暗号化バックアップを作成する前に、復元鍵の管理と暗号学的不可逆性をご確認ください。',
         ack: 'バックアップデータまたは復元鍵を失った場合は一切復元不能になること、および分散保管の重要性を確認・同意しました',
         list: [
@@ -2684,7 +2684,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       },
       4: {
-        title: '⚠️ セクション4：保管庫（Vault）暗号化作成前の同意確認',
+        title: '⚠️ 保管庫（Vault）暗号化作成前の同意確認',
         intro: '保管庫の暗号化を実行する前に、ゼロ知識暗号化と復号救出不能の原則をご確認ください。',
         ack: '復元鍵（パスワード・キーファイル・パスキー等）を失った場合は一切復号救出できないことを確認・同意しました',
         list: [
@@ -2694,7 +2694,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       },
       5: {
-        title: '⚠️ セクション5：タイムロック・カプセル作成前の同意確認',
+        title: '⚠️ タイムロック・カプセル作成前の同意確認',
         intro: 'タイムロックを作成する前に、時間暗号化（drand）の不可逆性とデータ保管をご確認ください。',
         ack: '指定時刻まで開封不能であること、およびカプセルデータと復元鍵の自己保管が必要であることを確認・同意しました',
         list: [
@@ -5663,7 +5663,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.TimeLockApp.receiveTransferredPayload({
       source: 'sec2',
-      label: 'セクション2 BIP39復元フレーズ（カード・レシピ設定）',
+      label: 'BIP39復元フレーズ（カード・レシピ設定）',
       bytes: new TextEncoder().encode(text),
       armoredText: text,
       factorLabel: '平文（未暗号化）',

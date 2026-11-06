@@ -873,8 +873,8 @@
   }
 
   function payloadKindLabel(kind) {
-    if (kind === 'sec3_backup') return 'セクション3 暗号化バックアップデータ（二重保護）';
-    if (kind === 'sec4_vault') return 'セクション4 セキュア保管庫暗号化データ（二重保護）';
+    if (kind === 'sec3_backup') return '暗号化バックアップデータ（二重保護）';
+    if (kind === 'sec4_vault') return 'セキュア保管庫暗号化データ（二重保護）';
     if (kind === 'file') return 'バイナリファイル';
     return 'テキスト／パスワード／メモ';
   }
@@ -975,7 +975,7 @@
         <div style="font-size:0.8rem; color:#d1d5db; line-height:1.5;">
           ・データサイズ：<strong>${p.bytes.length.toLocaleString()} bytes</strong>（ファイル名：<code>${escapeHtml(p.filename)}</code>）<br>
           ・内側の既存保護：<strong>${escapeHtml(p.factorLabel)}</strong>${p.shamirN > 1 ? ` ＋ 秘密分散 (${p.shamirM}-of-${p.shamirN})` : ''}<br>
-          ・<strong>保護構造の説明：</strong> ${isSec2 ? 'セクション2のBIP39復元フレーズ（カード配列・レシピ設定）は未暗号化の平文データです。タイムカプセルによって暗号化カプセルとして保護されます。' : `内側の暗号化（${escapeHtml(p.factorLabel)}）はそのまま保護され、さらにタイムカプセル暗号が追加されます。`}<br>
+          ・<strong>保護構造の説明：</strong> ${isSec2 ? 'BIP39復元フレーズ（カード配列・レシピ設定）は未暗号化の平文データです。タイムカプセルによって暗号化カプセルとして保護されます。' : `内側の暗号化（${escapeHtml(p.factorLabel)}）はそのまま保護され、さらにタイムカプセル暗号が追加されます。`}<br>
           　→ <strong>タイムカプセル（時間解禁のみ）</strong>を選ぶと、解禁時刻後にそのまま中身を取り出せます（追加パスワード不要）。<br>
           　→ <strong>パスワード付きタイムカプセル</strong>を選ぶと、タイムカプセル解除時にも追加のパスワード等の保護要素を設定できます。
         </div>
@@ -1557,7 +1557,7 @@
             throw new Error('キーファイルを選択するか、「KeePassキーファイル(.key)生成」を実行してください。');
           }
 
-          // 二重暗号・おとりスロット設定（セクション3・4と同一のポップアップ）
+          // 二重暗号・おとりスロット設定（拡張バックアップ・保管庫と同一のポップアップ）
           const skipDuress = (localStorage.getItem('cm_skip_duress_popup') === 'true') || window.__SKIP_DURESS_MODAL__;
           if (!skipDuress && usePassword) {
             if (typeof window.showDuressModal === 'function') {
@@ -2177,7 +2177,7 @@
       const tabBackup = document.querySelector('.cm-tab[aria-controls="tab-backup"]');
       if (tabBackup) tabBackup.click();
       document.dispatchEvent(new CustomEvent('cm-route-backup-text', { detail: { text: rep.textToCopy } }));
-      tlMessage('tl-decrypt-status', '✅ セクション3（暗号化バックアップ復元欄）へ転送しました。復元用パスワードを入力して復元してください。');
+      tlMessage('tl-decrypt-status', '✅ 「暗号化 / バックアップ」タブの復元欄へ転送しました。復元用パスワードを入力して復元してください。');
     });
 
     $('tl-route-sec4')?.addEventListener('click', () => {
@@ -2186,10 +2186,10 @@
       const tabVault = document.querySelector('.cm-tab[aria-controls="tab-vault"]');
       if (tabVault) tabVault.click();
       document.dispatchEvent(new CustomEvent('cm-route-vault-text', { detail: { text: rep.textToCopy } }));
-      tlMessage('tl-decrypt-status', '✅ セクション4（セキュア保管庫復元欄）へ転送しました。復元用パスワードを入力して復元してください。');
+      tlMessage('tl-decrypt-status', '✅ 「セキュア保管庫」タブの復号欄へ転送しました。復元用パスワードを入力して復元してください。');
     });
 
-    // Listen for routed timelock text/files from Section 3 / Section 4
+    // Listen for routed timelock text/files from the backup / vault sections
     document.addEventListener('cm-route-timelock-text', (e) => {
       const text = e.detail?.text;
       if (!text) return;
@@ -2602,17 +2602,17 @@
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
             <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
-            カプセルの中に封入されていたのは【<strong>セクション3の暗号化バックアップ</strong>】です。<br>
-            データはセクション3作成時の復元用パスワード等で安全に保護されたまま取り出されました。<br>
-            上の<strong>『🔄 セクション3（バックアップ復元欄）へ送る』</strong>ボタンを押してセクション3へ移動し、復元用パスワードを入力して【読み込み・検証して内容を確認】を実行すると、元の全パスワード・設定・合言葉が復元されます。
+            カプセルの中に封入されていたのは【<strong>拡張バックアップ</strong>】です。<br>
+            データは拡張バックアップ作成時の復元用パスワード等で安全に保護されたまま取り出されました。<br>
+            上の<strong>『🔄 拡張バックアップ（復元欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して【読み込み・検証して内容を確認】を実行すると、元の全パスワード・設定・合言葉が復元されます。
           </div>
         `;
       } else if (rep.isSec4) {
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
             <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
-            カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>
-            上の<strong>『🔄 セクション4（保管庫復号欄）へ送る』</strong>ボタンを押してセクション4へ移動し、復元用パスワードを入力して復号してください。
+            カプセルの中に封入されていたのは【<strong>セキュア保管庫の暗号化データ</strong>】です。<br>
+            上の<strong>『🔄 セキュア保管庫（復号欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して復号してください。
           </div>
         `;
       }

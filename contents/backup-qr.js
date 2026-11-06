@@ -2318,6 +2318,12 @@ function initBonusVault(){
 
  let bvOpToken = 0;
 
+ // UI-only owner counter for the decrypt button's disabled state (D3-2).
+ // bvOpToken is shared with the encrypt handler, so it cannot decide who
+ // owns the button: a cross-handler bump must not leave the button stuck,
+ // and a stale decrypt finally must not re-enable a newer decrypt run.
+ let bvDecryptUiToken = 0;
+
 
 
  let vaultKeyfileBytes=null,vaultKeyfileName='';
@@ -4259,7 +4265,12 @@ function initBonusVault(){
 
   let resultCommitted = false;
 
+  // Disable immediately before the try: everything above is synchronous
+  // (no double-click can interleave), and this way the finally below is
+  // guaranteed to run and restore the button (PR #95 review note).
+  const myUiToken = ++bvDecryptUiToken;
 
+  if($('bv-btn-decrypt'))$('bv-btn-decrypt').disabled=true;
 
   try {
 
@@ -4637,6 +4648,8 @@ function initBonusVault(){
    scrubAllSensitive();
 
    if (!resultCommitted && lastDecryptedResult === unpacked) lastDecryptedResult = null;
+
+   if (myUiToken === bvDecryptUiToken && $('bv-btn-decrypt')) $('bv-btn-decrypt').disabled=false;
 
   }
 

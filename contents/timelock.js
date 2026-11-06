@@ -21,6 +21,9 @@
   const QR_MAX_CHARS = 2200;
 
   let tlOpToken = 0;
+  // UI-only owner counter for the decrypt button's disabled state (D3-2):
+  // a stale run's finally must not re-enable the button of a newer run.
+  let tlDecryptUiToken = 0;
   let tlSelectedFile = null;
   let tlSelectedFileBytes = null;
   let tlTransferredPayload = null; // { source: 'sec3'|'sec4', label, bytes, armoredText, factorLabel, shamirM, shamirN, createdPassword, filename }
@@ -2086,6 +2089,10 @@
       tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
+      // Disable immediately before the try (same reasoning as the vault
+      // handler): the finally is then guaranteed to restore the button.
+      const myUiToken = ++tlDecryptUiToken;
+      if ($('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = true;
       try {
         const packets = collectRestorePacketsFromInput();
         if (!packets.length) {
@@ -2144,6 +2151,8 @@
       } catch (err) {
         if (myToken !== tlOpToken) return;
         tlMessage('tl-decrypt-status', err.message || String(err), true);
+      } finally {
+        if (myUiToken === tlDecryptUiToken && $('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = false;
       }
     });
 

@@ -3260,6 +3260,14 @@ module.exports = QRCode;
 
     // Visibility & pagehide cleanup
     if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      // Unit D4-1: pause TX playback when the data-transfer tab is left.
+      // stopTx is the same pause the pause button uses (position kept);
+      // it never auto-resumes — the user presses play again.
+      document.addEventListener('cm-tab-changed', function (e) {
+        if (e && e.detail && e.detail.active !== 'tab-datatransfer' && txPlaying) {
+          stopTx('タブを切り替えたため、送信を一時停止しました。再開するには「送信開始」を押してください。');
+        }
+      });
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
           if (txPlaying) {

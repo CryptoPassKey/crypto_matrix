@@ -1678,7 +1678,7 @@ async function startCamera(){
 
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
 
-  const tick=async()=>{if(epoch!==cameraEpoch)return;try{if(video.readyState>=2&&video.videoWidth){const scale=Math.min(1,1400/video.videoWidth);canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);ctx.drawImage(video,0,0,canvas.width,canvas.height);for(const text of await decode(canvas)){if(epoch!==cameraEpoch)return;if(await ingest(text))return;}}}catch(e){if(epoch===cameraEpoch)message('bq-scan-status',e.message,true);}if(epoch===cameraEpoch)timer=setTimeout(tick,250);};void tick();
+  const tick=async()=>{if(epoch!==cameraEpoch)return;try{if(video.readyState>=2&&video.videoWidth){const scale=Math.min(1,1400/video.videoWidth);canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);ctx.drawImage(video,0,0,canvas.width,canvas.height);for(const text of await decode(canvas)){if(epoch!==cameraEpoch)return;if(await ingest(text)){stopCamera();return;}}}}catch(e){if(epoch===cameraEpoch)message('bq-scan-status',e.message,true);}if(epoch===cameraEpoch)timer=setTimeout(tick,250);};void tick();
 
  }catch(e){if(epoch!==cameraEpoch)return;stopCamera();message('bq-scan-status',e.name==='NotAllowedError'?'カメラが許可されていません。ブラウザのカメラ権限を確認するか、QR画像・24単語入力を使ってください。':e.message,true);}
 
@@ -5944,9 +5944,14 @@ document.addEventListener('DOMContentLoaded',()=>{
    }
   });
 
-  window.addEventListener('pagehide',()=>stopCamera());
+  window.addEventListener('pagehide',()=>{stopCamera();if(typeof bvStopCamera==='function')bvStopCamera();});
 
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')stopCamera();});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){stopCamera();if(typeof bvStopCamera==='function')bvStopCamera();}});
+
+  // Unit D4-1: stop this file's cameras when their tab is left. The stop
+  // functions are idempotent, so overlapping triggers (tab switch, page
+  // hide, scan-result routing) are safe. Other features are untouched.
+  document.addEventListener('cm-tab-changed',e=>{const a=e&&e.detail&&e.detail.active;if(a!=='tab-backup')stopCamera();if(a!=='tab-vault'&&typeof bvStopCamera==='function')bvStopCamera();});
 
  });
 

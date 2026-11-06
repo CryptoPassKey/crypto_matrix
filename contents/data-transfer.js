@@ -2303,7 +2303,7 @@ module.exports = QRCode;
       setStatus('dt-rx-status',
         stream
           ? '受信状態をリセットしました。送信側でQRコードの連続表示を先頭から開始してください。'
-          : '待機中です。「カメラを起動」を押し、送信側でQRコードの連続表示を開始してください。',
+          : '待機中です。「カメラでQRを読み取る」を押し、送信側でQRコードの連続表示を開始してください。',
         'info');
     }
 
@@ -3214,7 +3214,7 @@ module.exports = QRCode;
     if ($('dt-start-camera')) $('dt-start-camera').addEventListener('click', startCamera);
     if ($('dt-stop-camera')) {
       $('dt-stop-camera').addEventListener('click', function () {
-        stopCamera('カメラを停止しました。再開するには「カメラを起動」を押してください。');
+        stopCamera('カメラを停止しました。再開するには「カメラでQRを読み取る」を押してください。');
       });
     }
     if ($('dt-reset-rx')) $('dt-reset-rx').addEventListener('click', resetRx);

@@ -3241,3 +3241,33 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 #datatransfer-section .dt-btn { border-radius: var(--cm-btn-radius); padding: var(--cm-btn-pad); }
 #timesecret-section .ts-btn-sm { padding: var(--cm-btn-sm-pad); }
 #datatransfer-section .dt-btn-sm { padding: var(--cm-btn-sm-pad); }
+
+/* =====================================================================
+ * Unit 4 (2026-11-07): mobile touch targets & small-screen layout
+ * Everything below applies only to touch devices or narrow screens;
+ * the desktop layout is untouched.
+ * ===================================================================== */
+@media (pointer: coarse) {
+  /* Standard buttons reach a 44px touch height (inline paddings kept). */
+  .cm-legacy .btn, #timesecret-section .ts-btn, #datatransfer-section .dt-btn { min-height: 44px; }
+  #timesecret-section .ts-btn-sm, #datatransfer-section .dt-btn-sm { min-height: 38px; }
+  /* Sticky password bar controls: taller and easier to read. */
+  #sticky-controls-bar .btn { min-height: 42px; padding: 7px 12px; font-size: 0.82rem; }
+  /* Help (?) buttons: 17px -> 28px hit area (inline in text, so not full 44px). */
+  .cm-legacy .help-btn { width: 28px; height: 28px; }
+  /* Header tools and feature-map chips get comfortable heights too. */
+  .cm-btn { height: 40px; min-height: 40px; }
+  .cm-map-chip { min-height: 42px; }
+}
+@media (max-width: 820px) {
+  /* Keep form controls at 16px so iOS Safari does not auto-zoom on focus. */
+  .cm-legacy input, .cm-legacy select, .cm-legacy textarea,
+  #timesecret-section input, #timesecret-section select, #timesecret-section textarea,
+  #datatransfer-section input, #datatransfer-section select, #datatransfer-section textarea { font-size: 16px !important; }
+  /* Sticky bar goes full-bleed on phones; its controls scroll sideways
+     instead of wrapping into a tall stack. */
+  #sticky-pw-bar { left: 0; right: 0; bottom: 0; border-radius: 12px 12px 0 0; }
+  #sticky-controls-bar { display: flex !important; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  #sticky-controls-bar::-webkit-scrollbar { display: none; }
+  #sticky-controls-bar .btn { flex: none; }
+}

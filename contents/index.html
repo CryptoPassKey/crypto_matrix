@@ -82,6 +82,15 @@
     <button type="button" id="cm-theme-toggle" class="cm-btn cm-btn-sq"></button>
   </div>
 </div></header>
+<nav class="cm-map" aria-label="機能一覧">
+  <button type="button" class="cm-map-chip" data-target="tab-quick"><img src="tab-quick.png" alt="" width="22" height="22"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-recipe"><img src="tab-recipe.png" alt="" width="22" height="22"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-backup"><img src="tab-backup.png" alt="" width="22" height="22"><span>暗号化 / バックアップ</span><span class="cm-map-role">暗号化して保存</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-vault"><img src="tab-vault.png" alt="" width="22" height="22"><span>セキュア保管庫</span><span class="cm-map-role">まとめて保管</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-timelock"><img src="tab-capsule.png" alt="" width="22" height="22"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-timesecret"><img src="tab-timesecret.png" alt="" width="22" height="22"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-datatransfer"><img src="tab-transfer.png" alt="" width="22" height="22"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></button>
+</nav>
 <div class="cm-info" id="cm-badge-info" hidden><span id="cm-badge-info-text"></span><button type="button" id="cm-badge-info-close">閉じる</button></div>
 <noscript><div class="cm-error">JavaScript を有効にしてください。</div></noscript>
 <main class="cm-main">
@@ -90,7 +99,7 @@
   <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
       <div>
-        <h1>Crypto Matrix 暗号マトリックス ＆ マイ・レシピ管理</h1>
+        <h2 class="cm-legacy-hero-title">暗号マトリックス＆マイ・レシピ管理</h2>
         <p class="subtitle">物理カード配列の完全再現・パスワード算出・BIP39 24単語／高強度暗号化・秘密分散バックアップ</p>
       </div>
       <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">

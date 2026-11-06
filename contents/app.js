@@ -761,3 +761,30 @@
     }, { passive: true });
   }
 })();
+
+/* Unit 1 (2026-11-07): feature map chips delegate to the real tab buttons
+   (tab switching and URL hash behaviour stay entirely in the existing code). */
+(function () {
+  function syncMap() {
+    var sel = document.querySelector('.cm-tab[aria-selected="true"]');
+    var target = sel ? sel.getAttribute('aria-controls') : null;
+    document.querySelectorAll('.cm-map-chip').forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.getAttribute('data-target') === target);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.cm-map-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var tab = document.querySelector('.cm-tab[aria-controls="' + chip.getAttribute('data-target') + '"]');
+        if (!tab) return;
+        tab.click();
+        syncMap();
+        var list = document.querySelector('.cm-tablist');
+        if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    document.querySelectorAll('.cm-tab').forEach(function (tab) { tab.addEventListener('click', syncMap); });
+    window.addEventListener('hashchange', function () { setTimeout(syncMap, 50); });
+    syncMap();
+  });
+})();

@@ -810,3 +810,72 @@
     try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) { /* 保存できなくても開閉は動作させる */ }
   });
 })();
+
+/* ---------- Backup / Encryption nested page switches ---------- */
+(function () {
+  'use strict';
+  function activate(buttons, panels, activeButton, activePanel) {
+    buttons.forEach(function (button) {
+      var active = button === activeButton;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    panels.forEach(function (panel) {
+      panel.hidden = panel !== activePanel;
+    });
+  }
+
+  var backupButtons = [
+    document.getElementById('backup-subtab-btn-backup'),
+    document.getElementById('backup-subtab-btn-encrypt')
+  ].filter(Boolean);
+  var backupPanels = [
+    document.getElementById('tab-backup-page-backup'),
+    document.getElementById('tab-backup-page-encrypt')
+  ].filter(Boolean);
+  var encryptButtons = [
+    document.getElementById('bq-tab-btn-encrypt'),
+    document.getElementById('bq-tab-btn-decrypt')
+  ].filter(Boolean);
+  var encryptPanels = [
+    document.getElementById('bq-panel-encrypt'),
+    document.getElementById('bq-panel-decrypt')
+  ].filter(Boolean);
+
+  function showBackupPage(page) {
+    var index = page === 'encrypt' ? 1 : 0;
+    if (backupButtons[index] && backupPanels[index]) {
+      activate(backupButtons, backupPanels, backupButtons[index], backupPanels[index]);
+    }
+  }
+  function showEncryptionMode(mode) {
+    var index = mode === 'decrypt' ? 1 : 0;
+    if (encryptButtons[index] && encryptPanels[index]) {
+      activate(encryptButtons, encryptPanels, encryptButtons[index], encryptPanels[index]);
+    }
+  }
+
+  backupButtons.forEach(function (button, index) {
+    button.addEventListener('click', function () {
+      activate(backupButtons, backupPanels, backupButtons[index], backupPanels[index]);
+    });
+  });
+  encryptButtons.forEach(function (button, index) {
+    button.addEventListener('click', function () {
+      activate(encryptButtons, encryptPanels, encryptButtons[index], encryptPanels[index]);
+    });
+  });
+
+  // Other modules can route decrypted backup data directly to the correct input page.
+  document.addEventListener('cm-route-backup-text', function () {
+    showBackupPage('encrypt');
+    showEncryptionMode('decrypt');
+  }, true);
+  document.addEventListener('cm-route-backup-files', function () {
+    showBackupPage('encrypt');
+    showEncryptionMode('decrypt');
+  }, true);
+
+  window.cmShowBackupPage = showBackupPage;
+  window.cmShowBackupEncryptionMode = showEncryptionMode;
+})();

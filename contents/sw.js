@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.29.5-restore-gate-unified';
+const VERSION = 'cm-v2.30.0-image-placement';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -15,6 +15,18 @@ const FILES = [
   "data-transfer.js",
   "emblem.png",
   "favicon.png",
+  "copy-icon.png",
+  "csp-icon.png",
+  "duress-icon.png",
+  "keepass-icon.png",
+  "keyfile-icon.png",
+  "off-icon.png",
+  "on-icon.png",
+  "pattern-icon.png",
+  "pause-icon.png",
+  "play-icon.png",
+  "seal-icon.png",
+  "stop-icon.png",
   "fonts/FiraCode-Bold.woff2",
   "fonts/FiraCode-Regular.woff2",
   "index.html",

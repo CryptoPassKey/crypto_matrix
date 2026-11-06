@@ -46,8 +46,8 @@
   $('cm-badge-info-close').addEventListener('click', function () { info.hidden = true; });
 
   /* ---------- オンライン / オフライン表示 ---------- */
-  var WIFI = '<svg class="cm-ico-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h.01M2 8.82a15 15 0 0 1 20 0M5 12.86a10 10 0 0 1 14 0M8.5 16.43a5 5 0 0 1 7 0"/></svg>';
-  var WIFI_OFF = '<svg class="cm-ico-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h.01M8.5 16.43a5 5 0 0 1 7 0M2 8.82a15 15 0 0 1 4.17-2.65M10.66 5c4.01-.36 8.14.9 11.34 3.76M16.85 11.25a10 10 0 0 1 2.22 1.68M5 12.86a10 10 0 0 1 5.17-2.69M2 2l20 20"/></svg>';
+  var WIFI = '<img src="on-icon.png" class="cm-badge-img" alt="" width="18" height="18">';
+  var WIFI_OFF = '<img src="off-icon.png" class="cm-badge-img" alt="" width="18" height="18">';
   function paintNet() {
     var on = navigator.onLine, b = $('cm-net');
     b.className = 'cm-badge ' + (on ? 'cm-b-amber' : 'cm-b-green');

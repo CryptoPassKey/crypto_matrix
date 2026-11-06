@@ -627,10 +627,10 @@ function updateTransferButtonsUI() {
   const mainBtn = document.getElementById('btn-transfer-to-keeweb');
   if (mainBtn) {
     if (isMaster) {
-      mainBtn.innerHTML = '🔑 KeePassマスターパスワードに転送';
+      mainBtn.innerHTML = '<img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassマスターパスワードに転送';
       mainBtn.title = '算出したパスワードをKeePassのマスターパスワード入力欄に転送して自動設定します';
     } else {
-      mainBtn.innerHTML = siteVal ? `📥 KeePassエントリーに追加 「${escapeHtml(siteVal)}」` : '📥 KeePassエントリーに追加';
+      mainBtn.innerHTML = siteVal ? `<img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassエントリーに追加 「${escapeHtml(siteVal)}」` : '<img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassエントリーに追加';
       mainBtn.title = siteVal ? `「${siteVal}」のパスワードとしてKeePassのエントリーに転送・追加します` : '算出したパスワードをKeePassのエントリーに転送・追加します';
     }
     mainBtn.style.background = '';
@@ -641,10 +641,10 @@ function updateTransferButtonsUI() {
   const stickyBtn = document.getElementById('btn-sticky-transfer');
   if (stickyBtn) {
     if (isMaster) {
-      stickyBtn.innerHTML = '🔑 マスターPW転送';
+      stickyBtn.innerHTML = '<img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">マスターPW転送';
       stickyBtn.title = 'KeePassマスターパスワードに転送';
     } else {
-      stickyBtn.innerHTML = '📥 KeePass追加';
+      stickyBtn.innerHTML = '<img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePass追加';
       stickyBtn.title = siteVal ? `「${siteVal}」をKeePassエントリーに追加` : 'KeePassエントリーに追加';
     }
   }
@@ -5507,13 +5507,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
     const btn=$('btn-copy-pw');
     if(btn){
-     const origText=btn.dataset.origText||btn.textContent;
-     btn.dataset.origText=origText;
+     const origHtml=btn.dataset.origHtml||btn.innerHTML;
+     btn.dataset.origHtml=origHtml;
      btn.textContent='✅ コピー済';
-     setTimeout(()=>{btn.textContent=origText;},1800);
+     setTimeout(()=>{btn.innerHTML=origHtml;},1800);
     }
     const sb=$('btn-sticky-copy');
-    if(sb){const orig=sb.textContent;sb.textContent='✅ コピー済';setTimeout(()=>{sb.textContent=orig;},1800);}
+    if(sb){const orig=sb.innerHTML;sb.textContent='✅ コピー済';setTimeout(()=>{sb.innerHTML=orig;},1800);}
    }catch(_){}
   },true);
   $('btn-copy-seed').addEventListener('click',async e=>{

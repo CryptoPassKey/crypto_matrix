@@ -1478,6 +1478,15 @@ html.light .cm-legacy .cm-note-sky { color: #0369a1; }
 html.light .cm-legacy .cm-guide-sky { color: #0369a1; }
 .cm-guide-amber { color: #f59e0b; }
 html.light .cm-legacy .cm-guide-amber { color: #b45309; }
+/* T4 レビュー追加対応: ライトの WCAG AA（通常文字 4.5:1）是正 */
+html.light .cm-legacy .cm-seed-chip { color: #a34e08; }
+html.light .cm-legacy #timelock-section #tl-bound-seed-badge { color: #a34e08 !important; }
+html.light .cm-legacy .help-btn { color: #8a9dbd; }
+html.light #timesecret-section .ts-btn-primary { background: #15803d !important; border-color: #15803d !important; }
+html.light #tl-btn-decrypt { background: #047857 !important; }
+html.light #tl-route-sec3, html.light #tl-route-sec4 { background: #0369a1 !important; }
+html.light #tl-tab-btn-encrypt.btn:not(.btn-outline) { background: #0369a1 !important; }
+html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active .dt-subtab-main { color: #075985 !important; }
 .cm-frame-sky { border-color: #1ab1ff; }
 html.light .cm-legacy .cm-frame-sky { border-color: #cfd8e3; }
 .cm-frame-amber { border-color: #f59e0b; }
@@ -1485,7 +1494,7 @@ html.light .cm-legacy .cm-frame-amber { border-color: #cfd8e3; }
 .cm-result-title { color: #1dfbbd; }
 html.light .cm-legacy .cm-result-title { color: #0b7a44; }
 .cm-txt-deep { color: #192029; }
-html.light .cm-legacy .cm-txt-deep { color: #0b7a44; }
+html.light .cm-legacy .cm-txt-deep { color: var(--text-main); }
 .cm-link-neon { color: #1aff78; }
 html:not(.light) .cm-legacy .cm-link-neon { color: #1aff78; }
 html.light .cm-legacy .cm-link-neon { color: #0b7a44 !important; }
@@ -1507,11 +1516,11 @@ html:not(.light) #tl-route-sec4 { background: #0369a1 !important; }
 html:not(.light) #btn-cm-consent-close { color: #8799b5; }
 html:not(.light) .duress-modal-close { color: #8799b5; }
 /* ライトでは汎用の本文色ルール（html.light .cm-legacy *）より優先して現行値を維持する */
-html.light .cm-legacy .cm-guide-heading { color: #6382b5; }
+html.light .cm-legacy .cm-guide-heading { color: #3f619b; }
 html.light .cm-legacy .cm-passkey-note { color: #3b65dd; }
-html.light .cm-legacy .cm-warn-red { color: #e92f2f; }
-html.light .cm-legacy .cm-guide-violet { color: #a855f7; }
-html.light .cm-legacy .cm-km-label { color: #5074c8; }
+html.light .cm-legacy .cm-warn-red { color: var(--danger); }
+html.light .cm-legacy .cm-guide-violet { color: #9333ea; }
+html.light .cm-legacy .cm-km-label { color: #3f619b; }
 
 /* ===== T2-5: モーダル面・見出し・エラー表示（ダークは従来の実効値、ライトはトークン） ===== */
 .cm-modal-header { background: #192329; border-bottom: 1px solid #00527d; }
@@ -3456,7 +3465,7 @@ html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active {
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active .dt-subtab-main {
-  color: var(--feat-transfer-strong) !important;
+  color: #075985 !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar {
   background: var(--bg-main) !important;

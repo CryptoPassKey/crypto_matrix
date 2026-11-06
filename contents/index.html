@@ -883,7 +883,7 @@
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
   <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と全く同じ設定を100%復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
   <p>「BIP39復元フレーズ」または「拡張バックアップ」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
-   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
+   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読み取る</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読み取りをリセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
   <label for="bq-import">復元フレーズ（24単語 ／ 拡張・暗号化バックアップの全ブロック ／ 秘密分散のMシェア分）または読み取ったQRデータ<button type="button" class="help-btn" aria-label="説明を表示" data-help="復元に使う24単語フレーズ、拡張バックアップの全ブロック、または秘密分散のMシェア分を入力またはQRスキャンで貼り付けてください。">?</button></label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="カメラや画像でQRを読み取るか、24単語×必要ブロック数（秘密分散の場合は必要Mシェア分）を入力してください。"></textarea>
@@ -1093,10 +1093,10 @@
         暗号化データまたは秘密分散シェアの入力／QRスキャン／ファイル選択:
       </label>
       <div class="bv-no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
-        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRスキャン</button>
-        <button type="button" class="btn btn-secondary" id="bv-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラ停止</button>
+        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRを読み取る</button>
+        <button type="button" class="btn btn-secondary" id="bv-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
         <label for="bv-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイル読込
+          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイルを選択
         </label>
         <input type="file" id="bv-restore-qr-img" accept="image/*" style="display:none;">
         <label for="bv-restore-file" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
@@ -1487,13 +1487,13 @@
           <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>カプセルファイル (.cmtl / .txt) を選択（複数シェア可）
         </label>
         <input type="file" id="tl-restore-file" accept=".cmtl,.txt,image/*,application/octet-stream,text/plain" multiple style="display:none;">
-        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRスキャン</button>
-        <button type="button" class="btn btn-secondary" id="tl-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラ停止</button>
+        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRを読み取る</button>
+        <button type="button" class="btn btn-secondary" id="tl-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
         <label for="tl-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイル読込
+          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイルを選択
         </label>
         <input type="file" id="tl-restore-qr-img" accept="image/*" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>入力リセット</button>
+        <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>入力をリセット</button>
         <span id="tl-restore-file-name" style="font-size:0.8rem; color:#34d399;"></span>
       </div>
       <video id="tl-video" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border:2px solid #f59e0b; margin-bottom:8px;"></video>
@@ -3006,7 +3006,7 @@
 
         <!-- ==================== SUB-PANEL 2: RECEIVE (受信) ==================== -->
         <div id="dt-panel-rx" class="dt-subpanel" role="tabpanel" aria-labelledby="dt-tab-btn-rx" hidden>
-          <div id="dt-rx-status" class="dt-status-bar">待機中です。「カメラを起動」を押し、送信側でQRコードの連続表示を開始してください。</div>
+          <div id="dt-rx-status" class="dt-status-bar">待機中です。「カメラでQRを読み取る」を押し、送信側でQRコードの連続表示を開始してください。</div>
 
           <!-- Completion Card (shown on completion) -->
           <div id="dt-rx-completion-card" class="dt-completion-card" hidden>
@@ -3049,8 +3049,8 @@
           <div class="dt-card">
             <h3 class="dt-card-title">1. カメラから読み取り</h3>
             <div class="dt-action-row">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera">📷 カメラを起動</button>
-              <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ カメラ停止</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera">📷 カメラでQRを読み取る</button>
+              <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ カメラを停止</button>
               <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx">🔄 最初からリセット</button>
             </div>
 
@@ -3068,7 +3068,7 @@
               <div id="dt-camera-placeholder" class="dt-stage-placeholder">
                 <div class="dt-placeholder-icon">📷</div>
                 <div class="dt-placeholder-title">カメラ停止中</div>
-                <div class="dt-placeholder-sub">「📷 カメラを起動」を押した後、送信側でQRコードの連続表示を開始してください</div>
+                <div class="dt-placeholder-sub">「📷 カメラでQRを読み取る」を押した後、送信側でQRコードの連続表示を開始してください</div>
               </div>
               <div id="dt-camera-complete" class="dt-camera-complete" role="status" aria-live="polite" hidden>
                 <div class="dt-camera-complete-icon" aria-hidden="true">✓</div>

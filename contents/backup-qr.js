@@ -1562,7 +1562,7 @@ async function ingest(text){
 
     if(parts.groups.size>0&&!parts.shamir){
 
-     throw Error('別のバックアップのQRが混在しています。「読取中のQRをリセット」を押して同じバックアップの全ブロックを読んでください。');
+     throw Error('別のバックアップのQRが混在しています。「読み取りをリセット」を押して同じバックアップの全ブロックを読んでください。');
 
     }
 

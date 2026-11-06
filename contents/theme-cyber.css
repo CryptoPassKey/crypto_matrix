@@ -98,7 +98,7 @@ body { padding: 0 !important; }
 .cm-legacy a { color: var(--cyan); }
 
 /* keep heavy inline light boxes readable */
-html:not(.light) .cm-legacy [style*="background:#f"], html:not(.light) .cm-legacy [style*="background: #f"] { background: #0f1828 !important; }
+
 
 /* T2-1: 保管庫の生成バー／カードはクラスでテーマ追随（旧 [style*= 依存を置換。
    ダークは従来の汎用塗り替えと同じ #0f1828、ライトは app.css の保持ルールと同じ値） */
@@ -136,11 +136,9 @@ html.light {
   --feat-secret: #0e7fa8; --feat-secret-soft: rgba(14, 127, 168, 0.1);
 }
 html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
-html.light .cm-legacy [style*="color:#1"], html.light .cm-legacy [style*="color: #1"] { color: #0b7a44 !important; }
-html.light .cm-legacy [style*="background:#1"], html.light .cm-legacy [style*="background: #1"],
-html.light .cm-legacy [style*="background:#2"], html.light .cm-legacy [style*="background: #2"],
-html.light .cm-legacy [style*="background:#0"] { background: #eef3f8 !important; }
-html.light .cm-legacy [style*="border"] { border-color: #cfd8e3 !important; }
+
+
+
 html.light .cm-legacy a { color: #0369a1 !important; }
 html.light .cm-board .matrix-stage { background: var(--card-bg) !important; border-color: rgba(15,157,88,.35) !important; box-shadow: 0 10px 30px -20px rgba(0,0,0,.3) !important; }
 html.light .cm-board .square { background: linear-gradient(180deg,#ffffff,var(--surface-sub)) !important; border-color: var(--border-color) !important; }
@@ -779,7 +777,7 @@ html.cm-tour-active .cm-legacy #tl-qr-container.cm-peek svg,
 html.cm-tour-active .cm-legacy #tl-shares-container.cm-peek svg,
 html.cm-tour-active #sim-output-pw.cm-peek { filter: none !important; }
 
-/* Light mode: keep the minimized pill readable (inline #1aff75 bg gets neutralized by the [style*=background:#1] rule) */
+/* Light mode: keep the minimized pill readable (T4 で汎用 [style*= 塗り替えは撤去済み。この ID 指定が単独で担う) */
 html.light #btn-sticky-min-pill { background: var(--accent-strong) !important; color: #ffffff !important; border-color: var(--accent-strong) !important; }
 
 /* ===== Light mode: comprehensive de-blackening (buttons, modals, badges) ===== */
@@ -1409,6 +1407,89 @@ html.light .cm-legacy .cm-guide-blue { color: #335de6; }
 .cm-note-muted { color: #7889a1; }
 html:not(.light) .cm-note-muted { color: #8799b5; }
 html.light .cm-legacy .cm-note-muted { color: #7889a1; }
+
+/* ===== T4: 生成要素の状態色クラス（JS の色直接代入から移行） ===== */
+.cm-prot-init { background: #19291f; color: #1dfbbd; border-color: #0eaa47; }
+html.light .cm-legacy .cm-prot-init { background: var(--surface-sub); color: #0b7a44; border-color: #cfd8e3; }
+.cm-prot-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+html:not(.light) .cm-prot-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
+.cm-prot-err { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+html:not(.light) .cm-prot-err { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.cm-prot-ok { background: #dcfce7; color: #065f46; border-color: #86efac; }
+html:not(.light) .cm-prot-ok { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+.cm-kdf-warn { background: #fffbeb; color: #92400e; border: 1.5px solid #fcd34d; }
+html:not(.light) .cm-kdf-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
+.cm-kdf-err { background: #fef2f2; color: #991b1b; border: 1.5px solid #f87171; }
+html:not(.light) .cm-kdf-err { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.cm-strength-weak { color: #b91c1c; }
+html:not(.light) .cm-strength-weak { color: var(--danger); }
+.cm-strength-mid { color: #b45309; }
+html:not(.light) .cm-strength-mid { color: var(--warning); }
+.cm-strength-strong { color: #065f46; }
+html:not(.light) .cm-strength-strong { color: var(--success); }
+.cm-seed-chip { color: #fbbf24; background: #1f2937; border-color: #374151; }
+html.light .cm-seed-chip { color: #b45309; background: var(--surface-sub); border-color: #cfd8e3; }
+/* ライトでは汎用の本文色ルールより優先して状態色を維持する */
+html.light .cm-legacy .cm-prot-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+html.light .cm-legacy .cm-prot-err { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+html.light .cm-legacy .cm-prot-ok { background: #dcfce7; color: #065f46; border-color: #86efac; }
+html.light .cm-legacy .cm-kdf-warn { color: #92400e; }
+html.light .cm-legacy .cm-kdf-err { color: #991b1b; }
+html.light .cm-legacy .cm-strength-weak { color: #b91c1c; }
+html.light .cm-legacy .cm-strength-mid { color: #b45309; }
+html.light .cm-legacy .cm-strength-strong { color: #065f46; }
+html.light .cm-legacy .cm-seed-chip { color: #b45309; }
+html.light .cm-legacy .duress-modal-body .cm-prot-init { color: #0b7a44 !important; }
+
+/* ===== T4: パネル・チップ等のテーマクラス（汎用 [style*= ルールの依存解消用） ===== */
+.cm-panel-slate { background: #192129; border-color: #304257; }
+html.light .cm-legacy .cm-panel-slate { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-deep { background: #111827; border-color: #1e3a5f; }
+html.light .cm-legacy .cm-panel-deep { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-blue { background: #192029; border-color: #004ca0; }
+html.light .cm-legacy .cm-panel-blue { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-guide { background: #1b2027; border-color: #003578; }
+html.light .cm-legacy .cm-panel-guide { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-dropzone { background: #1b2027; border-color: #00abf7; }
+html.light .cm-legacy .cm-dropzone { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-result { background: #1b2027; }
+html.light .cm-legacy .cm-panel-result { background: var(--surface-sub); }
+.cm-panel-result-ok { background: #19291e; border-color: #0eaa47; }
+html.light .cm-legacy .cm-panel-result-ok { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-amber { background: #292119; border-color: #f59e0b; }
+html.light .cm-legacy .cm-panel-amber { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-red { background: #291919; border-color: #ef4444; color: #fca5a5; }
+html.light .cm-legacy .cm-panel-red { background: var(--surface-sub); border-color: #cfd8e3; color: #c62f3b; }
+.cm-panel-beacon { background: #111827; border-color: #4b5563; }
+html.light .cm-legacy .cm-panel-beacon { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-sky { background: #192029; border-color: #0284c7; }
+html.light .cm-legacy .cm-panel-sky { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-chip-dark { background: #1f2937; border-color: #374151; }
+html.light .cm-legacy .cm-chip-dark { background: var(--surface-sub); border-color: #cfd8e3; }
+.cm-panel-kdf { background: #451a03; border-color: #f59e0b; }
+html.light .cm-legacy .cm-panel-kdf { border-color: #cfd8e3; }
+.cm-frame-sky { border-color: #1ab1ff; }
+html.light .cm-legacy .cm-frame-sky { border-color: #cfd8e3; }
+.cm-frame-amber { border-color: #f59e0b; }
+html.light .cm-legacy .cm-frame-amber { border-color: #cfd8e3; }
+.cm-result-title { color: #1dfbbd; }
+html.light .cm-legacy .cm-result-title { color: #0b7a44; }
+.cm-txt-deep { color: #192029; }
+html.light .cm-legacy .cm-txt-deep { color: #0b7a44; }
+.cm-link-neon { color: #1aff78; }
+html:not(.light) .cm-legacy .cm-link-neon { color: #1aff78; }
+html.light .cm-legacy .cm-link-neon { color: #0b7a44 !important; }
+.cm-link-sky { color: #1ab1ff; }
+html:not(.light) .cm-legacy .cm-link-sky { color: #1ab1ff; }
+html.light .cm-legacy .cm-link-sky { color: #0b7a44 !important; }
+.cm-txt-sky { color: #1aaeff; }
+html.light .cm-legacy .cm-txt-sky { color: #0b7a44 !important; }
+.cm-guide-emerald { color: #10b981; }
+html.light .cm-legacy .cm-guide-emerald { color: #0b7a44; }
+.cm-row-goldline { border-bottom: 1px dashed #a88700; }
+html.light .cm-legacy .cm-row-goldline { border-bottom-color: #cfd8e3; }
+html.light .btn-toggle-pw-visibility { border-color: #cfd8e3 !important; }
+html.light .cm-legacy .cm-modal-panel, html.light .cm-legacy .cm-modal-panel-sky, html.light .cm-legacy .cm-modal-box-blue, html.light .cm-legacy .cm-modal-note-blue, html.light .cm-legacy .cm-km-factor { border-color: #cfd8e3; }
 html:not(.light) #tl-decrypt-result .bq-action-group-label { color: #a7f3d0; }
 html:not(.light) #btn-zeroize { background: #ff5c6c !important; }
 html:not(.light) #tl-route-sec3,

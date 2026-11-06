@@ -686,7 +686,7 @@
 
       <div class="cloud-warning">
         <div class="cloud-warning-head">⚠️ 警告：暗号化なしの24単語シードフレーズ・QRコードは絶対にクラウドに保存ダメ、ゼッタイ！</div>
-        <div style="font-size:0.8rem; color:#192029;">
+        <div class="cm-txt-deep" style="font-size:0.8rem;">
           NEVER STORE YOUR UNENCRYPTED SEED PHRASE OR QR CODE IN THE CLOUD!<br>
           クラウドメモ・メール・写真フォルダ（スクショ）への平文保存は情報流出の直接原因となります。必ず紙に控えてオフライン保管するか、「暗号化」ページで暗号化バックアップを作成してください。
         </div>
@@ -738,7 +738,7 @@
     <div id="bq-scope-desc" class="bq-select-desc"></div>
   </div>
 
-  <div style="background:#192129; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <div class="cm-panel-slate" style="border-width:1px; border-style:solid; border-radius:8px; padding:12px 14px; margin:12px 0;">
    <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
    <div style="display:flex; flex-direction:column; gap:8px;">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
@@ -764,15 +764,15 @@
     </select>
      <div id="bq-shamir-desc" class="bq-select-desc"></div>
    </div>
-   <div id="bq-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#19291f; color:#1dfbbd; border:1px solid #0eaa47;">
+   <div id="bq-protection-badge" class="cm-prot-init" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; border-width:1px; border-style:solid;">
     現在の保護方式：復元用パスワード単独
    </div>
 
    <!-- カード配列シード連動表示 -->
-   <div style="background:#111827; border:1px solid #1e3a5f; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+   <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
      <div style="display:flex; align-items:center; gap:8px;">
        <span style="font-weight:700; font-size:0.82rem; color:#38bdf8;">🔑 連動カード配列シード番号:</span>
-       <span id="bq-bound-seed-badge" style="font-family:monospace; font-weight:700; color:#fbbf24; background:#1f2937; padding:2px 8px; border-radius:4px; border:1px solid #374151;">#0</span>
+       <span id="bq-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
      </div>
      <div style="font-size:0.75rem; color:var(--text-sub);">
        ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
@@ -822,11 +822,11 @@
     <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
-  <div class="bq-row cm-passkey-note" id="bq-passkey-row" hidden style="background:#192029; padding:10px 12px; border-radius:8px; border:1px solid #004ca0; font-size:0.82rem; line-height:1.5;">
+  <div class="bq-row cm-passkey-note cm-panel-blue" id="bq-passkey-row" hidden style="padding:10px 12px; border-radius:8px; border-width:1px; border-style:solid; font-size:0.82rem; line-height:1.5;">
    🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
    ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
    <div id="bq-passkey-manager" class="cm-passkey-manager-slot"></div>
-   <div class="cm-guide-blue" style="margin-top:6px; padding:6px 10px; background:#1b2027; border-radius:6px; border:1px solid #003578; font-size:0.78rem;">
+   <div class="cm-guide-blue cm-panel-guide" style="margin-top:6px; padding:6px 10px; border-radius:6px; border-width:1px; border-style:solid; font-size:0.78rem;">
      <strong>【動作対応認証器】</strong><br>
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
      ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
@@ -905,7 +905,7 @@
    <input type="password" id="bq-restore-password" autocomplete="current-password" placeholder="パスワードなしの場合は空欄">
    <label for="bq-restore-keyfile">キーファイル（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にキーファイルを設定した場合のみ選択が必要です。">?</button></label>
    <input type="file" id="bq-restore-keyfile">
-   <div style="width:100%; background:#111827; border:1px solid #1e3a5f; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+   <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
        <label for="bq-restore-seed-number" style="font-weight:700; font-size:0.84rem; color:#38bdf8; margin:0;">
          🔑 連動カード配列シード番号 (seed):
@@ -943,7 +943,7 @@
   </p>
 
   <!-- タブ切り替え（暗号化作成／復元・復号） -->
-  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #304257; padding-bottom:8px;">
+  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
     <button type="button" class="btn" id="bv-tab-btn-encrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>暗号化 ＆ 秘密分散を作成</button>
     <button type="button" class="btn btn-outline" id="bv-tab-btn-decrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>復元・復号する</button>
   </div>
@@ -971,7 +971,7 @@
     </div>
 
     <!-- ファイル選択欄 -->
-    <div id="bv-input-file-area" hidden style="margin-bottom:12px; background:#1b2027; padding:12px; border-radius:8px; border:1px dashed #00abf7;">
+    <div id="bv-input-file-area" class="cm-dropzone" hidden style="margin-bottom:12px; padding:12px; border-radius:8px; border-width:1px; border-style:dashed;">
       <label for="bv-file-input" style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
         暗号化したいファイルを選択:<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスポートの写真、身分証明書のPDF、秘密の文書など、保護したい任意のファイル（最大約20MB推奨）を選択します。ファイルごと強力に暗号化されます。">?</button>
       </label>
@@ -980,7 +980,7 @@
     </div>
 
     <!-- 保護設定ボックス -->
-    <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
+    <div class="cm-panel-slate" style="border-width:1px; border-style:solid; border-radius:8px; padding:12px 14px; margin:12px 0;">
       <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
@@ -1008,15 +1008,15 @@
          <div id="bv-shamir-desc" class="bq-select-desc"></div>
       </div>
 
-      <div id="bv-protection-badge" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; background:#19291f; color:#1dfbbd; border:1px solid #0eaa47;">
+      <div id="bv-protection-badge" class="cm-prot-init" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; border-width:1px; border-style:solid;">
         現在の保護方式：復元用パスワード単独
       </div>
 
       <!-- カード配列シード連動表示 -->
-      <div style="background:#111827; border:1px solid #1e3a5f; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+      <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-weight:700; font-size:0.82rem; color:#38bdf8;">🔑 連動カード配列シード番号:</span>
-          <span id="bv-bound-seed-badge" style="font-family:monospace; font-weight:700; color:#fbbf24; background:#1f2937; padding:2px 8px; border-radius:4px; border:1px solid #374151;">#0</span>
+          <span id="bv-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
           ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
@@ -1070,7 +1070,7 @@
     </div>
 
     <!-- パスキー説明行 -->
-    <div class="bq-row cm-passkey-note" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem;">
+    <div class="bq-row cm-passkey-note cm-panel-blue" id="bv-passkey-row" hidden style="padding:8px 10px; border-radius:6px; border-width:1px; border-style:solid; font-size:0.8rem;">
       🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。暗号化・復号実行時に認証画面が表示されます。<br>
       <div id="bv-passkey-manager" class="cm-passkey-manager-slot"></div>
     </div>
@@ -1084,7 +1084,7 @@
     <div id="bv-encrypt-status" class="status-msg" role="status" aria-live="polite"></div>
 
     <!-- 作成結果表示エリア -->
-    <div id="bv-encrypt-result" hidden style="margin-top:14px; padding:12px; background:#1b2027; border-radius:8px; border:1px solid var(--border-color);">
+    <div id="bv-encrypt-result" class="cm-panel-result" hidden style="margin-top:14px; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
         <span style="font-weight:700; font-size:0.88rem; color:var(--accent);">✅ 暗号化・秘密分散の生成完了</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" id="bv-result-actions"></div>
@@ -1119,7 +1119,7 @@
         <input type="file" id="bv-restore-file" multiple style="display:none;">
         <span id="bv-restore-file-name" style="font-size:0.8rem; color:var(--text-sub); align-self:center;"></span>
       </div>
-      <video id="bv-video" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border:2px solid #1ab1ff; margin-bottom:8px; background:#e1e5ea;"></video>
+      <video id="bv-video" class="cm-frame-sky" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border-width:2px; border-style:solid; margin-bottom:8px; background:#e1e5ea;"></video>
       <textarea id="bv-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="暗号化されたテキスト（-----BEGIN CRYPTOMATRIX VAULT...-----）を貼り付けるか、上のQRスキャン・画像読込・ファイル選択をご利用ください。秘密分散の場合は必要シェア分（例: 2シェア分）を続けて貼り付けるか、連続してQRコードをスキャンできます。"></textarea>
     </div>
 
@@ -1131,7 +1131,7 @@
       <input type="password" id="bv-restore-password" autocomplete="current-password" placeholder="パスワード未設定の場合は空欄">
       <label for="bv-restore-keyfile">キーファイル（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にキーファイルを設定した場合のみ選択が必要です。">?</button></label>
       <input type="file" id="bv-restore-keyfile">
-      <div style="width:100%; background:#111827; border:1px solid #1e3a5f; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <label for="bv-restore-seed-number" style="font-weight:700; font-size:0.84rem; color:#38bdf8; margin:0;">
             🔑 連動カード配列シード番号 (seed):
@@ -1152,9 +1152,9 @@
     <div id="bv-decrypt-status" class="status-msg" role="status" aria-live="polite"></div>
 
     <!-- 復号結果表示エリア -->
-    <div id="bv-decrypt-result" hidden style="margin-top:14px; padding:12px; background:#19291e; border-radius:8px; border:1px solid #0eaa47;">
+    <div id="bv-decrypt-result" class="cm-panel-result-ok" hidden style="margin-top:14px; padding:12px; border-radius:8px; border-width:1px; border-style:solid;">
       <div style="margin-bottom:6px;">
-        <span style="font-weight:700; font-size:0.88rem; color:#1dfbbd;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
+        <span class="cm-result-title" style="font-weight:700; font-size:0.88rem;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
       </div>
       <div class="bq-action-group">
         <div class="bq-action-group-label">結果の保存</div>
@@ -1163,8 +1163,8 @@
           <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>ファイルをダウンロード</button>
         </div>
       </div>
-      <div id="bv-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#1b2027; padding:10px; border-radius:6px; border:1px solid #304257; max-height:300px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
-      <div id="bv-decrypted-meta" style="font-size:0.75rem; color:#1dfbbd; margin-top:6px;"></div>
+      <div id="bv-decrypted-content" class="cm-panel-slate" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; padding:10px; border-radius:6px; border-width:1px; border-style:solid; max-height:300px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
+      <div id="bv-decrypted-meta" class="cm-result-title" style="font-size:0.75rem; margin-top:6px;"></div>
       <div class="bq-action-group bq-action-group-manage">
         <div class="bq-action-group-label">表示管理</div>
         <div class="bq-row">
@@ -1191,7 +1191,7 @@
   </p>
 
   <!-- サブタブ切り替え（作成 ／ 解禁・復元） -->
-  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #304257; padding-bottom:8px; flex-wrap:wrap;">
+  <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px; flex-wrap:wrap;">
     <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムカプセル作成（カプセル封入）</button>
     <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>タイムカプセル解禁・復元</button>
     <a href="timelock-recover.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline tl-ink-sky" id="tl-btn-open-standalone-top" style="font-size:0.8rem; margin-left:auto; border-color:#38bdf8; text-decoration:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>独立復元ツール (timelock-recover.html) を開く</a>
@@ -1231,7 +1231,7 @@
       </div>
 
       <!-- ファイル入力欄（ドラッグ＆ドロップ対応） -->
-      <div id="tl-input-file-area" hidden style="background:#151a21; padding:12px; border-radius:8px; border:1.5px dashed #00abf7;">
+      <div id="tl-input-file-area" class="cm-dropzone" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:dashed;">
         <label for="tl-file-input" style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:6px;">
           封入するファイルを選択（またはここへドラッグ＆ドロップ / 最大20MB）:
         </label>
@@ -1242,7 +1242,7 @@
       </div>
 
       <!-- 転記済みデータ表示欄 -->
-      <div id="tl-input-transferred-area" hidden style="background:#292119; padding:12px; border-radius:8px; border:1.5px solid #f59e0b;">
+      <div id="tl-input-transferred-area" class="cm-panel-amber" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:solid;">
         <div id="tl-transferred-summary"></div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
           <button type="button" class="btn btn-outline" id="tl-btn-clear-transferred" style="padding:4px 10px; font-size:0.76rem;">✕ 転記データを解除して通常のテキスト/ファイル入力に戻る</button>
@@ -1334,10 +1334,10 @@
       </div>
 
       <!-- カード配列シード連動表示 -->
-      <div style="background:#111827; border:1px solid #1e3a5f; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+      <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="tl-ink-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
-          <span class="tl-ink-amber" id="tl-bound-seed-badge" style="font-family:monospace; font-weight:700; background:#1f2937; padding:2px 8px; border-radius:4px; border:1px solid #374151;">#0</span>
+          <span class="tl-ink-amber cm-chip-dark" id="tl-bound-seed-badge" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
           ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
@@ -1355,7 +1355,7 @@
       </div>
 
       <!-- パスワード保護オプション群 -->
-      <div id="tl-mode-b-options" style="border-top:1px dashed #304257; padding-top:10px; margin-top:8px;">
+      <div id="tl-mode-b-options" style="border-top:1px dashed var(--border-color); padding-top:10px; margin-top:8px;">
         <div class="tl-ink-sky" style="font-weight:700; font-size:0.84rem; margin-bottom:8px;">
           🛡️ 追加の保護・暗号化要素（組み合わせ自由・単独利用もOK）:
         </div>
@@ -1385,7 +1385,7 @@
             <option value="2">PBKDF2（500万回 / 超高回数・高強度）</option>
             <option value="0">PBKDF2（60万回 / 高速・標準）</option>
           </select>
-          <div class="tl-ink-amber" id="tl-kdf-warning" style="display:none; width:100%; margin-top:6px; padding:8px 10px; border-radius:6px; font-size:0.78rem; background:#451a03; border:1px solid #f59e0b; font-weight:600;"></div>
+          <div class="tl-ink-amber cm-panel-kdf" id="tl-kdf-warning" style="display:none; width:100%; margin-top:6px; padding:8px 10px; border-radius:6px; font-size:0.78rem; border-width:1px; border-style:solid; font-weight:600;"></div>
         </div>
 
         <!-- パスワード入力行 -->
@@ -1422,7 +1422,7 @@
         </div>
 
         <!-- パスキー強い警告行 -->
-        <div class="bq-row" id="tl-passkey-row" hidden style="background:#291919; padding:10px 12px; border-radius:8px; border:1.5px solid #ef4444; font-size:0.8rem; color:#fca5a5; line-height:1.55;">
+        <div class="bq-row cm-panel-red" id="tl-passkey-row" hidden style="padding:10px 12px; border-radius:8px; border-width:1.5px; border-style:solid; font-size:0.8rem; line-height:1.55;">
           ⚠️ <strong>【重要警告：パスキー併用時のドメイン拘束と独立復元ツール制限】</strong><br>
           WebAuthnパスキー（PRF拡張）はブラウザ仕様により<strong>「現在のドメイン（同一オリジン）」に厳密に拘束</strong>されます。<br>
           ・パスキーを有効にしたカプセルは、<strong>このドメインでしか開けない可能性があり、単体HTMLの「独立復元ツール（timelock-recover.html）」や別ドメインでは復元できません。</strong><br>
@@ -1510,7 +1510,7 @@
         <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>入力をリセット</button>
         <span class="tl-ink-emerald" id="tl-restore-file-name" style="font-size:0.8rem;"></span>
       </div>
-      <video id="tl-video" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border:2px solid #f59e0b; margin-bottom:8px;"></video>
+      <video id="tl-video" class="cm-frame-amber" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border-width:2px; border-style:solid; margin-bottom:8px;"></video>
       <label for="tl-restore-text" style="font-size:0.8rem; color:var(--text-sub); display:block; margin-bottom:4px;">アーマード文字列の貼り付け（秘密分散の場合は必要Mシェア分を続けて貼り付け）:</label>
       <textarea id="tl-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="-----BEGIN CRYPTOMATRIX TIMELOCK----- から始まる文字列を貼り付けるか、上のボタンで .cmtl ファイル／QR画像を読み込んでください。"></textarea>
     </div>
@@ -1548,7 +1548,7 @@
         </label>
       </div>
 
-      <div id="tl-manual-beacon-box" hidden style="margin-top:10px; padding:10px; background:#111827; border:1px solid #4b5563; border-radius:6px;">
+      <div id="tl-manual-beacon-box" class="cm-panel-beacon" hidden style="margin-top:10px; padding:10px; border-width:1px; border-style:solid; border-radius:6px;">
         <label for="tl-manual-beacon-input" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">
           対象ラウンドのdrandビーコンJSON（<code>{"round":...,"signature":"..."}</code>）または96文字の16進数署名:
         </label>
@@ -1575,7 +1575,7 @@
         <button type="button" class="btn btn-outline" id="tl-restore-gen-keyfile" style="padding:4px 10px; font-size:0.76rem;">🔑 カードからキーファイル(.key)を再生成してセット</button>
         <div class="tl-ink-emerald" id="tl-restore-keyfile-status" style="width:100%; font-size:0.76rem;"></div>
       </div>
-      <div class="tl-ink-sky" id="tl-restore-pk-notice" hidden style="margin-top:8px; padding:8px 10px; background:#192029; border:1px solid #0284c7; border-radius:6px; font-size:0.8rem;">
+      <div class="tl-ink-sky cm-panel-sky" id="tl-restore-pk-notice" hidden style="margin-top:8px; padding:8px 10px; border-width:1px; border-style:solid; border-radius:6px; font-size:0.8rem;">
         👤 このカプセルには<strong>WebAuthn PRFパスキー保護</strong>が含まれています。「解禁・復号を実行」を押すと端末の生体認証／セキュリティキー確認が表示されます。
       </div>
     </div>
@@ -1624,7 +1624,7 @@
         パスワード算出・バックアップ・保管庫・タイムカプセル暗号化はすべてお使いの端末内で完結し、外部サーバーへの通信は一切行いません（タイムカプセル復号時にオンライン取得を選択した場合のみ公開drand乱数ビーコンを取得します。手動ビーコン入力なら復号も完全オフラインで実行可能）。<br>
         シード・合言葉・生成パスワードが外部に送信されることはありません。機密性の高い操作は、ネットワークを切断した環境（エアギャップ）での利用を推奨します。
       </p>
-      <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" style="color:#1aff78; font-weight:600; text-decoration:underline;">Contact us</a>
+      <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" class="cm-link-neon" style="font-weight:600; text-decoration:underline;">Contact us</a>
     </footer>
   </div>
 
@@ -1717,7 +1717,7 @@
         <!-- おとり設定パネル（「おとりパスワードを設定する」を押すと展開） -->
         <div class="cm-duress-warn" id="duress-modal-config" hidden style="border:1px solid #a88700; border-radius:8px; padding:12px; margin-top:10px;">
           <!-- 共通ヘッダー ＆ ダミー自動生成ボタン -->
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #a88700;">
+          <div class="cm-row-goldline" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding-bottom:8px;">
             <div class="cm-duress-accent" style="font-weight:700; font-size:0.84rem;">
               <img src="duress-icon.png" class="cm-sec-img" alt="" width="40" height="40">二重金庫（おとり・ダミー偽装）の設定：
             </div>
@@ -1904,7 +1904,7 @@
           <label class="cm-km-factor cm-km-factor-sel" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-dual">
             <input type="radio" name="km-factor" id="km-factor-dual" value="dual" checked style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
-              <strong style="color:#1aaeff;">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
+              <strong class="cm-txt-sky">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
               <span class="cm-km-sky">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
             </div>
           </label>
@@ -1932,15 +1932,15 @@
               <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#1ab1ff; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
             <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" class="cm-radius-4 cm-bbox" style="width:100%; padding:7px 9px; font-size:0.84rem;">
-            <div class="cm-km-note" style="font-size:0.75rem; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
+            <div class="cm-km-note" style="font-size:0.75rem; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" class="cm-link-sky" style="font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
             <div class="cm-note-muted" style="font-size:0.74rem; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>
 
           <!-- パスキー説明エリア -->
-          <div id="km-passkey-wrap" class="cm-passkey-note" style="display:none; background:#192029; border:1px solid #004ca0; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; line-height:1.5;">
+          <div id="km-passkey-wrap" class="cm-passkey-note cm-panel-blue" style="display:none; border-width:1px; border-style:solid; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; line-height:1.5;">
             <div>👤 <strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
-            <div id="km-passkey-existing-notice" style="display:none; margin-top:6px; padding:4px 8px; background:#19291f; border:1px solid #0eaa47; border-radius:4px; color:#1dfbbd; font-size:0.75rem;">
+            <div id="km-passkey-existing-notice" class="cm-prot-init" style="display:none; margin-top:6px; padding:4px 8px; border-width:1px; border-style:solid; border-radius:4px; font-size:0.75rem;">
               ✨ この端末にこのカード用パスキー認証情報が登録されています。確認を押すと登録済みパスキーで認証・復元されます。
             </div>
           </div>
@@ -2080,7 +2080,7 @@
             </div>
 
             <!-- 転記データ表示エリア -->
-            <div id="ts-input-transferred-area" class="ts-field" hidden style="background:#292119; padding:12px; border-radius:8px; border:1.5px solid #f59e0b;">
+            <div id="ts-input-transferred-area" class="ts-field cm-panel-amber" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:solid;">
               <div id="ts-transferred-summary"></div>
               <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-transferred">✕ 転記データを解除してテキスト入力に戻す</button>
@@ -2796,7 +2796,7 @@
               </div>
 
               <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #10b981;">
-                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#10b981;">2. 3系統の独立認証ポリシーの違い</h4>
+                <h4 class="cm-guide-emerald" style="margin:0 0 6px; font-size:0.92rem;">2. 3系統の独立認証ポリシーの違い</h4>
                 <ul style="margin:0; padding-left:20px;">
                   <li><strong>暗号化（復号）認証：</strong>金庫内の秘匿データを取り出すための認証です（パスワード、キーファイル、パスキーPRF）。</li>
                   <li><strong>チェックイン認証：</strong>日常的な期限延長のみを行うための認証です。暗号化パスワードとは異なる独立パスワードやパスキー、あるいは「認証なし（1クリック即時延長）」を設定可能です。<strong>チェックイン権限だけでは暗号文を復号することは暗号論的にできません。</strong></li>

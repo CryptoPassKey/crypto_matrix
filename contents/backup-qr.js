@@ -4591,7 +4591,7 @@ function initBonusVault(){
 
    if(unpacked.type==='file'){
 
-    $('bv-decrypted-title').textContent=`✅ ファイルの復号に成功しました！「${unpacked.name||'restored-file'}」`;
+    $('bv-decrypted-title').textContent=`✅ ファイルの復号・認証タグ検証が完了しました！「${unpacked.name||'restored-file'}」`;
 
     $('bv-decrypted-content').textContent=`【復号完了ファイル情報】\nファイル名: ${unpacked.name}\nファイルサイズ: ${(unpacked.payload.length/1024).toFixed(1)} KB (${unpacked.payload.length} bytes)\n\n※自動的にダウンロードが開始されます。始まらない場合は右上の「💾 ファイルをダウンロード」を押してください。`;
 
@@ -4607,7 +4607,7 @@ function initBonusVault(){
 
     const text=new TextDecoder().decode(unpacked.payload);
 
-    $('bv-decrypted-title').textContent='✅ 機密テキスト／パスワードの復号に成功しました！';
+    $('bv-decrypted-title').textContent='✅ 機密テキスト／パスワードの復号・認証タグ検証が完了しました！';
 
     $('bv-decrypted-content').textContent=text;
 

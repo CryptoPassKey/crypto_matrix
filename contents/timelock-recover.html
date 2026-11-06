@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.drand.sh https://api2.drand.sh https://api3.drand.sh https://drand.cloudflare.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
-  <title>Crypto Matrix — タイムロック独立復元ツール (Standalone Recovery Tool)</title>
+  <title>Crypto Matrix — タイムカプセル独立復元ツール (Standalone Recovery Tool)</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -124,10 +124,10 @@
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
         <div>
-          <h1>⏳ Crypto Matrix — タイムロック独立復元ツール (Standalone Recovery)</h1>
+          <h1>⏳ Crypto Matrix — タイムカプセル独立復元ツール (Standalone Recovery)</h1>
           <div style="font-size:0.84rem; color:var(--muted);">
             単一HTML完結版（tlock-js BLS12-381 IBE / AGE / Argon2id WASM / CME3 二重カスケード内蔵）。<br>
-            メインアプリが失われた場合や10年後の長期保管環境でも、このファイル1つでタイムロックカプセル（CMTL1 / CMTS）を検査・復号できます。
+            メインアプリが失われた場合や10年後の長期保管環境でも、このファイル1つでタイムカプセル（CMTL1 / CMTS）を検査・復号できます。
           </div>
         </div>
         <a href="index.html" class="btn" style="font-size:0.8rem;">← メインアプリへ戻る</a>
@@ -135,7 +135,7 @@
     </div>
 
     <div class="card">
-      <h2>1. タイムロックカプセル（.cmtl / .txt / 秘密分散シェア）の読み込み</h2>
+      <h2>1. タイムカプセル（.cmtl / .txt / 秘密分散シェア）の読み込み</h2>
       <div style="margin-bottom:10px;">
         <label for="rec-file">ファイルを選択（秘密分散の場合はM個以上のシェアを同時選択可）</label>
         <input type="file" id="rec-file" multiple accept=".cmtl,.txt,.asc,text/plain,application/octet-stream">
@@ -205,7 +205,7 @@
       </div>
 
       <button type="button" class="btn btn-primary" id="rec-btn-decrypt" style="width:100%; padding:12px;">
-        🔓 タイムロックカプセルを復号・開封する
+        🔓 タイムカプセルを復号・開封する
       </button>
 
       <div id="rec-status" class="status" hidden></div>
@@ -817,10 +817,10 @@ ${i}
         let guideHtml = '';
         if (isCXB) {
           payload.text = formatAsArmored(p, 'BACKUP', '');
-          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムロックの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション3の暗号化バックアップ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション3（バックアップ）の復元欄に貼り付けて、バックアップ作成時のパスワードを入力すると元の全データが復元されます。</div>';
+          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムカプセルの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション3の暗号化バックアップ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション3（バックアップ）の復元欄に貼り付けて、バックアップ作成時のパスワードを入力すると元の全データが復元されます。</div>';
         } else if (isCME) {
           payload.text = formatAsArmored(p, 'ENCRYPTED DATA', 'VAULT');
-          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムロックの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション4（保管庫復号）に貼り付けて復号してください。</div>';
+          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムカプセルの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション4（保管庫復号）に貼り付けて復号してください。</div>';
         }
 
         $('rec-result-meta').innerHTML = `<div>種別: ${payload.type === 'file' && !isCXB && !isCME ? 'ファイル (' + payload.name + ')' : 'テキスト / 暗号化データ'} ／ サイズ: ${payload.data.length.toLocaleString()} bytes ／ 検証済みRound: #${h.round}</div>${guideHtml}`;
@@ -832,7 +832,7 @@ ${i}
           $('rec-result-file-wrap').hidden = true;
           $('rec-result-text').value = payload.text || '';
         }
-        setStatus('✅ タイムロックカプセルのBLS署名検証および復号に成功しました！', 'ok');
+        setStatus('✅ タイムカプセルのBLS署名検証および復号に成功しました！', 'ok');
       } catch (err) {
         $('rec-result-card').hidden = true;
         setStatus('❌ 復号失敗: ' + (err.message || err), 'err');

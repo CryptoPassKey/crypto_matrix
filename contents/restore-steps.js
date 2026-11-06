@@ -104,6 +104,11 @@
     if (keyfile) keyfile.addEventListener('change', resetObservation);
     var image = $('bq-image');
     if (image) image.addEventListener('change', resetObservation);
+    // Entering the read phase (camera start) also resets observation:
+    // a scan-stage error after a failed verification must not be shown
+    // as a step-2 verification failure (PR #94 review point).
+    var camera = $('bq-camera');
+    if (camera) camera.addEventListener('click', resetObservation);
     var resetParts = $('bq-reset-parts');
     if (resetParts) resetParts.addEventListener('click', resetObservation);
     var zeroize = $('btn-zeroize');

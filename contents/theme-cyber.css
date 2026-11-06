@@ -1,14 +1,43 @@
 /* Cyber dark layer on top of the original (auto-darkened) stylesheet. Visual only. */
 :root {
-  --bg-main: #070b14;
-  --card-bg: #0d1422;
-  --text-main: #e2e8f0;
-  --text-sub: #94a3b8;
-  --accent: #34f58a;
-  --accent-light: rgba(52, 245, 138, 0.1);
-  --border-color: #1f2a3d;
-  --surface-sub: #0b1220;
-  --cyan: #38d6f5;
+  /* T1 統一トークン（ダーク = BLACK HACKER）。正の定義はこのファイルに置く */
+  --bg-main: #090d14;
+  --surface-sub: #0d1420;
+  --card-bg: #131b26;
+  --card-raised: #182233;
+  --input-bg: #0c1220;
+  --text-main: #e5edf7;
+  --text-sub: #93a5bc;
+  --border-color: #293747;
+  --border-strong: #3a4e68;
+  --accent: #00e58a;
+  --accent-strong: #3cf59f;
+  --accent-light: rgba(0, 229, 138, 0.12);
+  --accent-fg: #06251a;
+  --cyan: #00c8ff;
+  --focus-ring: #00c8ff;
+  --success: #00e58a;
+  --success-bg: rgba(0, 229, 138, 0.12);
+  --warning: #ffb224;
+  --warning-bg: rgba(255, 178, 36, 0.12);
+  --danger: #ff5c6c;
+  --danger-bg: rgba(255, 92, 108, 0.12);
+  --feat-generate: #00e58a;
+  --feat-generate-soft: rgba(0, 229, 138, 0.12);
+  --feat-backup: #38bdf8;
+  --feat-backup-soft: rgba(56, 189, 248, 0.12);
+  --feat-vault: #a78bfa;
+  --feat-vault-soft: rgba(167, 139, 250, 0.12);
+  --feat-capsule: #fbbf24;
+  --feat-capsule-soft: rgba(251, 191, 36, 0.12);
+  --feat-transfer: #00c8ff;
+  --feat-transfer-soft: rgba(0, 200, 255, 0.12);
+  --feat-passkey: #2fe6a7;
+  --feat-passkey-soft: rgba(47, 230, 167, 0.12);
+  --feat-secret: #00a8d6;
+  --feat-secret-soft: rgba(0, 168, 214, 0.12);
+  --matrix-green: var(--feat-generate);
+  --matrix-border: var(--feat-generate);
   --font-ui: "Fira Code", "JetBrains Mono", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", ui-monospace, monospace;
 }
 html, body { background: var(--bg-main) !important; color: var(--text-main); }
@@ -80,9 +109,22 @@ html:not(.light) .cm-legacy [style*="background:#f"], html:not(.light) .cm-legac
 /* ===== Light mode ===== */
 html.light {
   color-scheme: light;
-  --bg-main: #f3f6fa; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #526077;
-  --accent: #0f9d58; --accent-light: rgba(15,157,88,.1); --border-color: #d5dde8;
-  --surface-sub: #eef3f8; --cyan: #0369a1; --matrix-green: #0f9d58; --matrix-border: #0f9d58;
+  /* T1 統一トークン（ライト = WHITE HACKER） */
+  --bg-main: #f7f9fc; --surface-sub: #eef3f8; --card-bg: #ffffff; --card-raised: #ffffff;
+  --input-bg: #ffffff; --text-main: #17243a; --text-sub: #4a5a73;
+  --border-color: #dce3ea; --border-strong: #b9c6d6;
+  --accent: #168653; --accent-strong: #0f7043; --accent-light: rgba(22, 134, 83, 0.1); --accent-fg: #ffffff;
+  --cyan: #2878d0; --focus-ring: #2878d0;
+  --success: #0f7043; --success-bg: #e9f7f0;
+  --warning: #9a6206; --warning-bg: #fdf3e0;
+  --danger: #c62f3b; --danger-bg: #fdecec;
+  --feat-generate: #168653; --feat-generate-soft: rgba(22, 134, 83, 0.1);
+  --feat-backup: #2878d0; --feat-backup-soft: rgba(40, 120, 208, 0.1);
+  --feat-vault: #7c53c9; --feat-vault-soft: rgba(124, 83, 201, 0.1);
+  --feat-capsule: #b45309; --feat-capsule-soft: rgba(180, 83, 9, 0.1);
+  --feat-transfer: #0e7fa8; --feat-transfer-soft: rgba(14, 127, 168, 0.1);
+  --feat-passkey: #0b7a55; --feat-passkey-soft: rgba(11, 122, 85, 0.1);
+  --feat-secret: #0e7fa8; --feat-secret-soft: rgba(14, 127, 168, 0.1);
 }
 html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
 html.light .cm-legacy [style*="color:#1"], html.light .cm-legacy [style*="color: #1"] { color: #0b7a44 !important; }
@@ -822,10 +864,7 @@ html.light #keyfile-modal-seed { background: #ffffff !important; color: #0369a1 
    Light mode = original Crypto Matrix (uploaded ZIP) palette, restored.
    Sage white surfaces, matrix green accents, glowing board frame.
    ===================================================================== */
-html.light {
-  --bg-main: #ffffff; --card-bg: #ffffff; --text-main: #17221b; --text-sub: #56635b;
-  --accent: #008a37; --accent-light: #e6ffef; --border-color: #d4ded7; --surface-sub: #f7faf8;
-}
+/* T1: トークンは先頭の html.light ブロックで一元定義する（この節の旧パレット値は撤去） */
 html.light body, html.light .cm-legacy { background-color: #ffffff; }
 html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: #17221b; }
 html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { border-color: #bdcec3 !important; color: #17221b !important; }

@@ -1,28 +1,11 @@
   :root {
     color-scheme: dark;
 
-    --bg-main: #1b2027;
-    --card-bg: #1b2027;
-    --text-main: #74a586;
-    --text-sub: #8695ab;
-    --accent: #1aff75;
-    --accent-light: #19291f;
-    --border-color: #28303a;
-
-    --matrix-green: #1aff75;
-    --matrix-border: #1aff76;
-    --surface-sub: #1a291f;
-    --cyan: #1addff;
+    /* T1: 共通トークン（--bg-main 等）は theme-cyber.css の定義を正とする */
 
     --warn-bg: #c8cfd9;
     --warn-border: #e83838;
 
-    --font-ui:
-      'Fira Code',
-      'SFMono-Regular',
-      Consolas,
-      'Noto Sans JP',
-      monospace;
   }
 
   * {

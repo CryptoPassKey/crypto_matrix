@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.31.0-unit1-structure';
+const VERSION = 'cm-v2.31.1-unit2-tabs';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",

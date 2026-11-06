@@ -987,8 +987,8 @@
       const p = tlTransferredPayload;
       const isSec2 = p.source === 'sec2';
       $('tl-transferred-summary').innerHTML = `
-        <div style="font-weight:700; color:#fbbf24; margin-bottom:4px;">🔗 転記済みデータ：${escapeHtml(p.label)}</div>
-        <div style="font-size:0.8rem; color:#d1d5db; line-height:1.5;">
+        <div class="tl-ink-amber" style="font-weight:700; margin-bottom:4px;">🔗 転記済みデータ：${escapeHtml(p.label)}</div>
+        <div class="tl-ink-gray" style="font-size:0.8rem; line-height:1.5;">
           ・データサイズ：<strong>${p.bytes.length.toLocaleString()} bytes</strong>（ファイル名：<code>${escapeHtml(p.filename)}</code>）<br>
           ・内側の既存保護：<strong>${escapeHtml(p.factorLabel)}</strong>${p.shamirN > 1 ? ` ＋ 秘密分散 (${p.shamirM}-of-${p.shamirN})` : ''}<br>
           ・<strong>保護構造の説明：</strong> ${isSec2 ? 'BIP39復元フレーズ（カード配列・レシピ設定）は未暗号化の平文データです。タイムカプセルによって暗号化カプセルとして保護されます。' : `内側の暗号化（${escapeHtml(p.factorLabel)}）はそのまま保護され、さらにタイムカプセル暗号が追加されます。`}<br>
@@ -1059,9 +1059,9 @@
       previewBox.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:8px; font-size:0.82rem;">
           <div><span style="color:var(--text-sub);">希望解禁時刻：</span><br><strong>${escapeHtml(formatLocalDateTime(rInfo.targetTimeMs))}</strong></div>
-          <div><span style="color:var(--text-sub);">実際の解禁予定時刻（端数切上）：</span><br><strong style="color:#38bdf8;">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">(+${diffSec}秒)</span></div>
+          <div><span style="color:var(--text-sub);">実際の解禁予定時刻（端数切上）：</span><br><strong class="tl-ink-sky">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">(+${diffSec}秒)</span></div>
           <div><span style="color:var(--text-sub);">drandネットワーク / 周期：</span><br><strong>quicknet</strong> (${TL.QUICKNET_CHAIN_INFO.period}秒周期 / RFC9380)</div>
-          <div><span style="color:var(--text-sub);">対象ラウンド番号：</span><br><strong style="color:#fbbf24; font-family:monospace; font-size:0.95rem;">Round #${rInfo.round}</strong></div>
+          <div><span style="color:var(--text-sub);">対象ラウンド番号：</span><br><strong class="tl-ink-amber" style="font-family:monospace; font-size:0.95rem;">Round #${rInfo.round}</strong></div>
         </div>
         ${isPast ? '<div style="margin-top:6px; font-size:0.78rem; color:#f97316;">ℹ️ 指定時刻が現在以前のため、既に発行済みのラウンドで暗号化されます（即時解禁テスト用としてはそのまま作成可能です）。本来のタイムカプセルには未来の日時を指定してください。</div>' : ''}
       `;
@@ -1105,7 +1105,7 @@
     const summaryEl = $('tl-pre-summary-box');
     if (summaryEl) {
       summaryEl.innerHTML = `
-        <div style="font-weight:700; font-size:0.88rem; color:#38bdf8; margin-bottom:6px;">📋 暗号化前の設定確認サマリー</div>
+        <div class="tl-ink-sky" style="font-weight:700; font-size:0.88rem; margin-bottom:6px;">📋 暗号化前の設定確認サマリー</div>
         <div style="font-size:0.82rem; line-height:1.6;">
           ・<strong>保護対象データ：</strong> ${escapeHtml(payloadDesc)}<br>
           ・<strong>保護タイプ：</strong> <strong>${(() => {
@@ -1125,13 +1125,13 @@
             if (shamirN > 1) factorNames.push(`秘密分散(${shamirM}-of-${shamirN})`);
             return `追加保護付きタイムカプセル（時刻解禁 ＋ ${factorNames.join(' ＋ ')}）`;
           })()}</strong><br>
-          ・<strong>連動カード配列シード番号：</strong> <strong style="color:#38bdf8; font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（作成時のカード配列シード番号と連動して暗号鍵が導出されます）</span><br>
-          ・<strong>解禁予定日時：</strong> <strong style="color:#fbbf24;">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong>（Round #${rInfo.round}）<br>
+          ・<strong>連動カード配列シード番号：</strong> <strong class="tl-ink-sky" style="font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（作成時のカード配列シード番号と連動して暗号鍵が導出されます）</span><br>
+          ・<strong>解禁予定日時：</strong> <strong class="tl-ink-amber">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong>（Round #${rInfo.round}）<br>
           ・<strong>復号に必要な条件：</strong> ${reqFactors.map(escapeHtml).join(' ＋ ')}<br>
-          ・<strong>解禁ツール制限：</strong> <span style="color:#38bdf8; font-weight:700;">🔒 本サイトおよび独立復元ツール限定（App-Domain Bindingにより、外部ツールからの直接解凍を遮断）</span><br>
+          ・<strong>解禁ツール制限：</strong> <span class="tl-ink-sky" style="font-weight:700;">🔒 本サイトおよび独立復元ツール限定（App-Domain Bindingにより、外部ツールからの直接解凍を遮断）</span><br>
           ・<strong>独立復元ツール (timelock-recover.html) 対応：</strong> ${
             standaloneOk
-              ? '<span style="color:#34d399; font-weight:700;">⭕ 完全対応（サイト消滅時も単体HTMLで復元可能）</span>'
+              ? '<span class="tl-ink-emerald" style="font-weight:700;">⭕ 完全対応（サイト消滅時も単体HTMLで復元可能）</span>'
               : '<span style="color:#f87171; font-weight:700;">⚠️ 非対応（パスキーPRF併用時は現在のドメイン上でのみ復元可能）</span>'
           }
         </div>
@@ -1166,7 +1166,7 @@
   function renderQrPreviewHtml(text, caption) {
     if (!text || text.length > QR_MAX_CHARS) {
       const kb = ((text ? text.length : 0) / 1024).toFixed(1);
-      return `<div class="bv-no-print" style="font-size:0.76rem; color:#fbbf24; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px; max-width:280px;">⚠️ データ長（${kb} KB / ${text.length}文字）がQRコード上限（${QR_MAX_CHARS}文字）を超えるため、QRコード生成は省略されました。<strong>ファイル保存 (.cmtl)</strong> または <strong>テキスト保存 (.txt)</strong> をご利用ください。</div>`;
+      return `<div class="bv-no-print tl-ink-amber" style="font-size:0.76rem; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px; max-width:280px;">⚠️ データ長（${kb} KB / ${text.length}文字）がQRコード上限（${QR_MAX_CHARS}文字）を超えるため、QRコード生成は省略されました。<strong>ファイル保存 (.cmtl)</strong> または <strong>テキスト保存 (.txt)</strong> をご利用ください。</div>`;
     }
     try {
       const qrFn = window.CMQrHelpers?.qrSVG || window.MatrixCardPreset?.qrSVG;
@@ -1174,7 +1174,7 @@
       if (!svg) throw new Error('no svg');
       return `<figure class="tl-qr-figure" style="margin:0; text-align:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:#334155; margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
     } catch (_) {
-      return `<div class="bv-no-print" style="font-size:0.76rem; color:#fbbf24; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
+      return `<div class="bv-no-print tl-ink-amber" style="font-size:0.76rem; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
     }
   }
 
@@ -1250,20 +1250,20 @@
         const diff = meta.unlockTimeMs - now;
         const unlocked = diff <= 0;
         const statusBadge = unlocked
-          ? `<span style="display:inline-block; padding:3px 10px; border-radius:999px; background:#064e3b; color:#34d399; border:1px solid #10b981; font-weight:700;">🔓 解禁時刻到達済み（復号可能）</span>`
-          : `<span style="display:inline-block; padding:3px 10px; border-radius:999px; background:#451a03; color:#fbbf24; border:1px solid #f59e0b; font-weight:700;">🔒 解禁時刻前（残り ${escapeHtml(formatRemainingTime(diff))}）</span>`;
+          ? `<span class="tl-ink-emerald" style="display:inline-block; padding:3px 10px; border-radius:999px; background:#064e3b; border:1px solid #10b981; font-weight:700;">🔓 解禁時刻到達済み（復号可能）</span>`
+          : `<span class="tl-ink-amber" style="display:inline-block; padding:3px 10px; border-radius:999px; background:#451a03; border:1px solid #f59e0b; font-weight:700;">🔒 解禁時刻前（残り ${escapeHtml(formatRemainingTime(diff))}）</span>`;
 
         infoBox.hidden = false;
         infoBox.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-            <strong style="color:#38bdf8; font-size:0.9rem;">📦 カプセル解析情報（CMTL1 v${meta.v}）</strong>
+            <strong class="tl-ink-sky" style="font-size:0.9rem;">📦 カプセル解析情報（CMTL1 v${meta.v}）</strong>
             ${statusBadge}
           </div>
           <div style="font-size:0.82rem; line-height:1.65;">
             ・<strong>保護タイプ：</strong> ${meta.mode === 'A' ? (meta.shamir && meta.shamir.n > 1 ? `タイムカプセル ＋ 秘密分散（${meta.shamir.m}-of-${meta.shamir.n}・パスワード不要）` : 'タイムカプセル（時間解禁のみ）') : `追加保護付きタイムカプセル（時刻解禁 ＋ ${escapeHtml(comboLabelTL(meta.combo))}）`}<br>
             ・<strong>封入データ種別：</strong> ${escapeHtml(payloadKindLabel(meta.payloadKind))}<br>
             ・<strong>秘密分散：</strong> ${shamirStatusHtml}<br>
-            ・<strong>drandネットワーク / 対象ラウンド：</strong> <code>${escapeHtml(meta.net)}</code> ／ <strong style="color:#fbbf24; font-family:monospace;">Round #${meta.round}</strong><br>
+            ・<strong>drandネットワーク / 対象ラウンド：</strong> <code>${escapeHtml(meta.net)}</code> ／ <strong class="tl-ink-amber" style="font-family:monospace;">Round #${meta.round}</strong><br>
             ・<strong>解禁予定日時：</strong> <strong>${escapeHtml(formatLocalDateTime(meta.unlockTimeMs))}</strong><br>
             ・<strong>手動取得用ビーコンURL：</strong> <code style="font-size:0.74rem; word-break:break-all;">https://api.drand.sh/${escapeHtml(meta.chainHash)}/public/${meta.round}</code>
           </div>
@@ -2350,7 +2350,7 @@
             (s) => `
           <div style="background:#192129; border:1px solid #304257; border-radius:6px; padding:10px; margin-top:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
-              <strong style="font-size:0.84rem; color:#38bdf8;">🧩 秘密分散シェア #${s.index} / ${s.n}（任意の ${s.m} シェアで復元可能）</strong>
+              <strong class="tl-ink-sky" style="font-size:0.84rem;">🧩 秘密分散シェア #${s.index} / ${s.n}（任意の ${s.m} シェアで復元可能）</strong>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-secondary tl-btn-copy-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
                 <button type="button" class="btn btn-outline tl-btn-dl-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>.cmtl保存</button>
@@ -2641,7 +2641,7 @@
       if (rep.isSec3) {
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
-            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
+            <strong class="tl-ink-emerald" style="font-size:0.92rem;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>拡張バックアップ</strong>】です。<br>
             データは拡張バックアップ作成時の復元用パスワード等で安全に保護されたまま取り出されました。<br>
             上の<strong>『🔄 拡張バックアップ（復元欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して【読み込み・検証して内容を確認】を実行すると、元の全パスワード・設定・合言葉が復元されます。
@@ -2650,7 +2650,7 @@
       } else if (rep.isSec4) {
         extraGuide = `
           <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
-            <strong style="font-size:0.92rem; color:#34d399;">🎉 タイムカプセルの開封に成功しました！</strong><br>
+            <strong class="tl-ink-emerald" style="font-size:0.92rem;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>セキュア保管庫の暗号化データ</strong>】です。<br>
             上の<strong>『🔄 セキュア保管庫（復号欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して復号してください。
           </div>

@@ -421,7 +421,7 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
   box.innerHTML=`
 
-   <div class="bv-no-print" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; background:#f1f5f9; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1;">
+   <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1;">
 
      <div style="font-size:0.82rem; font-weight:700; color:#334155;">
 
@@ -3171,7 +3171,7 @@ function initBonusVault(){
 
       return `
 
-       <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:12px;">
+       <div class="cm-bq-card" style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:12px;">
 
          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
 
@@ -3199,7 +3199,7 @@ function initBonusVault(){
 
            ${renderVaultQrHtml(s.arm, `シェア ${s.index} / ${shamirN} QR`)}
 
-           <div style="flex:1; min-width:240px; max-width:100%; box-sizing:border-box;">
+           <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
 
              <textarea readonly id="bv-share-ta-${s.index}" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultText)}</textarea>
 
@@ -3425,7 +3425,7 @@ function initBonusVault(){
 
        if(!s)return;
 
-       const card=btn.closest('div[style*="background:#f8fafc"]');
+       const card=btn.closest('div.cm-bq-card');
 
        const svg=card?card.querySelector('.bv-qr-figure svg'):null;
 
@@ -3457,7 +3457,7 @@ function initBonusVault(){
 
        if(!s)return;
 
-       const card=btn.closest('div[style*="background:#f8fafc"]');
+       const card=btn.closest('div.cm-bq-card');
 
        const svg=card?card.querySelector('.bv-qr-figure svg'):null;
 
@@ -3535,7 +3535,7 @@ function initBonusVault(){
 
      dlAllQrBtn.addEventListener('click',async()=>{
 
-      const cards=container.querySelectorAll('div[style*="background:#f8fafc"]');
+      const cards=container.querySelectorAll('div.cm-bq-card');
 
       for(let k=1;k<=shamirN;k++){
 
@@ -3750,7 +3750,7 @@ function initBonusVault(){
 
      container.innerHTML=`
 
-       <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:10px;">
+       <div class="cm-bq-card" style="border:1px solid #cbd5e1; border-radius:6px; padding:10px;">
 
          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
 
@@ -3780,7 +3780,7 @@ function initBonusVault(){
 
            ${renderVaultQrHtml(armored, '暗号化データ QR')}
 
-           <div style="flex:1; min-width:240px; max-width:100%; box-sizing:border-box;">
+           <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
 
              <textarea readonly id="bv-single-ta" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultSingleText)}</textarea>
 

@@ -3322,3 +3322,24 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 @media (pointer: coarse) {
   .cm-subtab-btn { min-height: 44px; }
 }
+
+/* BIP39 recovery phrase: compact responsive grid (24 words) */
+#seed-words-container {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: start;
+  gap: 6px !important;
+}
+#seed-words-container .seed-chip {
+  min-width: 0;
+  box-sizing: border-box;
+}
+#seed-words-container .seed-num,
+#seed-words-container .seed-txt {
+  white-space: nowrap;
+}
+@media (max-width: 820px) {
+  #seed-words-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

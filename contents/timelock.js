@@ -2086,11 +2086,13 @@
     // Execute Decryption
     $('tl-btn-decrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
-      const myUiToken = ++tlDecryptUiToken;
-      if ($('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = true;
       tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
+      // Disable immediately before the try (same reasoning as the vault
+      // handler): the finally is then guaranteed to restore the button.
+      const myUiToken = ++tlDecryptUiToken;
+      if ($('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = true;
       try {
         const packets = collectRestorePacketsFromInput();
         if (!packets.length) {

@@ -4209,10 +4209,6 @@ function initBonusVault(){
 
   const myToken = ++bvOpToken;
 
-  const myUiToken = ++bvDecryptUiToken;
-
-  if($('bv-btn-decrypt'))$('bv-btn-decrypt').disabled=true;
-
   if (activeDuressContext === 'sec4') closeDuressModal();
 
   bvMessage('bv-decrypt-status','');
@@ -4269,7 +4265,12 @@ function initBonusVault(){
 
   let resultCommitted = false;
 
+  // Disable immediately before the try: everything above is synchronous
+  // (no double-click can interleave), and this way the finally below is
+  // guaranteed to run and restore the button (PR #95 review note).
+  const myUiToken = ++bvDecryptUiToken;
 
+  if($('bv-btn-decrypt'))$('bv-btn-decrypt').disabled=true;
 
   try {
 

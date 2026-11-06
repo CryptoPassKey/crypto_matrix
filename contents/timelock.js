@@ -24,6 +24,19 @@
   // UI-only owner counter for the decrypt button's disabled state (D3-2):
   // a stale run's finally must not re-enable the button of a newer run.
   let tlDecryptUiToken = 0;
+  // Generation counter for decrypt-status ownership (D4-2).
+  let tlDecryptStatusGen = 0;
+  // Unit D4-2: a superseded decrypt replaces its own leftover
+  // "processing" status with an interruption note, but only while it
+  // still owns that status (generation stamp) and the text is still
+  // exactly the processing text it set.
+  function settleStaleTlDecryptStatus(gen) {
+    const el = $('tl-decrypt-status');
+    if (!el || el.dataset.cmStatusOwner !== String(gen)) return;
+    if (el.textContent !== '⏳ ビーコン検証とタイムカプセル復号を実行しています…') return;
+    delete el.dataset.cmStatusOwner;
+    tlMessage('tl-decrypt-status', '復号処理は中断されました。別の操作が実行されたため、結果は反映されていません。');
+  }
   let tlSelectedFile = null;
   let tlSelectedFileBytes = null;
   let tlTransferredPayload = null; // { source: 'sec3'|'sec4', label, bytes, armoredText, factorLabel, shamirM, shamirN, createdPassword, filename }
@@ -2087,6 +2100,8 @@
     $('tl-btn-decrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
       if (window.CMFieldHint) window.CMFieldHint.clearAll();
+      const myStatusGen = ++tlDecryptStatusGen;
+      if ($('tl-decrypt-status')) $('tl-decrypt-status').dataset.cmStatusOwner = String(myStatusGen);
       tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
@@ -2155,6 +2170,7 @@
         if (window.CMFieldHint) window.CMFieldHint.apply('tl', err.message || String(err), { manualBeacon: !!$('tl-beacon-mode-manual')?.checked });
       } finally {
         if (myUiToken === tlDecryptUiToken && $('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = false;
+        if (myToken !== tlOpToken) settleStaleTlDecryptStatus(myStatusGen);
       }
     });
 

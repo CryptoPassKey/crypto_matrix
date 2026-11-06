@@ -24,7 +24,7 @@ function openKeeWeb(transferId = '') {
 
 const AAD_LEGACY='MCBK1:E:PBKDF2-SHA256:310000:AES-256-GCM';
 
-let artifact=null,createToken=0,reviewToken=0,pending=null,parts=null;
+let artifact=null,createToken=0,reviewToken=0,pending=null,parts=null,bqReviewStatusGen=0;
 
 let cameraEpoch=0,stream=null,timer=null,decoderPromise=null;
 
@@ -199,6 +199,25 @@ function clearPending(){
  if($('bq-preview')){$('bq-preview').hidden=true;$('bq-preview').textContent='';}
 
  if($('bq-apply'))$('bq-apply').disabled=true;
+
+}
+
+
+
+function settleStaleProcessingStatus(el,gen,processingText,noteText,write){
+
+ // Unit D4-2: a superseded operation replaces its own leftover
+ // "processing" status with an interruption note, but only while it
+ // still owns that status (generation stamp) and the text is still
+ // exactly the processing text it set. Anything a newer operation
+ // or another reporter wrote is never overwritten.
+ if(!el||el.dataset.cmStatusOwner!==String(gen))return;
+
+ if(el.textContent!==processingText)return;
+
+ delete el.dataset.cmStatusOwner;
+
+ write(noteText);
 
 }
 
@@ -1165,7 +1184,7 @@ async function unpackLegacyPacket(packet,password){
 
 async function review(){
 
- clearPending();let token=reviewToken;message('bq-scan-status','検証しています…');
+ clearPending();let token=reviewToken;const myStatusGen=++bqReviewStatusGen;if($('bq-scan-status'))$('bq-scan-status').dataset.cmStatusOwner=String(myStatusGen);message('bq-scan-status','検証しています…');
 
  try{
 
@@ -1289,7 +1308,7 @@ async function review(){
 
   message('bq-scan-status','検証が完了しました。内容を確認して「確認した内容で復元を実行」を押してください。');
 
- }catch(e){if(token===reviewToken)message('bq-scan-status',e.message,true);}
+ }catch(e){if(token===reviewToken)message('bq-scan-status',e.message,true);}finally{if(token!==reviewToken)settleStaleProcessingStatus($('bq-scan-status'),myStatusGen,'検証しています…','検証は中断されました。入力の変更か別の操作により、検証結果は破棄されました。',t=>message('bq-scan-status',t));}
 
 }
 
@@ -2323,6 +2342,9 @@ function initBonusVault(){
  // owns the button: a cross-handler bump must not leave the button stuck,
  // and a stale decrypt finally must not re-enable a newer decrypt run.
  let bvDecryptUiToken = 0;
+
+ // Generation counter for decrypt-status ownership (D4-2).
+ let bvDecryptStatusGen = 0;
 
 
 
@@ -4211,6 +4233,10 @@ function initBonusVault(){
 
   if (activeDuressContext === 'sec4') closeDuressModal();
 
+  const myStatusGen = ++bvDecryptStatusGen;
+
+  if($('bv-decrypt-status'))$('bv-decrypt-status').dataset.cmStatusOwner=String(myStatusGen);
+
   if(window.CMFieldHint)window.CMFieldHint.clearAll();
 
   bvMessage('bv-decrypt-status','');
@@ -4660,6 +4686,8 @@ function initBonusVault(){
    if (!resultCommitted && lastDecryptedResult === unpacked) lastDecryptedResult = null;
 
    if (myUiToken === bvDecryptUiToken && $('bv-btn-decrypt')) $('bv-btn-decrypt').disabled=false;
+
+   if (myToken !== bvOpToken) settleStaleProcessingStatus($('bv-decrypt-status'), myStatusGen, '復元・復号を処理しています…', '復号処理は中断されました。別の操作が実行されたため、結果は反映されていません。', t=>bvMessage('bv-decrypt-status',t));
 
   }
 

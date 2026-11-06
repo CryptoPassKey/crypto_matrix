@@ -739,7 +739,7 @@
   </div>
 
   <div style="background:#192129; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
-   <div style="font-weight:700; font-size:0.88rem; color:#6382b5; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+   <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
    <div style="display:flex; flex-direction:column; gap:8px;">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-password" checked style="width:17px; height:17px;">
@@ -822,17 +822,17 @@
     <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
-  <div class="bq-row" id="bq-passkey-row" hidden style="background:#192029; padding:10px 12px; border-radius:8px; border:1px solid #004ca0; font-size:0.82rem; color:#3b65dd; line-height:1.5;">
+  <div class="bq-row cm-passkey-note" id="bq-passkey-row" hidden style="background:#192029; padding:10px 12px; border-radius:8px; border:1px solid #004ca0; font-size:0.82rem; line-height:1.5;">
    🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
    ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
    <div id="bq-passkey-manager" class="cm-passkey-manager-slot"></div>
-   <div style="margin-top:6px; padding:6px 10px; background:#1b2027; border-radius:6px; border:1px solid #003578; font-size:0.78rem; color:#335de6;">
+   <div class="cm-guide-blue" style="margin-top:6px; padding:6px 10px; background:#1b2027; border-radius:6px; border:1px solid #003578; font-size:0.78rem;">
      <strong>【動作対応認証器】</strong><br>
      ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
      ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
      ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
      ・⭕ <strong>Windows Hello</strong> (Windows 11)<br>
-     <span style="color:#e92f2f;">※パスキー保護を利用するには、お使いの端末・ブラウザ・パスキーの保存先がWebAuthn PRFに対応している必要があります。対応していない環境では登録・復元できない場合があります。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。⚠️ iPhoneで外付けYubiKeyを使用する場合、PRF拡張が利用できない、または動作が不安定なことがあります。</span>
+     <span class="cm-warn-red">※パスキー保護を利用するには、お使いの端末・ブラウザ・パスキーの保存先がWebAuthn PRFに対応している必要があります。対応していない環境では登録・復元できない場合があります。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。⚠️ iPhoneで外付けYubiKeyを使用する場合、PRF拡張が利用できない、または動作が不安定なことがあります。</span>
    </div>
   </div>
 
@@ -938,7 +938,7 @@
     </div>
   </h2>
 
-  <p style="margin:0 0 12px; font-size:0.86rem; color:#5074c8;">
+  <p class="cm-km-label" style="margin:0 0 12px; font-size:0.86rem;">
     お手元の既存パスワード、日本語の機密メモ、重要ファイルなどを、ブラウザ上（ローカル完結・外部送信ゼロ）で <strong>PBKDF2-SHA512 ＋ AES-256-GCM ＋ 二段階認証（キーファイル／パスキー） ＋ Shamir秘密分散（M-of-N）</strong> の自由な組み合わせで暗号化・分割保存・復元できます。
   </p>
 
@@ -981,7 +981,7 @@
 
     <!-- 保護設定ボックス -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin:12px 0;">
-      <div style="font-weight:700; font-size:0.88rem; color:#6382b5; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+      <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-password" checked style="width:17px; height:17px;">
@@ -1070,7 +1070,7 @@
     </div>
 
     <!-- パスキー説明行 -->
-    <div class="bq-row" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem; color:#3b65dd;">
+    <div class="bq-row cm-passkey-note" id="bv-passkey-row" hidden style="background:#192029; padding:8px 10px; border-radius:6px; border:1px solid #004ca0; font-size:0.8rem;">
       🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。暗号化・復号実行時に認証画面が表示されます。<br>
       <div id="bv-passkey-manager" class="cm-passkey-manager-slot"></div>
     </div>
@@ -1920,7 +1920,7 @@
           <label class="cm-km-factor" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-multi">
             <input type="radio" name="km-factor" id="km-factor-multi" value="multi" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
-              <strong style="color:#610bf4;">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
+              <strong class="cm-km-violet">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
               <span class="cm-modal-muted">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
             </div>
           </label>
@@ -1934,11 +1934,11 @@
             <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" class="cm-radius-4 cm-bbox" style="width:100%; padding:7px 9px; font-size:0.84rem;">
             <div class="cm-km-note" style="font-size:0.75rem; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
-            <div style="font-size:0.74rem; color:#7889a1; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
+            <div class="cm-note-muted" style="font-size:0.74rem; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>
 
           <!-- パスキー説明エリア -->
-          <div id="km-passkey-wrap" style="display:none; background:#192029; border:1px solid #004ca0; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; color:#3b65dd; line-height:1.5;">
+          <div id="km-passkey-wrap" class="cm-passkey-note" style="display:none; background:#192029; border:1px solid #004ca0; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; line-height:1.5;">
             <div>👤 <strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
             <div id="km-passkey-existing-notice" style="display:none; margin-top:6px; padding:4px 8px; background:#19291f; border:1px solid #0eaa47; border-radius:4px; color:#1dfbbd; font-size:0.75rem;">
               ✨ この端末にこのカード用パスキー認証情報が登録されています。確認を押すと登録済みパスキーで認証・復元されます。
@@ -2812,7 +2812,7 @@
               </div>
 
               <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #a855f7;">
-                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#a855f7;">4. データの保存先とブラウザデータ消去・端末移行時の注意点</h4>
+                <h4 class="cm-guide-violet" style="margin:0 0 6px; font-size:0.92rem;">4. データの保存先とブラウザデータ消去・端末移行時の注意点</h4>
                 <p style="margin:0;">
                   すべてのデータはお使いの端末のブラウザストレージ（IndexedDB および localStorage）にのみ保管され、<strong>外部サーバーへの自動送信は一切行われません（完全オフライン・ゼロ送信）</strong>。端末移行や「閲覧履歴・Cookie・サイトデータの全消去」を行うと金庫データも消去されるため、永久保管したい重要なデータは「バックアップ / 暗号化」や「セキュア保管庫」等で別媒体にもバックアップしてください。
                 </p>

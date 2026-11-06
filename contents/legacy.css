@@ -166,14 +166,14 @@
 }
 
 .btn-danger {
-  background: #e83838;
+  background: #ff5c6c;
   color: #1b2027;
-  border-color: #e83838;
+  border-color: #ff5c6c;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #e83838;
-  border-color: #e83838;
+  background: #ff5c6c;
+  border-color: #ff5c6c;
   opacity: 0.9;
   box-shadow: none;
 }

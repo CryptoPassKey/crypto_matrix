@@ -2705,6 +2705,17 @@
     if (note) tlMessage('tl-decrypt-status', note);
   }
 
+  // Unit D4-1: stop the timelock camera when its tab is left or the page
+  // is hidden. tlStopCamera is idempotent, so overlapping triggers are
+  // safe. Other features' cameras and processing are not touched.
+  document.addEventListener('cm-tab-changed', (e) => {
+    if (e && e.detail && e.detail.active !== 'tab-timelock') tlStopCamera();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') tlStopCamera();
+  });
+  window.addEventListener('pagehide', () => tlStopCamera());
+
   async function tlStartCamera() {
     tlStopCamera();
     const epoch = tlCameraEpoch;

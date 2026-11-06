@@ -69,6 +69,11 @@
         x.setAttribute('aria-selected', on ? 'true' : 'false');
         $(x.getAttribute('aria-controls')).hidden = !on;
       });
+      // Unit D4-1: notify features which tab became active so each can
+      // stop its own camera / pause its own playback when its panel is
+      // hidden. Features subscribe individually; nothing is stopped from
+      // here, so unrelated features are never affected.
+      document.dispatchEvent(new CustomEvent('cm-tab-changed', { detail: { active: t.getAttribute('aria-controls') } }));
     });
   });
 

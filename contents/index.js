@@ -729,7 +729,7 @@ function updateTraceButtonsUI(state) {
 
     if (pauseBtn) {
       pauseBtn.style.display = 'inline-block';
-      pauseBtn.textContent = isPaused ? '▶ 再開' : '⏸ 一時停止';
+      pauseBtn.innerHTML = isPaused ? '<img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">再開' : '<img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止';
       pauseBtn.title = isPaused ? 'クリックして続きから再生を再開します' : 'クリックして再生を一時停止します（自分のペースで1文字ずつ確認できます）';
     }
     if (stopBtn) {
@@ -738,7 +738,7 @@ function updateTraceButtonsUI(state) {
 
     if (stickyPause) {
       stickyPause.style.display = 'inline-block';
-      stickyPause.textContent = isPaused ? '▶ 再開' : '⏸ 一時停止';
+      stickyPause.innerHTML = isPaused ? '<img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">再開' : '<img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止';
     }
     if (stickyStop) {
       stickyStop.style.display = 'inline-block';

@@ -823,7 +823,7 @@ ${i}
           guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムカプセルの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション4（保管庫復号）に貼り付けて復号してください。</div>';
         }
 
-        $('rec-result-meta').innerHTML = `<div>種別: ${payload.type === 'file' && !isCXB && !isCME ? 'ファイル (' + payload.name + ')' : 'テキスト / 暗号化データ'} ／ サイズ: ${payload.data.length.toLocaleString()} bytes ／ 解禁に使用したビーコン番号: #${h.round}</div>${guideHtml}`;
+        $('rec-result-meta').innerHTML = `<div>種別: ${payload.type === 'file' && !isCXB && !isCME ? 'ファイル (' + payload.name + ')' : 'テキスト / 暗号化データ'} ／ サイズ: ${payload.data.length.toLocaleString()} bytes ／ 検証済みRound: #${h.round}</div>${guideHtml}`;
         if (payload.type === 'file' && !isCXB && !isCME) {
           $('rec-result-text-wrap').hidden = true;
           $('rec-result-file-wrap').hidden = false;

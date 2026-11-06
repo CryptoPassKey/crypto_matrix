@@ -788,3 +788,25 @@
     syncMap();
   });
 })();
+
+/* ===== 「現在のパスワード作成手順」開閉トグル（既定は開く／状態を記憶） ===== */
+(() => {
+  const KEY = 'cm_guide_collapsed';
+  const card = document.querySelector('.verbal-guide-card');
+  const btn = document.getElementById('btn-guide-toggle');
+  if (!card || !btn) return;
+  const label = btn.querySelector('.guide-toggle-label');
+  const apply = (collapsed) => {
+    card.classList.toggle('guide-collapsed', collapsed);
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (label) label.textContent = collapsed ? '開く' : '閉じる';
+  };
+  let collapsed = false;
+  try { collapsed = localStorage.getItem(KEY) === '1'; } catch (e) { collapsed = false; }
+  apply(collapsed);
+  btn.addEventListener('click', () => {
+    collapsed = !collapsed;
+    apply(collapsed);
+    try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) { /* 保存できなくても開閉は動作させる */ }
+  });
+})();

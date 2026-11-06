@@ -646,7 +646,7 @@
     <!-- BIP39 24単語バックアップ＆復元 -->
     <div class="section-card" id="section-bip39-plain">
       <div class="section-title">
-        <span>2. BIP39復元フレーズ — 24単語／拡張バックアップ（暗号化なし・自動作成）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
+        <span>BIP39復元フレーズ — 24単語／拡張バックアップ（暗号化なし・自動作成）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
       </div>
       <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
         現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は下の「3. 拡張バックアップ（暗号化）＆ 印刷QRからの復元」を使用してください。
@@ -710,9 +710,9 @@
     </div>
 
 <section class="section-card" id="backup-qr" data-ready="false">
- <h2 class="section-title">3. 拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="作成した設定やサイト・合言葉を、パスワードや生体認証、分割保管などで暗号化して安全にバックアップ・復元できる高セキュリティ領域です。">?</button></h2>
+ <h2 class="section-title">拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="作成した設定やサイト・合言葉を、パスワードや生体認証、分割保管などで暗号化して安全にバックアップ・復元できる高セキュリティ領域です。">?</button></h2>
  <div class="no-print">
-  <p>暗号化なしの24単語・拡張バックアップとQRコードは上の「2」に自動表示されます。こちらは <strong>パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）</strong> を自由に組み合わせて保護した <strong>BIP39 24単語×必要ブロック数</strong> とその <strong>統合QRコード</strong> を作成・復元できます（パスワード不要でパスキー単独・キーファイル単独・秘密分散単独での保護も可能です）。</p>
+  <p>暗号化なしの24単語・拡張バックアップとQRコードは上の「BIP39復元フレーズ」に自動表示されます。こちらは <strong>パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）</strong> を自由に組み合わせて保護した <strong>BIP39 24単語×必要ブロック数</strong> とその <strong>統合QRコード</strong> を作成・復元できます（パスワード不要でパスキー単独・キーファイル単独・秘密分散単独での保護も可能です）。</p>
   <div class="bq-row">
    <label for="bq-scope">保存形式<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定のみ保存するか、マイレシピ設定・サイト名・合言葉まで含む拡張バックアップにするかを選べます。拡張にすると、カードなしでも全設定を再現できます。">?</button></label>
    <select id="bq-scope">
@@ -851,7 +851,7 @@
  <div id="bq-print-summary"></div><div id="bq-qr-list"></div>
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
   <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と全く同じ設定を100%復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
-  <p>「2」または「3」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
+  <p>「BIP39復元フレーズ」または「拡張バックアップ」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
    <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読む</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image">QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読取中のQRをリセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
@@ -887,7 +887,7 @@
 <section class="section-card no-print" id="bonus-vault" style="margin-top:24px; border:2px solid #00abf7; background:#192329;">
   <h2 class="section-title" style="color:#1aaeff; border-bottom-color:#00527d;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span>4. 汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで安全に暗号化・分割保管できる多機能保管庫です。">?</button></span>
+      <span>汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで安全に暗号化・分割保管できる多機能保管庫です。">?</button></span>
       <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル・ゼロナレッジ</span>
     </div>
   </h2>
@@ -3047,7 +3047,7 @@
   </section>
 </main>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v2.13.0 <span>· build data-transfer-integrated</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v3.0.0 <span>· build data-transfer-integrated</span></div>
 </div>
 <script src="layout.js"></script>
 <script src="qr-encoder.js"></script>

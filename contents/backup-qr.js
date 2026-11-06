@@ -3955,7 +3955,7 @@ function initBonusVault(){
         `4. KeePassキーファイル: matrix-card-${seedNum}.key`,
         '',
         '【復元方法】',
-        'CryptoMatrixの「4. 汎用セキュア保管庫」の復号タブに上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
+        'CryptoMatrixの「セキュア保管庫」タブの復号欄に上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
        ].join('\n');
 
        const baseAppUrl = window.location.href.split(/[?#]/)[0];

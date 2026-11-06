@@ -3271,3 +3271,6 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
   #sticky-controls-bar::-webkit-scrollbar { display: none; }
   #sticky-controls-bar .btn { flex: none; }
 }
+
+/* Unit 5 (2026-11-07): subsection rhythm inside section cards */
+.cm-legacy .section-card h3 { font-size: 0.98rem; line-height: 1.4; margin: 18px 0 8px; }

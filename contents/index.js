@@ -2549,8 +2549,8 @@ document.addEventListener('DOMContentLoaded', () => {
       statusId: 'km-generated-password-status'
     },
     'tl': {
-      title: 'CryptoPassKey - タイムロック - 復元用パスワード',
-      label: 'タイムロック用の復元パスワード',
+      title: 'CryptoPassKey - タイムカプセル - 復元用パスワード',
+      label: 'タイムカプセル用の復元パスワード',
       inputs: ['tl-password', 'tl-password-confirm'],
       statusId: 'tl-encrypt-status'
     }
@@ -2694,11 +2694,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       },
       5: {
-        title: '⚠️ タイムロック・カプセル作成前の同意確認',
-        intro: 'タイムロックを作成する前に、時間暗号化（drand）の不可逆性とデータ保管をご確認ください。',
+        title: '⚠️ タイムカプセル作成前の同意確認',
+        intro: 'タイムカプセルを作成する前に、指定日時まで開封できないことと、データ・復元鍵の保管についてご確認ください。',
         ack: '指定時刻まで開封不能であること、およびカプセルデータと復元鍵の自己保管が必要であることを確認・同意しました',
         list: [
-          '<strong>解禁時刻までの絶対不可逆性：</strong>タイムロックカプセルはdrand分散ランダムビーコン等の時間暗号化技術により、<strong>指定日時が到来するまで世界中の誰も開封できません。</strong>',
+          '<strong>解禁時刻まで開封できません：</strong>タイムカプセルはdrand分散ランダムビーコン等の時間暗号化技術により、<strong>指定した日時になるまで、通常の方法では開封できない仕組みです。</strong>',
           '<strong>カプセルデータの保管：</strong>解禁日時が到来しても、カプセルデータ（.tlock / JSON）本体、または設定した復元用パスワードを失うと開封できません。',
           '<strong>ネットワーク依存性：</strong>解禁時のビーコン鍵取得にはネットワーク通信が必要です（復元用パスワードを設定した二重保護カプセルの場合はオフラインパスワード救出も可能）。'
         ]
@@ -2804,7 +2804,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hint.id = 'cm-global-drop-hint';
     hint.setAttribute('aria-live', 'polite');
     hint.style.cssText = 'display:none;position:fixed;inset:18px;z-index:100000;border:3px dashed #0284c7;border-radius:14px;background:rgba(240,249,255,.94);color:#075985;align-items:center;justify-content:center;text-align:center;font-size:1.1rem;font-weight:800;pointer-events:none;';
-    hint.textContent = '📥 復元ファイルをドロップ — バックアップ／保管庫／タイムロックを自動判別します';
+    hint.textContent = '📥 復元ファイルをドロップ — バックアップ／保管庫／タイムカプセルを自動判別します';
     document.body.appendChild(hint);
     return hint;
   }
@@ -5653,7 +5653,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if (!window.TimeLockApp?.receiveTransferredPayload) {
-      alert('タイムロック機能が利用できません。');
+      alert('タイムカプセル機能が利用できません。');
       return;
     }
     const words = currentMnemonicWords.slice();
@@ -5672,7 +5672,7 @@ document.addEventListener('DOMContentLoaded', () => {
       createdPassword: '',
       filename: isArmored ? `cryptomatrix-backup-seed-${seedNum}.asc` : `cryptomatrix-backup-seed-${seedNum}.txt`
     });
-    setStatus('backup-summary', '⏳ BIP39復元フレーズを「⏳ タイムロック」タブへ転記しました。タイムロック側で時間暗号化を設定してください。');
+    setStatus('backup-summary', '⏳ BIP39復元フレーズを「⏳ タイムカプセル」タブへ転記しました。タイムカプセル側で時間暗号化を設定してください。');
   });
   initKeyfileModalEvents();
 

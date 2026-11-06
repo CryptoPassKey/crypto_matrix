@@ -5,8 +5,8 @@
   var slots = {
     'card-quick': 'tab-quick',
     'section-recipe-detail': 'tab-recipe',
-    'section-bip39-plain': 'tab-backup',
-    'backup-qr': 'tab-backup',
+    'section-bip39-plain': 'tab-backup-page-backup',
+    'backup-qr': 'tab-backup-page-encrypt',
     'bonus-vault': 'tab-vault',
     'timelock-section': 'tab-timelock',
     'timesecret-section': 'tab-timesecret',

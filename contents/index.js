@@ -5249,7 +5249,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let previous=null;
   try{
    const rawTrimmed=$('input-restore-seed').value.trim();
-   if(rawTrimmed.startsWith('MCBK1:')||rawTrimmed.startsWith('MCQR1:'))throw new Error('旧MCBK1/MCQR1形式のデータは、「暗号化 / バックアップ」タブの復元欄に入力してください。');
+   if(rawTrimmed.startsWith('MCBK1:')||rawTrimmed.startsWith('MCQR1:'))throw new Error('旧MCBK1/MCQR1形式のデータは、「バックアップ / 暗号化」タブの「復号化」ページの復元欄に入力してください。');
    let blocks=[];
    if(rawTrimmed.includes('-----BEGIN CRYPTOMATRIX')||rawTrimmed.includes('-----BEGIN ')){
     blocks=dearmorBlocks(rawTrimmed);
@@ -5264,11 +5264,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(blocks.length===1)throw new Error('これは複数ブロックバックアップの一部です。他のブロックが欠落しています。');
     const {body}=await reassembleStreamGroup(blocks,false);
     if(isShamirBody(body)||(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3))){
-     throw new Error('このフレーズは暗号化または秘密分散されています。「暗号化 / バックアップ」タブの復元欄に入力してください。');
+     throw new Error('このフレーズは暗号化または秘密分散されています。「バックアップ / 暗号化」タブの「復号化」ページの復元欄に入力してください。');
     }
     data=await decodeFull(blocks,'',false,null);
     if(data.encrypted||data.shamir){
-     throw new Error('このフレーズは暗号化または秘密分散されています。「暗号化 / バックアップ」タブの復元欄に入力してください。');
+     throw new Error('このフレーズは暗号化または秘密分散されています。「バックアップ / 暗号化」タブの「復号化」ページの復元欄に入力してください。');
     }
    }else{
     if(blocks.length!==1)throw new Error('この形式の拡張フレーズには対応していません。以前のハッシュ補強版は生成時の旧版で復元してください。');

@@ -3284,3 +3284,41 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 .verbal-guide-card.guide-collapsed .verbal-guide-header { margin-bottom: 0; }
 @media (pointer: coarse) { .guide-toggle-btn { min-height: 38px; padding: 7px 14px; } }
 @media (max-width: 520px) { .guide-toggle-btn { align-self: flex-end; } }
+
+/* Backup / encryption nested page navigation */
+.cm-subtab-bar {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cm-subtab-bar-inner { margin-top: 2px; }
+.cm-subtab-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 9px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-sub);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cm-subtab-btn:hover { border-color: var(--accent); color: var(--text-main); }
+.cm-subtab-btn.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.cm-subtab-panel[hidden] { display: none !important; }
+@media (pointer: coarse) {
+  .cm-subtab-btn { min-height: 44px; }
+}

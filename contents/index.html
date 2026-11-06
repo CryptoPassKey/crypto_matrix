@@ -189,10 +189,10 @@
           <div style="display:flex; gap:8px; flex-wrap:wrap; width:100%; align-items:center;" id="trace-controls-bar">
             <button type="button" class="btn" id="btn-play-trace" title="現在のマイ・レシピまたは簡単生成モードの通常ルートをマトリックス上で1文字ずつ再生します"><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">通常ルート再生</button>
             <button type="button" class="btn btn-outline" id="btn-play-stroke" style="font-size:0.85rem;" title="文字や記号の形を盤面上で指でなぞる「パターンルート」でパスワードを生成・再生します（Androidのパターン解除感覚）"><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターンルート再生</button>
-            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; border-color:#ff941a; color:#fe7d1a; background:#292619; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
+            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
             <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します"><img src="stop-icon.png" class="cm-btn-img" alt="" width="20" height="20">停止</button>
             <button type="button" class="btn btn-secondary" id="btn-copy-pw"><img src="copy-icon.png" class="cm-btn-img" alt="" width="20" height="20">コピー（30秒後自動消去）</button>
-            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="border-color:#1ab1ff; color:#1aaeff; background:#192329; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送します"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassエントリーに追加</button>
+            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送します"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassエントリーに追加</button>
           </div>
         </div>
 
@@ -202,7 +202,7 @@
             <span><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターンデザイン一覧（自然な書き順）：</span>
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:0.72rem; color:#32e775; font-weight:normal;">クリックで即座に切り替え</span>
-              <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem; border-color:#0eaa47; color:#3bdd79; background:#1b2027;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
+              <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
             </div>
           </div>
 
@@ -679,8 +679,8 @@
       <div class="bq-action-group no-print">
         <div class="bq-action-group-label">転送・検証</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
-          <button type="button" class="btn btn-outline" id="btn-sec2-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="現在のBIP39復元フレーズ（カード配列・レシピ設定）をタイムカプセルタブへ転記して時間暗号化します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
+          <button type="button" class="btn btn-outline" id="btn-sec2-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
+          <button type="button" class="btn btn-outline" id="btn-sec2-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="現在のBIP39復元フレーズ（カード配列・レシピ設定）をタイムカプセルタブへ転記して時間暗号化します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
         </div>
       </div>
 
@@ -860,10 +860,10 @@
   <div class="bq-action-group">
    <div class="bq-action-group-label">転送・検証</div>
    <div class="bq-row">
-   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" disabled title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
-   <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#1affbe; border-color:#1affb8; background:#192922;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>復元テスト欄へ転記</button>
-   <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムカプセルタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
-   <button type="button" class="btn btn-outline" id="bq-transfer-timesecret" style="padding:6px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムシークレットタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
+   <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>復元テスト欄へ転記</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムカプセルタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
+   <button type="button" class="btn btn-outline" id="bq-transfer-timesecret" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムシークレットタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
    </div>
   </div>
   <div class="bq-action-group bq-action-group-manage">
@@ -1437,7 +1437,7 @@
 
     <!-- ステップ6：暗号化実行ボタン -->
     <div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <button type="button" class="btn" id="tl-btn-encrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700; background:#f59e0b; border-color:#d97706; color:#111827;">
+      <button type="button" class="btn cm-btn-capsule" id="tl-btn-encrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700;">
         ⏳ タイムカプセル・カプセルを作成（暗号化実行）
       </button>
     </div>
@@ -1455,18 +1455,18 @@
       <div class="bq-action-group bv-no-print">
         <div class="bq-action-group-label">作成・保存</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#38bdf8; border-color:#0284c7;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>タイムカプセル保存 (.cmtl)</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>タイムカプセル保存 (.cmtl)</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-txt" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
           <button type="button" class="btn btn-secondary" id="tl-btn-copy" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後消去）</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-qr" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
-          <button type="button" class="btn btn-outline" id="tl-btn-save-guide" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#34d399; border-color:#10b981;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>リカバリーガイド保存 (.txt)</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-save-guide" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>リカバリーガイド保存 (.txt)</button>
         </div>
       </div>
       <div class="bq-action-group bv-no-print">
         <div class="bq-action-group-label">転送・検証</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-outline" id="tl-btn-test-restore" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#fbbf24; border-color:#f59e0b;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>解禁・復元タブへ転記して検証</button>
-          <button type="button" class="btn btn-outline" id="tl-btn-transfer-keeweb" style="padding:5px 10px; font-size:0.8rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="KeePassに新規エントリーとして保存（QR画像・カプセルファイル・リカバリーガイドをすべて自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-test-restore" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>解禁・復元タブへ転記して検証</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-transfer-keeweb" style="padding:5px 10px; font-size:0.8rem; font-weight:700;" title="KeePassに新規エントリーとして保存（QR画像・カプセルファイル・リカバリーガイドをすべて自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
         </div>
       </div>
       <div class="bq-action-group bv-no-print bq-action-group-manage">
@@ -1598,8 +1598,8 @@
         <div class="bq-row">
           <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイルをダウンロード</button>
-          <button type="button" class="btn btn-outline" id="tl-route-sec3" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>拡張バックアップ（復元欄）へ送る</button>
-          <button type="button" class="btn btn-outline" id="tl-route-sec4" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セキュア保管庫（復号欄）へ送る</button>
+          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec3" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>拡張バックアップ（復元欄）へ送る</button>
+          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec4" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セキュア保管庫（復号欄）へ送る</button>
         </div>
       </div>
       <div id="tl-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#111827; color:#f9fafb; padding:10px; border-radius:6px; border:1px solid #374151; max-height:320px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
@@ -1644,10 +1644,10 @@
     <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;" id="sticky-controls-bar">
       <button type="button" class="btn" id="btn-sticky-play" style="padding:5px 10px; font-size:0.78rem;" title="通常ルート再生"><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">通常再生</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-stroke" style="padding:5px 10px; font-size:0.78rem;" title="パターンルート再生（Androidパターン感覚）"><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターン再生</button>
-      <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; border-color:#ff941a; color:#fe7d1a; background:#292619; font-weight:700;" title="一時停止／再開"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-pause" style="padding:5px 10px; font-size:0.78rem; display:none; font-weight:700;" title="一時停止／再開"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
       <button type="button" class="btn btn-danger" id="btn-sticky-stop" style="padding:5px 10px; font-size:0.78rem; display:none;" title="停止"><img src="stop-icon.png" class="cm-btn-img" alt="" width="20" height="20">停止</button>
       <button type="button" class="btn btn-secondary" id="btn-sticky-copy" style="padding:5px 10px; font-size:0.78rem;"><img src="copy-icon.png" class="cm-btn-img" alt="" width="20" height="20">コピー</button>
-      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; border-color:#1ab1ff; color:#1aaeff; background:#192329; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePass追加</button>
+      <button type="button" class="btn btn-outline" id="btn-sticky-transfer" style="padding:5px 10px; font-size:0.78rem; font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePass追加</button>
       <button type="button" class="btn btn-outline" id="btn-sticky-top" style="padding:5px 10px; font-size:0.78rem;">▲ マトリックスへ</button>
     </div>
   </div>
@@ -1656,8 +1656,8 @@
   <!-- 旧PKv2救出・移行 同意モーダル -->
   <div id="legacy-pk2-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog" style="max-width:540px;">
-      <div class="duress-modal-header" style="background:#192029; border-bottom:1px solid #003578;">
-        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#335de6;">
+      <div class="duress-modal-header cm-modal-header cm-modal-header-pk2">
+        <h3 class="cm-modal-title-pk2" style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px;">
           ℹ️ 旧形式パスキー保護データの復元
         </h3>
         <button type="button" class="duress-modal-close" id="btn-legacy-pk2-close" aria-label="閉じる">✕</button>
@@ -1665,7 +1665,7 @@
       <div class="duress-modal-body">
         <div class="cm-duress-muted" style="font-size:0.86rem; line-height:1.6; margin-bottom:14px;">
           読み込まれたバックアップデータは、<strong>旧バージョンのパスキー保護形式（旧PKv2形式）</strong>で作成されています。<br>
-          <div style="margin-top:8px; color:#335de6; background:#192329; padding:10px 12px; border-radius:6px; border:1px solid #00527d; font-size:0.82rem; line-height:1.5;">
+          <div class="cm-modal-note-blue" style="margin-top:8px; padding:10px 12px; border-radius:6px; font-size:0.82rem; line-height:1.5;">
             ℹ️ <strong>ご案内：</strong><br>
             旧PKv2形式は以前の環境向け形式です。このデータを復号して設定を復元（救出）しますか？<br>
             ※許可すると、このセッション内で旧形式の救出・復号を実行します。<br>
@@ -1696,20 +1696,20 @@
       <div class="duress-modal-body">
         <div class="cm-duress-muted" id="duress-modal-intro" style="font-size:0.86rem; line-height:1.6; margin-bottom:14px;">
           通常は<strong>「🔒 このまま本命のみで作成（通常）」</strong>を押せば安全に作成完了します。<br>
-          <div class="cm-duress-warn" style="margin-top:8px; color:#f47324; padding:10px 12px; border-radius:6px; border:1px solid #a88700; font-size:0.82rem; line-height:1.5;">
+          <div class="cm-duress-warn cm-duress-accent" style="margin-top:8px; padding:10px 12px; border-radius:6px; font-size:0.82rem; line-height:1.5;">
             🛡️ <strong>二重暗号・別パスワード表示（Duress Mode / 強要対策）：</strong><br>
             強盗や脅迫・強要時に、本命とは異なるパスワードを入力することで無害な日常情報（ダミーデータ）を表示させる<strong>【別パスワード表示機能（Duress/おとりスロット）】</strong>です。（※暗号化構造上、2スロット形式であることはファイル解析により判別可能です。身体的安全や存在の完全な秘匿を保証するものではありません）
           </div>
         </div>
 
-        <div id="duress-modal-error" style="display:none; color:#e83838; background:#291919; border:1px solid #910000; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
+        <div id="duress-modal-error" class="cm-err-box" style="display:none; padding:6px 10px; font-size:0.8rem; margin-bottom:10px;"></div>
 
         <!-- 選択ボタン群 -->
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;" id="duress-choice-btns">
           <button type="button" class="btn btn-outline" id="btn-duress-skip" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700;">
             🔒 このまま本命のみで作成（通常）
           </button>
-          <button type="button" class="btn btn-secondary" id="btn-duress-open-config" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; color:#fe7d1a; border-color:#e0ac00; background:#292619;">
+          <button type="button" class="btn btn-secondary" id="btn-duress-open-config" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700;">
             🎭 おとりパスワードも設定する（二重金庫）
           </button>
         </div>
@@ -1718,10 +1718,10 @@
         <div class="cm-duress-warn" id="duress-modal-config" hidden style="border:1px solid #a88700; border-radius:8px; padding:12px; margin-top:10px;">
           <!-- 共通ヘッダー ＆ ダミー自動生成ボタン -->
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #a88700;">
-            <div style="font-weight:700; font-size:0.84rem; color:#f47324;">
+            <div class="cm-duress-accent" style="font-weight:700; font-size:0.84rem;">
               <img src="duress-icon.png" class="cm-sec-img" alt="" width="40" height="40">二重金庫（おとり・ダミー偽装）の設定：
             </div>
-            <button type="button" class="btn btn-outline" id="btn-duress-modal-random" style="padding:4px 10px; font-size:0.76rem; font-weight:700; background:#1b2027; border-color:#fe7d1a; color:#f47324; cursor:pointer;" title="実在する有名サービス（Amazon、楽天、Yahoo!、メルカリ等）をもとにリアルなダミー情報（サイト・合言葉・シード）を切り替えます">
+            <button type="button" class="btn btn-outline" id="btn-duress-modal-random" style="padding:4px 10px; font-size:0.76rem; font-weight:700; cursor:pointer;" title="実在する有名サービス（Amazon、楽天、Yahoo!、メルカリ等）をもとにリアルなダミー情報（サイト・合言葉・シード）を切り替えます">
               <img src="dice-icon.png" class="cm-btn-img" alt="" width="20" height="20">実在サイトのダミー情報をランダム変更
             </button>
           </div>
@@ -1741,11 +1741,11 @@
                 <input type="password" id="duress-modal-pw-conf" autocomplete="new-password" placeholder="確認のためもう一度入力">
               </div>
             </div>
-            <div style="font-size:0.75rem; color:#f47324; margin:-4px 0 10px 0; line-height:1.4;">
+            <div class="cm-duress-accent" style="font-size:0.75rem; margin:-4px 0 10px 0; line-height:1.4;">
               💡 <strong>重要：</strong>強盗や脅迫を受けた際にとっさに思い出せるよう、<strong>自分が昔使っていた古いパスワードや記憶しやすい合言葉</strong>など、ご自身が確実に覚えているパスワード（12文字以上）を設定してください。
             </div>
 
-            <div style="font-size:0.78rem; color:#f47324; margin-bottom:8px; line-height:1.4;">
+            <div class="cm-duress-accent" style="font-size:0.78rem; margin-bottom:8px; line-height:1.4;">
               ※脅迫者におとりパスワードを教えると、この実在サイトの無害なダミー情報が復元されます：
             </div>
 
@@ -1781,11 +1781,11 @@
                 <input type="password" id="duress-vault-pw-conf" autocomplete="new-password" placeholder="確認のためもう一度入力">
               </div>
             </div>
-            <div style="font-size:0.75rem; color:#f47324; margin:-4px 0 10px 0; line-height:1.4;">
+            <div class="cm-duress-accent" style="font-size:0.75rem; margin:-4px 0 10px 0; line-height:1.4;">
               💡 <strong>重要：</strong>強盗や脅迫を受けた際にとっさに思い出せるよう、<strong>自分が昔使っていた古いパスワードや記憶しやすい合言葉</strong>など、ご自身が確実に覚えているパスワード（12文字以上）を設定してください。
             </div>
 
-            <div style="font-size:0.78rem; color:#f47324; margin-bottom:8px; line-height:1.4;">
+            <div class="cm-duress-accent" style="font-size:0.78rem; margin-bottom:8px; line-height:1.4;">
               ※脅迫者におとりパスワードを教えると、この無害なダミーメモが復元されます：
             </div>
 
@@ -1807,7 +1807,7 @@
             <input type="checkbox" id="chk-duress-remember-skip">
             次回からこの確認を表示せず本命のみで即作成する
           </label>
-          <span style="font-size:0.72rem; color:#7889a1;">※緊急時に別のパスワードでダミーデータを表示できるデュアルスロット暗号化機能です</span>
+          <span class="cm-modal-muted" style="font-size:0.72rem;">※緊急時に別のパスワードでダミーデータを表示できるデュアルスロット暗号化機能です</span>
         </div>
       </div>
     </div>
@@ -1816,8 +1816,8 @@
   <!-- 重要事項・リスク同意確認ポップアップモーダル -->
   <div id="cm-consent-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog" style="max-width:560px;">
-      <div class="duress-modal-header" style="background:#192329; border-bottom:1px solid #00527d;">
-        <h3 id="cm-consent-modal-title" style="margin:0; font-size:1.02rem; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:8px;">
+      <div class="duress-modal-header cm-modal-header">
+        <h3 id="cm-consent-modal-title" class="cm-modal-title-consent" style="margin:0; font-size:1.02rem; font-weight:800; display:flex; align-items:center; gap:8px;">
           <span>⚠️ 重要事項とリスクの確認・同意</span>
         </h3>
         <button type="button" class="duress-modal-close" id="btn-cm-consent-close" aria-label="閉じる">✕</button>
@@ -1828,15 +1828,15 @@
           暗号化・生成を実行する前に、以下の重要事項および保証範囲をご確認ください。
         </div>
 
-        <div id="cm-consent-modal-error" style="display:none; color:#ef4444; background:#291919; border:1px solid #7f1d1d; padding:8px 12px; border-radius:6px; font-size:0.82rem; margin-bottom:12px; font-weight:700;"></div>
+        <div id="cm-consent-modal-error" class="cm-err-box cm-err-box-consent" style="display:none; padding:8px 12px; font-size:0.82rem; margin-bottom:12px; font-weight:700;"></div>
 
-        <div style="background:rgba(15, 23, 42, 0.7); border:1.5px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:12px 14px; margin-bottom:14px;">
+        <div class="cm-modal-panel-sky" style="border-radius:8px; padding:12px 14px; margin-bottom:14px;">
           <ol id="cm-consent-modal-list" style="margin:0 0 0 18px; padding:0; font-size:0.82rem; line-height:1.6; color:var(--text-color);">
             <!-- 動的挿入 -->
           </ol>
         </div>
 
-        <div style="margin-bottom:12px; padding:8px 10px; background:#192029; border-radius:6px; border:1px solid #004ca0;">
+        <div class="cm-modal-box-blue" style="margin-bottom:12px; padding:8px 10px; border-radius:6px;">
           <label id="cm-consent-modal-ack-label" style="display:flex; align-items:flex-start; gap:8px; font-size:0.84rem; font-weight:700; cursor:pointer; color:var(--text-color);">
             <input type="checkbox" id="cm-consent-modal-ack" style="margin-top:3px;">
             <span id="cm-consent-modal-ack-text">上記の重要事項と復元鍵・データの自己管理原則を確認・同意しました</span>
@@ -1863,8 +1863,8 @@
   <!-- KeePass キーファイル作成・復元オプション ポップアップモーダル -->
   <div id="keyfile-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog">
-      <div class="duress-modal-header" style="background:#192329; border-bottom:1px solid #00527d;">
-        <h3 style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px; color:#1aaeff;">
+      <div class="duress-modal-header cm-modal-header">
+        <h3 class="cm-modal-title" style="margin:0; font-size:1.02rem; display:flex; align-items:center; gap:6px;">
           🔑 KeePassキーファイル (.key) 作成・復元オプション
         </h3>
         <button type="button" class="duress-modal-close" id="btn-keyfile-modal-close" aria-label="閉じる">✕</button>
@@ -1875,11 +1875,11 @@
           万が一の紛失や再発行時に、<strong>どのようにキーファイルを復元（再生成）するか</strong>を選択してください。
         </div>
 
-        <div id="keyfile-modal-error" style="display:none; color:#e83838; background:#291919; border:1px solid #910000; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin-bottom:10px;"></div>
+        <div id="keyfile-modal-error" class="cm-err-box" style="display:none; padding:6px 10px; font-size:0.8rem; margin-bottom:10px;"></div>
 
         <!-- シード番号表示・確認 -->
-        <div style="background:#192129; border:1px solid #304257; border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <div style="font-size:0.82rem; color:#5074c8; font-weight:700;">
+        <div class="cm-modal-panel" style="border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div class="cm-km-label" style="font-size:0.82rem; font-weight:700;">
             💳 対象カードシード番号:
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
@@ -1889,50 +1889,50 @@
 
         <!-- 復元ファクターの選択（ラジオボタン） -->
         <div style="margin-bottom:14px;">
-          <div style="font-size:0.84rem; font-weight:700; color:#6382b5; margin-bottom:8px;">
+          <div class="cm-km-heading" style="font-size:0.84rem; font-weight:700; margin-bottom:8px;">
             🛡️ キーファイルの復元ポリシー（生成方式）：<button type="button" class="help-btn" aria-label="説明を表示" data-help="カードのシード番号だけでなく、自分だけのパスワードや端末の生体認証（パスキー）を組み合わせることで、物理カードを見られてもキーファイルを絶対に解読されないように二重・多重に保護します。">?</button>
           </div>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-seed">
+          <label class="cm-km-factor" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-seed">
             <input type="radio" name="km-factor" id="km-factor-seed" value="seed" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
               <strong>【カード単体】シード番号のみで復元（※カード空間依存）</strong><br>
-              <span style="color:#ff941a;">⚠️ 注意：カードシード空間（最大約32ビット）から決定論的に導出されるため、独立した256ビット真性乱数キーファイルの暗号強度はありません。カード紛失時の安全性を高めるため、下記の【二要素認証】（パスワードまたはパスキー併用）を推奨します。</span>
+              <span class="cm-km-accent-orange">⚠️ 注意：カードシード空間（最大約32ビット）から決定論的に導出されるため、独立した256ビット真性乱数キーファイルの暗号強度はありません。カード紛失時の安全性を高めるため、下記の【二要素認証】（パスワードまたはパスキー併用）を推奨します。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #1ab1ff; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192329;" id="lbl-km-factor-dual">
+          <label class="cm-km-factor cm-km-factor-sel" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-dual">
             <input type="radio" name="km-factor" id="km-factor-dual" value="dual" checked style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
               <strong style="color:#1aaeff;">【二要素認証】シード番号 ＋ パスワード（記憶）で復元（★推奨）</strong><br>
-              <span style="color:#1aaeff;">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
+              <span class="cm-km-sky">万が一カードが他人の目に触れたり盗まれても、設定したパスワードが分からなければキーファイルを絶対に復元できません。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-passkey">
+          <label class="cm-km-factor" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-passkey">
             <input type="radio" name="km-factor" id="km-factor-passkey" value="passkey" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
               <strong style="color:#2aeedf;">【二要素認証】シード番号 ＋ パスキー（生体認証／セキュリティキー）で復元</strong><br>
-              <span style="color:#7889a1;">お使いの端末（Touch ID / Face ID / Windows Hello / YubiKey等）のパスキー生体認証を通過しないと復元できません。パスワード記憶は不要です。</span>
+              <span class="cm-modal-muted">お使いの端末（Touch ID / Face ID / Windows Hello / YubiKey等）のパスキー生体認証を通過しないと復元できません。パスワード記憶は不要です。</span>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1px solid #304257; border-radius:6px; margin-bottom:8px; cursor:pointer; background:#192129;" id="lbl-km-factor-multi">
+          <label class="cm-km-factor" style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:6px; margin-bottom:8px; cursor:pointer;" id="lbl-km-factor-multi">
             <input type="radio" name="km-factor" id="km-factor-multi" value="multi" style="margin-top:3px;">
             <div style="font-size:0.82rem; line-height:1.4;">
               <strong style="color:#610bf4;">【多要素認証】シード番号 ＋ パスワード ＋ パスキー（最高強度）</strong><br>
-              <span style="color:#7889a1;">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
+              <span class="cm-modal-muted">カード（所持）、パスワード（記憶）、パスキー（生体認証・セキュリティキー所持）の3要素すべてを要求する最強の保護です。</span>
             </div>
           </label>
 
           <!-- パスワード入力エリア -->
-          <div id="km-pass-wrap" style="background:#192129; border:1px solid #304257; border-radius:6px; padding:10px 12px; margin-top:6px;">
+          <div id="km-pass-wrap" class="cm-modal-panel" style="border-radius:6px; padding:10px 12px; margin-top:6px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <label class="cm-duress-muted" for="km-password" style="font-size:0.8rem; font-weight:700;">復元用パスワード（合言葉）:</label>
               <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#1ab1ff; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
             <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" class="cm-radius-4 cm-bbox" style="width:100%; padding:7px 9px; font-size:0.84rem;">
-            <div style="font-size:0.75rem; color:#7488a5; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
+            <div class="cm-km-note" style="font-size:0.75rem; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
             <div style="font-size:0.74rem; color:#7889a1; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>
           </div>

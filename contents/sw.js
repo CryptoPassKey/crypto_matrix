@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v2.30.1-pause-icon-fix';
+const VERSION = 'cm-v2.30.2-label-and-new-icons';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -15,6 +15,10 @@ const FILES = [
   "data-transfer.js",
   "emblem.png",
   "favicon.png",
+  "dice-icon.png",
+  "qr-icon.png",
+  "rewind-icon.png",
+  "trash-icon.png",
   "copy-icon.png",
   "csp-icon.png",
   "duress-icon.png",

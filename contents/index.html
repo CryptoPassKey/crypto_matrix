@@ -793,7 +793,7 @@
   <div class="bq-row" id="bq-keyfile-row" hidden style="background:#19291e; padding:8px 10px; border-radius:6px; border:1px solid #0eaa47;">
    <label for="bq-keyfile" style="font-weight:700;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="お手元の任意のファイル（画像・PDF等）や専用の.keyファイルです。ファイルの中身が1ビットでも変化すると復元できなくなるため、絶対に編集・上書き・画像圧縮しないで保管してください。">?</button></label>
    <input type="file" id="bq-keyfile">
-    <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
+    <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
     <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
   </div>
 
@@ -1010,7 +1010,7 @@
     <div class="bq-row" id="bv-keyfile-row" hidden style="background:#19291e; padding:8px 10px; border-radius:6px; border:1px solid #0eaa47;">
       <label for="bv-keyfile" style="font-weight:700;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの写真・PDF等のファイル、または専用に生成した .key ファイルを使って暗号化する追加認証です。ファイルを失うと復元できなくなります。">?</button></label>
       <input type="file" id="bv-keyfile">
-      <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
+      <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
       <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
     </div>
 
@@ -1353,7 +1353,7 @@
         <div class="bq-row" id="tl-keyfile-row" hidden style="background:#19291e; padding:8px 10px; border-radius:6px; border:1px solid #0eaa47;">
           <label for="tl-keyfile" style="font-weight:700;">🔑 キーファイル:</label>
           <input type="file" id="tl-keyfile">
-          <button type="button" class="btn btn-outline" id="tl-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;">🔑 KeePassキーファイル(.key)生成</button>
+          <button type="button" class="btn btn-outline" id="tl-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
           <div id="tl-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">任意のファイルを選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。</div>
         </div>
 
@@ -1636,7 +1636,7 @@
               <img src="duress-icon.png" class="cm-sec-img" alt="" width="40" height="40">二重金庫（おとり・ダミー偽装）の設定：
             </div>
             <button type="button" class="btn btn-outline" id="btn-duress-modal-random" style="padding:4px 10px; font-size:0.76rem; font-weight:700; background:#1b2027; border-color:#fe7d1a; color:#f47324; cursor:pointer;" title="実在する有名サービス（Amazon、楽天、Yahoo!、メルカリ等）をもとにリアルなダミー情報（サイト・合言葉・シード）を切り替えます">
-              🎲 実在サイトのダミー情報をランダム変更
+              <img src="dice-icon.png" class="cm-btn-img" alt="" width="20" height="20">実在サイトのダミー情報をランダム変更
             </button>
           </div>
 
@@ -2104,7 +2104,7 @@
               <div id="ts-kf-panel" class="ts-factor-panel" hidden>
                 <div class="ts-inline-row" style="margin-bottom:6px;">
                   <input type="file" id="ts-keyfile" style="flex:1 1 200px;">
-                  <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                  <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-gen-keyfile"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
                 </div>
                 <div id="ts-keyfile-info" class="ts-kf-status">キーファイル未選択</div>
               </div>
@@ -2199,7 +2199,7 @@
                 <div id="ts-ci-kf-inputs-wrap" hidden>
                   <div class="ts-inline-row" style="margin-bottom:6px;">
                     <input type="file" id="ts-ci-keyfile" style="flex:1 1 180px;">
-                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-ci-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-ci-gen-keyfile"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
                   </div>
                   <div id="ts-ci-keyfile-info" class="ts-kf-status">専用キーファイル未選択</div>
                 </div>
@@ -2274,7 +2274,7 @@
                 <div id="ts-mgmt-kf-panel" class="ts-factor-panel" hidden>
                   <div class="ts-inline-row" style="margin-bottom:6px;">
                     <input type="file" id="ts-mgmt-keyfile" style="flex:1 1 180px;">
-                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-gen-keyfile"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
                     <button type="button" class="ts-btn ts-btn-sm ts-btn-secondary" id="btn-ts-mgmt-use-enc-kf">🔄 暗号化のキーファイルを共用</button>
                   </div>
                   <div id="ts-mgmt-keyfile-info" class="ts-kf-status">キーファイル未選択</div>
@@ -2572,7 +2572,7 @@
                 <div id="ts-edit-ci-kf-panel" class="ts-factor-panel" hidden>
                   <div class="ts-inline-row" style="margin-bottom:6px;">
                     <input type="file" id="ts-edit-ci-keyfile" style="flex:1 1 180px;">
-                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-gen-keyfile"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
                   </div>
                   <div id="ts-edit-ci-kf-info" class="ts-kf-status">キーファイル未選択</div>
                 </div>
@@ -2630,7 +2630,7 @@
                 <div id="ts-edit-mgmt-kf-panel" class="ts-factor-panel" hidden>
                   <div class="ts-inline-row" style="margin-bottom:6px;">
                     <input type="file" id="ts-edit-mgmt-keyfile" style="flex:1 1 180px;">
-                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-gen-keyfile">🔑 KeePassキーファイル(.key)生成</button>
+                    <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-gen-keyfile"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
                   </div>
                   <div id="ts-edit-mgmt-kf-info" class="ts-kf-status">キーファイル未選択</div>
                 </div>
@@ -2871,11 +2871,11 @@
               <progress id="dt-tx-prep-progress-bar" max="1" value="0" style="display:block; width:100%; height:8px;"></progress>
             </div>
             <div class="dt-action-row" style="margin-top:8px; margin-bottom:0;">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx">⚡ QRコードを準備</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx"><img src="qr-icon.png" class="cm-btn-img" alt="" width="20" height="20">QRコードを準備</button>
               <button type="button" class="dt-btn dt-btn-play" id="dt-play-tx" disabled><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">送信開始</button>
               <button type="button" class="dt-btn" id="dt-pause-tx" disabled><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
-              <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled>⏮ 先頭QRに戻す</button>
-              <button type="button" class="dt-btn dt-btn-sm dt-btn-danger" id="dt-clear-tx">🗑️ クリア</button>
+              <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled><img src="rewind-icon.png" class="cm-btn-img" alt="" width="20" height="20">先頭QRに戻す</button>
+              <button type="button" class="dt-btn dt-btn-sm dt-btn-danger" id="dt-clear-tx"><img src="trash-icon.png" class="cm-btn-img" alt="" width="20" height="20">クリア</button>
             </div>
           </div>
 

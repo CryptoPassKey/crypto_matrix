@@ -14,6 +14,19 @@
 
 const $=id=>document.getElementById(id), enc=new TextEncoder(), ITER_LEGACY=310000, MAX=40000, CHUNK=420, MAXPARTS=48;
 
+// T4: 状態表示の色はクラスで切り替える（テーマ追随のため JS から色を直接代入しない）
+function cmStateClass(el, classes, active){
+  classes.forEach(function(c){ el.classList.remove(c); });
+  if(active) el.classList.add(active);
+}
+const CM_BADGE_CLASSES=['cm-prot-warn','cm-prot-err','cm-prot-ok'];
+const CM_KDF_CLASSES=['cm-kdf-warn','cm-kdf-err'];
+function cmStrengthState(el, state){
+  el.classList.remove('cm-strength-weak','cm-strength-mid','cm-strength-strong');
+  if(state){ el.style.color=''; el.classList.add('cm-strength-'+state); }
+  else{ el.style.color='var(--text-sub)'; }
+}
+
 function openKeeWeb(transferId = '') {
   try {
     return window.openKeeWeb ? window.openKeeWeb(transferId) : null;
@@ -1793,7 +1806,7 @@ function updatePassEntropy(){
 
  const pw=$('bq-password')?.value||'',pw2=$('bq-password-confirm')?.value||'';
 
- if(!pw){el.textContent='パスワード強度診断：未入力（12文字以上必須）';el.style.color='var(--text-sub)';return;}
+ if(!pw){el.textContent='パスワード強度診断：未入力（12文字以上必須）';cmStrengthState(el,null);return;}
 
  const ent=MatrixCardPreset.estimatePasswordEntropy?MatrixCardPreset.estimatePasswordEntropy(pw):{bits:0,length:Array.from(pw).length,unique:new Set(Array.from(pw)).size};
 
@@ -1803,19 +1816,19 @@ function updatePassEntropy(){
 
   el.textContent=`パスワード強度診断：文字数不足（現在 ${ent.length}文字 ／ 最低12文字必要・推定 ${ent.bits} bits）${matchMsg}`;
 
-  el.style.color='#b91c1c';
+  cmStrengthState(el,'weak');
 
  }else if(ent.bits<80||ent.unique<6){
 
   el.textContent=`パスワード強度診断：中程度（${ent.length}文字・推定 ${ent.bits} bits）— より多様な文字種または16文字以上のパスフレーズを推奨${matchMsg}`;
 
-  el.style.color='#b45309';
+  cmStrengthState(el,'mid');
 
  }else{
 
   el.textContent=`文字種・長さ目安：十分な長さ（${ent.length}文字・文字種基準上限約 ${ent.bits} bits※ランダム非辞書語前提）${matchMsg}`;
 
-  el.style.color='#065f46';
+  cmStrengthState(el,'strong');
 
  }
 
@@ -1931,11 +1944,7 @@ function updateSelectDescriptions(){
 
     warnEl.style.display='block';
 
-    warnEl.style.background='#fef2f2';
-
-    warnEl.style.color='#991b1b';
-
-    warnEl.style.border='1.5px solid #f87171';
+    cmStateClass(warnEl, CM_KDF_CLASSES, 'cm-kdf-err');
 
     warnEl.innerHTML='🚫 <strong>【PC限定運用・スマホ復元困難】</strong> メモリ256MB / 4反復設定は極めて強固ですが、スマートフォンのブラウザ（特にiPhone Safari等）ではタブのメモリ制限により復元時にメモリ不足でクラッシュ・失敗します。<strong>PC専用バックアップとして運用し、復元もPCで行う場合のみ選択してください。</strong>';
 
@@ -1943,11 +1952,7 @@ function updateSelectDescriptions(){
 
     warnEl.style.display='block';
 
-    warnEl.style.background='#fffbeb';
-
-    warnEl.style.color='#92400e';
-
-    warnEl.style.border='1.5px solid #fcd34d';
+    cmStateClass(warnEl, CM_KDF_CLASSES, 'cm-kdf-warn');
 
     warnEl.innerHTML='⚠️ <strong>【PC推奨・スマホ高負荷注意】</strong> メモリ128MB / 3反復設定は高強度ですが、スマートフォン端末での復元時に端末スペックによって動作が非常に重くなるか、メモリ不足エラーになる場合があります。';
 
@@ -2005,21 +2010,13 @@ function syncProtectionUI(){
 
     factorText='暗号化なし（秘密分散のみ）';
 
-    badge.style.background='#fef3c7';
-
-    badge.style.color='#92400e';
-
-    badge.style.borderColor='#fcd34d';
+    cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-warn');
 
    }else{
 
     factorText='⚠️ 保護方式が選択されていません（いずれか1つ以上を選択してください）';
 
-    badge.style.background='#fee2e2';
-
-    badge.style.color='#991b1b';
-
-    badge.style.borderColor='#fca5a5';
+    cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-err');
 
    }
 
@@ -2027,11 +2024,7 @@ function syncProtectionUI(){
 
    factorText=factors.join(' ＋ ')+(factors.length>1?'（多要素保護）':'（単独保護）');
 
-   badge.style.background='#dcfce7';
-
-   badge.style.color='#065f46';
-
-   badge.style.borderColor='#86efac';
+   cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-ok');
 
   }
 
@@ -2601,13 +2594,13 @@ function initBonusVault(){
 
      factorText='暗号化なし（秘密分散のみ）';
 
-     badge.style.background='#fef3c7';badge.style.color='#92400e';badge.style.borderColor='#fcd34d';
+     cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-warn');
 
     }else{
 
      factorText='⚠️ 保護方式が選択されていません';
 
-     badge.style.background='#fee2e2';badge.style.color='#991b1b';badge.style.borderColor='#fca5a5';
+     cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-err');
 
     }
 
@@ -2615,7 +2608,7 @@ function initBonusVault(){
 
     factorText=factors.join(' ＋ ')+(factors.length>1?'（多要素保護）':'（単独保護）');
 
-    badge.style.background='#dcfce7';badge.style.color='#065f46';badge.style.borderColor='#86efac';
+    cmStateClass(badge, CM_BADGE_CLASSES, 'cm-prot-ok');
 
    }
 
@@ -2651,7 +2644,7 @@ function initBonusVault(){
 
   const pw=$('bv-password')?.value||'',pw2=$('bv-password-confirm')?.value||'';
 
-  if(!pw){el.textContent='パスワード強度診断：未入力（12文字以上必須）';el.style.color='var(--text-sub)';return;}
+  if(!pw){el.textContent='パスワード強度診断：未入力（12文字以上必須）';cmStrengthState(el,null);return;}
 
   const ent=MatrixCardPreset.estimatePasswordEntropy?MatrixCardPreset.estimatePasswordEntropy(pw):{bits:0,length:Array.from(pw).length,unique:new Set(Array.from(pw)).size};
 
@@ -2661,13 +2654,13 @@ function initBonusVault(){
 
    el.textContent=`パスワード強度診断：文字数不足（現在 ${ent.length}文字 ／ 最低12文字必要）${matchMsg}`;
 
-   el.style.color='#b91c1c';
+   cmStrengthState(el,'weak');
 
   }else{
 
    el.textContent=`文字種・長さ目安：十分な長さ（${ent.length}文字・文字種基準上限約 ${ent.bits} bits※ランダム非辞書語前提）${matchMsg}`;
 
-   el.style.color='#065f46';
+   cmStrengthState(el,'strong');
 
   }
 
@@ -4008,9 +4001,9 @@ function initBonusVault(){
         btn.style.color='#15803d';
         setTimeout(()=>{
          btn.innerHTML=origText;
-         btn.style.background='#f0f9ff';
-         btn.style.borderColor='#0284c7';
-         btn.style.color='#0369a1';
+         btn.style.background='';
+         btn.style.borderColor='';
+         btn.style.color='';
          btn.dataset.kwBusy='0';
          btn.disabled=false;
         },1500);

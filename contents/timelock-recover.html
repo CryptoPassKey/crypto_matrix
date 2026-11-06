@@ -5,44 +5,50 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.drand.sh https://api2.drand.sh https://api3.drand.sh https://drand.cloudflare.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
   <title>Crypto Matrix — タイムカプセル独立復元ツール (Standalone Recovery Tool)</title>
+  <script>
+    // 本体アプリとテーマを共有する（localStorage の cm-theme。本体と同じく dark のときだけダーク、それ以外はライト）
+    try { if (localStorage.getItem('cm-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) { /* 既定はライト */ }
+  </script>
   <style>
     :root {
-      --bg: #f8fafc;
+      --bg: #f7f9fc;
       --card: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --border: #cbd5e1;
-      --primary: #0f766e;
-      --primary-hover: #115e59;
-      --warn-bg: #fffbeb;
-      --warn-border: #fde68a;
-      --warn-text: #92400e;
-      --err-bg: #fef2f2;
-      --err-border: #fecaca;
-      --err-text: #991b1b;
-      --ok-bg: #ecfdf5;
-      --ok-border: #6ee7b7;
-      --ok-text: #065f46;
+      --input: #ffffff;
+      --text: #17243a;
+      --muted: #4a5a73;
+      --border: #dce3ea;
+      --primary: #0f7043;
+      --primary-hover: #0b5c37;
+      --primary-fg: #ffffff;
+      --warn-bg: #fdf3e0;
+      --warn-border: #e3b959;
+      --warn-text: #9a6206;
+      --err-bg: #fdecec;
+      --err-border: #f0a8ae;
+      --err-text: #c62f3b;
+      --ok-bg: #e9f7f0;
+      --ok-border: #7fcba6;
+      --ok-text: #0f7043;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f172a;
-        --card: #1e293b;
-        --text: #f8fafc;
-        --muted: #94a3b8;
-        --border: #334155;
-        --primary: #14b8a6;
-        --primary-hover: #0d9488;
-        --warn-bg: #451a03;
-        --warn-border: #78350f;
-        --warn-text: #fde68a;
-        --err-bg: #450a0a;
-        --err-border: #7f1d1d;
-        --err-text: #fecaca;
-        --ok-bg: #064e3b;
-        --ok-border: #047857;
-        --ok-text: #a7f3d0;
-      }
+    :root[data-theme="dark"] {
+      --bg: #090d14;
+      --card: #131b26;
+      --input: #0c1220;
+      --text: #e5edf7;
+      --muted: #93a5bc;
+      --border: #293747;
+      --primary: #00e58a;
+      --primary-hover: #3cf59f;
+      --primary-fg: #06251a;
+      --warn-bg: rgba(255, 178, 36, 0.12);
+      --warn-border: rgba(255, 178, 36, 0.45);
+      --warn-text: #ffb224;
+      --err-bg: rgba(255, 92, 108, 0.12);
+      --err-border: rgba(255, 92, 108, 0.45);
+      --err-text: #ff5c6c;
+      --ok-bg: rgba(0, 229, 138, 0.12);
+      --ok-border: rgba(0, 229, 138, 0.45);
+      --ok-text: #00e58a;
     }
     * { box-sizing: border-box; }
     body {
@@ -72,7 +78,7 @@
       padding: 9px 11px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: var(--bg);
+      background: var(--input);
       color: var(--text);
       font-size: 0.92rem;
       word-break: break-all;
@@ -96,7 +102,7 @@
     }
     .btn-primary {
       background: var(--primary);
-      color: #fff;
+      color: var(--primary-fg);
       border-color: var(--primary);
     }
     .btn-primary:hover { background: var(--primary-hover); }
@@ -130,7 +136,10 @@
             メインアプリが失われた場合や10年後の長期保管環境でも、このファイル1つでタイムカプセル（CMTL1 / CMTS）を検査・復号できます。
           </div>
         </div>
-        <a href="index.html" class="btn" style="font-size:0.8rem;">← メインアプリへ戻る</a>
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <button type="button" class="btn" id="rec-theme-toggle" style="font-size:0.8rem;">🌙 ダーク表示</button>
+          <a href="index.html" class="btn" style="font-size:0.8rem;">← メインアプリへ戻る</a>
+        </div>
       </div>
     </div>
 
@@ -893,6 +902,31 @@ ${i}
       a.click();
     });
   })();
+  </script>
+  <script>
+    // テーマ切替（本体アプリと cm-theme を共有し、別タブの変更にも追随する）
+    (function () {
+      var btn = document.getElementById('rec-theme-toggle');
+      if (!btn) return;
+      function render() {
+        var dark = document.documentElement.dataset.theme === 'dark';
+        btn.textContent = dark ? '☀️ ライト表示' : '🌙 ダーク表示';
+      }
+      btn.addEventListener('click', function () {
+        var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        if (next === 'dark') document.documentElement.dataset.theme = 'dark';
+        else delete document.documentElement.dataset.theme;
+        try { localStorage.setItem('cm-theme', next); } catch (e) { /* 保存できない環境では表示だけ切り替える */ }
+        render();
+      });
+      window.addEventListener('storage', function (ev) {
+        if (ev.key !== 'cm-theme') return;
+        if (ev.newValue === 'dark') document.documentElement.dataset.theme = 'dark';
+        else delete document.documentElement.dataset.theme;
+        render();
+      });
+      render();
+    })();
   </script>
 </body>
 </html>

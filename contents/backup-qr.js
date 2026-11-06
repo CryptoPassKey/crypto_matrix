@@ -4517,6 +4517,8 @@ function initBonusVault(){
 
    let isMigrated=false;
 
+   let authTagVerified=false;
+
    if(combinedBody.length>4&&combinedBody[0]===0x43&&combinedBody[1]===0x4d&&combinedBody[2]===0x45&&(combinedBody[3]===2||combinedBody[3]===3)){
 
     const dec=await MatrixCardPreset.decryptBodyCME2(combinedBody,password,twoFaOpts);
@@ -4532,6 +4534,8 @@ function initBonusVault(){
     }
 
     plainBody=trackSensitive(dec.innerBody);
+
+    authTagVerified=true;
 
     isMigrated=!!dec.isLegacyPK2Migrated;
 
@@ -4591,7 +4595,7 @@ function initBonusVault(){
 
    if(unpacked.type==='file'){
 
-    $('bv-decrypted-title').textContent=`✅ ファイルの復号に成功しました！「${unpacked.name||'restored-file'}」`;
+    $('bv-decrypted-title').textContent=authTagVerified?`✅ ファイルの復号・認証タグ検証が完了しました！「${unpacked.name||'restored-file'}」`:`✅ ファイルの復号に成功しました！「${unpacked.name||'restored-file'}」`;
 
     $('bv-decrypted-content').textContent=`【復号完了ファイル情報】\nファイル名: ${unpacked.name}\nファイルサイズ: ${(unpacked.payload.length/1024).toFixed(1)} KB (${unpacked.payload.length} bytes)\n\n※自動的にダウンロードが開始されます。始まらない場合は右上の「💾 ファイルをダウンロード」を押してください。`;
 
@@ -4607,7 +4611,7 @@ function initBonusVault(){
 
     const text=new TextDecoder().decode(unpacked.payload);
 
-    $('bv-decrypted-title').textContent='✅ 機密テキスト／パスワードの復号に成功しました！';
+    $('bv-decrypted-title').textContent=authTagVerified?'✅ 機密テキスト／パスワードの復号・認証タグ検証が完了しました！':'✅ 機密テキスト／パスワードの復号に成功しました！';
 
     $('bv-decrypted-content').textContent=text;
 

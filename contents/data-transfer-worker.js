@@ -2,10 +2,8 @@
 'use strict';
 
 var VERSION = '3.1.6';
-var SCRIPT_LOCAL_URL = 'data-transfer-zxing-reader.js';
-var SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/iife/reader/index.js';
-var WASM_LOCAL_URL = 'data-transfer-zxing-reader.wasm';
-var WASM_URL = 'https://cdn.jsdelivr.net/npm/zxing-wasm@' + VERSION + '/dist/reader/zxing_reader.wasm';
+var SCRIPT_LOCAL_URL = 'vendor/zxing-reader.js';
+var WASM_LOCAL_URL = 'vendor/zxing_reader.wasm';
 var zxingApi = null;
 var isInitialized = false;
 

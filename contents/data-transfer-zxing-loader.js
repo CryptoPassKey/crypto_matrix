@@ -1,10 +1,11 @@
 (function () {
   'use strict';
 
-  // Keep this version in sync with the paired assets served by sw.js.
+  // Vendored ZXing assets (vendor/zxing-reader.js + vendor/zxing_reader.wasm).
+  // Keep this version in sync with the vendored zxing-wasm package version.
   var VERSION = '3.1.6';
-  var SCRIPT_LOCAL_URL = 'data-transfer-zxing-reader.js';
-  var WASM_LOCAL_URL = 'data-transfer-zxing-reader.wasm';
+  var SCRIPT_LOCAL_URL = 'vendor/zxing-reader.js';
+  var WASM_LOCAL_URL = 'vendor/zxing_reader.wasm';
   var loadPromise = null;
 
   function swState() {
@@ -20,72 +21,6 @@
       ' / Service Worker: ' + swState() +
       (detail ? ' / ' + detail : '')
     );
-  }
-
-  async function waitForServiceWorkerController() {
-    if (!('serviceWorker' in navigator)) {
-      throw diagnostic('Service Worker非対応', SCRIPT_LOCAL_URL,
-        'このブラウザでは同一オリジンのZXingアセットを取得できません');
-    }
-    if (navigator.serviceWorker.controller) return navigator.serviceWorker.controller;
-
-    var swUrl = new URL('sw.js', document.baseURI);
-    var scopeUrl = new URL('./', document.baseURI);
-    try {
-      await navigator.serviceWorker.register(swUrl.href, {
-        scope: scopeUrl.pathname,
-        updateViaCache: 'none'
-      });
-      await new Promise(function (resolve, reject) {
-        var readyTimer = setTimeout(function () {
-          reject(new Error('Service Worker activation timeout (12000ms)'));
-        }, 12000);
-        navigator.serviceWorker.ready.then(function (registration) {
-          clearTimeout(readyTimer);
-          resolve(registration);
-        }, function (error) {
-          clearTimeout(readyTimer);
-          reject(error);
-        });
-      });
-    } catch (error) {
-      throw diagnostic('Service Worker登録失敗', swUrl.href,
-        error && error.message ? error.message : String(error));
-    }
-
-    if (navigator.serviceWorker.controller) return navigator.serviceWorker.controller;
-
-    await new Promise(function (resolve, reject) {
-      var settled = false;
-      var timer = setTimeout(function () {
-        finish(new Error('controllerchange timeout (12000ms)'));
-      }, 12000);
-      function cleanup() {
-        clearTimeout(timer);
-        navigator.serviceWorker.removeEventListener('controllerchange', onChange);
-      }
-      function finish(error) {
-        if (settled) return;
-        settled = true;
-        cleanup();
-        if (error) reject(error);
-        else resolve();
-      }
-      function onChange() {
-        if (navigator.serviceWorker.controller) finish();
-      }
-      navigator.serviceWorker.addEventListener('controllerchange', onChange);
-      if (navigator.serviceWorker.controller) finish();
-    }).catch(function (error) {
-      throw diagnostic('Service Worker制御待機失敗', swUrl.href,
-        error && error.message ? error.message : String(error));
-    });
-
-    if (!navigator.serviceWorker.controller) {
-      throw diagnostic('Service Worker未制御', swUrl.href,
-        'ページを再読み込みしてから再試行してください');
-    }
-    return navigator.serviceWorker.controller;
   }
 
   async function fetchAsset(url, kind) {
@@ -141,10 +76,8 @@
   }
 
   async function initialize() {
-    await waitForServiceWorkerController();
-
-    // Preflight both virtual routes. The SW validates and caches the JS/WASM pair
-    // together; the script element then executes the already-verified same-origin JS.
+    // Preflight both vendored assets. Both files are same-origin static files
+    // (precached by sw.js), so no Service Worker interception is required.
     var results = await Promise.all([
       fetchAsset(SCRIPT_LOCAL_URL, 'JavaScript').then(async function (response) {
         var source = await response.clone().text();

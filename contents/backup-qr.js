@@ -5399,7 +5399,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    const isHttp3 = /^https?:\/\//i.test(baseAppUrl);
    const activeSecret = ($('sim-secret')?.value || '').trim();
 
-   localStorage.setItem('cm_active_seed', seedNum);
+   if (window.CMPersistSeed) window.CMPersistSeed(seedNum); else localStorage.setItem('cm_active_seed', seedNum);
 
    const transferId = (window.MatrixCardPreset?.setPendingKeeWebTransfer || window.setPendingKeeWebTransfer)('cm_pending_entry', {
     site: title,

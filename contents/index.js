@@ -2040,11 +2040,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const seedInput = document.getElementById('input-seed-number');
 
+  // シードの非同期復元（seed-vault）が画面へ反映されるまでは、初期化処理の
+  // 無条件保存で保存済みシードを既定値で上書きしないためのフラグ。
+  let cmSeedRestoreSettled = false;
+  // 初回復元は1回だけ実行する。hashchange のたびに parseAndApplyUrlParams →
+  // restoreStateFromStorage が再実行されても、起動時の復元結果（古い値）で
+  // 現在の入力値を上書きしないためのフラグ。
+  let cmSeedRestoreStarted = false;
+
   function saveStateToStorage() {
     try {
       const seed = document.getElementById('input-seed-number')?.value;
       if (seed !== undefined && seed !== null && seed !== '') {
-        localStorage.setItem('cm_active_seed', seed);
+        // シードはデバイス鍵で包んで保存する（seed-vault.js）。
+        // 初回アンラップ完了前の保存は、既定値で保存済みシードを上書きしないようスキップする。
+        if (!window.CMSeedVault || cmSeedRestoreSettled) {
+          if (window.CMPersistSeed) window.CMPersistSeed(seed);
+          else localStorage.setItem('cm_active_seed', seed);
+        }
       }
       const site = document.getElementById('sim-site')?.value;
       if (site !== undefined && site !== null) {
@@ -2202,10 +2215,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function restoreStateFromStorage(hasUrlSeed, hasUrlSite, hasUrlSecret) {
     try {
-      if (!hasUrlSeed && seedInput) {
+      // URLシードが指定されている場合、その値が正規のシードであり、
+      // 初回復元は実施しない（開始済みとして扱う）。
+      if (hasUrlSeed) cmSeedRestoreStarted = true;
+      // シードの復元（旧平文の読み込み・ラップ済みシードの非同期復元とも）は
+      // 初回の1回だけ行う。hashchange 等で再入した場合はこのブロック全体を
+      // スキップし、現在の入力値（手動変更・URLシード等）を正とする。
+      // ゲートはこの1箇所に統一する（ブロック内で開始フラグを立てる）。
+      if (!hasUrlSeed && !cmSeedRestoreStarted && seedInput) {
+        cmSeedRestoreStarted = true;
         const savedSeed = localStorage.getItem('cm_active_seed');
         if (savedSeed !== null && savedSeed !== '') {
           seedInput.value = savedSeed;
+        }
+        // デバイス鍵で包まれたシード（cm_active_seed_wrapped）を非同期で復元する。
+        // 復元完了までに入力欄の値が変わっていた場合はそちらを優先し、上書きしない。
+        if (window.CMSeedVault) {
+          const valueAtRestore = seedInput.value;
+          // タイムアウトで「復元完了」とみなすことはしない。IndexedDB の結果が
+          // 確定するまでは cmSeedRestoreSettled は false のままで、
+          // saveStateToStorage はシードの上書きを行わない。
+          window.CMSeedVault.loadSeed().then((wrappedSeed) => {
+            cmSeedRestoreSettled = true;
+            if (typeof window.CMSeedVault.markRestored === 'function') window.CMSeedVault.markRestored();
+            try {
+              const st = (typeof window.CMSeedVault.status === 'function') ? window.CMSeedVault.status() : null;
+              if (st && st.unwrapFailed && !window.__cmSeedUnwrapWarned) {
+                window.__cmSeedUnwrapWarned = true;
+                alert('保存されていたシード番号を復号できませんでした。端末の保存データ（鍵）が消えている可能性があります。カードのシード番号を再入力してください。');
+              }
+              // 保存済みの現在値が復元開始後に更新されていた場合（ユーザー変更や
+              // URLシード適用など）、起動時の復元結果は古い値なので適用しない。
+              // 「現在値」の取得は getCurrentSeed()、「初回復元結果」は wrappedSeed と
+              // 明確に分離する。
+              const currentSeed = (typeof window.CMSeedVault.getCurrentSeed === 'function')
+                ? window.CMSeedVault.getCurrentSeed() : wrappedSeed;
+              if (currentSeed !== wrappedSeed) return;
+              if (seedInput.value !== valueAtRestore) {
+                // 復元中にユーザーが入力を変更していた場合は復元値で上書きせず、
+                // 変更後の値を正としてここで永続化する（復元中の保存はスキップ
+                // されていたため、この時点で保存しないと残らない）。
+                if (seedInput.value !== '' && window.CMPersistSeed) {
+                  window.CMPersistSeed(seedInput.value);
+                }
+                return;
+              }
+              if (!wrappedSeed) return;
+              if (seedInput.value === wrappedSeed) return;
+              seedInput.value = wrappedSeed;
+              updateMainMatrix(wrappedSeed);
+              updateSimulationUI();
+              generateAndRenderSeedPhrase();
+              if (typeof updateAllBoundSeedBadges === 'function') updateAllBoundSeedBadges();
+            } catch (_) {}
+          }).catch(() => {
+            cmSeedRestoreSettled = true;
+            if (typeof window.CMSeedVault.markRestored === 'function') window.CMSeedVault.markRestored();
+          });
+        } else {
+          // CMSeedVault が無い環境（IndexedDB / WebCrypto 非対応）では
+          // 旧平文の読み込みで復元は完了している。
+          cmSeedRestoreSettled = true;
         }
       }
       const siteInput = document.getElementById('sim-site');
@@ -2263,6 +2333,17 @@ document.addEventListener('DOMContentLoaded', () => {
     restoreStateFromStorage(kParam !== null, siteParam !== null, secretParam !== null);
 
     let changed = false;
+    if (kParam !== null) {
+      cmSeedRestoreSettled = true;
+      // URLシードが正規のシード。初回復元は「開始済み」として扱い、
+      // 後から hashchange（シードなし）で restoreStateFromStorage が呼ばれても
+      // 起動時の古い復元結果で URLシードを上書きしない。URLシードの保存が
+      // 完了しているかどうかには依存しない。
+      cmSeedRestoreStarted = true;
+      if (window.CMSeedVault && typeof window.CMSeedVault.markRestored === 'function') {
+        window.CMSeedVault.markRestored();
+      }
+    }
     if (kParam !== null && seedInput && seedInput.value !== kParam) {
       seedInput.value = kParam;
       changed = true;
@@ -2301,7 +2382,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (actionParam === 'keyfile' || actionParam === 'keyfile-modal') {
       setTimeout(() => {
-        const rawSeed = (seedInput && seedInput.value) ? seedInput.value : (kParam || localStorage.getItem('cm_active_seed') || '0');
+        const rawSeed = (seedInput && seedInput.value) ? seedInput.value : (kParam || '0');
         const seedNum = (typeof parseSeedValue === 'function') ? parseSeedValue(rawSeed) : (parseInt(rawSeed, 10) || 0);
 
         const currentPw = document.getElementById('sim-output-pw')?.textContent || '';
@@ -2909,7 +2990,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const siteVal = (document.getElementById('sim-site')?.value || '').trim();
     const isMaster = siteVal.toLowerCase().includes('master');
     const seed = document.getElementById('input-seed-number')?.value || '0';
-    localStorage.setItem('cm_active_seed', seed);
+    if (window.CMPersistSeed) window.CMPersistSeed(seed); else localStorage.setItem('cm_active_seed', seed);
     // Security Hardening (A04): Never persist cm_last_generated_pw in plaintext in transfer path
 
     let transferId = '';
@@ -5261,7 +5342,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const baseAppUrl = window.location.href.split(/[?#]/)[0];
    const isMaster = site.toLowerCase().includes('master');
    try {
-    localStorage.setItem('cm_active_seed', seed);
+    if (window.CMPersistSeed) window.CMPersistSeed(seed); else localStorage.setItem('cm_active_seed', seed);
     let transferId = '';
     if (isMaster) {
      transferId = window.setPendingKeeWebTransfer('cm_pending_master_pass', pw);
@@ -5531,7 +5612,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const baseAppUrl = window.location.href.split(/[?#]/)[0];
     const isHttp = /^https?:\/\//i.test(baseAppUrl);
-    localStorage.setItem('cm_active_seed',seedNum);
+    if (window.CMPersistSeed) window.CMPersistSeed(seedNum); else localStorage.setItem('cm_active_seed', seedNum);
     const transferId = setPendingKeeWebTransfer('cm_pending_entry', {
      site:title,
      password:pw,

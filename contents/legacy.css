@@ -1097,13 +1097,30 @@
  .verbal-guide-header{flex-direction:column;align-items:flex-start;gap:4px}
  .section-card{padding:10px 8px;border-radius:8px;margin-bottom:14px}
  .field-group{padding:8px 8px}
- /* BIP39 24単語の2列レスポンシブグリッド */
+ /* BIP39 24単語：外側コンテナは全幅、単語グリッド自体を2列にする */
  #seed-words-container{
+   display:block!important;
+   width:100%!important;
+   min-width:0!important;
+ }
+ #seed-words-container .seed-words-grid{
    display:grid!important;
    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-   gap:5px!important;
+   width:100%!important;
+   min-width:0!important;
+   gap:6px!important;
  }
- .seed-chip{padding:5px 8px!important;font-size:0.78rem!important}
+ #seed-words-container .seed-chip{
+   width:100%!important;
+   min-width:0!important;
+   box-sizing:border-box!important;
+   padding:7px 10px!important;
+   font-size:0.9rem!important;
+ }
+ #seed-words-container .seed-txt{
+   min-width:0!important;
+   overflow-wrap:anywhere!important;
+ }
  /* QRコード表示のスマホ中央揃え */
  #seed-qr-list figure,#bq-qr-list figure{
    width:100%!important;

@@ -1172,7 +1172,7 @@
       const qrFn = window.CMQrHelpers?.qrSVG || window.MatrixCardPreset?.qrSVG;
       const svg = qrFn ? qrFn(text) : null;
       if (!svg) throw new Error('no svg');
-      return `<figure class="tl-qr-figure" style="margin:0; text-align:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:#334155; margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
+      return `<figure class="tl-qr-figure cm-qr-fig" style="margin:0; text-align:center; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:#334155; margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
     } catch (_) {
       return `<div class="bv-no-print tl-ink-amber" style="font-size:0.76rem; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
     }
@@ -2348,7 +2348,7 @@
         sharesBox.innerHTML = art.shares
           .map(
             (s) => `
-          <div style="background:#192129; border:1px solid #304257; border-radius:6px; padding:10px; margin-top:8px;">
+          <div class="cm-tl-panel" style="padding:10px; margin-top:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
               <strong class="tl-ink-sky" style="font-size:0.84rem;">🧩 秘密分散シェア #${s.index} / ${s.n}（任意の ${s.m} シェアで復元可能）</strong>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
@@ -2358,7 +2358,7 @@
                 <button type="button" class="btn btn-outline tl-btn-kw-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
               </div>
             </div>
-            <textarea readonly style="width:100%; height:70px; font-family:monospace; font-size:0.72rem; background:#111827; color:#e5e7eb; border:1px solid #374151; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(s.armored)}</textarea>
+            <textarea readonly class="cm-radius-4 cm-bbox" style="width:100%; height:70px; font-family:monospace; font-size:0.72rem; padding:6px; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(s.armored)}</textarea>
           </div>
         `
           )

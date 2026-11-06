@@ -454,7 +454,7 @@
         </div>
 
         <!-- G4: 記号のホワイトリスト・ブラックリスト ＆ 強度維持代替移動 -->
-        <div class="field-group" style="border-color:#1ab1ff; background:#192329;">
+        <div class="field-group">
           <div class="field-group-title"><span class="badge" style="background:#1ab1ff;">4</span>記号ルール（WL/BL）＆ 暗号強度維持の代替移動<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトやサービスによって利用できる記号や禁止されている記号がまちまちです（例: ハイフンのみ可、特殊記号不可など）。ここで許可記号（ホワイトリスト）や禁止記号（ブラックリスト）を設定すると、使えない記号に当たった際も自動的に別の安全な文字へ代替移動し、パスワードの強度と再現性を保ちます。">?</button></div>
           <div style="font-size:0.75rem; color:var(--text-sub); margin:-4px 0 8px 0;">※サイトによって使える記号や使えない記号がまちまちでも、自動で安全な文字に代替移動して強度を維持します。</div>
           <div class="sub-row">
@@ -653,7 +653,7 @@
         現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は、上部の「暗号化」ページに切り替えて作成してください。
       </p>
 
-      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -839,7 +839,7 @@
   
 
   <p class="bq-warning">復元用パスワードや保護キー（キーファイル・パスキー）は、QRコードや24単語ブロックの中には記録されません。紛失・削除すると復元できなくなるため、バックアップとは別の場所で大切に管理してください。秘密分散（M-of-N）を選択した場合は、分割された各QRコード（またはフレーズ）を別々の保管場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分けて保管してください。</p>
-  <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+  <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>💡</span>
       <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -930,8 +930,8 @@
 </section>
 
 <!-- BEGIN BONUS VAULT -->
-<section class="section-card no-print" id="bonus-vault" style="margin-top:24px; border:2px solid #00abf7; background:#192329;">
-  <h2 class="section-title" style="color:#1aaeff; border-bottom-color:#00527d;">
+<section class="section-card no-print" id="bonus-vault" style="margin-top:24px;">
+  <h2 class="section-title">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで安全に暗号化・分割保管できる多機能保管庫です。">?</button></span>
       <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル・ゼロナレッジ</span>
@@ -1089,7 +1089,7 @@
         <span style="font-weight:700; font-size:0.88rem; color:var(--accent);">✅ 暗号化・秘密分散の生成完了</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" id="bv-result-actions"></div>
       </div>
-      <div class="save-format-guide-box no-print" style="margin:8px 0 10px; padding:10px 14px; background:#19291e; border:1.5px solid #0eaa47; border-radius:8px; font-size:0.83rem; color:#3fd97c; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
           <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
@@ -1177,7 +1177,7 @@
 <!-- END BONUS VAULT -->
 
 <!-- BEGIN TIMELOCK SECTION -->
-<section class="section-card no-print" id="timelock-section" style="margin-top:24px; border:2px solid #f59e0b; background:#192129;">
+<section class="section-card no-print" id="timelock-section" style="margin-top:24px;">
   <h2 class="section-title tl-ink-amber" style="border-bottom-color:#78350f;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>5. タイムカプセル（Time Lock / Time Capsule）— 指定時刻まで開けない暗号化カプセル<button type="button" class="help-btn" aria-label="説明を表示" data-help="League of Entropyの分散型ランダムネスビーコン（drand quicknet / BLS12-381 IBE）を利用し、指定した未来の時刻（ラウンド）に到達するまで作成者本人も含め誰も復号できないタイムカプセル暗号を作成します。暗号化時は外部通信ゼロで完全オフライン動作し、復号時も手動ビーコン貼り付けによるエアギャップ復元に対応しています。">?</button></span>
@@ -1309,7 +1309,7 @@
       <!-- 絶対時刻入力 -->
       <div id="tl-time-abs-box" style="margin-bottom:10px;">
         <label for="tl-datetime-input" style="font-size:0.82rem; font-weight:600; margin-right:8px;">解禁日時:</label>
-        <input type="datetime-local" id="tl-datetime-input" step="1" style="padding:6px 10px; font-size:0.9rem; border-radius:6px; border:1px solid #38bdf8; background:#111827; color:#f9fafb;">
+        <input type="datetime-local" id="tl-datetime-input" step="1" class="cm-radius-6" style="padding:6px 10px; font-size:0.9rem;">
       </div>
 
       <!-- 相対時刻入力 -->
@@ -1480,7 +1480,7 @@
         <div id="tl-qr-container" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
         <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
           <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">タイムカプセル・アーマード文字列（CRYPTOMATRIX TIMELOCK）:</label>
-          <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; background:#111827; color:#f3f4f6; border:1px solid #374151; border-radius:6px; padding:8px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;"></textarea>
+          <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" class="cm-radius-6 cm-bbox" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; padding:8px; word-break:break-all; overflow-wrap:anywhere;"></textarea>
         </div>
       </div>
 
@@ -1552,7 +1552,7 @@
         <label for="tl-manual-beacon-input" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">
           対象ラウンドのdrandビーコンJSON（<code>{"round":...,"signature":"..."}</code>）または96文字の16進数署名:
         </label>
-        <textarea id="tl-manual-beacon-input" style="width:100%; height:68px; font-family:monospace; font-size:0.76rem; background:#1f2937; color:#f9fafb; border:1px solid #374151; border-radius:4px; padding:6px; box-sizing:border-box;" placeholder='例: {"round":12345678,"randomness":"...","signature":"8a9b..."} または 96文字のsignature hex'></textarea>
+        <textarea id="tl-manual-beacon-input" class="cm-radius-4 cm-bbox" style="width:100%; height:68px; font-family:monospace; font-size:0.76rem; padding:6px;" placeholder='例: {"round":12345678,"randomness":"...","signature":"8a9b..."} または 96文字のsignature hex'></textarea>
         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
           ※オフライン端末で復号する場合、別のオンライン端末で上記カプセル解析情報に表示されたURLへアクセスし、取得したJSONを貼り付けてください。端末内でBLS12-381ペアリング検証を行い、偽造署名はすべて拒否します。
         </div>
@@ -1931,7 +1931,7 @@
               <label class="cm-duress-muted" for="km-password" style="font-size:0.8rem; font-weight:700;">復元用パスワード（合言葉）:</label>
               <button type="button" class="btn-toggle-pw-visibility" data-target="km-password" style="background:none; border:none; color:#1ab1ff; font-size:0.75rem; cursor:pointer; padding:0 4px; text-decoration:underline;">👁️ 表示</button>
             </div>
-            <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" style="width:100%; box-sizing:border-box; padding:7px 9px; font-size:0.84rem; border:1px solid #304257; border-radius:4px; background:#1b2027;">
+            <input type="password" id="km-password" autocomplete="new-password" placeholder="キーファイル生成に使用するパスワード（または合言葉）" class="cm-radius-4 cm-bbox" style="width:100%; padding:7px 9px; font-size:0.84rem;">
             <div style="font-size:0.75rem; color:#7488a5; margin-top:6px;">💡 強力なパスワードが必要な場合：<a href="keeweb/index.html#generator&amp;cmTarget=km" target="CryptoPassKeyKeeWeb" onclick="event.preventDefault(); window.open(this.href, 'CryptoPassKeyKeeWeb');" style="color:#1ab1ff; font-weight:700; text-decoration:underline;">KeePassで安全に自動生成・保管する</a></div>
             <div id="km-generated-password-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:#1dfbbd; margin-top:6px; padding:5px 7px; background:#19291f; border:1px solid #0eaa47; border-radius:4px;"></div>
             <div style="font-size:0.74rem; color:#7889a1; margin-top:4px;">各セクションのパスワード欄に入力済みの場合、自動的に引き継がれます。</div>

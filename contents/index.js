@@ -5056,7 +5056,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ).join('');
 
   box.innerHTML=`
-   <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1;">
+   <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px;">
      <div style="font-size:0.82rem; font-weight:700; color:#334155;">
        📜 出力形式（現在: <span id="seed-active-format-label">PGPアーマード形式</span>）
      </div>

@@ -139,36 +139,35 @@ html.light .cm-legacy [style*="background:#1"], html.light .cm-legacy [style*="b
 html.light .cm-legacy [style*="background:#2"], html.light .cm-legacy [style*="background: #2"],
 html.light .cm-legacy [style*="background:#0"] { background: #eef3f8 !important; }
 html.light .cm-legacy [style*="border"] { border-color: #cfd8e3 !important; }
-html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
 html.light .cm-legacy a { color: #0369a1 !important; }
-html.light .cm-board .matrix-stage { background: #ffffff !important; border-color: rgba(15,157,88,.35) !important; box-shadow: 0 10px 30px -20px rgba(0,0,0,.3) !important; }
-html.light .cm-board .square { background: linear-gradient(180deg,#ffffff,#f1f5f9) !important; border-color: #cbd5e1 !important; }
-html.light .cm-board .center-text { color: #0f172a !important; text-shadow: none; }
-html.light .cm-board .corner-text { color: #475569 !important; }
-html.light .cm-board .corner-text.top-left { color: #0f172a !important; }
+html.light .cm-board .matrix-stage { background: var(--card-bg) !important; border-color: rgba(15,157,88,.35) !important; box-shadow: 0 10px 30px -20px rgba(0,0,0,.3) !important; }
+html.light .cm-board .square { background: linear-gradient(180deg,#ffffff,var(--surface-sub)) !important; border-color: var(--border-color) !important; }
+html.light .cm-board .center-text { color: var(--text-main) !important; text-shadow: none; }
+html.light .cm-board .corner-text { color: var(--text-sub) !important; }
+html.light .cm-board .corner-text.top-left { color: var(--text-main) !important; }
 html.light .cm-board .corner-text.bottom-right { color: #0f766e !important; }
 html.light .cm-board .active-char-spot { background: #16c060 !important; color: #fff !important; box-shadow: 0 0 0 2px rgba(22,192,96,.35), 0 0 18px rgba(22,192,96,.7) !important; }
-html.light .cm-board .verbal-guide-card { background: #fff !important; }
+html.light .cm-board .verbal-guide-card { background: var(--card-bg) !important; }
 html.light .cm-board .verbal-highlight { background: rgba(15,157,88,.12) !important; color: #0b7a44 !important; }
-html.light #sticky-pw-bar { background: #ffffff !important; box-shadow: 0 0 24px -10px rgba(0,0,0,.3) !important; }
+html.light #sticky-pw-bar { background: var(--card-bg) !important; box-shadow: 0 0 24px -10px rgba(0,0,0,.3) !important; }
 html.light .cm-legacy .btn-primary, html.light .cm-legacy .btn-primary * { color: #fff !important; }
 html.light .cm-legacy [role="status"], html.light .cm-legacy [class*="status"], html.light .cm-legacy [class*="badge"], html.light .cm-legacy .mode-pill { background: #e3f6ec !important; color: #0b7a44 !important; border-color: #9fd9b9 !important; }
 
 /* Legacy panels keep hardcoded dark backgrounds; give them light surfaces and readable text */
-html.light .cm-legacy .field-group { background: #eef4ec !important; }
+html.light .cm-legacy .field-group { background: var(--surface-sub) !important; }
 html.light .cm-legacy .field-group .badge { color: #fff !important; }
-html.light .cm-legacy .seed-chip { background: #fff !important; }
-html.light .cm-legacy .seed-chip .seed-txt { color: #1e293b !important; }
-html.light .cm-legacy .bq-select-desc { background: #eef3f8 !important; color: #526077 !important; }
+html.light .cm-legacy .seed-chip { background: var(--card-bg) !important; }
+html.light .cm-legacy .seed-chip .seed-txt { color: var(--text-main) !important; }
+html.light .cm-legacy .bq-select-desc { background: var(--surface-sub) !important; color: var(--text-sub) !important; }
 html.light .cm-legacy #card-quick .cq-warning,
 html.light .cm-legacy .backup-warning { background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important; }
 html.light .cm-legacy #card-quick .cq-panel.active-mode-panel { background: #eaf7ef !important; }
 html.light .cm-legacy .cloud-warning { color: #1e293b !important; }
-html.light .cm-legacy #seed-qr-list figure, html.light .cm-legacy #bq-qr-list figure { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .cm-legacy #seed-qr-list figure, html.light .cm-legacy #bq-qr-list figure { background: var(--card-bg) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
 html.light .cm-legacy #card-quick select, html.light .cm-legacy #card-quick input,
 html.light .cm-legacy #backup-qr textarea, html.light .cm-legacy #bonus-vault textarea, html.light .cm-legacy #timelock-section textarea,
 html.light .cm-legacy #bonus-vault input[type=password], html.light .cm-legacy #bonus-vault input[type=text], html.light .cm-legacy #bonus-vault select,
-html.light .cm-legacy #timelock-section input[type=password], html.light .cm-legacy #timelock-section input[type=text], html.light .cm-legacy #timelock-section select, html.light .cm-legacy #timelock-section input[type=datetime-local] { background: #fff !important; color: #1e293b !important; }
+html.light .cm-legacy #timelock-section input[type=password], html.light .cm-legacy #timelock-section input[type=text], html.light .cm-legacy #timelock-section select, html.light .cm-legacy #timelock-section input[type=datetime-local] { background: var(--input-bg) !important; color: var(--text-main) !important; }
 
 /* ===== Add-ons: strength meter / peek guard / clipboard badge ===== */
 .cm-meter { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:6px 0 2px; font-size:12px; color:var(--text-sub); }
@@ -501,7 +500,7 @@ html.light .duress-modal-body .cm-duress-warn { background: #f4f7fb !important; 
 html.light .duress-modal-body .cm-duress-warn *:not(button):not(button *) { color: #1e293b !important; }
 .duress-modal-body .cm-duress-muted { color: #6d87ac; }
 html.light .duress-modal-body .cm-duress-muted { color: #1e293b !important; }
-html.light .duress-modal-body input, html.light .duress-modal-body select, html.light .duress-modal-body textarea { background: #fff !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+html.light .duress-modal-body input, html.light .duress-modal-body select, html.light .duress-modal-body textarea { background: var(--input-bg) !important; color: var(--text-main) !important; border-color: var(--border-strong) !important; }
 
 /* ===== Light mode: on-screen QR + remaining warning boxes ===== */
 html.light .cm-legacy #seed-qr-list svg, html.light .cm-legacy #bq-qr-list svg, html.light .cm-legacy .bv-qr-figure svg { background: #fff !important; }
@@ -877,8 +876,8 @@ html.light #keyfile-modal-seed { background: #ffffff !important; color: #0369a1 
    ===================================================================== */
 /* T1: トークンは先頭の html.light ブロックで一元定義する（この節の旧パレット値は撤去） */
 html.light body, html.light .cm-legacy { background-color: #ffffff; }
-html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: #17221b; }
-html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { border-color: #bdcec3 !important; color: #17221b !important; }
+html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
+html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { background: var(--input-bg) !important; color: var(--text-main) !important; border-color: var(--border-strong) !important; }
 html.light .cm-legacy a { color: #007a32 !important; }
 
 /* Buttons: original neutral sage */
@@ -898,7 +897,7 @@ html.light .cm-legacy #btn-play-trace * { color: #ffffff !important; }
 
 /* Board: original glowing frame + tiles */
 html.light .cm-board .matrix-stage {
-  background: linear-gradient(180deg, #ffffff 0%, #f7faf8 100%) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%) !important;
   border: 1.5px solid #00d957 !important;
   box-shadow: 0 0 0 1px rgba(0,217,87,.15), 0 0 24px rgba(0,201,80,.22), 0 4px 20px -2px rgba(15,23,42,.06) !important;
 }
@@ -1153,9 +1152,9 @@ html.light #tl-output-text,
 html.light #tl-text-content,
 html.light #tl-restore-text,
 html.light #tl-manual-beacon-input {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid #cbd5e1 !important;
+  background: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-strong) !important;
 }
 
 /* Decryption Result Box in Light Mode */
@@ -1274,6 +1273,32 @@ html.light .cm-legacy #timelock-section .tl-ink-gray { color: #334155 !important
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
+
+/* ===== T2-2: カード・パネル・入力欄のクラス化（旧インライン色指定の受け皿） ===== */
+.cm-legacy .cm-guide-box {
+  background: #19291e;
+  border: 1.5px solid #0eaa47;
+  border-radius: 8px;
+  color: #3fd97c;
+}
+html.light .cm-legacy .cm-guide-box {
+  background: var(--surface-sub);
+  border-color: var(--border-color);
+  color: var(--accent-strong);
+}
+.cm-legacy .cm-qr-fig { border: 1px solid #cbd5e1; border-radius: 6px; }
+html:not(.light) .cm-legacy .cm-qr-fig { background: #0f1828; }
+html.light .cm-legacy .cm-qr-fig { background: var(--card-bg); border-color: var(--border-color); }
+.cm-legacy .cm-bar-mint { border: 1px solid #b9cec0; border-radius: 6px; }
+html.light .cm-legacy .cm-bar-mint { border-color: var(--border-color); }
+.cm-legacy .cm-tl-panel { background: #192129; border: 1px solid #304257; border-radius: 6px; }
+html.light .cm-legacy .cm-tl-panel { background: var(--surface-sub); border-color: var(--border-color); }
+.cm-legacy .cm-bq-bar { border: 1px solid #cbd5e1; border-radius: 6px; }
+html.light .cm-legacy .cm-bq-bar { border-color: var(--border-color); }
+html:not(.light) .cm-legacy .cm-field-deep { background: #0f1828 !important; }
+.cm-legacy .cm-radius-4 { border-radius: 4px !important; }
+.cm-legacy .cm-radius-6 { border-radius: 6px !important; }
+.cm-bbox { box-sizing: border-box; }
 
 /* Responsive mobile stacking for QR + Textarea output containers */
 @media (max-width: 600px) {
@@ -1718,9 +1743,9 @@ html.light .cm-legacy #timesecret-section input[type="number"],
 html.light .cm-legacy #timesecret-section select,
 html.light .cm-legacy #timesecret-section textarea,
 html.light .cm-legacy #timesecret-section .ts-pre-box {
-  background: #ffffff !important;
-  color: #1e293b !important;
-  border-color: #cbd5e1 !important;
+  background: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-strong) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-meta-strip {
   background: #f1f5f9 !important;
@@ -3238,8 +3263,8 @@ html.light .cm-legacy #datatransfer-section .dt-btn-danger * {
   color: #ffffff !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-stage-placeholder {
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 html.light .cm-legacy #datatransfer-section .dt-camera-stage {
   background: #f1f5f9;

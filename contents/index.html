@@ -1139,9 +1139,12 @@
 
     <!-- 復号結果表示エリア -->
     <div id="bv-decrypt-result" hidden style="margin-top:14px; padding:12px; background:#19291e; border-radius:8px; border:1px solid #0eaa47;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="margin-bottom:6px;">
         <span style="font-weight:700; font-size:0.88rem; color:#1dfbbd;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      </div>
+      <div class="bq-action-group">
+        <div class="bq-action-group-label">結果の保存</div>
+        <div class="bq-row">
           <button type="button" class="btn btn-secondary" id="bv-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>ファイルをダウンロード</button>
         </div>
@@ -1567,9 +1570,12 @@
 
     <!-- 復号結果表示エリア -->
     <div id="tl-decrypt-result" hidden style="margin-top:14px; padding:12px 14px; background:#064e3b; border-radius:8px; border:1.5px solid #10b981;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="margin-bottom:6px;">
         <span style="font-weight:700; font-size:0.9rem; color:#34d399;">✅ タイムカプセルの解禁・復号に成功しました！</span>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      </div>
+      <div class="bq-action-group">
+        <div class="bq-action-group-label">結果の保存・転送</div>
+        <div class="bq-row">
           <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイルをダウンロード</button>
           <button type="button" class="btn btn-outline" id="tl-route-sec3" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>拡張バックアップ（復元欄）へ送る</button>
@@ -3021,8 +3027,8 @@
             </div>
 
             <div class="dt-action-row" style="margin-bottom:0;">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result">💾 ファイルを保存</button>
               <button type="button" class="dt-btn dt-btn-play" id="dt-copy-result" hidden>📋 テキストをコピー</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result">💾 ファイルを保存</button>
               <button type="button" class="dt-btn" id="dt-rx-again">🔄 もう一度受信する</button>
             </div>
           </div>

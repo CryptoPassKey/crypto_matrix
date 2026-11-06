@@ -5246,6 +5246,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(artifact.createdPassword&&$('bq-restore-password')){
    $('bq-restore-password').value=artifact.createdPassword;
   }
+  // Direct value writes fire no input event, so invalidate any verified
+  // pending explicitly (same as a manual edit): the previous preview and
+  // the enabled apply button must not survive an input replacement.
+  clearPending();
   const sec3Restore=$('section-3-restore')||$('bq-import');
   if(sec3Restore)sec3Restore.scrollIntoView({behavior:'smooth'});
   message('bq-scan-status','作成されたバックアップデータを復元入力欄に転記しました。「読み込み・検証して内容を確認」を押して手動テストを行ってください。');

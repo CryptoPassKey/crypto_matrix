@@ -1484,6 +1484,7 @@ html.light .cm-legacy #timelock-section #tl-bound-seed-badge { color: #a34e08 !i
 html.light .cm-legacy .help-btn { color: #8a9dbd; }
 html.light #timesecret-section .ts-btn-primary { background: #15803d !important; border-color: #15803d !important; }
 html.light #tl-btn-decrypt { background: #047857 !important; }
+html.light #tl-btn-decrypt:hover:not(:disabled) { background: #065f46 !important; }
 html.light #tl-route-sec3, html.light #tl-route-sec4 { background: #0369a1 !important; }
 html.light #tl-tab-btn-encrypt.btn:not(.btn-outline) { background: #0369a1 !important; }
 html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active .dt-subtab-main { color: #075985 !important; }
@@ -2658,6 +2659,7 @@ html.light .cm-legacy #timesecret-section .ts-modal-confirm-box {
   text-decoration: underline;
   padding: 0;
 }
+html.light #timesecret-section .ts-toggle-pw { color: #1f6fc4; }
 #timesecret-section .ts-kf-status {
   font-size: 0.75rem;
   color: var(--text-sub);
@@ -3642,8 +3644,8 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
   color: #fff;
 }
 html.light .cm-subtab-btn.is-active {
-  border-color: var(--feat-backup);
-  background: var(--feat-backup);
+  border-color: #1f6fc4;
+  background: #1f6fc4;
 }
 .cm-subtab-panel[hidden] { display: none !important; }
 @media (pointer: coarse) {

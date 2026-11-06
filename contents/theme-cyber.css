@@ -3370,3 +3370,7 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 @keyframes cm-step-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 .bq-verified-divider { border-top: 1.5px dashed var(--border-color); margin: 14px 0 8px; }
 .bq-verified-head { font-size: 0.88rem; font-weight: 700; color: #34d399; margin-bottom: 6px; }
+/* Unit D3-4: field error highlight + fix hint (not color-only: the hint
+   text under the field explains what to fix). */
+.cm-field-invalid { border-color: #f87171 !important; box-shadow: 0 0 0 1px #f87171 !important; }
+.cm-field-hint { color: #fca5a5; font-size: 0.78rem; font-weight: 600; line-height: 1.5; margin-top: 4px; }

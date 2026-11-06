@@ -4211,6 +4211,8 @@ function initBonusVault(){
 
   if (activeDuressContext === 'sec4') closeDuressModal();
 
+  if(window.CMFieldHint)window.CMFieldHint.clearAll();
+
   bvMessage('bv-decrypt-status','');
 
   $('bv-decrypt-result').hidden=true;
@@ -4383,6 +4385,8 @@ function initBonusVault(){
    if(!items.length){
 
     bvMessage('bv-decrypt-status','復号する暗号化ファイルを選択するか、暗号化テキストを貼り付けてください。',true);
+
+    if(window.CMFieldHint)window.CMFieldHint.apply('bv','復号する暗号化ファイルを選択するか、暗号化テキストを貼り付けてください。');
 
     return;
 
@@ -4646,6 +4650,8 @@ function initBonusVault(){
    if (myToken !== bvOpToken) return;
 
    bvMessage('bv-decrypt-status',e.message,true);
+
+   if(window.CMFieldHint)window.CMFieldHint.apply('bv',e.message);
 
   }finally{
 

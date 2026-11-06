@@ -3351,3 +3351,22 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 .bq-action-group-manage .bq-row { justify-content: flex-end; }
 
 #section-bip39-plain .bq-action-group .bq-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ===== Unit D3-1: backup restore step indicator + verified block ===== */
+.cm-restore-steps { margin: 12px 0 4px; }
+.cm-restore-steps-title { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; }
+.cm-steps-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.cm-step { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1.5px solid var(--border-color); border-radius: 999px; font-size: 0.8rem; color: var(--text-sub); }
+.cm-step-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--border-color); color: #0b1220; font-size: 0.72rem; font-weight: 700; flex: none; }
+.cm-step-arrow { color: var(--text-sub); font-size: 0.8rem; }
+.cm-step.is-current { border-color: #38bdf8; color: var(--text-main); font-weight: 700; }
+.cm-step.is-current .cm-step-badge { background: #38bdf8; }
+.cm-step.is-done { border-color: #10b981; color: var(--text-main); }
+.cm-step.is-done .cm-step-badge { background: #10b981; color: #ffffff; }
+.cm-step.is-processing { border-color: #f59e0b; color: var(--text-main); }
+.cm-step.is-processing .cm-step-badge { background: #f59e0b; animation: cm-step-pulse 1.2s ease-in-out infinite; }
+.cm-step.is-error { border-color: #ef4444; color: var(--text-main); }
+.cm-step.is-error .cm-step-badge { background: #ef4444; color: #ffffff; }
+@keyframes cm-step-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.bq-verified-divider { border-top: 1.5px dashed var(--border-color); margin: 14px 0 8px; }
+.bq-verified-head { font-size: 0.88rem; font-weight: 700; color: #34d399; margin-bottom: 6px; }

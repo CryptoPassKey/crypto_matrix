@@ -369,7 +369,7 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
   chipsHtml=shares.map(s=>
 
-   `<div class="backup-block-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#eef8f2;padding:6px 10px;border-radius:6px;border:1px solid #b9cec0;width:100%;margin-top:10px;">`+
+   `<div class="backup-block-title cm-bar-mint" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#eef8f2;padding:6px 10px;width:100%;margin-top:10px;">`+
 
    `<span>🔐 秘密分散シェア ${s.index} / ${s.n}（任意の ${s.m} シェアで復元可能 ・ 全${s.groups.length}ブロック／${s.groups.length*24}単語）</span>`+
 
@@ -421,7 +421,7 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
   box.innerHTML=`
 
-   <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1;">
+   <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px;">
 
      <div style="font-size:0.82rem; font-weight:700; color:#334155;">
 
@@ -2483,7 +2483,7 @@ function initBonusVault(){
 
    const svg=qrSVG(text);
 
-   return `<figure class="bv-qr-figure" style="margin:0;text-align:center;background:#ffffff;border:1px solid #cbd5e1;border-radius:6px;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:#475569;margin-top:2px;">${caption}</figcaption></figure>`;
+   return `<figure class="bv-qr-figure cm-qr-fig" style="margin:0;text-align:center;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:#475569;margin-top:2px;">${caption}</figcaption></figure>`;
 
   }catch(_){
 
@@ -3201,7 +3201,7 @@ function initBonusVault(){
 
            <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
 
-             <textarea readonly id="bv-share-ta-${s.index}" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultText)}</textarea>
+             <textarea readonly id="bv-share-ta-${s.index}" class="cm-radius-4 cm-bbox cm-field-deep" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; padding:6px; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultText)}</textarea>
 
              <div class="bv-print-full-text" style="display:none;">${escapeHtml(s.arm)}</div>
 
@@ -3782,7 +3782,7 @@ function initBonusVault(){
 
            <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
 
-             <textarea readonly id="bv-single-ta" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px; box-sizing:border-box; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultSingleText)}</textarea>
+             <textarea readonly id="bv-single-ta" class="cm-radius-4 cm-bbox cm-field-deep" style="width:100%; height:90px; font-size:0.72rem; font-family:monospace; padding:6px; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(defaultSingleText)}</textarea>
 
              <div class="bv-print-full-text" style="display:none;">${escapeHtml(armored)}</div>
 

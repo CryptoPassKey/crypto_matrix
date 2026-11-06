@@ -2086,6 +2086,7 @@
     // Execute Decryption
     $('tl-btn-decrypt')?.addEventListener('click', async () => {
       const myToken = ++tlOpToken;
+      if (window.CMFieldHint) window.CMFieldHint.clearAll();
       tlMessage('tl-decrypt-status', '⏳ ビーコン検証とタイムカプセル復号を実行しています…');
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
 
@@ -2151,6 +2152,7 @@
       } catch (err) {
         if (myToken !== tlOpToken) return;
         tlMessage('tl-decrypt-status', err.message || String(err), true);
+        if (window.CMFieldHint) window.CMFieldHint.apply('tl', err.message || String(err), { manualBeacon: !!$('tl-beacon-mode-manual')?.checked });
       } finally {
         if (myUiToken === tlDecryptUiToken && $('tl-btn-decrypt')) $('tl-btn-decrypt').disabled = false;
       }

@@ -1391,3 +1391,37 @@ body.blind-mode #seed-qr-list {
   border-color: #e83838 !important;
   background-color: #291919 !important;
 }
+
+/* Backup BIP39 seed phrase: keep each word in a compact multi-column grid.
+   The grid belongs to .seed-words-grid, not the outer #seed-words-container. */
+.seed-words-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.seed-words-grid > .seed-chip {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.seed-words-grid .seed-num {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.seed-words-grid .seed-txt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 600px) {
+  .seed-words-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

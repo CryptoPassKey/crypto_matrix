@@ -642,6 +642,33 @@ ${i}
       el.textContent = msg;
     }
 
+    // 動的文字列を HTML として解釈させないための DOM 構築ヘルパー
+    function textEl(tag, text) {
+      const e = document.createElement(tag);
+      e.textContent = text;
+      return e;
+    }
+
+    function metaRow(label, value) {
+      const d = document.createElement('div');
+      d.appendChild(textEl('strong', label));
+      d.appendChild(document.createTextNode(' ' + value));
+      return d;
+    }
+
+    function buildRecoverGuide(kindLabel, tailText) {
+      const d = document.createElement('div');
+      d.style.cssText = 'margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;';
+      d.appendChild(textEl('strong', '🎉 タイムカプセルの開封に成功しました！'));
+      d.appendChild(document.createElement('br'));
+      d.appendChild(document.createTextNode('カプセルの中に封入されていたのは【'));
+      d.appendChild(textEl('strong', kindLabel));
+      d.appendChild(document.createTextNode('】です。'));
+      d.appendChild(document.createElement('br'));
+      d.appendChild(document.createTextNode(tailText));
+      return d;
+    }
+
     async function collectRawItems() {
       const items = [...loadedRawItems];
       const text = $('rec-text').value.trim();
@@ -694,14 +721,14 @@ ${i}
       updateTick();
       countdownTimer = setInterval(updateTick, 1000);
 
-      $('rec-meta-grid').innerHTML = `
-        <div><strong>保護タイプ:</strong> ${h.mode === 'B' ? '🔐 パスワード付きタイムカプセル (追加保護あり)' : '🕰️ タイムカプセル (時間解禁のみ)'}</div>
-        <div><strong>解禁予定日時:</strong> ${new Date(unlockMs).toLocaleString('ja-JP')}</div>
-        <div><strong>対象ラウンド:</strong> Round #${h.round}</div>
-        <div><strong>ネットワーク:</strong> ${h.net || 'quicknet'}</div>
-        <div><strong>ペイロード種別:</strong> ${h.payloadKind || 'text'}</div>
-        <div><strong>作成日時:</strong> ${h.createdAtMs ? new Date(h.createdAtMs).toLocaleString('ja-JP') : '-'}</div>
-      `;
+      $('rec-meta-grid').replaceChildren(
+        metaRow('保護タイプ:', h.mode === 'B' ? '🔐 パスワード付きタイムカプセル (追加保護あり)' : '🕰️ タイムカプセル (時間解禁のみ)'),
+        metaRow('解禁予定日時:', new Date(unlockMs).toLocaleString('ja-JP')),
+        metaRow('対象ラウンド:', 'Round #' + h.round),
+        metaRow('ネットワーク:', h.net || 'quicknet'),
+        metaRow('ペイロード種別:', h.payloadKind || 'text'),
+        metaRow('作成日時:', h.createdAtMs ? new Date(h.createdAtMs).toLocaleString('ja-JP') : '-')
+      );
     }
 
     $('rec-file').addEventListener('change', async (e) => {
@@ -814,16 +841,19 @@ ${i}
         const p = payload.data;
         const isCXB = p && p.length >= 4 && p[0] === 0x43 && p[1] === 0x58 && p[2] === 0x42;
         const isCME = p && p.length >= 4 && p[0] === 0x43 && p[1] === 0x4d && p[2] === 0x45;
-        let guideHtml = '';
+        let guideEl = null;
         if (isCXB) {
           payload.text = formatAsArmored(p, 'BACKUP', '');
-          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムカプセルの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション3の暗号化バックアップ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション3（バックアップ）の復元欄に貼り付けて、バックアップ作成時のパスワードを入力すると元の全データが復元されます。</div>';
+          guideEl = buildRecoverGuide('セクション3の暗号化バックアップ', '下のアーマードテキストをコピーし、メインアプリのセクション3（バックアップ）の復元欄に貼り付けて、バックアップ作成時のパスワードを入力すると元の全データが復元されます。');
         } else if (isCME) {
           payload.text = formatAsArmored(p, 'ENCRYPTED DATA', 'VAULT');
-          guideHtml = '<div style="margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;"><strong>🎉 タイムカプセルの開封に成功しました！</strong><br>カプセルの中に封入されていたのは【<strong>セクション4 セキュア保管庫の暗号化データ</strong>】です。<br>下のアーマードテキストをコピーし、メインアプリのセクション4（保管庫復号）に貼り付けて復号してください。</div>';
+          guideEl = buildRecoverGuide('セクション4 セキュア保管庫の暗号化データ', '下のアーマードテキストをコピーし、メインアプリのセクション4（保管庫復号）に貼り付けて復号してください。');
         }
 
-        $('rec-result-meta').innerHTML = `<div>種別: ${payload.type === 'file' && !isCXB && !isCME ? 'ファイル (' + payload.name + ')' : 'テキスト / 暗号化データ'} ／ サイズ: ${payload.data.length.toLocaleString()} bytes ／ 検証済みRound: #${h.round}</div>${guideHtml}`;
+        const resultMetaLine = document.createElement('div');
+        resultMetaLine.textContent = `種別: ${payload.type === 'file' && !isCXB && !isCME ? 'ファイル (' + payload.name + ')' : 'テキスト / 暗号化データ'} ／ サイズ: ${payload.data.length.toLocaleString()} bytes ／ 解禁に使用したビーコン番号: #${h.round}`;
+        $('rec-result-meta').replaceChildren(resultMetaLine);
+        if (guideEl) $('rec-result-meta').appendChild(guideEl);
         if (payload.type === 'file' && !isCXB && !isCME) {
           $('rec-result-text-wrap').hidden = true;
           $('rec-result-file-wrap').hidden = false;

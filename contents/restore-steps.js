@@ -28,7 +28,7 @@
     var SUCCESS_PREFIX = '✅ 復元完了';
     // Status texts that mean "inputs were replaced/reset" in the existing
     // flow; when one appears, observation flags are cleared (condition 2).
-    var RESET_PATTERNS = ['入力が変更されました', 'リセットしました', '読み取りました', '自動入力しました', '検出したため'];
+    var RESET_PATTERNS = ['入力が変更されました', 'リセットしました', '読み取りました', '読み取りしました', '読み込みました', '自動入力しました', '検出したため', '転記しました'];
 
     var STATE_CLASSES = ['is-current', 'is-done', 'is-processing', 'is-error'];
     var MAP = {
@@ -109,6 +109,11 @@
     // as a step-2 verification failure (PR #94 review point).
     var camera = $('bq-camera');
     if (camera) camera.addEventListener('click', resetObservation);
+    // The self-test transfer writes the restore inputs directly (no input
+    // event fires), so observe its click as a data-arrival entry too
+    // (PR #94 review point, second round).
+    var testTransfer = $('bq-test-restore');
+    if (testTransfer) testTransfer.addEventListener('click', resetObservation);
     var resetParts = $('bq-reset-parts');
     if (resetParts) resetParts.addEventListener('click', resetObservation);
     var zeroize = $('btn-zeroize');

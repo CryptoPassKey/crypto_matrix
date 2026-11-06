@@ -3267,7 +3267,7 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
   /* Sticky bar goes full-bleed on phones; its controls scroll sideways
      instead of wrapping into a tall stack. */
   #sticky-pw-bar { left: 0; right: 0; bottom: 0; border-radius: 12px 12px 0 0; }
-  #sticky-controls-bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  #sticky-controls-bar { display: flex !important; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; -webkit-overflow-scrolling: touch; }
   #sticky-controls-bar::-webkit-scrollbar { display: none; }
   #sticky-controls-bar .btn { flex: none; }
 }

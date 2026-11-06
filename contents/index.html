@@ -771,7 +771,7 @@
    <!-- カード配列シード連動表示 -->
    <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
      <div style="display:flex; align-items:center; gap:8px;">
-       <span style="font-weight:700; font-size:0.82rem; color:#38bdf8;">🔑 連動カード配列シード番号:</span>
+       <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
        <span id="bq-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
      </div>
      <div style="font-size:0.75rem; color:var(--text-sub);">
@@ -907,7 +907,7 @@
    <input type="file" id="bq-restore-keyfile">
    <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-       <label for="bq-restore-seed-number" style="font-weight:700; font-size:0.84rem; color:#38bdf8; margin:0;">
+       <label for="bq-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
          🔑 連動カード配列シード番号 (seed):
        </label>
        <input type="text" id="bq-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
@@ -1015,7 +1015,7 @@
       <!-- カード配列シード連動表示 -->
       <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-weight:700; font-size:0.82rem; color:#38bdf8;">🔑 連動カード配列シード番号:</span>
+          <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
           <span id="bv-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
@@ -1133,7 +1133,7 @@
       <input type="file" id="bv-restore-keyfile">
       <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <label for="bv-restore-seed-number" style="font-weight:700; font-size:0.84rem; color:#38bdf8; margin:0;">
+          <label for="bv-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
             🔑 連動カード配列シード番号 (seed):
           </label>
           <input type="text" id="bv-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
@@ -2065,7 +2065,7 @@
             </div>
 
             <!-- ファイル入力エリア -->
-            <div id="ts-input-file-area" class="ts-field" hidden style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border:1.5px dashed var(--border-color, #304257);">
+            <div id="ts-input-file-area" class="ts-field cm-panel-card" hidden style="padding:12px; border-radius:8px; border:1.5px dashed var(--border-color, #304257);">
               <label for="ts-secret-file" style="margin:0 0 6px; font-size:0.82rem; font-weight:700; display:block;">
                 📎 封入するファイルを選択（最大20MB）:
               </label>
@@ -2084,7 +2084,7 @@
               <div id="ts-transferred-summary"></div>
               <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-transferred">✕ 転記データを解除してテキスト入力に戻す</button>
-                <span id="ts-transferred-notice" style="font-size:0.75rem; color:#93c5fd;">※既存の暗号化データは復号・再暗号化されず、元の形式のまま安全に封入されます。</span>
+                <span id="ts-transferred-notice" class="cm-note-sky" style="font-size:0.75rem;">※既存の暗号化データは復号・再暗号化されず、元の形式のまま安全に封入されます。</span>
               </div>
             </div>
           </div>
@@ -2788,14 +2788,14 @@
               <button type="button" id="btn-ts-help-close" class="ts-modal-close" aria-label="閉じる">✕</button>
             </div>
             <div style="font-size:0.86rem; line-height:1.65; color:var(--text-main, #e2e8f0); display:flex; flex-direction:column; gap:14px; padding:4px 0 12px;">
-              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #38bdf8;">
-                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#38bdf8;">1. タイムシークレットの仕組みとチェックインの必要性</h4>
+              <div class="cm-panel-card" style="padding:12px; border-radius:8px; border-left:4px solid #38bdf8;">
+                <h4 class="cm-guide-sky" style="margin:0 0 6px; font-size:0.92rem;">1. タイムシークレットの仕組みとチェックインの必要性</h4>
                 <p style="margin:0;">
                   タイムシークレットは、定期的な<strong>「チェックイン（期限延長）」</strong>によって安全を維持する時限金庫です。設定した期限までにチェックインが行われない場合、次回起動・タブ復帰時に金庫内の非抽出可能デバイス鍵が物理削除され、秘匿データが安全に復号不能化されます。万一の長期不在時や定期生存確認の途絶に備えた機密保護に最適です。
                 </p>
               </div>
 
-              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #10b981;">
+              <div class="cm-panel-card" style="padding:12px; border-radius:8px; border-left:4px solid #10b981;">
                 <h4 class="cm-guide-emerald" style="margin:0 0 6px; font-size:0.92rem;">2. 3系統の独立認証ポリシーの違い</h4>
                 <ul style="margin:0; padding-left:20px;">
                   <li><strong>暗号化（復号）認証：</strong>金庫内の秘匿データを取り出すための認証です（パスワード、キーファイル、パスキーPRF）。</li>
@@ -2804,14 +2804,14 @@
                 </ul>
               </div>
 
-              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #f59e0b;">
-                <h4 style="margin:0 0 6px; font-size:0.92rem; color:#f59e0b;">3. デバイス鍵を失った場合の復旧上の制約（重要）</h4>
+              <div class="cm-panel-card" style="padding:12px; border-radius:8px; border-left:4px solid #f59e0b;">
+                <h4 class="cm-guide-amber" style="margin:0 0 6px; font-size:0.92rem;">3. デバイス鍵を失った場合の復旧上の制約（重要）</h4>
                 <p style="margin:0;">
                   各金庫は、この端末・ブラウザ内に生成される<strong>非抽出可能な専用デバイス鍵（DeviceKey）</strong>と強固に結合されています。そのため、ブラウザのサイトデータ消去や端末の故障・紛失等でデバイス鍵を失った場合、<strong>正しいパスワードやキーファイルがあっても二度と復号できません。</strong>
                 </p>
               </div>
 
-              <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #a855f7;">
+              <div class="cm-panel-card" style="padding:12px; border-radius:8px; border-left:4px solid #a855f7;">
                 <h4 class="cm-guide-violet" style="margin:0 0 6px; font-size:0.92rem;">4. データの保存先とブラウザデータ消去・端末移行時の注意点</h4>
                 <p style="margin:0;">
                   すべてのデータはお使いの端末のブラウザストレージ（IndexedDB および localStorage）にのみ保管され、<strong>外部サーバーへの自動送信は一切行われません（完全オフライン・ゼロ送信）</strong>。端末移行や「閲覧履歴・Cookie・サイトデータの全消去」を行うと金庫データも消去されるため、永久保管したい重要なデータは「バックアップ / 暗号化」や「セキュア保管庫」等で別媒体にもバックアップしてください。

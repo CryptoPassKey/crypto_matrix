@@ -763,10 +763,10 @@
         const needKeyfile = combo === 1 || combo === 3 || combo === 4 || combo === 6;
         const needPasskey = combo === 2 || combo === 3 || combo === 5 || combo === 6;
         if (needPass && !password) {
-          throw new Error('このPrivate Time Capsuleの復号には「復元用パスワード」の入力が必要です。');
+          throw new Error('このプライベート・タイムカプセルの復号には「復元用パスワード」の入力が必要です。');
         }
         if (needKeyfile && (!keyfileBytes || keyfileBytes.length === 0)) {
-          throw new Error('このPrivate Time Capsuleの復号には「キーファイル」の選択が必要です。');
+          throw new Error('このプライベート・タイムカプセルの復号には「キーファイル」の選択が必要です。');
         }
         const cmeRes = await Preset.decryptBodyCME(outerPlain, password || '', { keyfileBytes, usePasskey: needPasskey });
         committedInner = cmeRes.innerBody || cmeRes.plain;

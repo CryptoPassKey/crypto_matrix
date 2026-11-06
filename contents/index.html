@@ -1163,7 +1163,7 @@
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem;">
           <input type="radio" name="tl-target-type" id="tl-type-transferred" value="transferred" disabled>
-          🔗 セクション3 / 4 から転記された暗号化データ
+          🔗 拡張バックアップ / 保管庫から転記された暗号化データ
         </label>
       </div>
 
@@ -1206,7 +1206,7 @@
           <div style="font-size:0.82rem; line-height:1.5;">
             <strong style="color:#38bdf8; font-size:0.88rem;">📦 タイムカプセル（時間解禁のみ — 指定時刻まで開封不可）</strong><br>
             指定時刻（対象ラウンド）が到来するまで誰も復号できません。<strong>解禁時刻の到来後は、追加のタイムカプセル用パスワードなしで開封できます。</strong><br>
-            <span style="color:#94a3b8; font-size:0.76rem;">※すでにパスワード保護されたセクション3/4の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に最適です。</span>
+            <span style="color:#94a3b8; font-size:0.76rem;">※すでにパスワード保護された拡張バックアップ/保管庫の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に最適です。</span>
           </div>
         </label>
 
@@ -1527,8 +1527,8 @@
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
           <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイルをダウンロード</button>
-          <button type="button" class="btn btn-outline" id="tl-route-sec3" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セクション3（バックアップ復元欄）へ送る</button>
-          <button type="button" class="btn btn-outline" id="tl-route-sec4" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セクション4（保管庫復号欄）へ送る</button>
+          <button type="button" class="btn btn-outline" id="tl-route-sec3" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>拡張バックアップ（復元欄）へ送る</button>
+          <button type="button" class="btn btn-outline" id="tl-route-sec4" style="font-size:0.78rem; display:none; border-color:#38bdf8; color:#38bdf8;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セキュア保管庫（復号欄）へ送る</button>
         </div>
       </div>
       <div id="tl-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#111827; color:#f9fafb; padding:10px; border-radius:6px; border:1px solid #374151; max-height:320px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
@@ -1592,7 +1592,7 @@
             ℹ️ <strong>ご案内：</strong><br>
             旧PKv2形式は以前の環境向け形式です。このデータを復号して設定を復元（救出）しますか？<br>
             ※許可すると、このセッション内で旧形式の救出・復号を実行します。<br>
-            <strong>復元完了後、安全のためセクション3にて最新のバックアップ（最新パスキーまたはパスワード保護）を再作成することをおすすめします。</strong>
+            <strong>復元完了後、安全のため「拡張バックアップ」で最新のバックアップ（最新パスキーまたはパスワード保護）を再作成することをおすすめします。</strong>
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
@@ -1736,7 +1736,7 @@
     </div>
   </div>
 
-  <!-- セクション2〜5 重要事項・リスク同意確認ポップアップモーダル -->
+  <!-- 重要事項・リスク同意確認ポップアップモーダル -->
   <div id="cm-consent-modal" class="duress-modal-backdrop no-print" hidden>
     <div class="duress-modal-dialog" style="max-width:560px;">
       <div class="duress-modal-header" style="background:#192329; border-bottom:1px solid #00527d;">
@@ -1969,7 +1969,7 @@
                 </label>
                 <label class="ts-radio-chip">
                   <input type="radio" name="ts-payload-type" id="ts-type-transferred" value="transferred" disabled>
-                  <span id="ts-type-transferred-label">🔗 セクション3・4から転記（既存暗号化データ）</span>
+                  <span id="ts-type-transferred-label">🔗 拡張バックアップ・保管庫から転記（既存暗号化データ）</span>
                 </label>
               </div>
             </div>
@@ -2730,7 +2730,7 @@
               <div style="background:var(--bg-card, #192129); padding:12px; border-radius:8px; border-left:4px solid #a855f7;">
                 <h4 style="margin:0 0 6px; font-size:0.92rem; color:#a855f7;">4. データの保存先とブラウザデータ消去・端末移行時の注意点</h4>
                 <p style="margin:0;">
-                  すべてのデータはお使いの端末のブラウザストレージ（IndexedDB および localStorage）にのみ保管され、<strong>外部サーバーへの自動送信は一切行われません（完全オフライン・ゼロ送信）</strong>。端末移行や「閲覧履歴・Cookie・サイトデータの全消去」を行うと金庫データも消去されるため、永久保管したい重要なデータはセクション3（バックアップQR）やセクション4等で別媒体にもバックアップしてください。
+                  すべてのデータはお使いの端末のブラウザストレージ（IndexedDB および localStorage）にのみ保管され、<strong>外部サーバーへの自動送信は一切行われません（完全オフライン・ゼロ送信）</strong>。端末移行や「閲覧履歴・Cookie・サイトデータの全消去」を行うと金庫データも消去されるため、永久保管したい重要なデータは「暗号化 / バックアップ」や「セキュア保管庫」等で別媒体にもバックアップしてください。
                 </p>
               </div>
             </div>

@@ -2475,7 +2475,7 @@ function initBonusVault(){
 
   if(text.length>2200){
 
-   return `<div class="bv-no-print" style="font-size:0.74rem;color:#92400e;background:#fffbeb;border:1px solid #fef3c7;border-radius:4px;padding:6px;max-width:260px;">⚠️ データ長（${(text.length/1024).toFixed(1)} KB）がQR上限（約2.2KB）を超えるためQRコードは省略されました。暗号化ファイル保存またはテキストをご利用ください。</div>`;
+   return `<div class="bv-no-print cm-note-warn" style="font-size:0.74rem;padding:6px;max-width:260px;">⚠️ データ長（${(text.length/1024).toFixed(1)} KB）がQR上限（約2.2KB）を超えるためQRコードは省略されました。暗号化ファイル保存またはテキストをご利用ください。</div>`;
 
   }
 
@@ -2487,7 +2487,7 @@ function initBonusVault(){
 
   }catch(_){
 
-   return `<div class="bv-no-print" style="font-size:0.74rem;color:#92400e;background:#fffbeb;border:1px solid #fef3c7;border-radius:4px;padding:6px;max-width:260px;">⚠️ QRコードの生成をスキップしました。</div>`;
+   return `<div class="bv-no-print cm-note-warn" style="font-size:0.74rem;padding:6px;max-width:260px;">⚠️ QRコードの生成をスキップしました。</div>`;
 
   }
 
@@ -3167,7 +3167,7 @@ function initBonusVault(){
 
       const defaultText=(s.activeFormat==='words')?s.phrase:s.arm;
 
-      const sizeWarn=s.arm.length>8000?`<div class="bv-size-warning" style="font-size:0.74rem; color:#b91c1c; background:#fee2e2; border:1px solid #fca5a5; border-radius:4px; padding:6px; margin-top:6px;">⚠️ データ長（${(s.arm.length/1024).toFixed(1)} KB）が大きいため、紙への印刷保管ではなく「暗号化ファイル保存 (.cmenc)」を推奨します。</div>`:'';
+      const sizeWarn=s.arm.length>8000?`<div class="bv-size-warning cm-note-err" style="font-size:0.74rem; padding:6px; margin-top:6px;">⚠️ データ長（${(s.arm.length/1024).toFixed(1)} KB）が大きいため、紙への印刷保管ではなく「暗号化ファイル保存 (.cmenc)」を推奨します。</div>`:'';
 
       return `
 
@@ -3187,7 +3187,7 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline bv-btn-qr-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;" ${s.arm.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+             <button type="button" class="btn btn-outline bv-btn-kw-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
 
              ${(isMulti&&s.hasWords)?`<button type="button" class="btn btn-outline bv-btn-toggle-share" data-index="${s.index}" style="padding:4px 8px; font-size:0.75rem;">🔄 表示切替</button>`:''}
 
@@ -3730,7 +3730,7 @@ function initBonusVault(){
 
      const outFileName=isFile?(name+'.cmenc'):'vault-secret.cmenc';
 
-     const sizeWarn=armored.length>8000?`<div class="bv-size-warning" style="font-size:0.74rem; color:#b91c1c; background:#fee2e2; border:1px solid #fca5a5; border-radius:4px; padding:6px; margin-top:6px;">⚠️ データ長（${(armored.length/1024).toFixed(1)} KB）が大きいため、紙への印刷保管ではなく「暗号化ファイル保存 (.cmenc)」を推奨します。</div>`:'';
+     const sizeWarn=armored.length>8000?`<div class="bv-size-warning cm-note-err" style="font-size:0.74rem; padding:6px; margin-top:6px;">⚠️ データ長（${(armored.length/1024).toFixed(1)} KB）が大きいため、紙への印刷保管ではなく「暗号化ファイル保存 (.cmenc)」を推奨します。</div>`:'';
 
      const blockLabel=hasWords?` / ${vBlocks.length}ブロック`:'';
 
@@ -3766,9 +3766,9 @@ function initBonusVault(){
 
              <button type="button" class="btn btn-outline" id="bv-btn-qr-single" style="padding:4px 8px; font-size:0.75rem;" ${armored.length>2200?'disabled':''}><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
 
-              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#0369a1; border-color:#0284c7; background:#f0f9ff;" title="KeePassに新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
-              <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#fbbf24; border-color:#f59e0b; background:#292119;" title="この暗号化データを復号・削除せずそのままタイムカプセルタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
-              <button type="button" class="btn btn-outline" id="bv-btn-ts-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700; color:#38bdf8; border-color:#0284c7; background:#192329;" title="この暗号化データを復号・削除せずそのままタイムシークレットタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-kw-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" title="KeePassに新規エントリーとして保存（QR画像・キーファイルを両方自動添付）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-tl-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" title="この暗号化データを復号・削除せずそのままタイムカプセルタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
+              <button type="button" class="btn btn-outline" id="bv-btn-ts-single" style="padding:4px 8px; font-size:0.75rem; font-weight:700;" title="この暗号化データを復号・削除せずそのままタイムシークレットタブへ転記します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
 
              ${(isMulti&&hasWords)?`<button type="button" class="btn btn-outline" id="bv-btn-toggle-single" style="padding:4px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>表示切替（PGP ⇄ BIP39）</button>`:''}
 

@@ -1166,7 +1166,7 @@
   function renderQrPreviewHtml(text, caption) {
     if (!text || text.length > QR_MAX_CHARS) {
       const kb = ((text ? text.length : 0) / 1024).toFixed(1);
-      return `<div class="bv-no-print tl-ink-amber" style="font-size:0.76rem; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px; max-width:280px;">⚠️ データ長（${kb} KB / ${text.length}文字）がQRコード上限（${QR_MAX_CHARS}文字）を超えるため、QRコード生成は省略されました。<strong>ファイル保存 (.cmtl)</strong> または <strong>テキスト保存 (.txt)</strong> をご利用ください。</div>`;
+      return `<div class="bv-no-print tl-ink-amber cm-note-warnbox" style="font-size:0.76rem; padding:8px; max-width:280px;">⚠️ データ長（${kb} KB / ${text.length}文字）がQRコード上限（${QR_MAX_CHARS}文字）を超えるため、QRコード生成は省略されました。<strong>ファイル保存 (.cmtl)</strong> または <strong>テキスト保存 (.txt)</strong> をご利用ください。</div>`;
     }
     try {
       const qrFn = window.CMQrHelpers?.qrSVG || window.MatrixCardPreset?.qrSVG;
@@ -1174,7 +1174,7 @@
       if (!svg) throw new Error('no svg');
       return `<figure class="tl-qr-figure cm-qr-fig" style="margin:0; text-align:center; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:#334155; margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
     } catch (_) {
-      return `<div class="bv-no-print tl-ink-amber" style="font-size:0.76rem; background:#292119; border:1px solid #d97706; border-radius:6px; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
+      return `<div class="bv-no-print tl-ink-amber cm-note-warnbox" style="font-size:0.76rem; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
     }
   }
 
@@ -1231,7 +1231,7 @@
       if (first.kind === 'cmts') {
         const uniqueIndices = Array.from(new Set(parsed.filter((p) => p.kind === 'cmts' && p.setIdHex === first.setIdHex).map((p) => p.index))).sort((a, b) => a - b);
         const enough = uniqueIndices.length >= first.m;
-        shamirStatusHtml = `<strong style="color:${enough ? '#34d399' : '#fbbf24'};">Shamir ${first.m}-of-${first.n} 秘密分散（読込済みシェア: ${uniqueIndices.map((i) => '#' + i).join('・')} ／ ${uniqueIndices.length} / 必要 ${first.m} シェア ${enough ? '✅ 結合可能' : '⚠️ 追加シェアが必要'}）</strong>`;
+        shamirStatusHtml = `<strong class="${enough ? 'cm-txt-ok' : 'cm-txt-warn'}">Shamir ${first.m}-of-${first.n} 秘密分散（読込済みシェア: ${uniqueIndices.map((i) => '#' + i).join('・')} ／ ${uniqueIndices.length} / 必要 ${first.m} シェア ${enough ? '✅ 結合可能' : '⚠️ 追加シェアが必要'}）</strong>`;
       }
 
       if (authBox) {
@@ -1250,8 +1250,8 @@
         const diff = meta.unlockTimeMs - now;
         const unlocked = diff <= 0;
         const statusBadge = unlocked
-          ? `<span class="tl-ink-emerald" style="display:inline-block; padding:3px 10px; border-radius:999px; background:#064e3b; border:1px solid #10b981; font-weight:700;">🔓 解禁時刻到達済み（復号可能）</span>`
-          : `<span class="tl-ink-amber" style="display:inline-block; padding:3px 10px; border-radius:999px; background:#451a03; border:1px solid #f59e0b; font-weight:700;">🔒 解禁時刻前（残り ${escapeHtml(formatRemainingTime(diff))}）</span>`;
+          ? `<span class="tl-ink-emerald cm-pill-ok" style="display:inline-block; padding:3px 10px; font-weight:700;">🔓 解禁時刻到達済み（復号可能）</span>`
+          : `<span class="tl-ink-amber cm-pill-warn" style="display:inline-block; padding:3px 10px; font-weight:700;">🔒 解禁時刻前（残り ${escapeHtml(formatRemainingTime(diff))}）</span>`;
 
         infoBox.hidden = false;
         infoBox.innerHTML = `
@@ -2319,7 +2319,7 @@
 
     if ($('tl-verification-box')) {
       $('tl-verification-box').innerHTML = `
-        <div style="padding:8px 12px; border-radius:6px; background:${art.verifyPassed ? '#064e3b' : '#451a03'}; border:1px solid ${art.verifyPassed ? '#10b981' : '#f59e0b'}; color:${art.verifyPassed ? '#34d399' : '#fbbf24'}; font-size:0.82rem; font-weight:700;">
+        <div class="${art.verifyPassed ? 'cm-verify-ok' : 'cm-verify-warn'}" style="padding:8px 12px; font-size:0.82rem; font-weight:700;">
           ${escapeHtml(art.verifySummary)}
         </div>
       `;
@@ -2355,7 +2355,7 @@
                 <button type="button" class="btn btn-secondary tl-btn-copy-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
                 <button type="button" class="btn btn-outline tl-btn-dl-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>.cmtl保存</button>
                 <button type="button" class="btn btn-outline tl-btn-txt-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>.txt保存</button>
-                <button type="button" class="btn btn-outline tl-btn-kw-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem; font-weight:700; color:#1aaeff; border-color:#1ab1ff; background:#192329;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
+                <button type="button" class="btn btn-outline tl-btn-kw-share" data-idx="${s.index}" style="padding:3px 8px; font-size:0.75rem; font-weight:700;" title="このシェアをKeePassに保存"><svg class="cm-btn-ico" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>KeePassに保存</button>
               </div>
             </div>
             <textarea readonly class="cm-radius-4 cm-bbox" style="width:100%; height:70px; font-family:monospace; font-size:0.72rem; padding:6px; word-break:break-all; overflow-wrap:anywhere;">${escapeHtml(s.armored)}</textarea>
@@ -2640,7 +2640,7 @@
       let extraGuide = '';
       if (rep.isSec3) {
         extraGuide = `
-          <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
+          <div class="tl-guide-banner cm-panel-ok" style="margin-top:8px; padding:12px 14px; font-size:0.84rem; line-height:1.6;">
             <strong class="tl-ink-emerald" style="font-size:0.92rem;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>拡張バックアップ</strong>】です。<br>
             データは拡張バックアップ作成時の復元用パスワード等で安全に保護されたまま取り出されました。<br>
@@ -2649,7 +2649,7 @@
         `;
       } else if (rep.isSec4) {
         extraGuide = `
-          <div class="tl-guide-banner" style="margin-top:8px; padding:12px 14px; background:#143324; border:1.5px solid #10b981; border-radius:6px; color:#ecfdf5; font-size:0.84rem; line-height:1.6;">
+          <div class="tl-guide-banner cm-panel-ok" style="margin-top:8px; padding:12px 14px; font-size:0.84rem; line-height:1.6;">
             <strong class="tl-ink-emerald" style="font-size:0.92rem;">🎉 タイムカプセルの開封に成功しました！</strong><br>
             カプセルの中に封入されていたのは【<strong>セキュア保管庫の暗号化データ</strong>】です。<br>
             上の<strong>『🔄 セキュア保管庫（復号欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して復号してください。

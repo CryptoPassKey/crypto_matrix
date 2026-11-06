@@ -36,6 +36,7 @@
   --feat-passkey-soft: rgba(47, 230, 167, 0.12);
   --feat-secret: #00a8d6;
   --feat-secret-soft: rgba(0, 168, 214, 0.12);
+  --feat-secret-strong: #075985;
   --matrix-green: var(--feat-generate);
   --matrix-border: var(--feat-generate);
   --font-ui: "Fira Code", "JetBrains Mono", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", ui-monospace, monospace;
@@ -130,6 +131,7 @@ html.light {
   --feat-vault: #7c53c9; --feat-vault-soft: rgba(124, 83, 201, 0.1);
   --feat-capsule: #b45309; --feat-capsule-soft: rgba(180, 83, 9, 0.1);
   --feat-transfer: #0e7fa8; --feat-transfer-soft: rgba(14, 127, 168, 0.1);
+  --feat-transfer-strong: #0b6fa0;
   --feat-passkey: #0b7a55; --feat-passkey-soft: rgba(11, 122, 85, 0.1);
   --feat-secret: #0e7fa8; --feat-secret-soft: rgba(14, 127, 168, 0.1);
 }
@@ -151,7 +153,7 @@ html.light .cm-board .verbal-guide-card { background: var(--card-bg) !important;
 html.light .cm-board .verbal-highlight { background: rgba(15,157,88,.12) !important; color: #0b7a44 !important; }
 html.light #sticky-pw-bar { background: var(--card-bg) !important; box-shadow: 0 0 24px -10px rgba(0,0,0,.3) !important; }
 html.light .cm-legacy .btn-primary, html.light .cm-legacy .btn-primary * { color: #fff !important; }
-html.light .cm-legacy [role="status"], html.light .cm-legacy [class*="status"], html.light .cm-legacy [class*="badge"], html.light .cm-legacy .mode-pill { background: #e3f6ec !important; color: #0b7a44 !important; border-color: #9fd9b9 !important; }
+html.light .cm-legacy [role="status"], html.light .cm-legacy [class*="status"], html.light .cm-legacy [class*="badge"], html.light .cm-legacy .mode-pill { background: var(--success-bg) !important; color: var(--success) !important; border-color: var(--success) !important; }
 
 /* Legacy panels keep hardcoded dark backgrounds; give them light surfaces and readable text */
 html.light .cm-legacy .field-group { background: var(--surface-sub) !important; }
@@ -160,9 +162,9 @@ html.light .cm-legacy .seed-chip { background: var(--card-bg) !important; }
 html.light .cm-legacy .seed-chip .seed-txt { color: var(--text-main) !important; }
 html.light .cm-legacy .bq-select-desc { background: var(--surface-sub) !important; color: var(--text-sub) !important; }
 html.light .cm-legacy #card-quick .cq-warning,
-html.light .cm-legacy .backup-warning { background: #fdf3d7 !important; color: #7c600f !important; border-color: #d9bd4f !important; }
+html.light .cm-legacy .backup-warning { background: var(--warning-bg) !important; color: var(--warning) !important; border-color: var(--warning) !important; }
 html.light .cm-legacy #card-quick .cq-panel.active-mode-panel { background: #eaf7ef !important; }
-html.light .cm-legacy .cloud-warning { color: #1e293b !important; }
+html.light .cm-legacy .cloud-warning { color: var(--text-main) !important; }
 html.light .cm-legacy #seed-qr-list figure, html.light .cm-legacy #bq-qr-list figure { background: var(--card-bg) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
 html.light .cm-legacy #card-quick select, html.light .cm-legacy #card-quick input,
 html.light .cm-legacy #backup-qr textarea, html.light .cm-legacy #bonus-vault textarea, html.light .cm-legacy #timelock-section textarea,
@@ -486,7 +488,7 @@ html:not(.light) .cm-legacy #btn-copy-pw:hover:not(:disabled) {
 #sticky-pw-bar.visible:not(.is-minimized) { display: flex !important; }
 
 /* ===== Light mode: duress modal & remaining dark surfaces ===== */
-html.light .duress-modal-dialog { background: #fff !important; border-color: #cbd5e1 !important; color: #1e293b !important; }
+html.light .duress-modal-dialog { background: var(--card-bg) !important; border-color: var(--border-color) !important; color: var(--text-main) !important; }
 html.light .duress-modal-header { background: #f1f5f9 !important; border-bottom-color: #e2e8f0 !important; color: #1e293b !important; }
 html.light .duress-modal-header h3 { color: #1e293b !important; }
 html.light .duress-modal-close { color: #475569 !important; }
@@ -495,9 +497,9 @@ html.light .duress-modal-body, html.light .duress-modal-body * { color: #1e293b 
    注意: ライト側の実効値は、現行カスケードでダイアログ側の汎用ルールが優先された結果の値。
    旧ルールが宣言していた警告色（#fdf3d7／#7c600f 等）は現行では実効しておらず、見た目を変えないため
    そのまま持ち越さない。警告表現の再設計は T2-5 で扱う。 */
-.duress-modal-body .cm-duress-warn { background: #292619; }
-html.light .duress-modal-body .cm-duress-warn { background: #f4f7fb !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
-html.light .duress-modal-body .cm-duress-warn *:not(button):not(button *) { color: #1e293b !important; }
+.duress-modal-body .cm-duress-warn { background: #292619; border: 1px solid #a88700; }
+html.light .duress-modal-body .cm-duress-warn { background: var(--warning-bg) !important; color: var(--warning) !important; border-color: var(--warning) !important; }
+html.light .duress-modal-body .cm-duress-warn *:not(button):not(button *) { color: var(--warning) !important; }
 .duress-modal-body .cm-duress-muted { color: #6d87ac; }
 html.light .duress-modal-body .cm-duress-muted { color: #1e293b !important; }
 html.light .duress-modal-body input, html.light .duress-modal-body select, html.light .duress-modal-body textarea { background: var(--input-bg) !important; color: var(--text-main) !important; border-color: var(--border-strong) !important; }
@@ -535,11 +537,11 @@ html.light .cm-legacy ::-webkit-scrollbar-thumb { background: #b6c4d4; border-ra
 html.light .cm-legacy ::-webkit-scrollbar-track { background: #eef2f7; }
 
 /* ===== Modals live on <body> now: light-mode button/input fixes (no .cm-legacy ancestor) ===== */
-html.light .duress-modal-backdrop .btn-primary { background: #16c060 !important; color: #fff !important; border-color: #0e9a4a !important; }
+html.light .duress-modal-backdrop .btn-primary { background: var(--accent-strong) !important; color: #fff !important; border-color: var(--accent-strong) !important; }
 html.light .duress-modal-backdrop .btn-primary * { color: #fff !important; }
-html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) { background: #e8eef5 !important; border: 1px solid #c3cfdd !important; color: #1e293b !important; }
-html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) * { color: #1e293b !important; }
-html.light .duress-modal-backdrop .help-btn { background: #cbd5e1 !important; color: #1e293b !important; }
+html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) { background: var(--surface-sub) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; }
+html.light .duress-modal-backdrop button:not(.btn-primary):not(.duress-modal-close) * { color: var(--text-main) !important; }
+html.light .duress-modal-backdrop .help-btn { background: var(--border-color) !important; color: var(--text-main) !important; }
 
 /* ===== Peek guard: never blur empty containers =====
    NOTE: <input>/<textarea> are ALWAYS :empty (void of child nodes), so this
@@ -746,20 +748,20 @@ html:not(.light) .cm-legacy #gesture-design-bar .btn.gesture-pill {
 }
 html:not(.light) .cm-legacy #gesture-design-bar .btn.gesture-pill:hover { border-color: #7cf5ae !important; box-shadow: 0 0 8px rgba(44, 236, 115, 0.35) !important; }
 html.light .cm-legacy .gesture-design-bar {
-  background: #eaf7ef !important;
-  border: 1.5px solid #16c060 !important;
+  background: var(--success-bg) !important;
+  border: 1.5px solid var(--accent) !important;
   box-shadow: 0 1px 6px rgba(22, 192, 96, 0.18) !important;
 }
 html.light .cm-legacy .gesture-design-bar span,
-html.light .cm-legacy .gesture-cat-label { color: #0b7a44 !important; }
+html.light .cm-legacy .gesture-cat-label { color: var(--accent-strong) !important; }
 html.light .cm-legacy #gesture-design-bar .btn.gesture-pill {
-  background: #ffffff !important;
-  border: 1px solid #16c060 !important;
-  color: #0b7a44 !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--accent-strong) !important;
 }
-html.light .cm-legacy #gesture-design-bar .btn.gesture-pill:hover { background: #d3f2e2 !important; border-color: #0b7a44 !important; }
-html.light .cm-legacy #gesture-design-bar .btn.gesture-pill.active { background: #16c060 !important; color: #ffffff !important; border-color: #0e9a4a !important; }
-html.light .cm-legacy #gesture-design-bar button#btn-close-gesture-bar { background: #ffffff !important; border-color: #16c060 !important; color: #0b7a44 !important; }
+html.light .cm-legacy #gesture-design-bar .btn.gesture-pill:hover { background: var(--success-bg) !important; border-color: var(--accent-strong) !important; }
+html.light .cm-legacy #gesture-design-bar .btn.gesture-pill.active { background: var(--accent-strong) !important; color: #ffffff !important; border-color: var(--accent-strong) !important; }
+html.light .cm-legacy #gesture-design-bar button#btn-close-gesture-bar { background: var(--card-bg) !important; border-color: var(--accent) !important; color: var(--accent-strong) !important; }
 
 /* ===== Tutorial: temporarily unmask blurred fields while guiding =====
    Tour adds .cm-tour-active on <html> for the input steps (removed again
@@ -778,7 +780,7 @@ html.cm-tour-active .cm-legacy #tl-shares-container.cm-peek svg,
 html.cm-tour-active #sim-output-pw.cm-peek { filter: none !important; }
 
 /* Light mode: keep the minimized pill readable (inline #1aff75 bg gets neutralized by the [style*=background:#1] rule) */
-html.light #btn-sticky-min-pill { background: #16c060 !important; color: #ffffff !important; border-color: #0e9a4a !important; }
+html.light #btn-sticky-min-pill { background: var(--accent-strong) !important; color: #ffffff !important; border-color: var(--accent-strong) !important; }
 
 /* ===== Light mode: comprehensive de-blackening (buttons, modals, badges) ===== */
 /* All legacy buttons: light surface, readable dark text */
@@ -789,86 +791,71 @@ html.light .cm-legacy button.btn,
 html.light .cm-legacy label.btn,
 html.light .cm-legacy #btn-sticky-toggle,
 html.light .cm-legacy #btn-sticky-top {
-  background: #e8eef5 !important;
-  color: #1e293b !important;
-  border: 1px solid #c3cfdd !important;
+  background: var(--surface-sub) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
   box-shadow: none !important;
 }
 html.light .cm-legacy .btn:hover:not(:disabled),
 html.light .cm-legacy .btn-secondary:hover:not(:disabled),
 html.light .cm-legacy .btn-outline:hover:not(:disabled) {
-  background: #dbe4ee !important;
-  border-color: #94a8bf !important;
+  background: var(--border-color) !important;
+  border-color: var(--border-strong) !important;
 }
 /* Inline-styled buttons (style="background:#1.../#19.../#0...") also go light */
-html.light .cm-legacy button[style*="background"],
-html.light .cm-legacy label.btn[style*="background"] {
-  background: #e8eef5 !important;
-  color: #1e293b !important;
-  border-color: #c3cfdd !important;
-}
 /* Primary / danger keep their accent colors with white text */
 html.light .cm-legacy .btn-primary,
 html.light .cm-legacy button.btn-primary,
 html.light .cm-legacy #btn-sticky-min-pill {
-  background: #16c060 !important;
+  background: var(--accent-strong) !important;
   color: #ffffff !important;
-  border-color: #0e9a4a !important;
+  border-color: var(--accent-strong) !important;
 }
 html.light .cm-legacy .btn-primary *, html.light .cm-legacy #btn-sticky-min-pill * { color: #ffffff !important; }
 html.light .cm-legacy .btn-danger,
 html.light .cm-legacy #btn-zeroize {
-  background: #dc2626 !important;
+  background: var(--danger) !important;
   color: #ffffff !important;
-  border-color: #b91c1c !important;
+  border-color: var(--danger) !important;
 }
 html.light .cm-legacy .btn-danger *, html.light .cm-legacy #btn-zeroize * { color: #ffffff !important; }
 /* Active mode pill stays green */
 html.light .cm-legacy .btn-mode-active {
-  background: #16c060 !important;
+  background: var(--accent-strong) !important;
   color: #ffffff !important;
-  border-color: #0e9a4a !important;
+  border-color: var(--accent-strong) !important;
 }
 /* Inactive mode pills / status chips: light surface */
 html.light .cm-legacy .mode-pill.inactive {
-  background: #eef3f8 !important;
-  color: #526077 !important;
-  border-color: #cbd5e1 !important;
+  background: var(--surface-sub) !important;
+  color: var(--text-sub) !important;
+  border-color: var(--border-color) !important;
 }
 /* Keyfile rows use dark green inline bg (#19291e) -> light green */
 html.light .cm-legacy [id$="-keyfile-row"] {
-  background: #eaf7ef !important;
-  border-color: #16c060 !important;
+  background: var(--success-bg) !important;
+  border-color: var(--accent) !important;
 }
-html.light .cm-legacy [id$="-keyfile-row"] *:not(button):not(button *) { color: #1e293b !important; }
+html.light .cm-legacy [id$="-keyfile-row"] *:not(button):not(button *) { color: var(--text-main) !important; }
 
 /* Modals live on <body> (no .cm-legacy ancestor): full light restyle */
-html.light .duress-modal-dialog,
-html.light .duress-modal-dialog *:not(button):not(button *) { color: #1e293b; }
-html.light .duress-modal-dialog [style*="background"] {
-  background: #f4f7fb !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
-}
-html.light .duress-modal-dialog [style*="background"] *:not(button):not(button *) { color: #1e293b !important; }
-html.light .duress-modal-dialog [style*="color"] { color: #1e293b !important; }
 html.light .duress-modal-backdrop .btn,
 html.light .duress-modal-backdrop .btn-outline,
 html.light .duress-modal-backdrop .btn-secondary {
-  background: #e8eef5 !important;
-  color: #1e293b !important;
-  border: 1px solid #c3cfdd !important;
+  background: var(--surface-sub) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
   box-shadow: none !important;
 }
-html.light .duress-modal-backdrop .btn * { color: #1e293b !important; }
+html.light .duress-modal-backdrop .btn * { color: var(--text-main) !important; }
 html.light .duress-modal-backdrop .btn-primary,
 html.light .duress-modal-backdrop .btn-primary * {
-  background: #16c060 !important;
+  background: var(--accent-strong) !important;
   color: #ffffff !important;
-  border-color: #0e9a4a !important;
+  border-color: var(--accent-strong) !important;
 }
 /* Keyfile seed input keeps its blue accent but on white */
-html.light #keyfile-modal-seed { background: #ffffff !important; color: #0369a1 !important; border-color: #38bdf8 !important; }
+html.light #keyfile-modal-seed { background: var(--input-bg) !important; color: var(--feat-transfer-strong) !important; border-color: var(--feat-transfer) !important; }
 
 /* =====================================================================
    Light mode = original Crypto Matrix (uploaded ZIP) palette, restored.
@@ -878,21 +865,24 @@ html.light #keyfile-modal-seed { background: #ffffff !important; color: #0369a1 
 html.light body, html.light .cm-legacy { background-color: #ffffff; }
 html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
 html.light .cm-legacy input, html.light .cm-legacy select, html.light .cm-legacy textarea { background: var(--input-bg) !important; color: var(--text-main) !important; border-color: var(--border-strong) !important; }
-html.light .cm-legacy a { color: #007a32 !important; }
+html.light .cm-legacy a { color: var(--accent-strong) !important; }
 
 /* Buttons: original neutral sage */
 html.light .cm-legacy .btn, html.light .cm-legacy button.btn, html.light .cm-legacy label.btn,
 html.light .cm-legacy #btn-sticky-toggle, html.light .cm-legacy #btn-sticky-top {
-  background: #f3f4f4 !important; color: #26312b !important; border: 1px solid #cbd2ce !important; box-shadow: none !important;
+  background: var(--surface-sub) !important; color: var(--text-main) !important; border: 1px solid var(--border-color) !important; box-shadow: none !important;
 }
-html.light .cm-legacy .btn:hover:not(:disabled) { background: #e7ebe8 !important; border-color: #a9b5ae !important; }
-html.light .cm-legacy .btn-secondary { background: #ffffff !important; color: #46534b !important; border-color: #d4dbd7 !important; }
-html.light .cm-legacy .btn-outline { background: #ffffff !important; color: #007a32 !important; border-color: #00c950 !important; }
-html.light .cm-legacy .btn-outline:hover:not(:disabled) { background: #e6ffef !important; border-color: #00b849 !important; }
-html.light .cm-legacy .btn-primary, html.light .cm-legacy .btn-mode-active, html.light .cm-legacy #btn-sticky-min-pill {
-  background: #008a37 !important; color: #ffffff !important; border-color: #007a32 !important;
+html.light .cm-legacy .btn:hover:not(:disabled) { background: var(--border-color) !important; border-color: var(--border-strong) !important; }
+html.light .cm-legacy .btn-secondary, html.light .cm-legacy button.btn-secondary, html.light .cm-legacy label.btn-secondary { background: var(--card-bg) !important; color: var(--text-sub) !important; border-color: var(--border-color) !important; }
+html.light .cm-legacy .btn-outline, html.light .cm-legacy button.btn-outline, html.light .cm-legacy label.btn-outline { background: var(--card-bg) !important; color: var(--accent-strong) !important; border-color: var(--accent) !important; }
+html.light .cm-legacy .btn-outline:hover:not(:disabled), html.light .cm-legacy button.btn-outline:hover:not(:disabled) { background: var(--success-bg) !important; border-color: var(--accent-strong) !important; }
+html.light .cm-legacy .btn-primary, html.light .cm-legacy button.btn-primary, html.light .cm-legacy label.btn-primary, html.light .cm-legacy .btn-mode-active, html.light .cm-legacy #btn-sticky-min-pill {
+  background: var(--accent-strong) !important; color: #ffffff !important; border-color: var(--accent-strong) !important;
 }
-html.light .cm-legacy #btn-play-trace { background: #00c950 !important; color: #ffffff !important; border-color: #00b849 !important; }
+html.light .cm-legacy .btn-danger, html.light .cm-legacy button.btn-danger, html.light .cm-legacy label.btn-danger, html.light .cm-legacy #btn-zeroize {
+  background: var(--danger) !important; color: #ffffff !important; border-color: var(--danger) !important;
+}
+html.light .cm-legacy #btn-play-trace { background: var(--accent-strong) !important; color: #ffffff !important; border-color: var(--accent-strong) !important; }
 html.light .cm-legacy #btn-play-trace * { color: #ffffff !important; }
 
 /* Board: original glowing frame + tiles */
@@ -1109,7 +1099,7 @@ html.light #timelock-section {
 /* Card steps in Light Mode */
 html.light #tl-panel-encrypt > div,
 html.light #tl-panel-decrypt > div {
-  background: #ffffff !important;
+  background: var(--card-bg) !important;
   border: 1px solid #d4ded7 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -1294,11 +1284,135 @@ html.light .cm-legacy .cm-bar-mint { border-color: var(--border-color); }
 .cm-legacy .cm-tl-panel { background: #192129; border: 1px solid #304257; border-radius: 6px; }
 html.light .cm-legacy .cm-tl-panel { background: var(--surface-sub); border-color: var(--border-color); }
 .cm-legacy .cm-bq-bar { border: 1px solid #cbd5e1; border-radius: 6px; }
+.cm-legacy .cm-btn-capsule { background: #f59e0b !important; border-color: #d97706 !important; color: #111827 !important; }
+.cm-legacy .cm-btn-route { background: #0284c7 !important; border-color: #0369a1 !important; color: #ffffff !important; }
 html.light .cm-legacy .cm-bq-bar { border-color: var(--border-color); }
 html:not(.light) .cm-legacy .cm-field-deep { background: #0f1828 !important; }
 .cm-legacy .cm-radius-4 { border-radius: 4px !important; }
 .cm-legacy .cm-radius-6 { border-radius: 6px !important; }
 .cm-bbox { box-sizing: border-box; }
+
+/* ===== T2-4: 現在地表示と機能色（ライトのみ。ダークは現行の緑基調を維持） ===== */
+html.light .cm-tab[aria-controls="tab-quick"][aria-selected="true"],
+html.light .cm-tab[aria-controls="tab-recipe"][aria-selected="true"] {
+  color: var(--feat-generate); background: var(--feat-generate-soft);
+  border-color: var(--feat-generate); box-shadow: inset 0 -3px 0 var(--feat-generate);
+}
+html.light .cm-tab[aria-controls="tab-backup"][aria-selected="true"] {
+  color: var(--feat-backup); background: var(--feat-backup-soft);
+  border-color: var(--feat-backup); box-shadow: inset 0 -3px 0 var(--feat-backup);
+}
+html.light .cm-tab[aria-controls="tab-vault"][aria-selected="true"] {
+  color: var(--feat-vault); background: var(--feat-vault-soft);
+  border-color: var(--feat-vault); box-shadow: inset 0 -3px 0 var(--feat-vault);
+}
+html.light .cm-tab[aria-controls="tab-timelock"][aria-selected="true"] {
+  color: var(--feat-capsule); background: var(--feat-capsule-soft);
+  border-color: var(--feat-capsule); box-shadow: inset 0 -3px 0 var(--feat-capsule);
+}
+html.light .cm-tab[aria-controls="tab-timesecret"][aria-selected="true"] {
+  color: var(--feat-secret-strong); background: var(--feat-secret-soft);
+  border-color: var(--feat-secret); box-shadow: inset 0 -3px 0 var(--feat-secret);
+}
+html.light .cm-tab[aria-controls="tab-datatransfer"][aria-selected="true"] {
+  color: var(--feat-transfer-strong); background: var(--feat-transfer-soft);
+  border-color: var(--feat-transfer); box-shadow: inset 0 -3px 0 var(--feat-transfer);
+}
+html.light .cm-map-chip[data-target="tab-quick"].is-active,
+html.light .cm-map-chip[data-target="tab-recipe"].is-active {
+  border-color: var(--feat-generate); box-shadow: inset 0 0 0 1px var(--feat-generate); color: var(--feat-generate);
+}
+html.light .cm-map-chip[data-target="tab-backup"].is-active {
+  border-color: var(--feat-backup); box-shadow: inset 0 0 0 1px var(--feat-backup); color: var(--feat-backup);
+}
+html.light .cm-map-chip[data-target="tab-vault"].is-active {
+  border-color: var(--feat-vault); box-shadow: inset 0 0 0 1px var(--feat-vault); color: var(--feat-vault);
+}
+html.light .cm-map-chip[data-target="tab-timelock"].is-active {
+  border-color: var(--feat-capsule); box-shadow: inset 0 0 0 1px var(--feat-capsule); color: var(--feat-capsule);
+}
+html.light .cm-map-chip[data-target="tab-timesecret"].is-active {
+  border-color: var(--feat-secret); box-shadow: inset 0 0 0 1px var(--feat-secret); color: var(--feat-secret-strong);
+}
+html.light .cm-map-chip[data-target="tab-datatransfer"].is-active {
+  border-color: var(--feat-transfer); box-shadow: inset 0 0 0 1px var(--feat-transfer); color: var(--feat-transfer-strong);
+}
+/* セクションカード: 上端に機能色の細いアクセント（ライトのみ、控えめに） */
+html.light .cm-legacy #card-quick,
+html.light .cm-legacy #section-recipe-detail { border-top: 2px solid var(--feat-generate) !important; }
+html.light .cm-legacy #section-bip39-plain,
+html.light .cm-legacy #backup-qr { border-top: 2px solid var(--feat-backup) !important; }
+html.light .cm-legacy #bonus-vault { border-top: 2px solid var(--feat-vault) !important; }
+html.light .cm-legacy #timelock-section { border-top: 2px solid var(--feat-capsule) !important; }
+html.light .cm-legacy #timesecret-section { border-top: 2px solid var(--feat-secret) !important; }
+html.light .cm-legacy #datatransfer-section { border-top: 2px solid var(--feat-transfer) !important; }
+
+/* ===== T2-5: 生成要素の状態表示クラス（ダークは従来の実効値、ライトは状態トークン） ===== */
+.cm-legacy .cm-note-warn { background: #0f1828; color: #92400e; border: 1px solid #fef3c7; border-radius: 4px; }
+html.light .cm-legacy .cm-note-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
+.cm-legacy .cm-note-err { background: #0f1828; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 4px; }
+html.light .cm-legacy .cm-note-err { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.cm-legacy .cm-note-warnbox { background: #292119; border: 1px solid #d97706; border-radius: 6px; }
+html.light .cm-legacy .cm-note-warnbox { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.cm-legacy .cm-panel-ok { background: #143324; border: 1.5px solid #10b981; border-radius: 6px; color: #ecfdf5; }
+/* cm-panel-ok のライトは .tl-guide-banner 側の専用ルール（html.light .tl-guide-banner）が担う */
+.cm-legacy .cm-pill-ok { background: #064e3b; border: 1px solid #10b981; border-radius: 999px; }
+html.light .cm-legacy .cm-pill-ok { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.cm-legacy .cm-pill-warn { background: #451a03; border: 1px solid #f59e0b; border-radius: 999px; }
+html.light .cm-legacy .cm-pill-warn { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.cm-legacy .cm-verify-ok { background: #064e3b; border: 1px solid #10b981; border-radius: 6px; color: #34d399; }
+html.light .cm-legacy .cm-verify-ok { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.cm-legacy .cm-verify-warn { background: #451a03; border: 1px solid #f59e0b; border-radius: 6px; color: #fbbf24; }
+html.light .cm-legacy .cm-verify-warn { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.cm-legacy .cm-txt-ok { color: #34d399; }
+html.light .cm-legacy .cm-txt-ok { color: var(--success); }
+.cm-legacy .cm-txt-warn { color: #fbbf24; }
+html.light .cm-legacy .cm-txt-warn { color: var(--warning); }
+
+/* パスワード表示切替リンク: ライトでは濃い転送色（おとりモーダル内は警告色） */
+html.light .cm-legacy .btn-toggle-pw-visibility { color: var(--feat-transfer-strong) !important; }
+html.light .duress-modal-dialog .btn-toggle-pw-visibility { color: var(--feat-transfer-strong) !important; }
+html.light .duress-modal-body .btn-toggle-pw-visibility { color: var(--warning) !important; }
+
+/* ===== T2-5: モーダル面・見出し・エラー表示（ダークは従来の実効値、ライトはトークン） ===== */
+.cm-modal-header { background: #192329; border-bottom: 1px solid #00527d; }
+.cm-modal-header-pk2 { background: #192029; border-bottom-color: #003578; }
+html.light .cm-modal-header { background: var(--surface-sub); border-bottom-color: var(--border-color); }
+.cm-modal-title { color: #1aaeff; }
+html.light .cm-modal-title { color: var(--feat-transfer-strong); }
+.cm-modal-title-pk2 { color: #335de6; }
+html.light .cm-modal-title-pk2 { color: var(--feat-backup); }
+.cm-modal-title-consent { color: #38bdf8; }
+html.light .cm-modal-title-consent { color: var(--feat-transfer-strong); }
+.cm-modal-note-blue { color: #335de6; background: #192329; border: 1px solid #00527d; }
+html.light .cm-modal-note-blue { color: var(--feat-backup); background: var(--surface-sub); border-color: var(--border-color); }
+.cm-modal-panel { background: #192129; border: 1px solid #304257; }
+html.light .cm-modal-panel { background: var(--surface-sub); border-color: var(--border-color); }
+.cm-modal-panel-sky { background: rgba(15, 23, 42, 0.7); border: 1.5px solid rgba(56, 189, 248, 0.3); }
+html.light .cm-modal-panel-sky { background: var(--feat-transfer-soft); border-color: var(--feat-transfer); }
+.cm-modal-box-blue { background: #192029; border: 1px solid #004ca0; }
+html.light .cm-modal-box-blue { background: var(--surface-sub); border-color: var(--border-color); }
+.cm-err-box { color: #e83838; background: #291919; border: 1px solid #910000; border-radius: 6px; }
+.cm-err-box-consent { color: #ef4444; border-color: #7f1d1d; }
+html.light .cm-err-box { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.cm-duress-accent { color: #f47324; }
+html.light .cm-duress-accent { color: var(--warning); }
+.cm-modal-muted { color: #7889a1; }
+html.light .cm-modal-muted { color: var(--text-sub); }
+.cm-km-label { color: #5074c8; }
+html.light .cm-km-label { color: var(--feat-backup); }
+.cm-km-heading { color: #6382b5; }
+html.light .cm-km-heading { color: var(--text-sub); }
+.cm-km-note { color: #7488a5; }
+html.light .cm-km-note { color: var(--text-sub); }
+.cm-km-accent-orange { color: #ff941a; }
+html.light .cm-km-accent-orange { color: var(--warning); }
+.cm-km-sky { color: #1aaeff; }
+html.light .cm-km-sky { color: var(--feat-transfer-strong); }
+.cm-km-factor { background: #192129; border: 1px solid #304257; }
+html.light .cm-km-factor { background: var(--surface-sub); border-color: var(--border-color); }
+.cm-km-factor-sel { border: 1.5px solid #1ab1ff; background: #192329; }
+html.light .cm-km-factor-sel { border-color: var(--feat-transfer); }
 
 /* Responsive mobile stacking for QR + Textarea output containers */
 @media (max-width: 600px) {
@@ -1417,17 +1531,17 @@ body.trace-playing .cm-legacy #live-result-row > div:first-child > div:first-chi
   box-shadow: 0 0 0 1px rgba(74, 222, 128, .22) !important;
 }
 html.light .cm-legacy #btn-blind-mode {
-  background: #e2e8f0 !important;
-  color: #1e293b !important;
-  border-color: #94a3b8 !important;
+  background: var(--surface-sub) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-strong) !important;
 }
 html.light .cm-legacy #btn-blind-mode:hover {
-  background: #cbd5e1 !important;
+  background: var(--border-color) !important;
 }
 html.light .cm-legacy #btn-blind-mode.btn-blind-active {
-  background: #15803d !important;
+  background: var(--accent-strong) !important;
   color: #ffffff !important;
-  border-color: #166534 !important;
+  border-color: var(--accent-strong) !important;
 }
 
 /* ===== Time Secret (タイムシークレット専用UI) ===== */
@@ -1752,81 +1866,81 @@ html.light .cm-legacy #timesecret-section .ts-meta-strip {
   color: #475569 !important;
 }
 html.light .cm-legacy #timesecret-section .ts-btn {
-  background: #f1f5f9;
-  color: #0f172a;
-  border-color: #94a3b8;
+  background: var(--surface-sub);
+  color: var(--text-main);
+  border-color: var(--border-strong);
 }
 html.light .cm-legacy #timesecret-section .ts-btn-secondary {
-  background: #e0f2fe !important;
-  color: #075985 !important;
-  border-color: #0284c7 !important;
+  background: var(--feat-secret-soft) !important;
+  color: var(--feat-secret-strong) !important;
+  border-color: var(--feat-secret) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill {
-  background: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
-  color: #334155 !important;
+  background: var(--surface-sub) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-sub) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="ACTIVE"] {
-  background: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #166534 !important;
+  background: var(--success-bg) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="WARNING"] {
-  background: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #92400e !important;
+  background: var(--warning-bg) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="CLOCK_SUSPECT"] {
-  background: #ffedd5 !important;
-  border-color: #ea580c !important;
-  color: #9a3412 !important;
+  background: var(--warning-bg) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="EXPIRED"],
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DELETE_FAILED"],
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="CORRUPTED"] {
-  background: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #991b1b !important;
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DELETE_PENDING"] {
-  background: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #075985 !important;
+  background: var(--feat-transfer-soft) !important;
+  border-color: var(--feat-transfer) !important;
+  color: var(--feat-transfer-strong) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-state-pill[data-state="DESTROYED"] {
-  background: #f1f5f9 !important;
-  border-color: #64748b !important;
-  color: #334155 !important;
+  background: var(--surface-sub) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-sub) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-status-bar {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background: var(--bg-main) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-ok {
-  background: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #166534 !important;
+  background: var(--success-bg) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-warn {
-  background: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #92400e !important;
+  background: var(--warning-bg) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-status-bar.ts-status-err {
-  background: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #991b1b !important;
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-expiry-banner {
-  background: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #92400e !important;
+  background: var(--warning-bg) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-expiry-banner[data-urgency="1h"] {
-  background: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #991b1b !important;
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
 }
 
 /* ===== Time Secret v2 Multi-Vault List, Detail, Unified Input, & Auth Modal ===== */
@@ -2433,9 +2547,9 @@ html.light .cm-legacy #timesecret-section .ts-radio-chip {
 }
 html.light .cm-legacy #timesecret-section .ts-preset-time-btn.is-active,
 html.light .cm-legacy #timesecret-section .ts-edit-preset-time-btn.is-active {
-  background: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #075985 !important;
+  background: var(--feat-secret-soft) !important;
+  border-color: var(--feat-secret) !important;
+  color: var(--feat-secret-strong) !important;
 }
 html.light .cm-legacy #timesecret-section .ts-preset-test {
   border-color: #d97706 !important;
@@ -3195,71 +3309,71 @@ html.light .cm-legacy #datatransfer-section .dt-subtab-bar {
 }
 html.light .cm-legacy #datatransfer-section .dt-subtab-btn {
   background: transparent;
-  color: #1e293b;
+  color: var(--text-main);
 }
 html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active {
-  background: #ffffff !important;
-  border-color: #16a34a !important;
+  background: var(--feat-transfer-soft) !important;
+  border-color: var(--feat-transfer) !important;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 html.light .cm-legacy #datatransfer-section .dt-subtab-btn.is-active .dt-subtab-main {
-  color: #15803d !important;
+  color: var(--feat-transfer-strong) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background: var(--bg-main) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar.dt-status-ok {
-  background: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #166534 !important;
+  background: var(--success-bg) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar.dt-status-info {
-  background: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #075985 !important;
+  background: var(--feat-transfer-soft) !important;
+  border-color: var(--feat-transfer) !important;
+  color: var(--feat-transfer-strong) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar.dt-status-warn {
-  background: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #92400e !important;
+  background: var(--warning-bg) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-status-bar.dt-status-err {
-  background: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #991b1b !important;
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-dropzone {
-  background: #ffffff;
-  border-color: #94a3b8;
+  background: var(--card-bg);
+  border-color: var(--border-strong);
 }
 html.light .cm-legacy #datatransfer-section .dt-file-chip {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  color: #0c4a6e;
+  background: var(--feat-transfer-soft);
+  border-color: var(--feat-transfer);
+  color: var(--feat-transfer-strong);
 }
 html.light .cm-legacy #datatransfer-section .dt-btn {
-  background: #ffffff;
-  color: #1e293b;
-  border-color: #cbd5e1;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-color: var(--border-color);
 }
 html.light .cm-legacy #datatransfer-section .dt-btn-primary,
 html.light .cm-legacy #datatransfer-section .dt-btn-primary * {
-  background: #16a34a !important;
-  border-color: #15803d !important;
+  background: var(--accent-strong) !important;
+  border-color: var(--accent-strong) !important;
   color: #ffffff !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-btn-play,
 html.light .cm-legacy #datatransfer-section .dt-btn-play * {
-  background: #0284c7 !important;
-  border-color: #0369a1 !important;
+  background: var(--feat-transfer-strong) !important;
+  border-color: var(--feat-transfer-strong) !important;
   color: #ffffff !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-btn-danger,
 html.light .cm-legacy #datatransfer-section .dt-btn-danger * {
-  background: #dc2626 !important;
-  border-color: #b91c1c !important;
+  background: var(--danger) !important;
+  border-color: var(--danger) !important;
   color: #ffffff !important;
 }
 html.light .cm-legacy #datatransfer-section .dt-stage-placeholder {
@@ -3378,6 +3492,10 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
+}
+html.light .cm-subtab-btn.is-active {
+  border-color: var(--feat-backup);
+  background: var(--feat-backup);
 }
 .cm-subtab-panel[hidden] { display: none !important; }
 @media (pointer: coarse) {

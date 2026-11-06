@@ -4662,6 +4662,24 @@ function initBonusVault(){
 
  });
 
+ $('bv-close-decrypted')?.addEventListener('click',()=>{
+
+  if(lastDecryptedResult?.payload)MatrixCardPreset.zeroize?.(lastDecryptedResult.payload);
+
+  lastDecryptedResult=null;
+
+  if($('bv-decrypted-content'))$('bv-decrypted-content').textContent='';
+
+  if($('bv-decrypted-title'))$('bv-decrypted-title').textContent='';
+
+  if($('bv-decrypted-meta'))$('bv-decrypted-meta').textContent='';
+
+  if($('bv-decrypt-result')){$('bv-decrypt-result').hidden=true;$('bv-decrypt-result').style.display='none';}
+
+  bvMessage('bv-decrypt-status','復号結果を消去しました。再表示・保存・転送には再復号が必要です。');
+
+ });
+
 
 
  let bvScannedShares=new Map();

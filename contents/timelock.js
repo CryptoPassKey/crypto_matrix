@@ -2034,6 +2034,10 @@
       if ($('tl-restore-text')) $('tl-restore-text').value = '';
       if ($('tl-restore-file-name')) $('tl-restore-file-name').textContent = '';
       if ($('tl-manual-beacon-input')) $('tl-manual-beacon-input').value = '';
+      if (tlLastDecrypted?.payload) zeroizeBuf(tlLastDecrypted.payload);
+      tlLastDecrypted = null;
+      if ($('tl-decrypted-content')) $('tl-decrypted-content').textContent = '';
+      if ($('tl-decrypted-meta')) $('tl-decrypted-meta').textContent = '';
       if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
       refreshRestoreCapsulePreview();
       tlMessage('tl-decrypt-status', '入力データをリセットしました。');
@@ -2187,6 +2191,15 @@
       if (tabVault) tabVault.click();
       document.dispatchEvent(new CustomEvent('cm-route-vault-text', { detail: { text: rep.textToCopy } }));
       tlMessage('tl-decrypt-status', '✅ 「セキュア保管庫」タブの復号欄へ転送しました。復元用パスワードを入力して復元してください。');
+    });
+
+    $('tl-close-decrypted')?.addEventListener('click', () => {
+      if (tlLastDecrypted?.payload) zeroizeBuf(tlLastDecrypted.payload);
+      tlLastDecrypted = null;
+      if ($('tl-decrypted-content')) $('tl-decrypted-content').textContent = '';
+      if ($('tl-decrypted-meta')) $('tl-decrypted-meta').textContent = '';
+      if ($('tl-decrypt-result')) $('tl-decrypt-result').hidden = true;
+      tlMessage('tl-decrypt-status', '復号結果を消去しました。再表示・保存・転送には再復号が必要です。');
     });
 
     // Listen for routed timelock text/files from the backup / vault sections

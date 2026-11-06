@@ -3,25 +3,20 @@
 @font-face { font-family: "Fira Code"; font-weight: 700; font-display: swap; src: url("fonts/FiraCode-Bold.woff2") format("woff2"); }
 
 :root {
-  --background: oklch(0.14 0.02 255);
-  --foreground: oklch(0.93 0.01 240);
-  --card: oklch(0.18 0.025 255);
-  --primary: oklch(0.84 0.21 150);
-  --primary-foreground: oklch(0.16 0.04 155);
-  --muted-foreground: oklch(0.68 0.03 250);
-  --destructive: oklch(0.65 0.22 25);
-  --border: oklch(0.3 0.03 255);
+  /* T1: 色は theme-cyber.css の統一トークンを正とし、シェル用名を割り当てる */
+  --background: var(--bg-main);
+  --foreground: var(--text-main);
+  --card: var(--card-bg);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-fg);
+  --muted-foreground: var(--text-sub);
+  --destructive: var(--danger);
+  --border: var(--border-color);
   --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent), 0 0 18px -4px color-mix(in oklab, var(--primary) 60%, transparent);
   color-scheme: dark;
 }
 html.light {
-  --background: oklch(0.97 0.006 250);
-  --foreground: oklch(0.22 0.03 255);
-  --card: oklch(1 0 0);
-  --primary: oklch(0.55 0.17 150);
-  --primary-foreground: oklch(0.99 0 0);
-  --muted-foreground: oklch(0.48 0.03 255);
-  --border: oklch(0.88 0.01 250);
+  /* ライト側の値も統一トークン（html.light で切替わる正の定義）から引く */
   color-scheme: light;
 }
 * { box-sizing: border-box; }

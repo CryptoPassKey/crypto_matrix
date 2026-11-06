@@ -2177,7 +2177,7 @@
       const tabBackup = document.querySelector('.cm-tab[aria-controls="tab-backup"]');
       if (tabBackup) tabBackup.click();
       document.dispatchEvent(new CustomEvent('cm-route-backup-text', { detail: { text: rep.textToCopy } }));
-      tlMessage('tl-decrypt-status', '✅ 「暗号化 / バックアップ」タブの復元欄へ転送しました。復元用パスワードを入力して復元してください。');
+      tlMessage('tl-decrypt-status', '✅ 「バックアップ / 暗号化」タブの復元欄へ転送しました。復元用パスワードを入力して復元してください。');
     });
 
     $('tl-route-sec4')?.addEventListener('click', () => {

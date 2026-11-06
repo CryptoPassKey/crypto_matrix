@@ -5554,6 +5554,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   if(!text)return;
 
+  const tabPanel=$('tab-backup'); if(tabPanel&&tabPanel.hidden)document.querySelector('.cm-tab[aria-controls="tab-backup"]')?.click();
+
+  window.CMBackupNav?.openRestore();
+
   if($('bq-import'))$('bq-import').value=text;
 
   $('backup-qr')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -5562,7 +5566,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  });
 
- document.addEventListener('cm-route-backup-files',event=>void readImages(event.detail?.files));
+ document.addEventListener('cm-route-backup-files',event=>{window.CMBackupNav?.openRestore();void readImages(event.detail?.files);});
 
  $('bq-reset-parts')?.addEventListener('click',()=>{parts=null;clearPending();message('bq-scan-status','読取中のQRブロックをリセットしました。');});
 

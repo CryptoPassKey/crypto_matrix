@@ -3349,3 +3349,5 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 .bq-action-group-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-sub); margin-bottom: 2px; }
 .bq-action-group .bq-row { margin: 4px 0 8px; }
 .bq-action-group-manage .bq-row { justify-content: flex-end; }
+
+#section-bip39-plain .bq-action-group .bq-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

@@ -1938,6 +1938,8 @@ module.exports = QRCode;
         txCurrentBlocks = new Set(packetBlockIndexes(firstPacket));
         txCurrentLabel = 'Data 1 / ' + blockCount;
 
+        if (txFountainEncoder && typeof txFountainEncoder.dispose === 'function') txFountainEncoder.dispose();
+        zeroizeTxFountainPart();
         txFountainEncoder = new Fountain.Encoder(wireBytes, {
           chunkSize: chunkBytes,
           id: txPlan.id,
@@ -1981,8 +1983,9 @@ module.exports = QRCode;
         return true;
       } catch (error) {
         txPlan = null;
+        if (txFountainEncoder && typeof txFountainEncoder.dispose === 'function') txFountainEncoder.dispose();
         txFountainEncoder = null;
-        txFountainPart = null;
+        zeroizeTxFountainPart();
         disposeQrCache(txQrMatrixCache);
         disposeQrCache(txFountainQrCache);
         txQrMatrixCache = [];
@@ -1995,6 +1998,11 @@ module.exports = QRCode;
         setStatus('dt-tx-status', 'QRコードの準備に失敗しました: ' + error.message, 'err');
         return false;
       } finally {
+        // 作業用バッファは成否にかかわらずゼロ埋めする（残るのはフレーム文字列と
+        // Encoder内の断片のみで、そちらは破棄時にゼロ埋めされる）
+        if (sourceBytes) sourceBytes.fill(0);
+        if (namedPayload && namedPayload !== sourceBytes) namedPayload.fill(0);
+        if (wireBytes && wireBytes !== namedPayload && wireBytes !== sourceBytes) wireBytes.fill(0);
         if ($('dt-tx-prep-progress')) $('dt-tx-prep-progress').hidden = true;
         if ($('dt-prepare-tx')) $('dt-prepare-tx').disabled = false;
       }
@@ -2067,7 +2075,11 @@ module.exports = QRCode;
         }
         if (txHybridPhase === 'fountain') {
           var nextFountainPart = await txFountainEncoder.nextPart();
-          if (renderGeneration !== txRenderGeneration || !txPlaying) return;
+          if (renderGeneration !== txRenderGeneration || !txPlaying) {
+            if (nextFountainPart && nextFountainPart.data && nextFountainPart.data.fill) nextFountainPart.data.fill(0);
+            return;
+          }
+          zeroizeTxFountainPart();
           txFountainPart = nextFountainPart;
           frame = txFountainPart.frame;
           txCurrentBlocks = new Set(txFountainPart.indexes);
@@ -2197,6 +2209,14 @@ module.exports = QRCode;
       }
     }
 
+    // Fountainパートの実体（断片のコピー／合成結果）は使い終わったらゼロ埋めする
+    function zeroizeTxFountainPart() {
+      if (txFountainPart && txFountainPart.data && txFountainPart.data.fill) {
+        txFountainPart.data.fill(0);
+      }
+      txFountainPart = null;
+    }
+
     function clearTxData() {
       stopTx();
       disposeQrCache(txQrMatrixCache);
@@ -2205,8 +2225,9 @@ module.exports = QRCode;
       txFountainQrCache = [];
       txQrCacheBytes = 0;
       txPlan = null;
+      if (txFountainEncoder && typeof txFountainEncoder.dispose === 'function') txFountainEncoder.dispose();
       txFountainEncoder = null;
-      txFountainPart = null;
+      zeroizeTxFountainPart();
       txCurrentBlocks.clear();
       txCurrentLabel = '';
       txSelectedFile = null;
@@ -2283,6 +2304,7 @@ module.exports = QRCode;
       rxWorkerBusy = false;
       receivedDone = false;
       rxTransferId = '';
+      if (rxFinalBytes) rxFinalBytes.fill(0);
       rxFinalBytes = null;
       rxFinalText = null;
       rxFinalFilename = 'received-file.bin';

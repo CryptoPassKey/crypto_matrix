@@ -336,6 +336,16 @@
   }
 
   Receiver.prototype.reset = function () {
+    // 実体バッファは参照を外す前にゼロ埋めする（監査 M3 対応）
+    // ※コンストラクタからも呼ばれるため、未初期化のフィールドはガードする
+    if (this.shards) this.shards.forEach(function (buf) { if (buf && buf.fill) buf.fill(0); });
+    if (this.parities) this.parities.forEach(function (group) {
+      if (!group) return;
+      Object.keys(group).forEach(function (k) {
+        var b = group[k];
+        if (b && b.fill) b.fill(0);
+      });
+    });
     this.id = null;
     this.total = 0;
     this.wireFormat = null;
@@ -855,6 +865,7 @@
 
   function FountainEncoder(input, options) {
     var source = bytes(input).slice();
+    try {
     options = options || {};
     if (source.length > MAX_MESSAGE_BYTES) throw new Error('試験ページの上限は64 MiBです');
     var maxFragmentLen = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
@@ -881,6 +892,17 @@
     if (this.seqLen > MAX_FRAGMENT_COUNT) throw new Error('元データ片数が上限を超えています');
     this.seqNum = 0;
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
+    } catch (err) {
+      // 生成途中の断片もゼロ埋めしてから例外を伝える（監査 M3 追加対応）
+      if (Array.isArray(this.fragments)) {
+        this.fragments.forEach(function (f) { if (f && f.fill) f.fill(0); });
+        this.fragments = [];
+      }
+      throw err;
+    } finally {
+      // 元データ全体の一時コピーは成否にかかわらずゼロ埋めする
+      source.fill(0);
+    }
   }
 
   FountainEncoder.prototype.startRepairPhase = function () {
@@ -910,6 +932,14 @@
       for (var pos = 0; pos < len; pos++) dst[pos] ^= src[pos];
     }
   }
+
+  // 送信側の元データ断片をゼロ埋めして破棄する（監査 M3 対応）
+  FountainEncoder.prototype.dispose = function () {
+    if (Array.isArray(this.fragments)) {
+      this.fragments.forEach(function (f) { if (f && f.fill) f.fill(0); });
+      this.fragments = [];
+    }
+  };
 
   FountainEncoder.prototype.nextPart = async function () {
     if (this.pendingDirectIndex !== null && this.pendingDirectIndex !== undefined) {
@@ -976,6 +1006,13 @@
   }
 
   FountainReceiver.prototype.reset = function () {
+    // 実体バッファは参照を外す前にゼロ埋めする（監査 M3 対応）
+    if (this.result && this.result.fill) this.result.fill(0);
+    if (this.simpleParts) this.simpleParts.forEach(function (buf) { if (buf && buf.fill) buf.fill(0); });
+    if (this.mixedParts) this.mixedParts.forEach(function (eq) { if (eq && eq.data && eq.data.fill) eq.data.fill(0); });
+    if (Array.isArray(this.queue)) {
+      this.queue.forEach(function (eq) { if (eq && eq.data && eq.data.fill) eq.data.fill(0); });
+    }
     this.id = null;
     this.seqLen = 0;
     this.wireFormat = null;

@@ -44,3 +44,5 @@ jobs:
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests
         run: node tests/security/passkey-migration.test.js
+      - name: Passkey recovery context tests
+        run: node tests/security/passkey-recovery-context.test.js

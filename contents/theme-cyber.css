@@ -3600,16 +3600,6 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 /* Unit 5 (2026-11-07): subsection rhythm inside section cards */
 .cm-legacy .section-card h3 { font-size: 0.98rem; line-height: 1.4; margin: 18px 0 8px; }
 
-/* ===== Guide card collapse toggle (v3.0.2) ===== */
-.guide-toggle-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--border-color); color: var(--text-sub); border-radius: 999px; padding: 5px 12px; font-size: 0.76rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-.guide-toggle-btn:hover { color: var(--text-main); border-color: var(--accent); }
-.guide-toggle-ico { transition: transform .18s ease; font-size: 0.7rem; }
-.verbal-guide-card.guide-collapsed .verbal-guide-list { display: none; }
-.verbal-guide-card.guide-collapsed .guide-toggle-ico { transform: rotate(-90deg); }
-.verbal-guide-card.guide-collapsed .verbal-guide-header { margin-bottom: 0; }
-@media (pointer: coarse) { .guide-toggle-btn { min-height: 38px; padding: 7px 14px; } }
-@media (max-width: 520px) { .guide-toggle-btn { align-self: flex-end; } }
-
 /* Backup / encryption nested page navigation */
 .cm-subtab-bar {
   display: flex;

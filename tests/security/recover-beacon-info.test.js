@@ -112,7 +112,7 @@ function capsuleWithHeader(patch) {
   return '-----BEGIN CRYPTOMATRIX TIMELOCK-----\n' + b64 + '\n-----END CRYPTOMATRIX TIMELOCK-----';
 }
 
-async function expectBeaconRejected(label, capsuleText, badFragment) {
+async function expectBeaconRejected(label, capsuleText, badFragment, expectedText = 'ビーコン情報') {
   $('rec-btn-clear').click();
   await sleep(200);
   $('rec-text').value = capsuleText;
@@ -121,7 +121,7 @@ async function expectBeaconRejected(label, capsuleText, badFragment) {
     const t = $('rec-status').textContent || '';
     return t.includes('❌') ? t : null;
   }, label + ' のエラー表示');
-  check(label + ': 解析エラーとして拒否される', status.includes('ビーコン情報'));
+  check(label + ': 解析エラーとして拒否される', status.includes(expectedText));
   check(label + ': ビーコン取得ブロックは表示されない', $('rec-beacon-box').hidden === true);
   check(label + ': 不正な値でURLが生成されない',
     !($('rec-beacon-url-link').getAttribute('href') || '').includes(badFragment) &&
@@ -131,6 +131,7 @@ async function expectBeaconRejected(label, capsuleText, badFragment) {
   console.log('[recover-beacon-info] invalid beacon metadata is rejected');
   await expectBeaconRejected('chainHash が16進数でない場合', capsuleWithHeader((m) => { m.chainHash = 'z'.repeat(64); }), 'zzzz');
   await expectBeaconRejected('chainHash が短すぎる場合', capsuleWithHeader((m) => { m.chainHash = 'abcd'; }), 'abcd');
+  await expectBeaconRejected('chainHash がQuicknetと異なる場合', capsuleWithHeader((m) => { m.chainHash = '00'.repeat(32); }), '000000000000', '一致しない');
 
   console.log('[recover-beacon-info] clear resets the meta box');
   $('rec-btn-clear').click();

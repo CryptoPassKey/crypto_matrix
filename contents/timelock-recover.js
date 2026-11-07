@@ -503,6 +503,12 @@
       if (!/^[0-9a-f]{64}$/.test(chainHash) || !Number.isSafeInteger(h.round) || h.round <= 0) {
         throw new Error('カプセルのビーコン情報（Chain Hash / ラウンド）が不正なため、ビーコン取得URLを生成できません。');
       }
+      // The recovery flow verifies beacons against the fixed Quicknet chain
+      // info, so a well-formed hash from any other chain must also be rejected.
+      const expectedChainHash = String(TLockBundle.QUICKNET_CHAIN_INFO.hash || '').toLowerCase();
+      if (!expectedChainHash || chainHash !== expectedChainHash) {
+        throw new Error('カプセルのChain HashがQuicknetのチェーンと一致しないため、ビーコン取得URLを生成できません。');
+      }
       $('rec-meta-box').hidden = false;
       $('rec-beacon-url-hint').textContent = 'https://api.drand.sh/' + chainHash + '/public/' + h.round;
       renderBeaconInfo(chainHash, h.round);

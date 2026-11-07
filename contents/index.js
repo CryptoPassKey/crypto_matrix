@@ -4362,7 +4362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (_) {}
  }
 
- function hasRecoveryContext() {
+ async function hasRecoveryContext() {
   try {
    if (typeof window !== 'undefined' && window.__CM_RESTORED_SESSION__) return true;
    if (typeof location !== 'undefined' && location.search) {
@@ -4390,8 +4390,9 @@ document.addEventListener('DOMContentLoaded', () => {
    }
    const currentSeed = (typeof document !== 'undefined') ? document.getElementById('input-seed-number')?.value?.trim() || '0' : '0';
    if (window.CMPasskeyStore) {
-    window.CMPasskeyStore.prime(currentSeed, passkeyStoreOpts());
-    if (window.CMPasskeyStore.peek(currentSeed)) return true;
+    // v2 マップの解決を待ってから判定する（キャッシュ未解決でも見落とさない）
+    const cred = await window.CMPasskeyStore.resolve(currentSeed, passkeyStoreOpts());
+    if (cred) return true;
    } else if (typeof localStorage !== 'undefined' && localStorage.getItem('cm_passkey_cred_' + currentSeed)) return true;
   } catch (_) {}
   return false;
@@ -4450,7 +4451,7 @@ document.addEventListener('DOMContentLoaded', () => {
    }
 
    // 3. 既存パスキーが利用できない場合の分岐判定
-   const isRecovering = hasRecoveryContext();
+   const isRecovering = await hasRecoveryContext();
    if (isRecovering) {
     // 復旧情報（シード復元、既存暗号文入力等）が存在し、既存ユーザーであると判断される場合：
     // 勝手に新規登録して既存データとの関係を壊さないよう、利用できない理由を案内して中断
@@ -5898,6 +5899,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeKeyfileModal:()=>closeKeyfileModal(),
   derivePasskeyPrf:(salt32,credId,opts)=>derivePasskeyPrf(salt32,credId,opts),
   getSavedPasskeyCredential:()=>getSavedPasskeyCredential(),
+  hasRecoveryContext:()=>hasRecoveryContext(),
   savePasskeyCredential:(rawCredId,meta)=>savePasskeyCredential(rawCredId,meta),
   clearSavedPasskeyCredential:()=>clearSavedPasskeyCredential(),
   registerNewPasskey:async(opts={})=>{

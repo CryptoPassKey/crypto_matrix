@@ -9,16 +9,19 @@
   Permissions-Policy: camera=(self), microphone=(), geolocation=()
 
 /
+  ! Permissions-Policy
   # CSP as a response header: identical to the index page's meta CSP
   # plus frame-ancestors 'none', which meta tags cannot enforce.
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.drand.sh https://api2.drand.sh https://api3.drand.sh https://drand.cloudflare.com; media-src 'self' blob:; worker-src 'self'; frame-src 'none'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=(), publickey-credentials-create=(self), publickey-credentials-get=(self)
 
 /index.html
+  ! Permissions-Policy
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.drand.sh https://api2.drand.sh https://api3.drand.sh https://drand.cloudflare.com; media-src 'self' blob:; worker-src 'self'; frame-src 'none'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=(), publickey-credentials-create=(self), publickey-credentials-get=(self)
 
 /timelock-recover.html
+  ! Permissions-Policy
   # Identical to the recovery tool's meta CSP (already includes
   # frame-ancestors 'none'); the header makes it enforceable.
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.drand.sh https://api2.drand.sh https://api3.drand.sh https://drand.cloudflare.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'

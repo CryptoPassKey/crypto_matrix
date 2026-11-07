@@ -509,9 +509,18 @@
       if (!expectedChainHash || chainHash !== expectedChainHash) {
         throw new Error('カプセルのChain HashがQuicknetのチェーンと一致しないため、ビーコン取得URLを生成できません。');
       }
+      // Build the URL only from values on the verification side: the known
+      // Quicknet chain hash (constant) and the round parsed from the binary
+      // AGE header, which unpackCMTL1 has already cross-checked against the
+      // JSON metadata above. The JSON values themselves are never placed
+      // into the link target.
+      const verifiedRound = TLockBundle.parseTimelockAgeHeader(parsed.ageBinary).roundNumber;
+      if (!Number.isSafeInteger(verifiedRound) || verifiedRound <= 0) {
+        throw new Error('カプセルのビーコン情報（Chain Hash / ラウンド）が不正なため、ビーコン取得URLを生成できません。');
+      }
       $('rec-meta-box').hidden = false;
-      $('rec-beacon-url-hint').textContent = 'https://api.drand.sh/' + chainHash + '/public/' + h.round;
-      renderBeaconInfo(chainHash, h.round);
+      $('rec-beacon-url-hint').textContent = 'https://api.drand.sh/' + expectedChainHash + '/public/' + verifiedRound;
+      renderBeaconInfo(expectedChainHash, verifiedRound);
       const isPasskey = h.combo === 2 || h.combo === 3 || h.combo === 5 || h.combo === 6;
       $('rec-passkey-warn').hidden = !isPasskey;
 

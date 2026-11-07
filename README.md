@@ -2,10 +2,10 @@
 
 [![Open Crypto Matrix](https://img.shields.io/badge/Open-Crypto%20Matrix-0284c7?style=for-the-badge&logo=github)](https://cryptopasskey.github.io/crypto_matrix/contents/index.html)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-10b981?style=for-the-badge)](https://cryptopasskey.github.io/crypto_matrix/contents/index.html)
-[![Zero Network](https://img.shields.io/badge/Network-Zero%20Airgap-6366f1?style=for-the-badge)](#完全エアギャップ--オフライン動作)
+[![Offline Capable](https://img.shields.io/badge/Offline-Capable-6366f1?style=for-the-badge)](#オフライン動作とネットワーク通信)
 
-**Crypto Matrix** は、ブラウザ上で完結して動作する次世代のパスワード生成・暗号化バックアップ・タイムロック（時間解禁暗号）セキュリティツールです。
-サーバーへの通信を一切行わず、機内モード（完全エアギャップ）でも安全に動作します。
+**Crypto Matrix** は、ブラウザ内でパスワード生成・暗号化バックアップ・タイムロック（時間解禁暗号）を行うセキュリティツールです。
+通常の生成・暗号処理はローカルで実行しますが、TimeLock のビーコン取得や PWA の更新確認など、一部の機能ではネットワーク通信を使用します。
 
 👉 **[Crypto Matrix を開く（Web版）](https://cryptopasskey.github.io/crypto_matrix/contents/index.html)**
 
@@ -67,12 +67,20 @@
 
 ---
 
-## 完全エアギャップ / オフライン動作
+## オフライン動作とネットワーク通信
 
-* **通信ゼロ設計**:
-  * すべてのHTML、JavaScript、CSS、WebAssembly、フォント、アイコン（インラインSVG）は完全ローカル同梱されており、外部サーバーへの通信は一切発生しません。
-* **PWA（ホーム画面に追加）対応**:
-  * iPhone（Safari）の「ホーム画面に追加」、または Android / PC（Chrome・Edge）の「インストール」を行うことで、機内モードや完全オフライン環境でもアイコンから一瞬で起動できます。
+* **ローカル処理**:
+  * 通常のパスワード生成、バックアップの暗号化・復号、QRコード生成・読み取りはブラウザ内で処理します。
+  * BIP39 の英単語リスト、JavaScript、CSS、WebAssembly、フォント等の実行資産はリポジトリに同梱しています。
+* **TimeLock のビーコン取得**:
+  * タイムカプセルのオンライン復元では、解禁判定に必要な drand quicknet のビーコンを取得するため、api.drand.sh、api2.drand.sh、api3.drand.sh、drand.cloudflare.com のいずれかへ接続します。
+  * この要求に秘密の平文や復元パスワードを含めません。通常のネットワーク通信と同様、接続先には接続元IPアドレス等の通信メタデータが伝わります。
+* **PWA の更新確認**:
+  * オンライン時は GitHub Pages 上の同一オリジン資産を取得して更新を確認します。Service Worker にキャッシュされた版は、オフライン時にも起動できます。
+* **KeeWeb のクラウド連携**:
+  * 同梱 KeeWeb の初期設定では Dropbox、Google Drive、OneDrive、WebDAV の連携を無効にしています。KeeWeb 側で利用者が設定を変更した場合の通信は、Crypto Matrix 本体のローカル処理とは別です。
+* **完全オフライン利用**:
+  * 事前にアプリを読み込み、必要なファイルやビーコンを用意しておけば、ネットワーク接続なしで利用できる機能があります。ただし、オンラインでのビーコン取得や更新確認は実行できません。
 
 ---
 

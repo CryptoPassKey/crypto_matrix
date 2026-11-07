@@ -434,11 +434,11 @@
       }
     }
 
-    function renderBeaconInfo(h) {
-      const url = 'https://api.drand.sh/' + h.chainHash + '/public/' + h.round;
-      const url2 = 'https://drand.cloudflare.com/' + h.chainHash + '/public/' + h.round;
+    function renderBeaconInfo(chainHash, round) {
+      const url = 'https://api.drand.sh/' + chainHash + '/public/' + round;
+      const url2 = 'https://drand.cloudflare.com/' + chainHash + '/public/' + round;
       currentBeaconUrl = url;
-      $('rec-beacon-round').textContent = 'Round #' + h.round;
+      $('rec-beacon-round').textContent = 'Round #' + round;
       const link = $('rec-beacon-url-link');
       link.href = url;
       link.textContent = url;
@@ -496,9 +496,16 @@
 
     function renderMeta(parsed) {
       const h = parsed.meta;
+      // Beacon metadata comes from the capsule header JSON (untrusted input).
+      // Validate before building any URL: chain hash must be 64 hex chars and
+      // the round a positive safe integer. Invalid values are a parse error.
+      const chainHash = typeof h.chainHash === 'string' ? h.chainHash.toLowerCase() : '';
+      if (!/^[0-9a-f]{64}$/.test(chainHash) || !Number.isSafeInteger(h.round) || h.round <= 0) {
+        throw new Error('カプセルのビーコン情報（Chain Hash / ラウンド）が不正なため、ビーコン取得URLを生成できません。');
+      }
       $('rec-meta-box').hidden = false;
-      $('rec-beacon-url-hint').textContent = `https://api.drand.sh/${h.chainHash}/public/${h.round}`;
-      renderBeaconInfo(h);
+      $('rec-beacon-url-hint').textContent = 'https://api.drand.sh/' + chainHash + '/public/' + h.round;
+      renderBeaconInfo(chainHash, h.round);
       const isPasskey = h.combo === 2 || h.combo === 3 || h.combo === 5 || h.combo === 6;
       $('rec-passkey-warn').hidden = !isPasskey;
 
@@ -568,6 +575,8 @@
       $('rec-keyfile').value = '';
       $('rec-manual-beacon').value = '';
       $('rec-meta-box').hidden = true;
+      $('rec-beacon-box').hidden = true;
+      currentBeaconUrl = '';
       $('rec-result-card').hidden = true;
       setStatus('');
     });

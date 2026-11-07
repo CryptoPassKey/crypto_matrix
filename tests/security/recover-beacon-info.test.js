@@ -97,6 +97,41 @@ async function main() {
   check('manual-box URL hint is updated to the same URL',
     ($('rec-beacon-url-hint').textContent || '') === URL1);
 
+
+function capsuleWithHeader(patch) {
+  const lines = CAPSULE_A.split('\n').filter((l) => l && !l.startsWith('-----'));
+  const bytes = Buffer.from(lines.join(''), 'base64');
+  const hdrLen = bytes.readUInt32BE(5);
+  const meta = JSON.parse(bytes.subarray(9, 9 + hdrLen).toString('utf8'));
+  patch(meta);
+  const hj = Buffer.from(JSON.stringify(meta), 'utf8');
+  const lenBuf = Buffer.alloc(4);
+  lenBuf.writeUInt32BE(hj.length, 0);
+  const out = Buffer.concat([bytes.subarray(0, 5), lenBuf, hj, bytes.subarray(9 + hdrLen)]);
+  const b64 = out.toString('base64').replace(/.{1,64}/g, '$&\n').trim();
+  return '-----BEGIN CRYPTOMATRIX TIMELOCK-----\n' + b64 + '\n-----END CRYPTOMATRIX TIMELOCK-----';
+}
+
+async function expectBeaconRejected(label, capsuleText, badFragment) {
+  $('rec-btn-clear').click();
+  await sleep(200);
+  $('rec-text').value = capsuleText;
+  $('rec-btn-inspect').click();
+  const status = await waitFor(() => {
+    const t = $('rec-status').textContent || '';
+    return t.includes('❌') ? t : null;
+  }, label + ' のエラー表示');
+  check(label + ': 解析エラーとして拒否される', status.includes('ビーコン情報'));
+  check(label + ': ビーコン取得ブロックは表示されない', $('rec-beacon-box').hidden === true);
+  check(label + ': 不正な値でURLが生成されない',
+    !($('rec-beacon-url-link').getAttribute('href') || '').includes(badFragment) &&
+    !($('rec-beacon-url-hint').textContent || '').includes(badFragment));
+}
+
+  console.log('[recover-beacon-info] invalid beacon metadata is rejected');
+  await expectBeaconRejected('chainHash が16進数でない場合', capsuleWithHeader((m) => { m.chainHash = 'z'.repeat(64); }), 'zzzz');
+  await expectBeaconRejected('chainHash が短すぎる場合', capsuleWithHeader((m) => { m.chainHash = 'abcd'; }), 'abcd');
+
   console.log('[recover-beacon-info] clear resets the meta box');
   $('rec-btn-clear').click();
   await sleep(200);

@@ -2132,6 +2132,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.trackKeeWebWindow = trackKeeWebWindow;
   window.openKeeWeb = openKeeWeb;
+  // KeeWeb の生成機能リンク（旧インライン onclick の置換）:
+  // 既定の遷移を止め、名前付きウィンドウで開く。
+  document.querySelectorAll('a.cm-keeweb-gen-link').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.open(link.href, KEEWEB_WINDOW_NAME);
+    });
+  });
+  document.getElementById('btn-print-page')?.addEventListener('click', () => {
+    window.print();
+  });
   window.MatrixCardPreset = window.MatrixCardPreset || {};
   if (!Object.isFrozen(window.MatrixCardPreset)) {
     window.MatrixCardPreset.trackKeeWebWindow = trackKeeWebWindow;

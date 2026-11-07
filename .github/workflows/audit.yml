@@ -14,6 +14,9 @@ on:
       - "tests/**"
       - ".github/workflows/**"
 
+permissions:
+  contents: read
+
 jobs:
   audits:
     runs-on: ubuntu-latest

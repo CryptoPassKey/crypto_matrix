@@ -3733,3 +3733,19 @@ html.light .cm-subtab-btn.is-active {
    text under the field explains what to fix). */
 .cm-field-invalid { border-color: #f87171 !important; box-shadow: 0 0 0 1px #f87171 !important; }
 .cm-field-hint { color: #fca5a5; font-size: 0.78rem; font-weight: 600; line-height: 1.5; margin-top: 4px; }
+
+/* ===== ビジュアル改善: 状態を伝えるインラインSVG（色はテーマ変数で制御） ===== */
+.cm-visual { display: inline-block; flex: none; }
+.cm-visual-bg { fill: var(--surface-sub); }
+.cm-visual-card { fill: var(--card-bg); }
+.cm-visual-secret { color: var(--feat-secret); }
+html.light .cm-legacy .cm-visual-secret { color: var(--feat-secret-strong); }
+.cm-visual-capsule { color: var(--feat-capsule); }
+.cm-visual-transfer { color: var(--feat-transfer); }
+html.light .cm-legacy .cm-visual-transfer { color: var(--feat-transfer-strong); }
+html.light .cm-legacy .cm-visual-capsule { color: var(--feat-capsule); }
+html.light .cm-legacy .cm-guide-icon { color: inherit; }
+.ts-empty-visual { margin-bottom: 10px; }
+.tl-visual-inline { vertical-align: -9px; margin-right: 6px; }
+#datatransfer-section .dt-placeholder-icon svg { display: block; }
+.cm-guide-icon { vertical-align: -3px; margin-right: 6px; }

@@ -40,6 +40,8 @@ jobs:
         run: node tests/accessibility/contrast-audit.js
       - name: Compatibility audit (existing encrypted backups must still decrypt)
         run: node tests/compatibility/compat-audit.js
+      - name: Corrupt input rejection tests
+        run: node tests/security/corrupt-input.test.js
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests
@@ -52,8 +54,12 @@ jobs:
         run: node tests/security/csp-policy-check.js
       - name: Clipboard auto-clear tests
         run: node tests/security/clipboard-clear.test.js
+      - name: KeeWeb transfer deletion contract tests
+        run: node tests/security/keeweb-transfer-deletion.test.js
       - name: Zeroize clears Data Transfer receive state
         run: node tests/security/zeroize-dt-rx.test.js
+      - name: Emergency zeroize coverage tests
+        run: node tests/security/zeroize-coverage.test.js
       - name: Data Transfer buffer zeroize tests
         run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state

@@ -69,4 +69,4 @@ jobs:
       - name: Data Transfer buffer zeroize tests
         run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state
-        run: node tests/security/zeroize-timesecret.js
+        run: node tests/security/zeroize-timesecret.test.js

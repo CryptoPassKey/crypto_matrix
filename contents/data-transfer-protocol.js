@@ -891,6 +891,8 @@
     if (this.seqLen > MAX_FRAGMENT_COUNT) throw new Error('元データ片数が上限を超えています');
     this.seqNum = 0;
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
+    // 元データ全体の一時コピーは断片化が済んだらゼロ埋めする（監査 M3 追加対応）
+    source.fill(0);
   }
 
   FountainEncoder.prototype.startRepairPhase = function () {

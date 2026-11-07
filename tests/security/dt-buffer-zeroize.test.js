@@ -190,7 +190,50 @@ function protocolChecks(window) {
   check('app: リセット後に受信状態が消える', api.getState().rxFinalText === null && api.getState().rxFinalSize === 0);
   window.eval('window.__restoreFill && window.__restoreFill()');
 
-  // --- 3) 消去後も通常受信が機能する ---
+  // --- 3) 送信側: 準備完了時・再準備時・クリア時のゼロ埋め ---
+  const TXA = 'TXA-9f3Kd72mQ8xP4vN6bR1sT5wY0zH7jF2aG5cE8uI3oL6nM9qS4vX7yB0dW3eK6h';
+  const TXB = 'TXB-2wE5rT8yU1iO4pA7sD0fG3hJ6kL9zX2cV5bN8mQ1wE4rT7yU0iO3pA6sD9f';
+  await window.eval(`(() => {
+    const secrets = { A: new TextEncoder().encode('${TXA}'), B: new TextEncoder().encode('${TXB}') };
+    const contains = (a, secret) => {
+      if (!a || a.length < secret.length) return false;
+      outer: for (let i = 0; i + secret.length <= a.length; i++) {
+        for (let j = 0; j < secret.length; j++) if (a[i + j] !== secret[j]) continue outer;
+        return true;
+      }
+      return false;
+    };
+    window.__txZeroed = { A: 0, B: 0 };
+    const orig = Uint8Array.prototype.fill;
+    window.__restoreTxFill = () => { Uint8Array.prototype.fill = orig; };
+    Uint8Array.prototype.fill = function (v, s2, e) {
+      if (v === 0) {
+        if (contains(this, secrets.A)) window.__txZeroed.A++;
+        if (contains(this, secrets.B)) window.__txZeroed.B++;
+      }
+      return orig.call(this, v, s2, e);
+    };
+  })()`);
+  const txZeroed = () => window.eval('window.__txZeroed');
+  $('dt-tx-text').value = TXA;
+  $('dt-prepare-tx').click();
+  await waitFor(() => api.getState().txPrepared, '送信準備A');
+  await sleep(300);
+  check('app(TX): 準備完了時に作業バッファがゼロ埋めされる', (await txZeroed()).A >= 1);
+  const aBefore = (await txZeroed()).A;
+  $('dt-tx-text').value = TXB;
+  $('dt-prepare-tx').click();
+  await waitFor(async () => (await txZeroed()).A > aBefore, '再準備で旧Encoderが破棄される');
+  check('app(TX): 再準備時に旧Encoderの断片がゼロ埋めされる', true);
+  await waitFor(() => ($('dt-tx-status').textContent || '').includes('準備完了'), '送信準備B完了');
+  const bBefore = (await txZeroed()).B;
+  $('dt-clear-tx').click();
+  await sleep(300);
+  check('app(TX): クリア時に送信バッファがゼロ埋めされる', (await txZeroed()).B > bBefore);
+  check('app(TX): クリア後に送信状態が消える', api.getState().txPrepared === false);
+  window.eval('window.__restoreTxFill && window.__restoreTxFill()');
+
+  // --- 4) 消去後も通常受信が機能する ---
   for (const frame of built.frames) await api.ingest(frame);
   await waitFor(() => api.getState().rxFinalText === SECRET, '再受信完了');
   check('app: 消去後も通常受信が機能する', api.getState().rxFinalText === SECRET);

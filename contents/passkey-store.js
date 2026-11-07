@@ -195,12 +195,49 @@
     try { await derive(seed, opts); return true; } catch (_) { return false; }
   }
 
+  // HMAC 鍵がこのセッションで新規生成されたか（既存エントリは旧鍵の
+  // 識別子で保存されているため、新しい識別子では引けなくなる）。
+  async function keyWasCreated(opts) {
+    try {
+      if (opts && typeof opts.keyWasCreated === 'function') {
+        return !!(await opts.keyWasCreated());
+      }
+      if (window.CMSeedVault &&
+          typeof window.CMSeedVault.wasHmacKeyCreated === 'function') {
+        return !!(await window.CMSeedVault.wasHmacKeyCreated());
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  // 既存データを見落としている可能性がある状態かどうか。
+  // 「保存データが存在しない」と「保存データを特定できない」を区別し、
+  // 後者では自動新規登録を抑止するために true を返す:
+  //  - v2 マップが存在するのに破損・読み取り不能で中身を確認できない
+  //  - 識別子を導出できないのに、読める v2 マップにエントリがある
+  //  - HMAC 鍵が新規生成された（既存エントリは旧鍵の識別子）なのに、
+  //    読める v2 マップにエントリがある
+  // 正常な空マップで鍵も正常に使える場合は false（従来どおり許可）。
+  async function mayHaveUnresolvedEntries(seed, opts) {
+    var raw = null;
+    try { raw = localStorage.getItem(V2_KEY); } catch (_) { return true; }
+    if (!raw) return false;
+    var m = readMap();
+    if (!m.ok) return true; // 存在するのに読めない＝状態不明
+    var hasEntries = !!(m.map && Object.keys(m.map).length > 0);
+    if (!hasEntries) return false;
+    if (!(await canDerive(seed, opts))) return true;
+    if (await keyWasCreated(opts)) return true;
+    return false;
+  }
+
   window.CMPasskeyStore = {
     resolve: resolve,
     store: store,
     peek: peek,
     prime: prime,
     hasStoredEntries: hasStoredEntries,
-    canDerive: canDerive
+    canDerive: canDerive,
+    mayHaveUnresolvedEntries: mayHaveUnresolvedEntries
   };
 })();

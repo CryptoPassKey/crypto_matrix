@@ -90,6 +90,30 @@ function ok(cond, label) {
   ok(stillFalse === false,
     'hasRecoveryContext() stays false when derivation fails and no entries exist');
 
+  console.log('key regenerated + existing v2 entries -> fail safe');
+  // 導出は成功するが鍵が新しいため識別子が変わり、既存エントリを引けない状態。
+  win.CMSeedVault.derivePasskeyIdentifier =
+    async (s) => 'id-newkey-' + String(s).trim();
+  win.CMSeedVault.wasHmacKeyCreated = async () => true;
+  win.localStorage.setItem('cm_passkey_cred_v2',
+    JSON.stringify({ v: 2, map: { 'id-oldkey-x': 'CRED-OLDKEY' } }));
+  const regenerated = await win.MatrixCardPreset.hasRecoveryContext();
+  ok(regenerated === true,
+    'treated as an existing user when the key was regenerated and entries exist');
+
+  console.log('control: same map, key not regenerated -> not suppressed');
+  win.CMSeedVault.wasHmacKeyCreated = async () => false;
+  const notSuppressed = await win.MatrixCardPreset.hasRecoveryContext();
+  ok(notSuppressed === false,
+    'stays false when entries belong to other identifiers and the key is intact');
+
+  console.log('corrupted v2 map -> fail safe (state unknown)');
+  win.CMSeedVault.derivePasskeyIdentifier = async (s) => 'id-' + String(s).trim();
+  win.localStorage.setItem('cm_passkey_cred_v2', 'not-json{');
+  const corrupted = await win.MatrixCardPreset.hasRecoveryContext();
+  ok(corrupted === true,
+    'treated as an existing user when the v2 map cannot be read');
+
   console.log(failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`);
   process.exit(failures === 0 ? 0 : 1);
 })().catch((e) => { console.error('ERROR', e); process.exit(1); });

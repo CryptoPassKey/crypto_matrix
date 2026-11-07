@@ -135,6 +135,10 @@
   // ==== パスキー識別子用 HMAC デバイス鍵（PR-1: 基盤のみ。既存経路には未接続） ====
   // AES-GCM 用デバイス鍵とは用途が違うため、別レコードの専用鍵を使う。
   var hmacKeyPromise = null;
+  // このセッションで HMAC 鍵を新規生成したかどうか。既存の v2 マップが
+  // あるのに鍵だけが失われて再生成された場合、既存エントリは新しい
+  // 識別子では引けなくなるため、呼び出し側が安全側に倒すために使う。
+  var hmacKeyCreatedFlag = false;
 
   function isValidHmacKey(key) {
     return !!key && key.type === 'secret' && key.extractable === false &&
@@ -164,7 +168,10 @@
     }
     await idbPut(db, HMAC_KEY_ID, key);
     var stored = await idbGet(db, HMAC_KEY_ID);
-    if (stored && isValidHmacKey(stored)) return stored;
+    if (stored && isValidHmacKey(stored)) {
+      hmacKeyCreatedFlag = true;
+      return stored;
+    }
     throw new Error('Stored HMAC device key failed verification');
   }
 
@@ -379,7 +386,11 @@
     },
     markRestored: function () { restoredFlag = true; },
     // パスキー識別子（PR-1 基盤。呼び出し側はまだ存在しない）
-    derivePasskeyIdentifier: derivePasskeyIdentifier
+    derivePasskeyIdentifier: derivePasskeyIdentifier,
+    // このセッションで HMAC 鍵を新規生成したか（取得を試みたうえで返す）
+    wasHmacKeyCreated: function () {
+      return getHmacDeviceKey().then(function () { return hmacKeyCreatedFlag; });
+    }
   };
 
   // 既存コードからの簡易呼び出し口（平文 setItem の置き換え用）

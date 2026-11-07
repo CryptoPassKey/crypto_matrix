@@ -118,6 +118,10 @@ function installLocks() {
     Array.from({ length: 5 }, () => vault.derivePasskeyIdentifier('777', 'example.com')));
   ok(many.every((x) => x === many[0]), 'concurrent derivations agree');
 
+  ok(typeof vault.wasHmacKeyCreated === 'function' &&
+     (await vault.wasHmacKeyCreated()) === true,
+    'session flag reports the HMAC key was created in this session');
+
   console.log('phase 2: stored key attributes + manual HMAC cross-check');
   {
     const db = await idbOpen();

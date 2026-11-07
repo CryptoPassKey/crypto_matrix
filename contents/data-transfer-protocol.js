@@ -865,6 +865,7 @@
 
   function FountainEncoder(input, options) {
     var source = bytes(input).slice();
+    try {
     options = options || {};
     if (source.length > MAX_MESSAGE_BYTES) throw new Error('試験ページの上限は64 MiBです');
     var maxFragmentLen = Math.max(80, Math.min(2800, Math.floor(Number(options.chunkSize) || 180)));
@@ -891,8 +892,17 @@
     if (this.seqLen > MAX_FRAGMENT_COUNT) throw new Error('元データ片数が上限を超えています');
     this.seqNum = 0;
     this.chooser = new FragmentChooser(this.seqLen, this.checksum);
-    // 元データ全体の一時コピーは断片化が済んだらゼロ埋めする（監査 M3 追加対応）
-    source.fill(0);
+    } catch (err) {
+      // 生成途中の断片もゼロ埋めしてから例外を伝える（監査 M3 追加対応）
+      if (Array.isArray(this.fragments)) {
+        this.fragments.forEach(function (f) { if (f && f.fill) f.fill(0); });
+        this.fragments = [];
+      }
+      throw err;
+    } finally {
+      // 元データ全体の一時コピーは成否にかかわらずゼロ埋めする
+      source.fill(0);
+    }
   }
 
   FountainEncoder.prototype.startRepairPhase = function () {

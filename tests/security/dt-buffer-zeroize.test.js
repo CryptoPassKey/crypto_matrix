@@ -137,6 +137,10 @@ function protocolChecks(window) {
       encoder.dispose();
       out.encoderFragmentsZeroed = fragRefs.length > 0 && fragRefs.every(isZero);
       out.encoderFragmentsReleased = encoder.fragments.length === 0;
+      // 不正なIDではコンストラクタが例外を伝え、通常生成は壊れていない
+      let threw = false;
+      try { new Fountain.Encoder(secret, { chunkSize: 94, id: 'BAD!' }); } catch (_) { threw = true; }
+      out.encoderInvalidIdThrows = threw;
     }
     return out;
   })()`);
@@ -159,6 +163,7 @@ function protocolChecks(window) {
   check('protocol: Fountain の Map が空になる', proto.fountainMapsCleared === true);
   check('protocol: Encoder の元データ断片がゼロ埋めされる', proto.encoderFragmentsZeroed === true);
   check('protocol: Encoder の断片が解放される', proto.encoderFragmentsReleased === true);
+  check('protocol: Encoder は不正なIDで例外を伝える', proto.encoderInvalidIdThrows === true);
 
   // --- 2) アプリ層: fill(0) の実行を観測する ---
   await window.eval(`(() => {
@@ -232,6 +237,43 @@ function protocolChecks(window) {
   check('app(TX): クリア時に送信バッファがゼロ埋めされる', (await txZeroed()).B > bBefore);
   check('app(TX): クリア後に送信状態が消える', api.getState().txPrepared === false);
   window.eval('window.__restoreTxFill && window.__restoreTxFill()');
+
+  // --- 3b) 送信準備が失敗しても作業バッファがゼロ埋めされる（finally） ---
+  await window.eval(`(() => {
+    const secret = new TextEncoder().encode('${TXA}');
+    const contains = (a) => {
+      if (!a || a.length < secret.length) return false;
+      outer: for (let i = 0; i + secret.length <= a.length; i++) {
+        for (let j = 0; j < secret.length; j++) if (a[i + j] !== secret[j]) continue outer;
+        return true;
+      }
+      return false;
+    };
+    window.__failZeroed = 0;
+    const orig = Uint8Array.prototype.fill;
+    window.__restoreFailFill = () => { Uint8Array.prototype.fill = orig; };
+    Uint8Array.prototype.fill = function (v, s2, e) {
+      if (v === 0 && contains(this)) window.__failZeroed++;
+      return orig.call(this, v, s2, e);
+    };
+    // フレーム生成を強制的に失敗させる（圧縮後・フレーム生成時点で例外）
+    window.__origBuildFrames = window.DataTransferCore.buildFrames;
+    window.DataTransferCore.buildFrames = function () { throw new Error('forced failure for test'); };
+  })()`);
+  $('dt-tx-text').value = TXA;
+  $('dt-prepare-tx').click();
+  await waitFor(() => ($('dt-tx-status').textContent || '').includes('失敗'), '準備失敗の表示');
+  await sleep(300);
+  check('app(TX): 準備失敗時も作業バッファがゼロ埋めされる',
+    window.eval('window.__failZeroed') >= 1);
+  check('app(TX): 準備失敗で送信状態が残らない', api.getState().txPrepared === false);
+  window.eval('window.DataTransferCore.buildFrames = window.__origBuildFrames;');
+  window.eval('window.__restoreFailFill && window.__restoreFailFill()');
+  $('dt-prepare-tx').click();
+  await waitFor(() => api.getState().txPrepared, '失敗後に再準備できる');
+  check('app(TX): 失敗後も再準備が機能する', api.getState().txPrepared === true);
+  $('dt-clear-tx').click();
+  await sleep(200);
 
   // --- 4) 消去後も通常受信が機能する ---
   for (const frame of built.frames) await api.ingest(frame);

@@ -1980,11 +1980,6 @@ module.exports = QRCode;
             ? '受信側のカメラで、このQRコードを読み取るだけで完了します。'
             : '受信側のカメラでこの先頭QRコードの読み取りを確認してから「送信開始」を押してください。'),
           'ok');
-        // 作業用バッファは準備完了時点でゼロ埋めする（残るのはフレーム文字列と
-        // Encoder内の断片のみで、そちらは破棄時にゼロ埋めされる）
-        if (sourceBytes) sourceBytes.fill(0);
-        if (namedPayload && namedPayload !== sourceBytes) namedPayload.fill(0);
-        if (wireBytes && wireBytes !== namedPayload && wireBytes !== sourceBytes) wireBytes.fill(0);
         return true;
       } catch (error) {
         txPlan = null;
@@ -2003,6 +1998,11 @@ module.exports = QRCode;
         setStatus('dt-tx-status', 'QRコードの準備に失敗しました: ' + error.message, 'err');
         return false;
       } finally {
+        // 作業用バッファは成否にかかわらずゼロ埋めする（残るのはフレーム文字列と
+        // Encoder内の断片のみで、そちらは破棄時にゼロ埋めされる）
+        if (sourceBytes) sourceBytes.fill(0);
+        if (namedPayload && namedPayload !== sourceBytes) namedPayload.fill(0);
+        if (wireBytes && wireBytes !== namedPayload && wireBytes !== sourceBytes) wireBytes.fill(0);
         if ($('dt-tx-prep-progress')) $('dt-tx-prep-progress').hidden = true;
         if ($('dt-prepare-tx')) $('dt-prepare-tx').disabled = false;
       }

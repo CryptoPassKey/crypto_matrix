@@ -22,47 +22,7 @@
 <link rel="stylesheet" href="legacy.css">
 <link rel="stylesheet" href="theme-cyber.css">
 
-<style>
-/* Receive success replaces the camera preview in-place. */
-.dt-camera-stage { position: relative; }
-.dt-camera-complete[hidden] { display: none !important; }
-.dt-camera-complete {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  box-sizing: border-box;
-  padding: 24px;
-  text-align: center;
-  color: var(--text, #f4f7fb);
-  background: var(--panel, #101827);
-}
-.dt-camera-complete-icon {
-  display: grid;
-  place-items: center;
-  width: 76px;
-  height: 76px;
-  border: 3px solid #22c55e;
-  border-radius: 50%;
-  color: #22c55e;
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1;
-}
-.dt-camera-complete-title {
-  color: #22c55e;
-  font-size: clamp(1.35rem, 5vw, 1.8rem);
-  font-weight: 800;
-}
-.dt-camera-complete-message {
-  font-size: clamp(1rem, 3.8vw, 1.15rem);
-  line-height: 1.8;
-}
-</style>
+<link rel="stylesheet" href="dt-camera.css">
 
 </head>
 <body class="cm-body">

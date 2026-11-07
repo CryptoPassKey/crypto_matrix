@@ -46,3 +46,5 @@ jobs:
         run: node tests/security/passkey-migration.test.js
       - name: Passkey recovery context tests
         run: node tests/security/passkey-recovery-context.test.js
+      - name: CSP static check
+        run: node tests/security/csp-static-check.js

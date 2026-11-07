@@ -714,7 +714,7 @@
     </label>
    </div>
    <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-    <label for="bq-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報が絶対に解読できないようにする最先端の数学的暗号技術です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
+    <label for="bq-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術（秘密分散）です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
     <select id="bq-shamir">
      <option value="1-1" selected>分割なし（通常：1枚のQRに統合）</option>
      <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2枚で復元）</option>
@@ -828,14 +828,14 @@
   </div>
   <div class="bq-status" id="bq-status" role="status" aria-live="polite"></div>
   <div id="bq-words-container" style="width:100%; margin-bottom:10px;"></div>
-  <label for="bq-output">暗号化復元フレーズ（BIP39 24単語×必要ブロック数 — QRが読めない環境でもこのフレーズから完全復元できます）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを完全に復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
+  <label for="bq-output">暗号化復元フレーズ（BIP39 24単語×必要ブロック数 — QRが読めない環境でもこのフレーズから復元できます）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
   <textarea id="bq-output" readonly autocomplete="off" spellcheck="false" placeholder="上のボタンを押すと、暗号化されたBIP39 24単語×必要ブロック数がここに生成されます。"></textarea>
  </div>
  <div id="bq-print-summary"></div><div id="bq-qr-list"></div>
  </div>
  <div id="bq-panel-decrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-decrypt" hidden>
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
-  <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と全く同じ設定を100%復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
+  <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と同じ設定を復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
   <p>統合QRコードの読み取り、または24単語フレーズの貼り付けで復元します。</p>
   <div class="cm-restore-steps" id="bq-restore-steps" aria-label="復元の手順">
     <div class="cm-restore-steps-title">復元の手順</div>

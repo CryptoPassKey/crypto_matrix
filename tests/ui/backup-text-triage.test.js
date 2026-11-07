@@ -42,5 +42,11 @@ check('decrypt intro shortened', secText.includes('統合QRコードの読み取
 check('mechanism sentence removed', !secText.includes('復元処理は自動実行されず'));
 check('restore-test instruction kept', secText.includes('印刷後は必ず復元テストを実施してから元データを破棄してください'));
 
+// 見出しを含む全ヘルプ文も検査対象: 復元可能性の絶対保証表現がないこと
+const guaranteePattern = /100%|絶対に解読|完全復元|完全に復元/;
+check('no absolute guarantee in any help text', !helps.some(h => guaranteePattern.test(h)));
+check('no absolute guarantee in visible text', !guaranteePattern.test(secText));
+check('decrypt heading help fixed', helps.some(h => h.includes('作成時と同じ設定を復元できます')));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

@@ -54,5 +54,7 @@ jobs:
         run: node tests/security/clipboard-clear.test.js
       - name: Zeroize clears Data Transfer receive state
         run: node tests/security/zeroize-dt-rx.test.js
+      - name: Data Transfer buffer zeroize tests
+        run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state
         run: node tests/security/zeroize-timesecret.test.js

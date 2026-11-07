@@ -398,6 +398,61 @@
       return d;
     }
 
+    let currentBeaconUrl = '';
+
+    function beaconQrSvg(text) {
+      if (!window.MatrixQRCode) return null;
+      try {
+        const matrix = window.MatrixQRCode.matrix(text);
+        const n = matrix.length + 8;
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 ' + n + ' ' + n);
+        svg.setAttribute('width', '148');
+        svg.setAttribute('height', '148');
+        svg.setAttribute('role', 'img');
+        svg.setAttribute('aria-label', 'ビーコン取得URLのQRコード');
+        svg.setAttribute('shape-rendering', 'crispEdges');
+        const bg = document.createElementNS(ns, 'rect');
+        bg.setAttribute('width', String(n));
+        bg.setAttribute('height', String(n));
+        bg.setAttribute('fill', '#ffffff');
+        svg.appendChild(bg);
+        let d = '';
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix.length; c++) {
+            if (matrix[r][c]) d += 'M' + (c + 4) + ',' + (r + 4) + 'h1v1h-1z';
+          }
+        }
+        const path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', '#000000');
+        svg.appendChild(path);
+        return svg;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderBeaconInfo(h) {
+      const url = 'https://api.drand.sh/' + h.chainHash + '/public/' + h.round;
+      const url2 = 'https://drand.cloudflare.com/' + h.chainHash + '/public/' + h.round;
+      currentBeaconUrl = url;
+      $('rec-beacon-round').textContent = 'Round #' + h.round;
+      const link = $('rec-beacon-url-link');
+      link.href = url;
+      link.textContent = url;
+      const link2 = $('rec-beacon-url-link2');
+      link2.href = url2;
+      link2.textContent = url2;
+      const qrBox = $('rec-beacon-qr');
+      qrBox.replaceChildren();
+      const svg = beaconQrSvg(url);
+      if (svg) qrBox.appendChild(svg);
+      $('rec-beacon-copy-status').textContent = '';
+      $('rec-beacon-box').hidden = false;
+    }
+
     function buildRecoverGuide(kindLabel, tailText) {
       const d = document.createElement('div');
       d.style.cssText = 'margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;';
@@ -443,6 +498,7 @@
       const h = parsed.meta;
       $('rec-meta-box').hidden = false;
       $('rec-beacon-url-hint').textContent = `https://api.drand.sh/${h.chainHash}/public/${h.round}`;
+      renderBeaconInfo(h);
       const isPasskey = h.combo === 2 || h.combo === 3 || h.combo === 5 || h.combo === 6;
       $('rec-passkey-warn').hidden = !isPasskey;
 
@@ -514,6 +570,30 @@
       $('rec-meta-box').hidden = true;
       $('rec-result-card').hidden = true;
       setStatus('');
+    });
+
+    $('rec-btn-copy-beacon-url').addEventListener('click', async () => {
+      const status = $('rec-beacon-copy-status');
+      if (!currentBeaconUrl) {
+        status.textContent = '先にカプセルを解析してください。';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(currentBeaconUrl);
+        status.textContent = 'コピーしました。';
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = currentBeaconUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          status.textContent = 'コピーしました。';
+        } catch (e2) {
+          status.textContent = 'コピーできませんでした。URLを選択してコピーしてください。';
+        }
+        ta.remove();
+      }
     });
 
     document.querySelectorAll('input[name="rec-beacon-mode"]').forEach(r => {

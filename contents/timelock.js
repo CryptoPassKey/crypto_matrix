@@ -1256,7 +1256,7 @@
         infoBox.hidden = false;
         infoBox.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-            <strong class="tl-ink-sky" style="font-size:0.9rem;">📦 カプセル解析情報（CMTL1 v${meta.v}）</strong>
+            <strong class="tl-ink-sky" style="font-size:0.9rem;"><span class="cm-visual-capsule"><svg class="cm-visual cm-visual-capsule tl-visual-inline" width="30" height="30" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="38" height="15" rx="7.5"></rect><path d="M24 14v15"></path><circle class="cm-visual-card" cx="35" cy="34" r="8.6"></circle><path d="M35 29.6V34l3 2"></path></g></svg></span>カプセル解析情報（CMTL1 v${meta.v}）</strong>
             ${statusBadge}
           </div>
           <div style="font-size:0.82rem; line-height:1.65;">

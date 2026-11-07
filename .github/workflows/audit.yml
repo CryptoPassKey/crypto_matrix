@@ -50,3 +50,5 @@ jobs:
         run: node tests/security/csp-static-check.js
       - name: CSP policy check
         run: node tests/security/csp-policy-check.js
+      - name: Clipboard auto-clear tests
+        run: node tests/security/clipboard-clear.test.js

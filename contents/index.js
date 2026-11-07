@@ -2390,7 +2390,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const secretVal = document.getElementById('sim-secret')?.value || '';
         const defaultPassword = isValidSimPw ? currentPw : (secretVal || (typeof window !== 'undefined' && window.__ALLOW_SECRET_STORAGE__ ? localStorage.getItem('cm_active_secret') : '') || '');
 
-        const hasPasskey = !!localStorage.getItem('cm_passkey_cred_' + seedNum);
+        const hasPasskey = window.CMPasskeyStore
+         ? !!window.CMPasskeyStore.peek(seedNum)
+         : !!localStorage.getItem('cm_passkey_cred_' + seedNum);
+        if (window.CMPasskeyStore) window.CMPasskeyStore.prime(seedNum, passkeyStoreOpts());
         const showModal = (typeof showKeyfileModal === 'function') ? showKeyfileModal : window.MatrixCardPreset?.showKeyfileModal;
         const exportKeyfile = (typeof exportKeePassXmlKeyfile === 'function') ? exportKeePassXmlKeyfile : window.MatrixCardPreset?.exportKeePassXmlKeyfile;
 
@@ -3687,8 +3690,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const existingNotice = document.getElementById('km-passkey-existing-notice');
   if (existingNotice) {
-   const credB64 = localStorage.getItem('cm_passkey_cred_' + seedNum);
+   const credB64 = window.CMPasskeyStore
+    ? window.CMPasskeyStore.peek(seedNum)
+    : localStorage.getItem('cm_passkey_cred_' + seedNum);
    existingNotice.style.display = credB64 ? 'block' : 'none';
+   if (window.CMPasskeyStore) {
+    window.CMPasskeyStore.resolve(seedNum, passkeyStoreOpts()).then((resolved) => {
+     const notice = document.getElementById('km-passkey-existing-notice');
+     if (notice) notice.style.display = resolved ? 'block' : 'none';
+    }).catch(() => {});
+   }
   }
 
   updateKeyfileModalUI();
@@ -3753,7 +3764,9 @@ document.addEventListener('DOMContentLoaded', () => {
      const ikm = enc.encode(`CRYPTOMATRIX-CARD-SEED-V2:${seedNum}`);
      const salt32 = new Uint8Array(await crypto.subtle.digest('SHA-256', ikm));
 
-     const storedCredB64 = localStorage.getItem('cm_passkey_cred_' + seedNum);
+     const storedCredB64 = window.CMPasskeyStore
+      ? await window.CMPasskeyStore.resolve(seedNum, passkeyStoreOpts())
+      : localStorage.getItem('cm_passkey_cred_' + seedNum);
      let credToUse = null;
      if (storedCredB64) {
       try {
@@ -3776,7 +3789,11 @@ document.addEventListener('DOMContentLoaded', () => {
      passkeyCred = prfRes.credentialId;
      if (passkeyCred && passkeyCred.length > 0) {
       const b64 = btoa(String.fromCharCode(...passkeyCred));
-      localStorage.setItem('cm_passkey_cred_' + seedNum, b64);
+      if (window.CMPasskeyStore) {
+       await window.CMPasskeyStore.store(seedNum, b64, passkeyStoreOpts());
+      } else {
+       localStorage.setItem('cm_passkey_cred_' + seedNum, b64);
+      }
      }
     } catch (pkErr) {
      if (btn) { btn.disabled = false; btn.textContent = origText; }
@@ -4271,6 +4288,35 @@ document.addEventListener('DOMContentLoaded', () => {
   5:'Level 6 Argon2id 256MB / 4回（最高強度・PC限定 ⚠️スマホ復元困難 ＋ 二重カスケード ＋ Key-Committing HMAC）'
  };
 
+ // パスキー保存（v2マップ）のための補助。プライマリ記録の資格情報IDを
+ // Base64 で返す（旧キーの削除可否の判定に使う）。
+ function primaryPasskeyCredB64() {
+  try {
+   const saved = getSavedPasskeyCredential();
+   if (saved && saved.credentialId && saved.credentialId.length) {
+    return btoa(String.fromCharCode(...saved.credentialId));
+   }
+  } catch (_) {}
+  return null;
+ }
+ function passkeyStoreOpts() {
+  return { getPrimaryCredB64: primaryPasskeyCredB64 };
+ }
+ // 起動時とシード変更時に v2 マップのキャッシュを温める（同期参照用）。
+ try {
+  const seedInputForPrime = document.getElementById('input-seed-number');
+  if (seedInputForPrime) {
+   seedInputForPrime.addEventListener('change', () => {
+    if (window.CMPasskeyStore) window.CMPasskeyStore.prime(seedInputForPrime.value, passkeyStoreOpts());
+   });
+  }
+  if (window.CMSeedVault && typeof window.CMSeedVault.loadSeed === 'function') {
+   window.CMSeedVault.loadSeed().then((restoredSeed) => {
+    if (restoredSeed && window.CMPasskeyStore) window.CMPasskeyStore.prime(restoredSeed, passkeyStoreOpts());
+   }).catch(() => {});
+  }
+ } catch (_) {}
+
  function getSavedPasskeyCredential() {
   try {
    const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem('cm_registered_passkey_v1') : null;
@@ -4343,7 +4389,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (seedInput && (seedInput.dataset?.restored === '1' || seedInput.dataset?.imported === '1')) return true;
    }
    const currentSeed = (typeof document !== 'undefined') ? document.getElementById('input-seed-number')?.value?.trim() || '0' : '0';
-   if (typeof localStorage !== 'undefined' && localStorage.getItem('cm_passkey_cred_' + currentSeed)) return true;
+   if (window.CMPasskeyStore) {
+    window.CMPasskeyStore.prime(currentSeed, passkeyStoreOpts());
+    if (window.CMPasskeyStore.peek(currentSeed)) return true;
+   } else if (typeof localStorage !== 'undefined' && localStorage.getItem('cm_passkey_cred_' + currentSeed)) return true;
   } catch (_) {}
   return false;
  }

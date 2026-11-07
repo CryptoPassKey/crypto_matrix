@@ -130,6 +130,7 @@ function installLocks() {
       'key algorithm is HMAC with SHA-256');
     ok(key && Array.isArray(key.usages) && key.usages.length === 1 &&
        key.usages[0] === 'sign', 'key usages are exactly [sign]');
+    ok(key && key.algorithm.length === 256, 'key length is 256 bits');
 
     const enc = new TextEncoder();
     const domain = enc.encode('CryptoMatrix-Passkey-Credential-v2');

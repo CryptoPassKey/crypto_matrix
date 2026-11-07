@@ -140,6 +140,7 @@
     return !!key && key.type === 'secret' && key.extractable === false &&
       !!key.algorithm && key.algorithm.name === 'HMAC' &&
       !!key.algorithm.hash && key.algorithm.hash.name === 'SHA-256' &&
+      key.algorithm.length === 256 &&
       Array.isArray(key.usages) && key.usages.length === 1 && key.usages[0] === 'sign';
   }
 

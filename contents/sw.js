@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.10.0-zeroize-dt-rx';
+const VERSION = 'cm-v3.11.0-button-icons';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -19,6 +19,18 @@ const FILES = [
   "qr-icon.png",
   "rewind-icon.png",
   "trash-icon.png",
+  "print-icon.png",
+  "unlock-icon.png",
+  "file-icon.png",
+  "heartbeat-icon.png",
+  "refresh-icon.png",
+  "destruct-icon.png",
+  "camera-icon.png",
+  "image-icon.png",
+  "qr-frame-icon.png",
+  "save-icon.png",
+  "pin-icon.png",
+  "lock-icon.png",
   "copy-icon.png",
   "csp-icon.png",
   "duress-icon.png",

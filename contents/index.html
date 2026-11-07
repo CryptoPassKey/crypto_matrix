@@ -64,7 +64,7 @@
       </div>
       <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <div id="peek-control-slot"></div>
-        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>緊急消去</button>
+        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><img src="destruct-icon.png" class="cm-btn-img" alt="" width="20" height="20">緊急消去</button>
       </div>
     </div>
 
@@ -251,7 +251,7 @@
 <option value="9">9桁</option>
 <option value="10">10桁</option>
 <option value="11">11桁</option>
-<option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply">このモードを使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
+<option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply"><img src="pin-icon.png" class="cm-btn-img" alt="" width="20" height="20">このモードを使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
 <section class="cq-panel" id="cq-panel-symbol"><div class="cq-panel-head"><h3>パスワード（英大小・数字・記号）<button type="button" class="help-btn" aria-label="説明を表示" data-help="英大文字・小文字・数字・記号をバランスよく含んだ、ハッカーの総当たり攻撃に非常に強いパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-symbol-badge">未選択</span></div><div class="cq-row"><label for="cq-symbol-length">文字数<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトのパスワード要件に合わせて長さを選びます。16文字以上に設定すると、ハッカーの総当たり解析に対する安全性が飛躍的に高まります。">?</button></label><select id="cq-symbol-length"><option value="16">16文字</option>
 <option value="17">17文字</option>
 <option value="18">18文字</option>
@@ -674,7 +674,7 @@
         <textarea id="input-restore-seed" class="seed-textarea" placeholder="24単語、または拡張バックアップ（PGPアーマードテキスト または 24単語×必要ブロック数）を入力。"></textarea>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
           <button type="button" class="btn" id="btn-restore-seed">全ブロックを検証して復元</button>
-          <button type="button" class="btn btn-secondary" id="btn-print-page">このページを印刷</button>
+          <button type="button" class="btn btn-secondary" id="btn-print-page"><img src="print-icon.png" class="cm-btn-img" alt="" width="20" height="20">このページを印刷</button>
         </div>
         <div id="restore-status" class="status-msg"></div>
       </div>
@@ -853,7 +853,7 @@
       <li class="cm-step" data-step="3"><span class="cm-step-badge">3</span><span class="cm-step-label">復元を実行</span></li>
     </ol>
   </div>
-   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera">カメラでQRを読み取る</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple style="display:none;"><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読み取りをリセット</button></div>
+   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple style="display:none;"><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読み取りをリセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
   <label for="bq-import">復元フレーズ（24単語 ／ 拡張・暗号化バックアップの全ブロック ／ 秘密分散のMシェア分）または読み取ったQRデータ<button type="button" class="help-btn" aria-label="説明を表示" data-help="復元に使う24単語フレーズ、拡張バックアップの全ブロック、または秘密分散のMシェア分を入力またはQRスキャンで貼り付けてください。">?</button></label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="カメラや画像でQRを読み取るか、24単語×必要ブロック数（秘密分散の場合は必要Mシェア分）を入力してください。"></textarea>
@@ -1038,7 +1038,7 @@
     
 
     <div style="margin:14px 0 8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-      <button type="button" class="btn" id="bv-btn-encrypt" style="padding:8px 18px; font-size:0.9rem;">🔒 暗号化 ＆ 秘密分散データを作成</button>
+      <button type="button" class="btn" id="bv-btn-encrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化 ＆ 秘密分散データを作成</button>
     </div>
 
     <div id="bv-encrypt-status" class="status-msg" role="status" aria-live="polite"></div>
@@ -1067,10 +1067,10 @@
         暗号化データまたは秘密分散シェアの入力／QRスキャン／ファイル選択:
       </label>
       <div class="bv-no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
-        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRを読み取る</button>
+        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
         <button type="button" class="btn btn-secondary" id="bv-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
         <label for="bv-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイルを選択
+          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像ファイルを選択
         </label>
         <input type="file" id="bv-restore-qr-img" accept="image/*" style="display:none;">
         <label for="bv-restore-file" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
@@ -1106,7 +1106,7 @@
     </div>
 
     <div style="margin:12px 0 8px;">
-      <button type="button" class="btn" id="bv-btn-decrypt" style="padding:8px 18px; font-size:0.9rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>復号・復元を実行</button>
+      <button type="button" class="btn" id="bv-btn-decrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">復号・復元を実行</button>
     </div>
 
     <div id="bv-decrypt-status" class="status-msg" role="status" aria-live="polite"></div>
@@ -1461,10 +1461,10 @@
           <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>カプセルファイル (.cmtl / .txt) を選択（複数シェア可）
         </label>
         <input type="file" id="tl-restore-file" accept=".cmtl,.txt,image/*,application/octet-stream,text/plain" multiple style="display:none;">
-        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>カメラでQRを読み取る</button>
+        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
         <button type="button" class="btn btn-secondary" id="tl-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
         <label for="tl-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像ファイルを選択
+          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像ファイルを選択
         </label>
         <input type="file" id="tl-restore-qr-img" accept="image/*" style="display:none;">
         <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>入力をリセット</button>
@@ -2454,7 +2454,7 @@
 
           <!-- Primary Individual Actions -->
           <div id="ts-primary-actions" class="ts-action-row">
-            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-detail-checkin">✅ チェックイン（期限を更新）</button>
+            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-detail-checkin"><img src="heartbeat-icon.png" class="cm-btn-img" alt="" width="20" height="20">チェックイン（期限を更新）</button>
             <button type="button" class="ts-btn ts-btn-secondary" id="btn-ts-detail-decrypt-toggle">🔓 復号してデータを取り出す</button>
           </div>
 
@@ -2516,7 +2516,7 @@
                 <pre id="ts-decrypted-view" class="ts-pre-box"></pre>
                 <div class="ts-action-row" style="margin-bottom:8px;">
                   <button type="button" class="ts-btn" id="btn-ts-copy-decrypted">📋 コピー（30秒後に自動消去）</button>
-                  <button type="button" class="ts-btn ts-btn-secondary" id="btn-ts-export-text-file">💾 テキストファイル (.txt) で保存</button>
+                  <button type="button" class="ts-btn ts-btn-secondary" id="btn-ts-export-text-file"><img src="file-icon.png" class="cm-btn-img" alt="" width="20" height="20">テキストファイル (.txt) で保存</button>
                 </div>
               </div>
 
@@ -2925,7 +2925,7 @@
               <progress id="dt-tx-prep-progress-bar" max="1" value="0" style="display:block; width:100%; height:8px;"></progress>
             </div>
             <div class="dt-action-row" style="margin-top:8px; margin-bottom:0;">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx"><img src="qr-icon.png" class="cm-btn-img" alt="" width="20" height="20">QRコードを準備</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx"><img src="qr-frame-icon.png" class="cm-btn-img" alt="" width="20" height="20">QRコードを準備</button>
               <button type="button" class="dt-btn dt-btn-play" id="dt-play-tx" disabled><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">送信開始</button>
               <button type="button" class="dt-btn" id="dt-pause-tx" disabled><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
               <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled><img src="rewind-icon.png" class="cm-btn-img" alt="" width="20" height="20">先頭QRに戻す</button>
@@ -3015,7 +3015,7 @@
 
             <div class="dt-action-row" style="margin-bottom:0;">
               <button type="button" class="dt-btn dt-btn-play" id="dt-copy-result" hidden>📋 テキストをコピー</button>
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result">💾 ファイルを保存</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result"><img src="save-icon.png" class="cm-btn-img" alt="" width="20" height="20">ファイルを保存</button>
               <button type="button" class="dt-btn" id="dt-rx-again">🔄 もう一度受信する</button>
             </div>
           </div>
@@ -3024,9 +3024,9 @@
           <div class="dt-card">
             <h3 class="dt-card-title">1. カメラから読み取り</h3>
             <div class="dt-action-row">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera">📷 カメラでQRを読み取る</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
               <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ カメラを停止</button>
-              <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx">🔄 最初からリセット</button>
+              <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx"><img src="refresh-icon.png" class="cm-btn-img" alt="" width="20" height="20">最初からリセット</button>
             </div>
 
             <div class="dt-compat-row">
@@ -3043,7 +3043,7 @@
               <div id="dt-camera-placeholder" class="dt-stage-placeholder">
                 <div class="dt-placeholder-icon cm-visual-transfer"><svg class="cm-visual cm-visual-transfer" width="56" height="56" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6H9a3 3 0 0 0-3 3v6"></path><path d="M33 6h6a3 3 0 0 1 3 3v6"></path><path d="M15 42H9a3 3 0 0 1-3-3v-6"></path><path d="M33 42h6a3 3 0 0 0 3-3v-6"></path><path d="M24 13v15"></path><path d="M17.5 22.5L24 29l6.5-6.5"></path><path d="M14 37.5h20"></path></g></svg></div>
                 <div class="dt-placeholder-title">カメラ停止中</div>
-                <div class="dt-placeholder-sub">「📷 カメラでQRを読み取る」を押した後、送信側でQRコードの連続表示を開始してください</div>
+                <div class="dt-placeholder-sub">「カメラでQRを読み取る」を押した後、送信側でQRコードの連続表示を開始してください</div>
               </div>
               <div id="dt-camera-complete" class="dt-camera-complete" role="status" aria-live="polite" hidden>
                 <div class="dt-camera-complete-icon" aria-hidden="true">✓</div>

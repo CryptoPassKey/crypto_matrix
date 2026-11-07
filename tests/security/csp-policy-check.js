@@ -10,17 +10,17 @@ const root = path.join(__dirname, '..', '..', 'contents');
 
 function readPolicy(file) {
   const html = fs.readFileSync(path.join(root, file), 'utf8');
-  const tag = html.match(/<meta\\b[^>]*http-equiv\\s*=\\s*["']Content-Security-Policy["'][^>]*>/i);
-  if (!tag) throw new Error(`${file}: CSP meta element not found`);
-  const content = tag[0].match(/\\bcontent\\s*=\\s*(["'])(.*?)\\1/i);
-  if (!content) throw new Error(`${file}: CSP content attribute not found`);
+  const tag = html.match(/<meta\b[^>]*http-equiv\s*=\s*["']Content-Security-Policy["'][^>]*>/i);
+  if (!tag) throw new Error(file + ': CSP meta element not found');
+  const content = tag[0].match(/\bcontent\s*=\s*(["'])(.*?)\1/i);
+  if (!content) throw new Error(file + ': CSP content attribute not found');
 
   const directives = new Map();
   for (const raw of content[2].split(';')) {
-    const parts = raw.trim().split(/\\s+/).filter(Boolean);
+    const parts = raw.trim().split(/\s+/).filter(Boolean);
     if (!parts.length) continue;
     const name = parts.shift().toLowerCase();
-    if (directives.has(name)) throw new Error(`${file}: duplicate CSP directive: ${name}`);
+    if (directives.has(name)) throw new Error(file + ': duplicate CSP directive: ' + name);
     directives.set(name, parts);
   }
   return directives;
@@ -28,22 +28,22 @@ function readPolicy(file) {
 
 function requireDirective(directives, file, name, expected) {
   const actual = directives.get(name);
-  if (!actual) throw new Error(`${file}: missing ${name} directive`);
+  if (!actual) throw new Error(file + ': missing ' + name + ' directive');
   const sortedActual = [...actual].sort();
   const sortedExpected = [...expected].sort();
   if (JSON.stringify(sortedActual) !== JSON.stringify(sortedExpected)) {
-    throw new Error(`${file}: expected ${name} ${expected.join(' ')}, got ${actual.join(' ')}`);
+    throw new Error(file + ': expected ' + name + ' ' + expected.join(' ') + ', got ' + actual.join(' '));
   }
 }
 
 function requireContains(directives, file, name, token) {
   const actual = directives.get(name) || [];
-  if (!actual.includes(token)) throw new Error(`${file}: ${name} must include ${token}`);
+  if (!actual.includes(token)) throw new Error(file + ': ' + name + ' must include ' + token);
 }
 
 function requireAbsent(directives, file, name, token) {
   const actual = directives.get(name) || [];
-  if (actual.includes(token)) throw new Error(`${file}: ${name} must not include ${token}`);
+  if (actual.includes(token)) throw new Error(file + ': ' + name + ' must not include ' + token);
 }
 
 const main = readPolicy('index.html');

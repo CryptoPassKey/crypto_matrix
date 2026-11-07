@@ -1,0 +1,39 @@
+name: Audits
+
+on:
+  pull_request:
+    paths:
+      - "contents/**"
+      - "tests/**"
+      - ".github/workflows/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "contents/**"
+      - "tests/**"
+      - ".github/workflows/**"
+
+jobs:
+  audits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "tests/package-lock.json"
+      - name: Install audit dependencies
+        run: npm --prefix tests ci
+      - name: Check production JavaScript syntax
+        run: |
+          for f in contents/*.js; do
+            node --check "$f"
+          done
+      - name: Contrast audit (WCAG 2.2 AA, static + dynamic DOM, both themes)
+        run: node tests/accessibility/contrast-audit.js
+      - name: Compatibility audit (existing encrypted backups must still decrypt)
+        run: node tests/compatibility/compat-audit.js

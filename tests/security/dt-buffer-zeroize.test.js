@@ -24,7 +24,7 @@ async function waitFor(fn, label, timeout = 10000) {
   const t0 = Date.now();
   while (Date.now() - t0 < timeout) {
     let v;
-    try { v = fn(); } catch (_) { v = undefined; }
+    try { v = await fn(); } catch (_) { v = undefined; }
     if (v) return v;
     await sleep(50);
   }

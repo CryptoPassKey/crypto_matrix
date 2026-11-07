@@ -1948,7 +1948,7 @@
         </div>
 
         <p class="ts-lead">
-          複数のタイムシークレットを独立管理できるチェックイン型時限金庫です。金庫ごとに<strong>暗号化（復号）・チェックイン（期限延長）・管理操作（削除・設定変更）の3つの認証ポリシー</strong>を分離して設定でき、カード配列シード連動・共通KeePassキーファイル（<code>.key</code>）・個別の非抽出可能デバイス鍵で保護されます。
+          複数の金庫を独立に管理できる、チェックイン型の時限金庫です。
         </p>
 
         <div id="ts-global-status" class="ts-status-bar" role="status" aria-live="polite" hidden></div>
@@ -2752,7 +2752,7 @@
               <div class="cm-panel-card" style="padding:12px; border-radius:8px; border-left:4px solid #38bdf8;">
                 <h4 class="cm-guide-sky" style="margin:0 0 6px; font-size:0.92rem;"><svg class="cm-guide-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"></path><path d="M18.5 2.8v4h-4"></path><path d="M12 8v4.2l3 1.8"></path></g></svg>1. タイムシークレットの仕組みとチェックインの必要性</h4>
                 <p style="margin:0;">
-                  タイムシークレットは、定期的な<strong>「チェックイン（期限延長）」</strong>によって安全を維持する時限金庫です。設定した期限までにチェックインが行われない場合、次回起動・タブ復帰時に金庫内の非抽出可能デバイス鍵が物理削除され、秘匿データが安全に復号不能化されます。万一の長期不在時や定期生存確認の途絶に備えた機密保護に最適です。
+                  タイムシークレットは、定期的な<strong>「チェックイン（期限延長）」</strong>によって安全を維持する時限金庫です。設定した期限までにチェックインが行われない場合、次回起動・タブ復帰時に金庫内の非抽出可能デバイス鍵が物理削除され、秘匿データが復号不能化されます。万一の長期不在時や定期生存確認の途絶に備えるための仕組みです。
                 </p>
               </div>
 
@@ -2760,7 +2760,7 @@
                 <h4 class="cm-guide-emerald" style="margin:0 0 6px; font-size:0.92rem;"><svg class="cm-guide-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 7.4-7 9.3-4.1-1.9-7-4.9-7-9.3V5.8z"></path><path d="M9.2 11.6l2 2 3.8-4.4"></path></g></svg>2. 3系統の独立認証ポリシーの違い</h4>
                 <ul style="margin:0; padding-left:20px;">
                   <li><strong>暗号化（復号）認証：</strong>金庫内の秘匿データを取り出すための認証です（パスワード、キーファイル、パスキーPRF）。</li>
-                  <li><strong>チェックイン認証：</strong>日常的な期限延長のみを行うための認証です。暗号化パスワードとは異なる独立パスワードやパスキー、あるいは「認証なし（1クリック即時延長）」を設定可能です。<strong>チェックイン権限だけでは暗号文を復号することは暗号論的にできません。</strong></li>
+                  <li><strong>チェックイン認証：</strong>日常的な期限延長のみを行うための認証です。暗号化パスワードとは異なる独立パスワードやパスキー、あるいは「認証なし（1クリック即時延長）」を設定可能です。<strong>チェックイン権限だけでは暗号文を復号できません。</strong></li>
                   <li><strong>管理操作認証：</strong>金庫の削除や期限・認証ポリシー変更を行うための特権認証です。</li>
                 </ul>
               </div>

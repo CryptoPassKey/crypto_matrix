@@ -34,6 +34,7 @@
   var DB_VERSION = 1;
   var STORE_NAME = 'keys';
   var DEVICE_KEY_ID = 'device-key';
+  var HMAC_KEY_ID = 'device-hmac-key';
   var AAD = new TextEncoder().encode('CryptoMatrix:SeedVault:v1');
 
   function b64encode(bytes) {
@@ -129,6 +130,86 @@
       });
     }
     return deviceKeyPromise;
+  }
+
+  // ==== パスキー識別子用 HMAC デバイス鍵（PR-1: 基盤のみ。既存経路には未接続） ====
+  // AES-GCM 用デバイス鍵とは用途が違うため、別レコードの専用鍵を使う。
+  var hmacKeyPromise = null;
+
+  function isValidHmacKey(key) {
+    return !!key && key.type === 'secret' && key.extractable === false &&
+      !!key.algorithm && key.algorithm.name === 'HMAC' &&
+      !!key.algorithm.hash && key.algorithm.hash.name === 'SHA-256' &&
+      Array.isArray(key.usages) && key.usages.length === 1 && key.usages[0] === 'sign';
+  }
+
+  async function getOrCreateHmacDeviceKey() {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('WebCrypto is not available');
+    }
+    var db = await openDb();
+    var existing = await idbGet(db, HMAC_KEY_ID);
+    if (existing) {
+      if (isValidHmacKey(existing)) return existing;
+      throw new Error('Stored HMAC device key failed verification');
+    }
+    var key = await window.crypto.subtle.generateKey(
+      { name: 'HMAC', hash: { name: 'SHA-256' }, length: 256 },
+      false, // extractable: false
+      ['sign']
+    );
+    if (!isValidHmacKey(key)) {
+      throw new Error('Generated HMAC device key failed verification');
+    }
+    await idbPut(db, HMAC_KEY_ID, key);
+    var stored = await idbGet(db, HMAC_KEY_ID);
+    if (stored && isValidHmacKey(stored)) return stored;
+    throw new Error('Stored HMAC device key failed verification');
+  }
+
+  function getHmacDeviceKey() {
+    if (!hmacKeyPromise) {
+      if (typeof navigator !== 'undefined' && navigator.locks &&
+          typeof navigator.locks.request === 'function') {
+        hmacKeyPromise = navigator.locks.request(
+          'cm-seed-vault-hmac-keygen',
+          function () { return getOrCreateHmacDeviceKey(); }
+        );
+      } else {
+        // Web Locks が使えない環境では新規生成を行わない（複数タブ競合の回避）。
+        // 既存鍵がある場合のみ、読み取りと検証をして利用する。
+        hmacKeyPromise = (async function () {
+          var db = await openDb();
+          var existing = await idbGet(db, HMAC_KEY_ID);
+          if (existing && isValidHmacKey(existing)) return existing;
+          throw new Error('Web Locks is not available; refusing to create an HMAC device key');
+        })();
+      }
+      hmacKeyPromise = hmacKeyPromise.catch(function (err) {
+        hmacKeyPromise = null;
+        throw err;
+      });
+    }
+    return hmacKeyPromise;
+  }
+
+  // 識別子導出: HMAC-SHA-256(key, domain || 0x00 || rpId || 0x00 || seed) の Base64URL。
+  // ドメイン文字列と rpId で分離し、他用途・他 RP と一致しないようにする。
+  async function derivePasskeyIdentifier(seed, rpId) {
+    var key = await getHmacDeviceKey();
+    var enc = new TextEncoder();
+    var domain = enc.encode('CryptoMatrix-Passkey-Credential-v2');
+    var rp = enc.encode(String(rpId || ''));
+    var sd = enc.encode(String(seed == null ? '' : seed).trim());
+    var msg = new Uint8Array(domain.length + 1 + rp.length + 1 + sd.length);
+    msg.set(domain, 0);
+    msg[domain.length] = 0;
+    msg.set(rp, domain.length + 1);
+    msg[domain.length + 1 + rp.length] = 0;
+    msg.set(sd, domain.length + 1 + rp.length + 1);
+    var sig = await window.crypto.subtle.sign('HMAC', key, msg);
+    return b64encode(new Uint8Array(sig))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 
   async function wrapSeed(seed) {
@@ -295,7 +376,9 @@
     status: function () {
       return { hasWrappedRecord: sawWrappedRecord, unwrapFailed: unwrapFailedFlag };
     },
-    markRestored: function () { restoredFlag = true; }
+    markRestored: function () { restoredFlag = true; },
+    // パスキー識別子（PR-1 基盤。呼び出し側はまだ存在しない）
+    derivePasskeyIdentifier: derivePasskeyIdentifier
   };
 
   // 既存コードからの簡易呼び出し口（平文 setItem の置き換え用）

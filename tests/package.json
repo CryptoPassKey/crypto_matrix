@@ -1,1 +1,9 @@
-{"description":"CryptoMatrix の監査スクリプト用（配布物には含まれない開発専用依存）","devDependencies":{"jsdom":"31.0.0"},"name":"crypto-matrix-audits","private":true}
+{
+  "description": "CryptoMatrix の監査スクリプト用（配布物には含まれない開発専用依存）",
+  "devDependencies": {
+    "jsdom": "31.0.0",
+    "fake-indexeddb": "6.2.5"
+  },
+  "name": "crypto-matrix-audits",
+  "private": true
+}

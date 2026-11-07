@@ -47,17 +47,13 @@ function requireAbsent(directives, file, name, token) {
 }
 
 const main = readPolicy('index.html');
-requireContains(main, 'index.html', 'script-src', "'self'");
-requireContains(main, 'index.html', 'script-src', "'wasm-unsafe-eval'");
-requireAbsent(main, 'index.html', 'script-src', "'unsafe-inline'");
-requireAbsent(main, 'index.html', 'script-src', "'unsafe-eval'");
+requireDirective(main, 'index.html', 'script-src', ["'self'", "'wasm-unsafe-eval'"]);
+requireDirective(main, 'index.html', 'style-src', ["'self'", "'unsafe-inline'"]);
 requireDirective(main, 'index.html', 'worker-src', ["'self'"]);
 requireDirective(main, 'index.html', 'frame-src', ["'none'"]);
 
 const recovery = readPolicy('timelock-recover.html');
-requireContains(recovery, 'timelock-recover.html', 'script-src', "'self'");
-requireContains(recovery, 'timelock-recover.html', 'script-src', "'wasm-unsafe-eval'");
-requireAbsent(recovery, 'timelock-recover.html', 'script-src', "'unsafe-inline'");
-requireContains(recovery, 'timelock-recover.html', 'style-src', "'self'");
+requireDirective(recovery, 'timelock-recover.html', 'script-src', ["'self'", "'wasm-unsafe-eval'"]);
+requireDirective(recovery, 'timelock-recover.html', 'style-src', ["'self'", "'unsafe-inline'"]);
 
 console.log('CSP policy check: PASS (index C-1 + D; recovery external CSS allowed)');

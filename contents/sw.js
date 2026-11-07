@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.6.1-csp-a1-handlers';
+const VERSION = 'cm-v3.6.2-csp-a2-recover-external';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -77,6 +77,9 @@ const FILES = [
   "theme-init.js",
   "timelock.js",
   "timelock-recover.html",
+  "timelock-recover.js",
+  "timelock-recover-theme-init.js",
+  "timelock-recover-theme-toggle.js",
   "timesecret.js",
   "vendor/jsQR.js",
   "vendor/tlock.bundle.js",

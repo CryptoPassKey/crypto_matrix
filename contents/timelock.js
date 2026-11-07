@@ -1678,9 +1678,7 @@
       if (!tlLastArtifact) return;
       const Preset = getPreset();
       if (Preset.copyWithAutoClear) {
-        await Preset.copyWithAutoClear(tlLastArtifact.armoredText, () =>
-          tlMessage('tl-encrypt-status', '🛡️ クリップボードのタイムカプセルデータを自動消去しました。')
-        );
+        await Preset.copyWithAutoClear(tlLastArtifact.armoredText, (status) => { if (status === 'protected') tlMessage('tl-encrypt-status', '🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。'); else if (status === 'failed') tlMessage('tl-encrypt-status', '⚠ クリップボードを自動消去できませんでした。'); else tlMessage('tl-encrypt-status', '🛡️ クリップボードのタイムカプセルデータを自動消去しました。'); });
       } else {
         await navigator.clipboard.writeText(tlLastArtifact.armoredText);
       }

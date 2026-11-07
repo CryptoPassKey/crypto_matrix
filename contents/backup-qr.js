@@ -498,7 +498,7 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
     if(MatrixCardPreset.copyWithAutoClear){
 
-     await MatrixCardPreset.copyWithAutoClear(shareText,()=>message('bq-status',`🛡️ クリップボードのシェア ${idx}/${target.n} を自動消去しました。`));
+     await MatrixCardPreset.copyWithAutoClear(shareText,(status)=>{if(status==='protected')message('bq-status','🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。');else if(status==='failed')message('bq-status','⚠ クリップボードを自動消去できませんでした。',true);else message('bq-status',`🛡️ クリップボードのシェア ${idx}/${target.n} を自動消去しました。`);});
 
     }else{
 
@@ -4700,7 +4700,7 @@ function initBonusVault(){
 
   if(!text)return;
 
-  await MatrixCardPreset.copyWithAutoClear(text,()=>bvMessage('bv-decrypt-status','🛡️ クリップボードの復号データを自動消去しました。'));
+  await MatrixCardPreset.copyWithAutoClear(text,(status)=>{if(status==='protected')bvMessage('bv-decrypt-status','🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。');else if(status==='failed')bvMessage('bv-decrypt-status','⚠ クリップボードを自動消去できませんでした。');else bvMessage('bv-decrypt-status','🛡️ クリップボードの復号データを自動消去しました。');});
 
   bvMessage('bv-decrypt-status','✅ 復号テキストをコピーしました（30秒後に自動消去）。');
 
@@ -5160,7 +5160,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
    if(MatrixCardPreset.copyWithAutoClear){
 
-    await MatrixCardPreset.copyWithAutoClear(artifact.packet,()=>message('bq-status','🛡️ クリップボードの暗号化データを自動消去しました。'));
+    await MatrixCardPreset.copyWithAutoClear(artifact.packet,(status)=>{if(status==='protected')message('bq-status','🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。');else if(status==='failed')message('bq-status','⚠ クリップボードを自動消去できませんでした。',true);else message('bq-status','🛡️ クリップボードの暗号化データを自動消去しました。');});
 
    }else{
 

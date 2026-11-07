@@ -2325,8 +2325,8 @@ module.exports = QRCode;
     async function copyRxTextResult() {
       if (rxFinalText === null) return;
       try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(rxFinalText);
+        if (navigator.clipboard && window.isSecureContext && window.MatrixCardPreset && window.MatrixCardPreset.copyWithAutoClear) {
+          await window.MatrixCardPreset.copyWithAutoClear(rxFinalText);
         } else {
           var ta = $('dt-rx-text-preview');
           if (ta) {

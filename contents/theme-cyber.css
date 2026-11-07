@@ -1346,9 +1346,9 @@ html.light .cm-legacy #timesecret-section { border-top: 2px solid var(--feat-sec
 html.light .cm-legacy #datatransfer-section { border-top: 2px solid var(--feat-transfer) !important; }
 
 /* ===== T2-5: 生成要素の状態表示クラス（ダークは従来の実効値、ライトは状態トークン） ===== */
-.cm-legacy .cm-note-warn { background: #0f1828; color: #92400e; border: 1px solid #fef3c7; border-radius: 4px; }
+.cm-legacy .cm-note-warn { background: #451a03; color: #fbbf24; border: 1px solid #f59e0b; border-radius: 4px; }
 html.light .cm-legacy .cm-note-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
-.cm-legacy .cm-note-err { background: #0f1828; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 4px; }
+.cm-legacy .cm-note-err { background: #291919; color: #fca5a5; border: 1px solid #7f1d1d; border-radius: 4px; }
 html.light .cm-legacy .cm-note-err { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
 .cm-legacy .cm-note-warnbox { background: #292119; border: 1px solid #d97706; border-radius: 6px; }
 html.light .cm-legacy .cm-note-warnbox { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }

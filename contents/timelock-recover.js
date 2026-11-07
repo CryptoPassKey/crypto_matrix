@@ -611,10 +611,40 @@
       }
     });
 
+    // クリップボード自動消去（単体動作のため本体の共通ヘルパーには依存しない。
+    // 仕様は本体と同じ: 30秒後に内容を照合し、変わっていれば消去しない。
+    // 照合できない場合は消去を試み、結果は必ず通知する）
+    let recClipTimer = null, recClipGen = 0, recClipExpected = '';
+    async function recSettleClipboard(gen) {
+      if (gen !== recClipGen) return;
+      const expected = recClipExpected;
+      let current = null, readOk = false;
+      try { current = await navigator.clipboard.readText(); readOk = true; } catch (_) {}
+      if (gen !== recClipGen) return;
+      if (readOk && current !== expected) {
+        setStatus('🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。', 'ok');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText('');
+        setStatus('🛡️ クリップボードの復号テキストを自動消去しました。', 'ok');
+      } catch (_) {
+        setStatus('⚠ クリップボードを自動消去できませんでした。', 'err');
+      }
+      if (gen === recClipGen) recClipTimer = null;
+    }
+    async function recCopyWithAutoClear(text) {
+      await navigator.clipboard.writeText(text);
+      recClipGen++; const gen = recClipGen; recClipExpected = String(text);
+      if (recClipTimer) clearTimeout(recClipTimer);
+      recClipTimer = setTimeout(() => { void recSettleClipboard(gen); }, 30000);
+    }
+    window.CMRecoverClipboardCopy = recCopyWithAutoClear;
+
     $('rec-btn-copy').addEventListener('click', async () => {
       if (!lastDecrypted?.text) return;
-      await navigator.clipboard.writeText(lastDecrypted.text);
-      setStatus('📋 復号されたテキストをクリップボードにコピーしました。', 'ok');
+      await recCopyWithAutoClear(lastDecrypted.text);
+      setStatus('📋 復号されたテキストをクリップボードにコピーしました（30秒後に自動消去）。', 'ok');
     });
 
     $('rec-btn-save-txt').addEventListener('click', () => {

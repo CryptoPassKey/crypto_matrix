@@ -238,27 +238,38 @@
     window.cmApplyPeekGuard = applyGuard;
     window.cmIsPeekGuardOn = function () { return guard; };
 
-    // クリップボード自動消去
+    // クリップボード自動消去バッジ（消去そのものは共通ヘルパーが行い、
+    // ここは結果イベントを表示するだけ。個別の通知先があるコピーは対象外）
     var badge = document.createElement('div');
     badge.className = 'cm-clip-badge';
     badge.hidden = true;
     document.body.appendChild(badge);
-    var timer;
-    var copyBtn = $('btn-copy-pw');
-    if (copyBtn) copyBtn.addEventListener('click', function () {
-      clearInterval(timer);
-      var left = 30;
+    var timer = null;
+    var hideTimer = null;
+    function showBadge(text, hideMs) {
       badge.hidden = false;
-      badge.textContent = '📋 コピーしました · ' + left + '秒後にクリップボードを消去';
+      badge.textContent = text;
+      if (hideTimer) clearTimeout(hideTimer);
+      if (hideMs) hideTimer = setTimeout(function () { badge.hidden = true; }, hideMs);
+    }
+    window.addEventListener('cm-clipboard-copied', function (e) {
+      if (e.detail && e.detail.claimed) return;
+      var left = 30;
+      showBadge('📋 コピーしました · ' + left + '秒後にクリップボードを消去', 0);
+      if (timer) clearInterval(timer);
       timer = setInterval(function () {
         left--;
         if (left > 0) { badge.textContent = '📋 コピーしました · ' + left + '秒後にクリップボードを消去'; return; }
         clearInterval(timer);
-        navigator.clipboard.writeText('').then(
-          function () { badge.textContent = '🧹 クリップボードを消去しました'; },
-          function () { badge.textContent = '⚠ 自動消去できませんでした（画面を開いた状態で再度お試しください）'; }
-        ).then(function () { setTimeout(function () { badge.hidden = true; }, 2500); });
       }, 1000);
+    });
+    window.addEventListener('cm-clipboard-result', function (e) {
+      if (e.detail && e.detail.claimed) return;
+      if (timer) clearInterval(timer);
+      var status = e.detail && e.detail.status;
+      if (status === 'protected') showBadge('🛡️ クリップボードの内容が変わっていたため消去しませんでした', 3500);
+      else if (status === 'failed') showBadge('⚠ 自動消去できませんでした（画面を開いた状態で再度お試しください）', 3500);
+      else showBadge('🧹 クリップボードを消去しました', 2500);
     });
 
     // 各パスワード欄の強度

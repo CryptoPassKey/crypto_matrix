@@ -3091,11 +3091,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.getElementById('btn-copy-pw')?.addEventListener('click', () => {
-    const pw = currentEvalSteps.map(s => s.ch).join('');
-    navigator.clipboard.writeText(pw);
-  });
-
   document.getElementById('btn-reset-recipe')?.addEventListener('click', () => {
     currentDisplayMode = 'recipe';
     const designBar = document.getElementById('gesture-design-bar');
@@ -3153,11 +3148,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       generateAndRenderSeedPhrase();
-    }
-  });
-  document.getElementById('btn-copy-seed')?.addEventListener('click', () => {
-    if (currentMnemonicWords.length === 24) {
-      navigator.clipboard.writeText(currentMnemonicWords.join(' '));
     }
   });
   document.getElementById('btn-restore-seed')?.addEventListener('click', () => {
@@ -3877,14 +3867,33 @@ document.addEventListener('DOMContentLoaded', () => {
   });
  };
  window.MatrixCardPreset.promptLegacyPK2Consent = window.promptLegacyPK2Consent;
- let clipTimer=null;
- async function copyWithAutoClear(text,onCleared=null){
+ let clipTimer=null,clipGen=0,clipExpected='';
+ // 消去結果の status: 'cleared'（照合一致で消去） /
+ // 'cleared-unverified'（照合できなかったが消去は成功） /
+ // 'protected'（内容が変わっていたため消去しない） / 'failed'（消去失敗）
+ async function settleClipboard(gen,onResult){
+  if(gen!==clipGen)return;
+  const expected=clipExpected;
+  let current=null,readOk=false;
+  try{current=await navigator.clipboard.readText();readOk=true;}catch(_){}
+  if(gen!==clipGen)return;
+  let status;
+  if(readOk&&current!==expected){
+   status='protected';
+  }else{
+   try{await navigator.clipboard.writeText('');status=readOk?'cleared':'cleared-unverified';}
+   catch(_){status='failed';}
+  }
+  if(gen===clipGen)clipTimer=null;
+  window.dispatchEvent(new CustomEvent('cm-clipboard-result',{detail:{status:status,claimed:typeof onResult==='function'}}));
+  if(onResult)onResult(status);
+ }
+ async function copyWithAutoClear(text,onResult=null){
   await navigator.clipboard.writeText(text);
+  clipGen++;const gen=clipGen;clipExpected=String(text);
   if(clipTimer)clearTimeout(clipTimer);
-  clipTimer=setTimeout(async()=>{
-   clipTimer=null;
-   try{await navigator.clipboard.writeText('');if(onCleared)onCleared();}catch(_){}
-  },30000);
+  clipTimer=setTimeout(()=>{void settleClipboard(gen,onResult);},30000);
+  window.dispatchEvent(new CustomEvent('cm-clipboard-copied',{detail:{claimed:typeof onResult==='function'}}));
  }
  function estimatePasswordEntropy(pw){
   const chars=Array.from(String(pw??''));
@@ -5570,7 +5579,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    if(!pw)return;
    try{
-    await copyWithAutoClear(pw,()=>{if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
+    await copyWithAutoClear(pw,(status)=>{const b=$('sim-step-banner');if(!b)return;if(status==='protected')b.textContent='🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。';else if(status==='failed')b.textContent='⚠ クリップボードを自動消去できませんでした。';else b.textContent='🛡️ クリップボードのパスワードを自動消去しました。';});
     if($('sim-step-banner'))$('sim-step-banner').textContent='✅ パスワードをコピーしました（セキュリティ保護のため30秒後にクリップボードから自動消去されます）。';
     const btn=$('btn-copy-pw');
     if(btn){
@@ -5589,7 +5598,7 @@ document.addEventListener('DOMContentLoaded', () => {
    try{
     const words=currentMnemonicWords.slice();
     const text=(activeSec2Format==='armored'&&sec2ArmoredText)?sec2ArmoredText:Array.from({length:words.length/24},(_,i)=>words.slice(i*24,i*24+24).join(' ')).join('\n');
-    await copyWithAutoClear(text,()=>setStatus('backup-summary','🛡️ クリップボードの復元データを自動消去しました。'));
+    await copyWithAutoClear(text,(status)=>{if(status==='protected')setStatus('backup-summary','🛡️ クリップボードの内容が変わっていたため、自動消去しませんでした。');else if(status==='failed')setStatus('backup-summary','⚠ クリップボードを自動消去できませんでした。',true);else setStatus('backup-summary','🛡️ クリップボードの復元データを自動消去しました。');});
     setStatus('backup-summary',activeSec2Format==='armored'?'PGPアーマード形式の拡張バックアップをコピーしました（30秒後にクリップボードから自動消去されます）。':`${words.length/24}ブロック・${words.length}単語をコピーしました（30秒後にクリップボードから自動消去されます）。`);
    }catch(_){setStatus('backup-summary','コピーできませんでした。画面の全ブロックを順番どおり控えてください。',true);}
   },true);
@@ -5745,7 +5754,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('btn-zeroize')?.addEventListener('click',async()=>{
    stopMatrixTrace();
-   if(clipTimer){clearTimeout(clipTimer);clipTimer=null;}
+   if(clipTimer){clearTimeout(clipTimer);clipTimer=null;} clipGen++; clipExpected='';
    try{await navigator.clipboard.writeText('');}catch(_){}
    if($('input-seed-number'))$('input-seed-number').value='0';
    updateMainMatrix(0);

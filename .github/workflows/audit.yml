@@ -46,6 +46,8 @@ jobs:
         run: node tests/security/recover-beacon-info.test.js
       - name: Timelock beacon URL tests
         run: node tests/security/tl-beacon-url.test.js
+      - name: Guide first-visit tests
+        run: node tests/ui/guide-first-visit.test.js
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests
@@ -67,4 +69,4 @@ jobs:
       - name: Data Transfer buffer zeroize tests
         run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state
-        run: node tests/security/zeroize-timesecret.test.js
+        run: node tests/security/zeroize-timesecret.js

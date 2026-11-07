@@ -50,6 +50,8 @@ jobs:
         run: node tests/ui/guide-first-visit.test.js
       - name: Help popover tests
         run: node tests/ui/help-popover.test.js
+      - name: TimeLock text triage tests
+        run: node tests/ui/timelock-text-triage.test.js
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests

@@ -101,19 +101,26 @@ function protocolChecks(window) {
 
     // --- Legacy Receiver ---
     {
-      const built = Core.buildFrames(secret, { chunkSize: 180, parity: true, id: 'A1B2C3D4' });
+      // パリティは2シャード以上のグループにだけ生成され、チャンクは
+      // 最小80バイトに丸められるため、複数シャードになる長さの入力を使う
+      const legacyPayload = enc.encode('${SECRET}'.repeat(10));
+      const built = Core.buildFrames(legacyPayload, { chunkSize: 80, parity: true, id: 'A1B2C3D4' });
       const rx = new Core.Receiver();
       // 最初のフレームだけ入れてシャードを保持させる
       rx.feed(built.frames[0]);
       const shardRefs = Array.from(rx.shards.values());
+      for (const f of built.frames) rx.feed(f);
+      // パリティ参照は全フレーム受信後に取得する（buildFrames はデータ→
+      // パリティの順に並ぶため、受信前は parities が空で検証が無意味になる）
       const parityRefs = [];
       rx.parities.forEach((g) => Object.keys(g).forEach((k) => parityRefs.push(g[k])));
-      for (const f of built.frames) rx.feed(f);
       out.legacyCompleted = rx.isComplete ? rx.isComplete() : shardRefs.length > 0;
       rx.reset();
       out.legacyShardsZeroed = shardRefs.length > 0 && shardRefs.every(isZero);
       out.legacyMapsCleared = rx.shards.size === 0 && rx.parities.size === 0;
-      out.legacyParityZeroed = parityRefs.every(isZero); // パリティが無ければ vacuous
+      // 空配列の every() は true になるため、存在自体も別途確認する
+      out.legacyParityPresent = parityRefs.length > 0;
+      out.legacyParityZeroed = parityRefs.every(isZero);
     }
 
     // --- Fountain Receiver / Encoder ---
@@ -129,6 +136,7 @@ function protocolChecks(window) {
       }
       out.fountainCompleted = !!done;
       const partRefs = Array.from(frx.simpleParts.values());
+      out.fountainPartsPresent = partRefs.length > 0;
       const resultRef = frx.result;
       frx.reset();
       out.fountainPartsZeroed = partRefs.length > 0 && partRefs.every(isZero);
@@ -155,10 +163,12 @@ function protocolChecks(window) {
   const proto = await protocolChecks(window);
   check('protocol: Legacy受信が完了する', !!proto.legacyCompleted);
   check('protocol: Legacy シャードがゼロ埋めされる', proto.legacyShardsZeroed === true);
-  check('protocol: Legacy パリティがゼロ埋めされる', proto.legacyParityZeroed === true);
+  check('protocol: Legacy パリティがゼロ埋めされる',
+    proto.legacyParityPresent === true && proto.legacyParityZeroed === true);
   check('protocol: Legacy の Map が空になる', proto.legacyMapsCleared === true);
   check('protocol: Fountain受信が完了する', proto.fountainCompleted === true);
-  check('protocol: Fountain パートがゼロ埋めされる', proto.fountainPartsZeroed === true);
+  check('protocol: Fountain パートがゼロ埋めされる',
+    proto.fountainPartsPresent === true && proto.fountainPartsZeroed === true);
   check('protocol: Fountain 完成バイト列がゼロ埋めされる', proto.fountainResultZeroed === true);
   check('protocol: Fountain の Map が空になる', proto.fountainMapsCleared === true);
   check('protocol: Encoder の元データ断片がゼロ埋めされる', proto.encoderFragmentsZeroed === true);

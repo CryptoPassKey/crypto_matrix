@@ -398,6 +398,61 @@
       return d;
     }
 
+    let currentBeaconUrl = '';
+
+    function beaconQrSvg(text) {
+      if (!window.MatrixQRCode) return null;
+      try {
+        const matrix = window.MatrixQRCode.matrix(text);
+        const n = matrix.length + 8;
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 ' + n + ' ' + n);
+        svg.setAttribute('width', '148');
+        svg.setAttribute('height', '148');
+        svg.setAttribute('role', 'img');
+        svg.setAttribute('aria-label', 'ビーコン取得URLのQRコード');
+        svg.setAttribute('shape-rendering', 'crispEdges');
+        const bg = document.createElementNS(ns, 'rect');
+        bg.setAttribute('width', String(n));
+        bg.setAttribute('height', String(n));
+        bg.setAttribute('fill', '#ffffff');
+        svg.appendChild(bg);
+        let d = '';
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix.length; c++) {
+            if (matrix[r][c]) d += 'M' + (c + 4) + ',' + (r + 4) + 'h1v1h-1z';
+          }
+        }
+        const path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', '#000000');
+        svg.appendChild(path);
+        return svg;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderBeaconInfo(chainHash, round) {
+      const url = 'https://api.drand.sh/' + chainHash + '/public/' + round;
+      const url2 = 'https://drand.cloudflare.com/' + chainHash + '/public/' + round;
+      currentBeaconUrl = url;
+      $('rec-beacon-round').textContent = 'Round #' + round;
+      const link = $('rec-beacon-url-link');
+      link.href = url;
+      link.textContent = url;
+      const link2 = $('rec-beacon-url-link2');
+      link2.href = url2;
+      link2.textContent = url2;
+      const qrBox = $('rec-beacon-qr');
+      qrBox.replaceChildren();
+      const svg = beaconQrSvg(url);
+      if (svg) qrBox.appendChild(svg);
+      $('rec-beacon-copy-status').textContent = '';
+      $('rec-beacon-box').hidden = false;
+    }
+
     function buildRecoverGuide(kindLabel, tailText) {
       const d = document.createElement('div');
       d.style.cssText = 'margin-top:8px; padding:10px 12px; background:var(--ok-bg); border:1.5px solid var(--ok-border); border-radius:6px; color:var(--ok-text); font-size:0.84rem; line-height:1.55;';
@@ -441,8 +496,31 @@
 
     function renderMeta(parsed) {
       const h = parsed.meta;
+      // Beacon metadata comes from the capsule header JSON (untrusted input).
+      // Validate before building any URL: chain hash must be 64 hex chars and
+      // the round a positive safe integer. Invalid values are a parse error.
+      const chainHash = typeof h.chainHash === 'string' ? h.chainHash.toLowerCase() : '';
+      if (!/^[0-9a-f]{64}$/.test(chainHash) || !Number.isSafeInteger(h.round) || h.round <= 0) {
+        throw new Error('カプセルのビーコン情報（Chain Hash / ラウンド）が不正なため、ビーコン取得URLを生成できません。');
+      }
+      // The recovery flow verifies beacons against the fixed Quicknet chain
+      // info, so a well-formed hash from any other chain must also be rejected.
+      const expectedChainHash = String(TLockBundle.QUICKNET_CHAIN_INFO.hash || '').toLowerCase();
+      if (!expectedChainHash || chainHash !== expectedChainHash) {
+        throw new Error('カプセルのChain HashがQuicknetのチェーンと一致しないため、ビーコン取得URLを生成できません。');
+      }
+      // Build the URL only from values on the verification side: the known
+      // Quicknet chain hash (constant) and the round parsed from the binary
+      // AGE header, which unpackCMTL1 has already cross-checked against the
+      // JSON metadata above. The JSON values themselves are never placed
+      // into the link target.
+      const verifiedRound = TLockBundle.parseTimelockAgeHeader(parsed.ageBinary).roundNumber;
+      if (!Number.isSafeInteger(verifiedRound) || verifiedRound <= 0) {
+        throw new Error('カプセルのビーコン情報（Chain Hash / ラウンド）が不正なため、ビーコン取得URLを生成できません。');
+      }
       $('rec-meta-box').hidden = false;
-      $('rec-beacon-url-hint').textContent = `https://api.drand.sh/${h.chainHash}/public/${h.round}`;
+      $('rec-beacon-url-hint').textContent = 'https://api.drand.sh/' + expectedChainHash + '/public/' + verifiedRound;
+      renderBeaconInfo(expectedChainHash, verifiedRound);
       const isPasskey = h.combo === 2 || h.combo === 3 || h.combo === 5 || h.combo === 6;
       $('rec-passkey-warn').hidden = !isPasskey;
 
@@ -512,8 +590,34 @@
       $('rec-keyfile').value = '';
       $('rec-manual-beacon').value = '';
       $('rec-meta-box').hidden = true;
+      $('rec-beacon-box').hidden = true;
+      currentBeaconUrl = '';
       $('rec-result-card').hidden = true;
       setStatus('');
+    });
+
+    $('rec-btn-copy-beacon-url').addEventListener('click', async () => {
+      const status = $('rec-beacon-copy-status');
+      if (!currentBeaconUrl) {
+        status.textContent = '先にカプセルを解析してください。';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(currentBeaconUrl);
+        status.textContent = 'コピーしました。';
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = currentBeaconUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          status.textContent = 'コピーしました。';
+        } catch (e2) {
+          status.textContent = 'コピーできませんでした。URLを選択してコピーしてください。';
+        }
+        ta.remove();
+      }
     });
 
     document.querySelectorAll('input[name="rec-beacon-mode"]').forEach(r => {

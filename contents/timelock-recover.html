@@ -45,6 +45,23 @@
         <div style="font-weight:800; margin-bottom:6px;">📋 カプセルメタデータ・解禁カウントダウン</div>
         <div id="rec-countdown" style="font-weight:800; font-size:0.95rem; margin-bottom:8px;"></div>
         <div id="rec-meta-grid" class="meta-grid"></div>
+        <div id="rec-beacon-box" hidden style="margin-top:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px;">
+          <div style="font-weight:800; margin-bottom:6px;">📡 ビーコン取得（オフライン復号用）</div>
+          <div style="font-size:0.82rem; line-height:1.6;">対象ラウンドのビーコンJSONは公開情報です。別のオンライン端末で下のURLを開いて取得し、そのJSONをこの端末の「オフライン手動ビーコン入力」に貼り付けてください。取得したJSONはこの端末でBLS署名検証を行うため、取得に使った端末や経路を信用する必要はありません。</div>
+          <div style="margin-top:8px; font-size:0.82rem; line-height:1.7;">
+            <strong>対象ラウンド:</strong> <span id="rec-beacon-round"></span><br>
+            <strong>取得URL:</strong> <a id="rec-beacon-url-link" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a><br>
+            <strong>予備URL:</strong> <a id="rec-beacon-url-link2" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-top:8px;">
+            <div id="rec-beacon-qr" aria-label="ビーコン取得URLのQRコード"></div>
+            <div>
+              <button type="button" class="btn" id="rec-btn-copy-beacon-url">📋 URLをコピー</button>
+              <div id="rec-beacon-copy-status" style="font-size:0.78rem; color:var(--muted); margin-top:4px;"></div>
+              <div style="font-size:0.78rem; color:var(--muted); margin-top:4px;">QRコードにはJSONではなく取得URLが入っています。スマホで読み取って開くとJSONが表示されます。</div>
+            </div>
+          </div>
+        </div>
         <div id="rec-passkey-warn" class="status warn" hidden style="margin-top:8px;">
           ⚠️ <strong>WebAuthn パスキー保護に関する注意：</strong><br>
           このカプセルにはパスキー（WebAuthn PRF）保護が含まれています。WebAuthnの仕様上、パスキーは作成時と同じドメイン（RP ID）でのみ呼び出し可能です。ローカルファイル（file://）や別ドメインで開いている場合はパスキー認証が失敗するため、作成時と同じオリジンの環境で開いてください。
@@ -70,7 +87,7 @@
 
       <div id="rec-manual-box" hidden style="margin-bottom:12px; padding:10px 12px; border:1px dashed var(--border); border-radius:8px;">
         <div style="font-size:0.8rem; color:var(--muted); margin-bottom:6px;">
-          取得URL例: <code id="rec-beacon-url-hint">https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/&lt;ROUND&gt;</code>
+          取得URL: <code id="rec-beacon-url-hint">https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/&lt;ROUND&gt;</code>
         </div>
         <textarea id="rec-manual-beacon" rows="3" placeholder='{"round": 123456, "signature": "..."} または 96文字 (48バイト) BLS署名hex'></textarea>
       </div>
@@ -121,6 +138,7 @@
 
   <script src="argon2.umd.min.js"></script>
   <script src="vendor/tlock.bundle.js"></script>
+  <script src="qr-encoder.js"></script>
   <script src="timelock-recover.js"></script>
   <script src="timelock-recover-theme-toggle.js"></script>
 </body>

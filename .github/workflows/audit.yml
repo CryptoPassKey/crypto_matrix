@@ -52,6 +52,16 @@ jobs:
         run: node tests/ui/help-popover.test.js
       - name: TimeLock text triage tests
         run: node tests/ui/timelock-text-triage.test.js
+      - name: Backup text triage tests
+        run: node tests/ui/backup-text-triage.test.js
+      - name: Vault text triage tests
+        run: node tests/ui/vault-text-triage.test.js
+      - name: TimeSecret text triage tests
+        run: node tests/ui/timesecret-text-triage.test.js
+      - name: Quick generation text triage tests
+        run: node tests/ui/quick-text-triage.test.js
+      - name: Data Transfer text triage tests
+        run: node tests/ui/datatransfer-text-triage.test.js
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests

@@ -893,13 +893,13 @@
 <section class="section-card no-print" id="bonus-vault" style="margin-top:24px;">
   <h2 class="section-title">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span>汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで安全に暗号化・分割保管できる多機能保管庫です。">?</button></span>
+      <span>汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで暗号化・分割保管できる多機能保管庫です。暗号化には PBKDF2-SHA512 と AES-256-GCM を使用します。">?</button></span>
       <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル・ゼロナレッジ</span>
     </div>
   </h2>
 
   <p class="cm-km-label" style="margin:0 0 12px; font-size:0.86rem;">
-    お手元の既存パスワード、日本語の機密メモ、重要ファイルなどを、ブラウザ上（ローカル完結・外部送信ゼロ）で <strong>PBKDF2-SHA512 ＋ AES-256-GCM ＋ 二段階認証（キーファイル／パスキー） ＋ Shamir秘密分散（M-of-N）</strong> の自由な組み合わせで暗号化・分割保存・復元できます。
+    お手元の既存パスワード、機密メモ、重要ファイルなどを、<strong>外部送信ゼロ</strong>で暗号化・分割保存・復元できます。
   </p>
 
   <!-- タブ切り替え（暗号化作成／復元・復号） -->
@@ -958,7 +958,7 @@
       </div>
 
       <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-        <label for="bv-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータが絶対に復元できないようにする数学的暗号技術です。">?</button></label>
+        <label for="bv-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータを復元できない数学的暗号技術（秘密分散）です。">?</button></label>
         <select id="bv-shamir">
           <option value="1-1" selected>分割なし（通常：1個の暗号化データ）</option>
           <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個で復元）</option>
@@ -1052,9 +1052,9 @@
       <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
-          <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+          <span>保存する形式は<strong>1つで大丈夫です</strong>（すべて保存する必要はありません）</span>
         </div>
-        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+        <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
       <div id="bv-result-shares-container"></div>
     </div>

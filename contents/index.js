@@ -5784,6 +5784,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('bv-encrypt-result'))$('bv-encrypt-result').style.display='none';
    $('tl-clear-output')?.click();
    $('tl-restore-clear')?.click();
+   try{window.CryptoMatrixDataTransfer?.resetRx?.();}catch(_){}
    if($('duress-modal')){delete $('duress-modal').dataset.realPassword;$('duress-modal').hidden=true;}
    if($('keyfile-modal'))$('keyfile-modal').hidden=true;
    if(Array.isArray(currentMnemonicWords)){currentMnemonicWords.fill('');currentMnemonicWords.length=0;}
@@ -5796,7 +5797,7 @@ document.addEventListener('DOMContentLoaded', () => {
    $('bq-clear')?.click();
    $('bq-reset-parts')?.click();
    updateSimulationUI();
-   if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ 緊急消去完了：カード配列シード番号・サイト名・合言葉・レシピ設定・暗号化表示・クリップボードをすべて初期化・消去しました。';
+   if($('sim-step-banner'))$('sim-step-banner').textContent='🛡️ 緊急消去完了：カード配列シード番号・サイト名・合言葉・レシピ設定・暗号化表示・QR受信データ・クリップボードをすべて初期化・消去しました。';
   });
  });
  window.MatrixCardPreset=Object.freeze({

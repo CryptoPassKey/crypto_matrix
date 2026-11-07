@@ -2847,13 +2847,13 @@
           <h2 class="dt-title">
             <svg class="cm-tab-ico" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>
             <span>データ転送（オフラインQR高速送受信）</span>
-            <button type="button" class="help-btn" aria-label="データ転送の説明を表示" data-help="ネットワークやBluetoothを使わず、連続再生されるQRコードとカメラだけで端末間のファイル・テキスト転送を行います。1周目で全データブロックを順番に送り、2周目以降はLT修復フレーム（Fountain符号）を送るため、途中で取りこぼしがあっても最小限の枚数で自動復元されます。">?</button>
+            <button type="button" class="help-btn" aria-label="データ転送の説明を表示" data-help="ネットワークやBluetoothを使わず、連続再生されるQRコードとカメラだけで端末間のファイル・テキスト転送を行います。1周目で全データブロックを順番に送り、2周目以降はLT修復フレーム（Fountain符号）を送るため、途中で取りこぼしがあっても最小限の枚数で自動復元されます。送信には Systematic LT Fountain ハイブリッド方式を使い、CRC32 でデータの完全性を検証します。">?</button>
           </h2>
           <span id="dt-state-badge" class="dt-state-pill" data-state="IDLE">待機中</span>
         </div>
 
         <p class="dt-lead">
-          インターネット・Wi-Fi・Bluetoothを一切使わず、画面の<strong>連続QRコード再生</strong>と<strong>カメラ読み取り</strong>だけで、スマートフォンやPC間でのファイル・テキスト転送を完全オフラインで行います（Systematic LT Fountain ハイブリッド自動修復・CRC32完全性検証付き）。
+          インターネット・Wi-Fi・Bluetoothを使わず、QRコードだけでファイル・テキストを転送します（完全オフライン）。
         </p>
 
         <!-- Sub-Tab Switcher (送信 / 受信) -->

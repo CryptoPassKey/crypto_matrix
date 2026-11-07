@@ -1201,6 +1201,60 @@
     return packets;
   }
 
+  let tlBeaconUrl = '';
+
+  function hideTlBeaconBox() {
+    const box = $('tl-beacon-url-box');
+    if (box) {
+      box.hidden = true;
+      box.dataset.url = '';
+    }
+    const a1 = $('tl-beacon-url-link');
+    if (a1) { a1.href = '#'; a1.textContent = ''; }
+    const a2 = $('tl-beacon-url-link2');
+    if (a2) { a2.href = '#'; a2.textContent = ''; }
+    const qr = $('tl-beacon-qr');
+    if (qr) qr.innerHTML = '';
+    tlBeaconUrl = '';
+  }
+
+  function updateTlBeaconBox(first, meta) {
+    const box = $('tl-beacon-url-box');
+    if (!box) return;
+    // Beacon metadata comes from the capsule header JSON (untrusted input).
+    // Validate format and Quicknet chain equality, then build the URL only
+    // from verification-side values: the known Quicknet chain hash and the
+    // round parsed from the binary AGE header (cross-checked in unpack).
+    const chainHash = typeof meta.chainHash === 'string' ? meta.chainHash.toLowerCase() : '';
+    const expected = String(getTLBundle().QUICKNET_CHAIN_INFO.hash || '').toLowerCase();
+    let round = meta.round;
+    if (first && first.ageBinary) {
+      try {
+        round = getTLBundle().parseTimelockAgeHeader(first.ageBinary).roundNumber;
+      } catch (_) { /* keep meta round; validated below */ }
+    }
+    if (!/^[0-9a-f]{64}$/.test(chainHash) || !expected || chainHash !== expected || !Number.isSafeInteger(round) || round <= 0) {
+      hideTlBeaconBox();
+      return;
+    }
+    const url = 'https://api.drand.sh/' + expected + '/public/' + round;
+    const url2 = 'https://drand.cloudflare.com/' + expected + '/public/' + round;
+    if (box.dataset.url !== url) {
+      box.dataset.url = url;
+      tlBeaconUrl = url;
+      $('tl-beacon-round').textContent = 'Round #' + round;
+      const a1 = $('tl-beacon-url-link');
+      a1.href = url;
+      a1.textContent = url;
+      const a2 = $('tl-beacon-url-link2');
+      a2.href = url2;
+      a2.textContent = url2;
+      $('tl-beacon-qr').innerHTML = renderQrPreviewHtml(url, 'ビーコン取得URL');
+      $('tl-beacon-copy-status').textContent = '';
+    }
+    box.hidden = false;
+  }
+
   function refreshRestoreCapsulePreview() {
     stopCountdown();
     const infoBox = $('tl-capsule-info-box');
@@ -1213,6 +1267,7 @@
     } catch (e) {
       infoBox.hidden = false;
       infoBox.innerHTML = `<div style="color:#f87171; font-weight:700;">❌ 入力データ解析エラー：${escapeHtml(e.message)}</div>`;
+      hideTlBeaconBox();
       return;
     }
 
@@ -1220,6 +1275,7 @@
       infoBox.hidden = true;
       infoBox.innerHTML = '';
       if (authBox) authBox.hidden = true;
+      hideTlBeaconBox();
       return;
     }
 
@@ -1227,6 +1283,7 @@
       const parsed = packets.map((b) => parseAnyTimelockPacket(b));
       const first = parsed[0];
       const meta = first.meta;
+      updateTlBeaconBox(first, meta);
       let shamirStatusHtml = '単一カプセル（分割なし）';
       if (first.kind === 'cmts') {
         const uniqueIndices = Array.from(new Set(parsed.filter((p) => p.kind === 'cmts' && p.setIdHex === first.setIdHex).map((p) => p.index))).sort((a, b) => a - b);
@@ -1277,6 +1334,7 @@
     } catch (e) {
       infoBox.hidden = false;
       infoBox.innerHTML = `<div style="color:#f87171; font-weight:700;">❌ カプセル解析エラー：${escapeHtml(e.message)}</div>`;
+      hideTlBeaconBox();
     }
   }
 
@@ -1950,6 +2008,30 @@
     });
     $('tl-beacon-mode-manual')?.addEventListener('change', () => {
       if ($('tl-manual-beacon-box')) $('tl-manual-beacon-box').hidden = false;
+    });
+
+    $('tl-btn-copy-beacon-url')?.addEventListener('click', async () => {
+      const status = $('tl-beacon-copy-status');
+      if (!tlBeaconUrl) {
+        if (status) status.textContent = '先にカプセルを読み込んでください。';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(tlBeaconUrl);
+        if (status) status.textContent = 'コピーしました。';
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = tlBeaconUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          if (status) status.textContent = 'コピーしました。';
+        } catch (e2) {
+          if (status) status.textContent = 'コピーできませんでした。URLを選択してコピーしてください。';
+        }
+        ta.remove();
+      }
     });
 
     $('tl-restore-text')?.addEventListener('input', refreshRestoreCapsulePreview);

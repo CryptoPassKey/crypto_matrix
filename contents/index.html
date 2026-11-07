@@ -1154,7 +1154,6 @@
   <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px; flex-wrap:wrap;">
     <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムカプセル作成（カプセル封入）</button>
     <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>タイムカプセル解禁・復元</button>
-    <a href="timelock-recover.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline tl-ink-sky" id="tl-btn-open-standalone-top" style="font-size:0.8rem; margin-left:auto; border-color:#38bdf8; text-decoration:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>独立復元ツール (timelock-recover.html) を開く</a>
   </div>
 
   <!-- =========================================================
@@ -1514,7 +1513,21 @@
         </label>
         <textarea id="tl-manual-beacon-input" class="cm-radius-4 cm-bbox" style="width:100%; height:68px; font-family:monospace; font-size:0.76rem; padding:6px;" placeholder='例: {"round":12345678,"randomness":"...","signature":"8a9b..."} または 96文字のsignature hex'></textarea>
         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
-          ※オフライン端末で復号する場合、別のオンライン端末で上記カプセル解析情報に表示されたURLへアクセスし、取得したJSONを貼り付けてください。端末内でBLS12-381ペアリング検証を行い、偽造署名はすべて拒否します。
+          ※オフライン端末で復号する場合、別のオンライン端末で下に表示される取得URLへアクセスし、取得したJSONを貼り付けてください。端末内でBLS12-381ペアリング検証を行い、偽造署名はすべて拒否します。
+        </div>
+        <div id="tl-beacon-url-box" hidden style="margin-top:10px;">
+          <div style="font-size:0.8rem; font-weight:700; margin-bottom:4px;">📡 このカプセルのビーコン取得URL（対象: <span id="tl-beacon-round"></span>）</div>
+          <div style="font-size:0.75rem; color:var(--text-sub); line-height:1.6; margin-bottom:6px;">ビーコンJSONは公開情報です。別のオンライン端末で開いて取得し、上の欄に貼り付けてください。取得したJSONはこの端末で署名検証するため、取得に使った端末や経路を信用する必要はありません。</div>
+          <div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+            <div style="flex:1; min-width:230px; font-size:0.76rem; line-height:1.7;">
+              <a id="tl-beacon-url-link" class="tl-ink-sky" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a><br>
+              予備: <a id="tl-beacon-url-link2" class="tl-ink-sky" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a><br>
+              <button type="button" class="btn btn-secondary" id="tl-btn-copy-beacon-url" style="font-size:0.75rem; padding:4px 10px; margin-top:4px;">📋 URLをコピー</button>
+              <span id="tl-beacon-copy-status" style="font-size:0.75rem; margin-left:6px;"></span>
+              <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px;">QRコードにはJSONではなく取得URLが入っています。</div>
+            </div>
+            <div id="tl-beacon-qr"></div>
+          </div>
         </div>
       </div>
     </div>

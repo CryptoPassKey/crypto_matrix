@@ -12,7 +12,7 @@ node accessibility/contrast-audit.js
 node compatibility/compat-audit.js
 ```
 
-Node.js 20 以上が必要です。CI では `.github/workflows/audit.yml` が
+Node.js 24 以上が必要です（監査で使う jsdom の要求バージョンに合わせています）。CI では `.github/workflows/audit.yml` が
 プルリクエストと main への push で同じ監査を実行します。
 
 ## 検査一覧

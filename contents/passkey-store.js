@@ -86,13 +86,17 @@
     return null;
   }
 
-  // 旧キーの削除は、プライマリ記録に同じ資格情報IDがある場合に限る。
+  // 旧キーの削除は、旧キーが保持している値そのものがプライマリ記録にも
+  // ある場合に限る（その値への到達可能性が旧キー以外で確認できるため）。
+  // 別の新しい資格情報が保存されただけでは、旧キーの値は消さない。
   // （discoverable lookup の成功時もプライマリ記録はその資格情報で
   //   更新されるため、この条件で到達可能性の確認を兼ねる。）
-  function maybeDeleteLegacy(seed, credB64, opts) {
+  function maybeDeleteLegacy(seed, opts) {
     try {
+      var legacyVal = localStorage.getItem(legacyKey(seed));
+      if (!legacyVal) return false;
       var primary = primaryCredB64(opts);
-      if (primary && primary === credB64) {
+      if (primary && primary === legacyVal) {
         localStorage.removeItem(legacyKey(seed));
         return true;
       }
@@ -101,21 +105,33 @@
   }
 
   // マップへの書き込み（移行・保存の共通処理）。
-  // 成功したら true、保留・失敗なら false を返す。失敗時に旧キーは消さない。
-  async function writeEntry(seed, credB64, opts) {
+  // mode='migrate'（旧形式からの移行）では、同じ識別子のエントリが既に
+  // あれば上書きしない。先に別のタブが新しい資格情報を保存していた場合に、
+  // 古い読み取り結果で巻き戻さないため。既存エントリがある場合はその値を
+  // 現在の正として返し、呼び出し側もそれを使う。
+  // mode='store'（PRF 成功後の明示的な保存）では上書きを許可する。
+  // 戻り値: { ok, value } 。保留・失敗時は ok:false で、旧キーは消さない。
+  async function writeEntry(seed, credB64, opts, mode) {
     var id = await derive(seed, opts);
-    var done = await withMapLock(async function () {
+    var result = await withMapLock(async function () {
       var m = readMap();
-      if (!m.ok) return false; // 壊れた新形式は上書きしない
+      if (!m.ok) return { written: false, value: null }; // 壊れた新形式は上書きしない
+      if (mode === 'migrate' &&
+          typeof m.map[id] === 'string' && m.map[id]) {
+        return { written: false, value: m.map[id] };
+      }
       m.map[id] = credB64;
-      try { writeMap(m.map); } catch (_) { return false; }
-      return verifyEntry(id, credB64);
+      try { writeMap(m.map); } catch (_) { return { written: false, value: null }; }
+      if (!verifyEntry(id, credB64)) return { written: false, value: null };
+      return { written: true, value: credB64 };
     });
-    if (done) {
-      cache.set(seedStr(seed), credB64);
-      maybeDeleteLegacy(seed, credB64, opts);
+    if (!result) return { ok: false, value: null }; // ロックなし＝保留
+    if (result.value) {
+      cache.set(seedStr(seed), result.value);
+      // 旧キーの削除判定は、旧キーが保持している値に対して行う
+      maybeDeleteLegacy(seed, opts);
     }
-    return !!done;
+    return { ok: result.written || !!result.value, value: result.value };
   }
 
   // 資格情報IDの解決: 新形式 → 旧形式（見つかれば移行を試みる）。
@@ -133,10 +149,14 @@
     var legacy = null;
     try { legacy = localStorage.getItem(legacyKey(seed)); } catch (_) {}
     if (legacy) {
-      cache.set(s, legacy);
       if (id) {
-        try { await writeEntry(seed, legacy, opts); } catch (_) {}
+        try {
+          var migrated = await writeEntry(seed, legacy, opts, 'migrate');
+          // 移行の過程で既存の新しいエントリが見つかった場合はそちらが正
+          if (migrated && migrated.value) return migrated.value;
+        } catch (_) {}
       }
+      cache.set(s, legacy);
       return legacy;
     }
     cache.set(s, null);
@@ -146,7 +166,10 @@
   // PRF 成功後の保存。書けなくても旧キーは消さず、false を返す。
   async function store(seed, credB64, opts) {
     if (!credB64) return false;
-    try { return await writeEntry(seed, credB64, opts); } catch (_) { return false; }
+    try {
+      var r = await writeEntry(seed, credB64, opts, 'store');
+      return !!(r && r.ok);
+    } catch (_) { return false; }
   }
 
   // 同期参照用: キャッシュ → 旧キーの順で即時に返す。

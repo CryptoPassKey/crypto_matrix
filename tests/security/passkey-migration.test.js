@@ -10,7 +10,7 @@
  *  3   idempotent re-runs
  *  5   corrupted v2 data -> legacy fallback, corrupted data never overwritten
  *  10  two tabs storing different seeds concurrently -> both entries survive
- *  11  migration and store for the same seed concurrently -> consistent value
+ *  11  slow migration carrying a stale legacy value vs a newer store -> newer wins
  *  12  persistent write failure -> store reports false, legacy intact
  *  13  no Web Locks -> no migration, no writes, legacy reads keep working
  *
@@ -168,20 +168,41 @@ const deriveStub = async (seed) => 'id-' + seed;
       'both entries are present');
   }
 
-  console.log('11: migration and store for the same seed concurrently -> consistent');
+  console.log('11: slow migration (stale legacy) vs newer store -> newer wins');
   {
     const ls = makeLocalStorage();
-    ls.setItem('cm_passkey_cred_555', 'CRED-E');
+    ls.setItem('cm_passkey_cred_555', 'CRED-OLD');
     const nav = { locks: makeLocks() };
     const tabA = makeTab(ls, nav);
     const tabB = makeTab(ls, nav);
-    const opts = { deriveIdentifier: deriveStub, getPrimaryCredB64: () => null };
-    await Promise.all([
-      tabA.resolve('555', opts),
-      tabB.store('555', 'CRED-E', opts),
-    ]);
+    // Tab A reads the legacy value first; its migration write is held back
+    // (second derivation is parked) until Tab B has stored the new credential.
+    let deriveCalls = 0;
+    let releaseSecond;
+    const slowDerive = () => {
+      deriveCalls++;
+      if (deriveCalls === 2) {
+        return new Promise((res) => { releaseSecond = () => res('id-555'); });
+      }
+      return Promise.resolve('id-555');
+    };
+    const optsA = { deriveIdentifier: slowDerive, getPrimaryCredB64: () => 'CRED-NEW' };
+    const optsB = { deriveIdentifier: deriveStub, getPrimaryCredB64: () => 'CRED-NEW' };
+    const pendingA = tabA.resolve('555', optsA);
+    // let Tab A reach the parked second derivation
+    await new Promise((r) => setTimeout(r, 10));
+    ok(deriveCalls === 2, 'tab A migration is in flight with the stale value');
+    ok((await tabB.store('555', 'CRED-NEW', optsB)) === true,
+      'tab B stored the new credential');
+    releaseSecond();
+    const resolvedA = await pendingA;
+    ok(resolvedA === 'CRED-NEW',
+      'tab A returns the newer credential, not its stale legacy value');
     const v2 = readV2(ls);
-    ok(v2 && v2.map['id-555'] === 'CRED-E', 'final value is consistent');
+    ok(v2 && v2.map['id-555'] === 'CRED-NEW', 'map keeps the newer credential');
+    ok(ls.getItem('cm_passkey_cred_555') === 'CRED-OLD',
+      'legacy key kept (the old value itself was not confirmed reachable)');
+    ok(tabA.peek('555') === 'CRED-NEW', 'tab A cache converged to the newer value');
   }
 
   console.log('12: persistent write failure -> store false, legacy intact');

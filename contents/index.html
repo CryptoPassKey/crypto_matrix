@@ -681,14 +681,13 @@
     </div>
 
 <section class="section-card" id="backup-qr" data-ready="false">
- <h2 class="section-title">拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="作成した設定やサイト・合言葉を、パスワードや生体認証、分割保管などで暗号化して安全にバックアップ・復元できる高セキュリティ領域です。">?</button></h2>
+ <h2 class="section-title">拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定やサイト・合言葉を、パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）を自由に組み合わせて暗号化し、BIP39フレーズと統合QRコードでバックアップ・復元する領域です。保護は単独でも作成できます。暗号化なしのフレーズとQRコードは「バックアップ」ページの「BIP39復元フレーズ」に自動表示されます。">?</button></h2>
  <div class="cm-subtab-bar cm-subtab-bar-inner" role="tablist" aria-label="暗号化・復号化">
   <button type="button" class="cm-subtab-btn is-active" id="bq-tab-btn-encrypt" role="tab" aria-selected="true" aria-controls="bq-panel-encrypt">暗号化</button>
   <button type="button" class="cm-subtab-btn" id="bq-tab-btn-decrypt" role="tab" aria-selected="false" aria-controls="bq-panel-decrypt">復号化</button>
  </div>
  <div id="bq-panel-encrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-encrypt">
  <div class="no-print">
-  <p>暗号化なしの24単語・拡張バックアップとQRコードは「バックアップ」ページの「BIP39復元フレーズ」に自動表示されます。こちらは <strong>パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）</strong> を自由に組み合わせて保護した <strong>BIP39 24単語×必要ブロック数</strong> とその <strong>統合QRコード</strong> を作成・復元できます（パスワード不要でパスキー単独・キーファイル単独・秘密分散単独での保護も可能です）。</p>
   <div class="bq-row">
    <label for="bq-scope">保存形式<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定のみ保存するか、マイレシピ設定・サイト名・合言葉まで含む拡張バックアップにするかを選べます。拡張にすると、カードなしでも全設定を再現できます。">?</button></label>
    <select id="bq-scope">
@@ -783,15 +782,10 @@
   </div>
 
   <div class="bq-row cm-passkey-note cm-panel-blue" id="bq-passkey-row" hidden style="padding:10px 12px; border-radius:8px; border-width:1px; border-style:solid; font-size:0.82rem; line-height:1.5;">
-   🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。">?</button><br>
+   🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。【動作対応認証器】iCloudキーチェーン（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）／Googleパスワードマネージャー（Android端末の生体認証、Chromeブラウザ環境）／YubiKey 5シリーズ・Security Key（ファームウェア5.2以上）／Windows Hello（Windows 11）">?</button><br>
    ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
    <div id="bq-passkey-manager" class="cm-passkey-manager-slot"></div>
-   <div class="cm-guide-blue cm-panel-guide" style="margin-top:6px; padding:6px 10px; border-radius:6px; border-width:1px; border-style:solid; font-size:0.78rem;">
-     <strong>【動作対応認証器】</strong><br>
-     ・⭕ <strong>iCloudキーチェーン</strong>（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）<br>
-     ・⭕ <strong>Googleパスワードマネージャー</strong>（Android端末の生体認証、Chromeブラウザ環境）<br>
-     ・⭕ <strong>YubiKey 5シリーズ / Security Key</strong>（ファームウェア 5.2以上）<br>
-     ・⭕ <strong>Windows Hello</strong> (Windows 11)<br>
+   <div style="margin-top:6px; font-size:0.78rem;">
      <span class="cm-warn-red">※パスキー保護を利用するには、お使いの端末・ブラウザ・パスキーの保存先がWebAuthn PRFに対応している必要があります。対応していない環境では登録・復元できない場合があります。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。⚠️ iPhoneで外付けYubiKeyを使用する場合、PRF拡張が利用できない、または動作が不安定なことがあります。</span>
    </div>
   </div>
@@ -802,9 +796,9 @@
   <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>💡</span>
-      <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+      <span>保存する形式は<strong>1つで大丈夫です</strong>（すべて保存する必要はありません）</span>
     </div>
-    <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
+    <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
   </div>
 
   <div class="bq-action-group">
@@ -842,7 +836,7 @@
  <div id="bq-panel-decrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-decrypt" hidden>
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
   <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と全く同じ設定を100%復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
-  <p>「BIP39復元フレーズ」または「拡張バックアップ」で作成した統合QRコード（通常時は1枚、秘密分散時は任意のMシェア分のM枚）をカメラや画像選択で読み取るか、24単語×必要ブロック数を貼り付けて復元します。</p>
+  <p>統合QRコードの読み取り、または24単語フレーズの貼り付けで復元します。</p>
   <div class="cm-restore-steps" id="bq-restore-steps" aria-label="復元の手順">
     <div class="cm-restore-steps-title">復元の手順</div>
     <ol class="cm-steps-list">
@@ -884,7 +878,7 @@
     <div class="bq-verified-head">✓ 検証済みの内容</div>
   </div>
   <div id="bq-preview" hidden></div><button type="button" class="btn" id="bq-apply" disabled><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">確認した内容で復元を実行</button>
-  <p>復元処理は自動実行されず、全ブロックの整合性・暗号認証タグ・生成値ハッシュの検証が完了した後に適用されます。印刷後は必ず復元テストを実施してから元データを破棄してください。</p>
+  <p>印刷後は必ず復元テストを実施してから元データを破棄してください。</p>
  </div>
  </div>
 </section>

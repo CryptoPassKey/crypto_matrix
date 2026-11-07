@@ -64,7 +64,7 @@ function scanFile(file) {
     const tagRe = /<script\b[^>]*>/gi;
     let m;
     while ((m = tagRe.exec(text)) !== null) {
-      if (!/\ssrc\s*=/.test(m[0])) report(m.index, '<script> without src');
+      if (!/\ssrc\s*=/i.test(m[0])) report(m.index, '<script> without src');
     }
   } else {
     for (const idx of allMatches(text, /<script\b(?![^>]*\ssrc\s*=)/i)) {

@@ -1,0 +1,10 @@
+/*
+  # Cloudflare Pages security response headers
+  # CSP is already defined by the application's HTML meta policy.
+  # Keep CSP out of this file until the full resource graph is validated.
+
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()

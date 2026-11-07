@@ -52,3 +52,5 @@ jobs:
         run: node tests/security/csp-policy-check.js
       - name: Clipboard auto-clear tests
         run: node tests/security/clipboard-clear.test.js
+      - name: Zeroize clears Data Transfer receive state
+        run: node tests/security/zeroize-dt-rx.test.js

@@ -1145,11 +1145,6 @@
     </div>
   </h2>
 
-  <p class="tl-ink-blue" style="margin:0 0 12px; font-size:0.86rem; line-height:1.55;">
-    指定した未来の日時（drandラウンド）が到来するまで、数学的に復号不可能なタイムカプセルを作成します。<strong>暗号化（作成）は外部通信ゼロ・完全オフライン</strong>で実行されます。<br>
-    さらに<strong>「パスワード付きタイムカプセル」</strong>を選べば、解禁時刻の到来に加えて<strong>復元用パスワード・キーファイル・パスキー（WebAuthn PRF）・Shamir秘密分散</strong>を要求する多重保護が可能です。
-  </p>
-
   <!-- サブタブ切り替え（作成 ／ 解禁・復元） -->
   <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px; flex-wrap:wrap;">
     <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムカプセル作成（カプセル封入）</button>
@@ -1218,18 +1213,16 @@
         <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #38bdf8; border-radius:8px; cursor:pointer; background:#192329;">
           <input type="radio" name="tl-mode" id="tl-mode-a" value="A" style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
-            <strong class="tl-ink-sky" style="font-size:0.88rem;">📦 タイムカプセル（時間解禁のみ — 指定時刻まで開封不可）</strong><br>
+            <strong class="tl-ink-sky" style="font-size:0.88rem;">📦 タイムカプセル（時間解禁のみ — 指定時刻まで開封不可）<button type="button" class="help-btn" aria-label="説明を表示" data-help="すでにパスワード保護された拡張バックアップ/保管庫の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に適しています。">?</button></strong><br>
             指定時刻（対象ラウンド）が到来するまで誰も復号できません。<strong>解禁時刻の到来後は、追加のタイムカプセル用パスワードなしで開封できます。</strong><br>
-            <span class="tl-ink-slate" style="font-size:0.76rem;">※すでにパスワード保護された拡張バックアップ/保管庫の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に最適です。</span>
           </div>
         </label>
 
         <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #f59e0b; border-radius:8px; cursor:pointer; background:#292119;">
           <input type="radio" name="tl-mode" id="tl-mode-b" value="B" checked style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
-            <strong class="tl-ink-amber" style="font-size:0.88rem;">🛡️ 追加暗号化保護タイムカプセル（時刻解禁 ＋ パスワード／パスキー／秘密分散 ★推奨）</strong><br>
+            <strong class="tl-ink-amber" style="font-size:0.88rem;">🛡️ 追加暗号化保護タイムカプセル（時刻解禁 ＋ パスワード／パスキー／秘密分散 ★推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="カプセルファイルが第三者に渡っても、解禁時刻の到来だけでは開封できません。設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。">?</button></strong><br>
             指定時刻の到来 <strong>かつ</strong> 設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。<br>
-            <span class="tl-ink-yellow" style="font-size:0.76rem;">※万が一カプセルファイルが第三者に流出しても、解禁時刻後であっても中身を絶対に解読できません。</span>
           </div>
         </label>
       </div>
@@ -1513,7 +1506,7 @@
         </label>
         <textarea id="tl-manual-beacon-input" class="cm-radius-4 cm-bbox" style="width:100%; height:68px; font-family:monospace; font-size:0.76rem; padding:6px;" placeholder='例: {"round":12345678,"randomness":"...","signature":"8a9b..."} または 96文字のsignature hex'></textarea>
         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
-          ※オフライン端末で復号する場合、別のオンライン端末で下に表示される取得URLへアクセスし、取得したJSONを貼り付けてください。端末内でBLS12-381ペアリング検証を行い、偽造署名はすべて拒否します。
+          ※オフライン端末で復号する場合、別のオンライン端末で下に表示される取得URLへアクセスし、取得したJSONを貼り付けてください。
         </div>
         <div id="tl-beacon-url-box" hidden style="margin-top:10px;">
           <div style="font-size:0.8rem; font-weight:700; margin-bottom:4px;">📡 このカプセルのビーコン取得URL（対象: <span id="tl-beacon-round"></span>）</div>

@@ -336,6 +336,16 @@
   }
 
   Receiver.prototype.reset = function () {
+    // 実体バッファは参照を外す前にゼロ埋めする（監査 M3 対応）
+    // ※コンストラクタからも呼ばれるため、未初期化のフィールドはガードする
+    if (this.shards) this.shards.forEach(function (buf) { if (buf && buf.fill) buf.fill(0); });
+    if (this.parities) this.parities.forEach(function (group) {
+      if (!group) return;
+      Object.keys(group).forEach(function (k) {
+        var b = group[k];
+        if (b && b.fill) b.fill(0);
+      });
+    });
     this.id = null;
     this.total = 0;
     this.wireFormat = null;
@@ -911,6 +921,14 @@
     }
   }
 
+  // 送信側の元データ断片をゼロ埋めして破棄する（監査 M3 対応）
+  FountainEncoder.prototype.dispose = function () {
+    if (Array.isArray(this.fragments)) {
+      this.fragments.forEach(function (f) { if (f && f.fill) f.fill(0); });
+      this.fragments = [];
+    }
+  };
+
   FountainEncoder.prototype.nextPart = async function () {
     if (this.pendingDirectIndex !== null && this.pendingDirectIndex !== undefined) {
       var directIndex = this.pendingDirectIndex;
@@ -976,6 +994,13 @@
   }
 
   FountainReceiver.prototype.reset = function () {
+    // 実体バッファは参照を外す前にゼロ埋めする（監査 M3 対応）
+    if (this.result && this.result.fill) this.result.fill(0);
+    if (this.simpleParts) this.simpleParts.forEach(function (buf) { if (buf && buf.fill) buf.fill(0); });
+    if (this.mixedParts) this.mixedParts.forEach(function (eq) { if (eq && eq.data && eq.data.fill) eq.data.fill(0); });
+    if (Array.isArray(this.queue)) {
+      this.queue.forEach(function (eq) { if (eq && eq.data && eq.data.fill) eq.data.fill(0); });
+    }
     this.id = null;
     this.seqLen = 0;
     this.wireFormat = null;

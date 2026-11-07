@@ -36,16 +36,6 @@ function requireDirective(directives, file, name, expected) {
   }
 }
 
-function requireContains(directives, file, name, token) {
-  const actual = directives.get(name) || [];
-  if (!actual.includes(token)) throw new Error(file + ': ' + name + ' must include ' + token);
-}
-
-function requireAbsent(directives, file, name, token) {
-  const actual = directives.get(name) || [];
-  if (actual.includes(token)) throw new Error(file + ': ' + name + ' must not include ' + token);
-}
-
 const main = readPolicy('index.html');
 requireDirective(main, 'index.html', 'script-src', ["'self'", "'wasm-unsafe-eval'"]);
 requireDirective(main, 'index.html', 'style-src', ["'self'", "'unsafe-inline'"]);

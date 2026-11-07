@@ -4393,6 +4393,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // v2 マップの解決を待ってから判定する（キャッシュ未解決でも見落とさない）
     const cred = await window.CMPasskeyStore.resolve(currentSeed, passkeyStoreOpts());
     if (cred) return true;
+    // 識別子を導出できない（鍵の喪失・読み出し不能）のに v2 マップに
+    // 既存エントリがある場合は、対象を特定できていないだけの可能性が
+    // あるため、自動新規登録へ進まないよう安全側に倒す。
+    if (typeof window.CMPasskeyStore.hasStoredEntries === 'function' &&
+        window.CMPasskeyStore.hasStoredEntries() &&
+        typeof window.CMPasskeyStore.canDerive === 'function' &&
+        !(await window.CMPasskeyStore.canDerive(currentSeed, passkeyStoreOpts()))) return true;
    } else if (typeof localStorage !== 'undefined' && localStorage.getItem('cm_passkey_cred_' + currentSeed)) return true;
   } catch (_) {}
   return false;

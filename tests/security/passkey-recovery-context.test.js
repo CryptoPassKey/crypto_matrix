@@ -73,6 +73,23 @@ function ok(cond, label) {
   const without = await win.MatrixCardPreset.hasRecoveryContext();
   ok(without === false, 'hasRecoveryContext() is false with nothing stored');
 
+  console.log('derivation unavailable + existing v2 entries -> fail safe');
+  // HMAC 導出ができない（鍵の喪失・読み出し不能）状態を再現する。
+  win.CMSeedVault.derivePasskeyIdentifier = async () => {
+    throw new Error('HMAC device key unavailable (stub)');
+  };
+  win.localStorage.setItem('cm_passkey_cred_v2',
+    JSON.stringify({ v: 2, map: { 'id-unresolvable': 'CRED-ORPHANED' } }));
+  const orphaned = await win.MatrixCardPreset.hasRecoveryContext();
+  ok(orphaned === true,
+    'treated as an existing user when derivation fails but the v2 map has entries');
+
+  console.log('control: derivation unavailable + empty map -> not suppressed');
+  win.localStorage.removeItem('cm_passkey_cred_v2');
+  const stillFalse = await win.MatrixCardPreset.hasRecoveryContext();
+  ok(stillFalse === false,
+    'hasRecoveryContext() stays false when derivation fails and no entries exist');
+
   console.log(failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`);
   process.exit(failures === 0 ? 0 : 1);
 })().catch((e) => { console.error('ERROR', e); process.exit(1); });

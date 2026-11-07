@@ -184,10 +184,23 @@
     resolve(seed, opts).catch(function () {});
   }
 
+  // v2 マップに何らかのエントリが存在するか（中身の解決はしない）。
+  function hasStoredEntries() {
+    var m = readMap();
+    return !!(m.ok && m.map && Object.keys(m.map).length > 0);
+  }
+
+  // 識別子の導出が可能かどうか（鍵の喪失・読み出し不能の検出用）。
+  async function canDerive(seed, opts) {
+    try { await derive(seed, opts); return true; } catch (_) { return false; }
+  }
+
   window.CMPasskeyStore = {
     resolve: resolve,
     store: store,
     peek: peek,
-    prime: prime
+    prime: prime,
+    hasStoredEntries: hasStoredEntries,
+    canDerive: canDerive
   };
 })();

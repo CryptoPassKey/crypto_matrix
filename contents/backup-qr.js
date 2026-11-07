@@ -2162,6 +2162,14 @@ function initHelpTooltips(){
 
  }
 
+ popover.setAttribute('role','dialog');
+
+ popover.setAttribute('aria-label','解説');
+
+ popover.setAttribute('aria-hidden','true');
+
+ document.querySelectorAll('.help-btn').forEach(b=>{if(!b.hasAttribute('aria-expanded'))b.setAttribute('aria-expanded','false');});
+
  const bodyEl=$('help-popover-body');
 
  let activeBtn=null,hideTimer=null;
@@ -2176,15 +2184,19 @@ function initHelpTooltips(){
 
   if(!text)return;
 
-  if(activeBtn&&activeBtn!==btn)activeBtn.classList.remove('active');
+  if(activeBtn&&activeBtn!==btn){activeBtn.classList.remove('active');activeBtn.setAttribute('aria-expanded','false');}
 
   activeBtn=btn;
 
   btn.classList.add('active');
 
+  btn.setAttribute('aria-expanded','true');
+
   if(bodyEl)bodyEl.textContent=text;
 
   popover.classList.add('visible');
+
+  popover.setAttribute('aria-hidden','false');
 
 
 
@@ -2222,9 +2234,13 @@ function initHelpTooltips(){
 
   popover.classList.remove('visible');
 
+  popover.setAttribute('aria-hidden','true');
+
   if(activeBtn){
 
    activeBtn.classList.remove('active');
+
+   activeBtn.setAttribute('aria-expanded','false');
 
    activeBtn=null;
 

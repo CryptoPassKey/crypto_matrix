@@ -805,9 +805,13 @@
   });
 })();
 
-/* ===== 「現在のパスワード作成手順」開閉トグル（既定は開く／状態を記憶） ===== */
+/* ===== 「現在のパスワード作成手順」開閉トグル（初回のみ自動で開く） =====
+   方針: 初回アクセス時は自動で開く。一度確認した後は次回以降自動で開かない。
+   手動トグルではいつでも再確認できる。既存の cm_guide_collapsed 記録がある
+   利用者は確認済みとして扱い、移行で突然また開くことがないようにする。 */
 (() => {
   const KEY = 'cm_guide_collapsed';
+  const SEEN_KEY = 'cm_guide_seen';
   const card = document.querySelector('.verbal-guide-card');
   const btn = document.getElementById('btn-guide-toggle');
   if (!card || !btn) return;
@@ -817,13 +821,22 @@
     btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     if (label) label.textContent = collapsed ? '開く' : '閉じる';
   };
-  let collapsed = false;
-  try { collapsed = localStorage.getItem(KEY) === '1'; } catch (e) { collapsed = false; }
+  let seen = false;
+  try {
+    seen = localStorage.getItem(SEEN_KEY) === '1' || localStorage.getItem(KEY) !== null;
+  } catch (e) { seen = false; }
+  let collapsed = seen;
   apply(collapsed);
+  if (!seen) {
+    try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* 保存できなくても今回の表示は開いたままにする */ }
+  }
   btn.addEventListener('click', () => {
     collapsed = !collapsed;
     apply(collapsed);
-    try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) { /* 保存できなくても開閉は動作させる */ }
+    try {
+      localStorage.setItem(KEY, collapsed ? '1' : '0');
+      localStorage.setItem(SEEN_KEY, '1');
+    } catch (e) { /* 保存できなくても開閉は動作させる */ }
   });
 })();
 

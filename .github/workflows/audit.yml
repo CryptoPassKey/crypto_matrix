@@ -48,3 +48,5 @@ jobs:
         run: node tests/security/passkey-recovery-context.test.js
       - name: CSP static check
         run: node tests/security/csp-static-check.js
+      - name: CSP policy check
+        run: node tests/security/csp-policy-check.js

@@ -5,14 +5,17 @@ on:
     paths:
       - "contents/**"
       - "tests/**"
-      - ".github/workflows/audit.yml"
+      - ".github/workflows/**"
   push:
     branches:
       - main
     paths:
       - "contents/**"
       - "tests/**"
-      - ".github/workflows/audit.yml"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
 
 jobs:
   audits:
@@ -23,7 +26,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: "tests/package-lock.json"
       - name: Install audit dependencies

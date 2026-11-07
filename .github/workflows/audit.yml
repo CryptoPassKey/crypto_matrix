@@ -42,6 +42,8 @@ jobs:
         run: node tests/compatibility/compat-audit.js
       - name: Corrupt input rejection tests
         run: node tests/security/corrupt-input.test.js
+      - name: Recover beacon info tests
+        run: node tests/security/recover-beacon-info.test.js
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests

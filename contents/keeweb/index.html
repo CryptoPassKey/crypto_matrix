@@ -857,7 +857,7 @@ body.kw-generator-focus-mode .gen {
         '生成日時：' + formatDateTime(new Date())
       ].join('\n');
 
-      var randSuffix = Math.random().toString(36).slice(2, 8);
+      var randSuffix = generateSecureRandomId();
       var entryPayload = {
         site: saveMeta.title,
         username: '',
@@ -1305,7 +1305,17 @@ body.kw-generator-focus-mode .gen {
     window.kw.applyToSelectedEntryDirectly = applyToSelectedEntryDirectly;
   }
 
-  var CM_KW_TAB_ID = 'kwtab_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  function generateSecureRandomId() {
+    if (typeof crypto === 'undefined' || !crypto || typeof crypto.getRandomValues !== 'function') {
+      throw new Error('Web Crypto API is not available; cannot generate a secure random ID.');
+    }
+    var bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+
+  var CM_KW_TAB_ID = 'kwtab_' + Date.now() + '_' + generateSecureRandomId();
   window.__cm_in_flight_transfers = window.__cm_in_flight_transfers || new Set();
   window.__cm_completed_transfers = window.__cm_completed_transfers || new Set();
   window.__cm_failed_transfers = window.__cm_failed_transfers || new Map();

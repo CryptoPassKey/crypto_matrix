@@ -710,11 +710,11 @@
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-passkey" style="width:17px; height:17px;">
-     👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やハードウェアセキュリティキー（YubiKey）、パスワードマネージャー（Bitwarden等）による本人確認でバックアップを強力にロックします。">?</button>
+     <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やハードウェアセキュリティキー（YubiKey）、パスワードマネージャー（Bitwarden等）による本人確認でバックアップを強力にロックします。">?</button>
     </label>
    </div>
    <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-    <label for="bq-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術（秘密分散）です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
+    <label for="bq-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術（秘密分散）です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
     <select id="bq-shamir">
      <option value="1-1" selected>分割なし（通常：1枚のQRに統合）</option>
      <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2枚で復元）</option>
@@ -815,7 +815,7 @@
    <div class="bq-action-group-label">転送・検証</div>
    <div class="bq-row">
    <button type="button" class="btn btn-outline" id="bq-transfer-keeweb" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="KeePassに新規エントリーとして保存（QR画像とキーファイルを両方自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
-   <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>復元テスト欄へ転記</button>
+   <button type="button" class="btn btn-outline" id="bq-test-restore" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成されたバックアップデータを下の復元欄に転記して手動テストを実行します"><img src="test-icon.png" class="cm-btn-img" alt="" width="20" height="20">復元テスト欄へ転記</button>
    <button type="button" class="btn btn-outline" id="bq-transfer-timelock" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムカプセルタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>タイムカプセルへ転記</button>
    <button type="button" class="btn btn-outline" id="bq-transfer-timesecret" style="padding:6px 10px; font-size:0.8rem; font-weight:700;" disabled title="作成された暗号化バックアップを復号・削除せずそのままタイムシークレットタブへ引き渡します"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>タイムシークレットへ転記</button>
    </div>
@@ -947,12 +947,12 @@
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-passkey" style="width:17px; height:17px;">
-          👤 パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系）でのみ復元できます。PRF非対応パスキーでは復元できません。">?</button>
+          <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系）でのみ復元できます。PRF非対応パスキーでは復元できません。">?</button>
         </label>
       </div>
 
       <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-        <label for="bv-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータを復元できない数学的暗号技術（秘密分散）です。">?</button></label>
+        <label for="bv-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータを復元できない数学的暗号技術（秘密分散）です。">?</button></label>
         <select id="bv-shamir">
           <option value="1-1" selected>分割なし（通常：1個の暗号化データ）</option>
           <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個で復元）</option>
@@ -1291,7 +1291,7 @@
       </div>
 
       <div class="bq-row" style="margin-bottom:10px;">
-        <label for="tl-shamir" style="font-weight:600;">🧩 秘密分散（Shamir M-of-N 分散保管）:</label>
+        <label for="tl-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N 分散保管）:</label>
         <select id="tl-shamir">
           <option value="1-1" selected>分割なし（通常：1個のタイムカプセルカプセル）</option>
           <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個＋解禁時刻到来で復元）</option>
@@ -1317,7 +1317,7 @@
           </label>
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
             <input type="checkbox" id="tl-opt-passkey" style="width:17px; height:17px;">
-            👤 パスキー（WebAuthn PRF暗号鍵導出）
+            <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（WebAuthn PRF暗号鍵導出）
           </label>
         </div>
 
@@ -1536,7 +1536,7 @@
         <div class="tl-ink-emerald" id="tl-restore-keyfile-status" style="width:100%; font-size:0.76rem;"></div>
       </div>
       <div class="tl-ink-sky cm-panel-sky" id="tl-restore-pk-notice" hidden style="margin-top:8px; padding:8px 10px; border-width:1px; border-style:solid; border-radius:6px; font-size:0.8rem;">
-        👤 このカプセルには<strong>WebAuthn PRFパスキー保護</strong>が含まれています。「解禁・復号を実行」を押すと端末の生体認証／セキュリティキー確認が表示されます。
+        <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">このカプセルには<strong>WebAuthn PRFパスキー保護</strong>が含まれています。「解禁・復号を実行」を押すと端末の生体認証／セキュリティキー確認が表示されます。
       </div>
     </div>
 
@@ -1899,7 +1899,7 @@
 
           <!-- パスキー説明エリア -->
           <div id="km-passkey-wrap" class="cm-passkey-note cm-panel-blue" style="display:none; border-width:1px; border-style:solid; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:0.8rem; line-height:1.5;">
-            <div>👤 <strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
+            <div><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20"><strong>パスキー認証：</strong> 作成ボタンを押すと、お使いの端末（Touch ID / Face ID / 指紋認証 / Windows Hello / YubiKey等）の生体認証・セキュリティキー確認画面が表示されます。認証完了後、パスキー情報がキーファイルに合成されます。</div>
             <div id="km-passkey-existing-notice" class="cm-prot-init" style="display:none; margin-top:6px; padding:4px 8px; border-width:1px; border-style:solid; border-radius:4px; font-size:0.75rem;">
               ✨ この端末にこのカード用パスキー認証情報が登録されています。確認を押すと登録済みパスキーで認証・復元されます。
             </div>
@@ -2165,7 +2165,7 @@
 
               <label class="ts-chk-label" style="margin-bottom:0;">
                 <input type="checkbox" id="ts-opt-passkey">
-                <span>👤 パスキー（WebAuthn PRF 暗号鍵導出）</span>
+                <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（WebAuthn PRF 暗号鍵導出）</span>
               </label>
               <div id="ts-pk-panel" style="margin-top:6px;" hidden>
                 <div id="ts-passkey-slot" class="cm-passkey-manager-slot"></div>
@@ -2194,7 +2194,7 @@
                 </label>
                 <label class="ts-chk-label">
                   <input type="checkbox" id="ts-ci-opt-passkey">
-                  <span>👤 パスキー（チェックイン用パスキー独立検証）</span>
+                  <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（チェックイン用パスキー独立検証）</span>
                 </label>
               </div>
 
@@ -2264,7 +2264,7 @@
                 <div class="ts-sub-radio-row" style="margin-bottom:8px;">
                   <label class="ts-radio-chip ts-chip-sm">
                     <input type="radio" name="ts-ci-pk-source" id="ts-ci-pk-source-existing" value="existing" checked>
-                    <span>👤 既存／登録済みのパスキーを利用（推奨）</span>
+                    <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">既存／登録済みのパスキーを利用（推奨）</span>
                   </label>
                   <label class="ts-radio-chip ts-chip-sm">
                     <input type="radio" name="ts-ci-pk-source" id="ts-ci-pk-source-custom" value="custom">
@@ -2275,7 +2275,7 @@
                   ℹ️ 既存パスキー利用モード：端末に登録済みの生体認証器（WebAuthn PRF）をチェックイン用として利用します。
                 </div>
                 <div class="ts-inline-row" style="margin-top:6px;">
-                  <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-ci-reg-passkey">👤 パスキーの動作確認・登録（PRF検証）</button>
+                  <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-ci-reg-passkey"><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキーの動作確認・登録（PRF検証）</button>
                   <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-ci-clear-passkey" hidden>✕ 登録解除</button>
                 </div>
               </div>
@@ -2336,14 +2336,14 @@
 
                 <label class="ts-chk-label" style="margin-bottom:0;">
                   <input type="checkbox" id="ts-mgmt-opt-passkey">
-                  <span>👤 管理用パスキー（WebAuthn PRF）</span>
+                  <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">管理用パスキー（WebAuthn PRF）</span>
                 </label>
                 <div id="ts-mgmt-pk-panel" class="ts-factor-panel" style="margin-top:6px;" hidden>
                   <div id="ts-mgmt-pk-status" class="ts-pk-reg-status" data-registered="false">
                     ⚠️ 未登録：下のボタンで管理用パスキーのPRF対応確認と登録を実行してください。
                   </div>
                   <div class="ts-inline-row" style="margin-top:6px;">
-                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-mgmt-reg-passkey">👤 管理用パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-mgmt-reg-passkey"><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">管理用パスキーを登録・PRF検証</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-mgmt-clear-passkey" hidden>✕ 登録解除</button>
                   </div>
@@ -2497,7 +2497,7 @@
 
             <div id="ts-unlock-pk-wrap" class="ts-field" hidden>
               <div style="font-size:0.79rem; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color);">
-                👤 <strong>暗号化パスキー認証必須：</strong>復号ボタンを押すと端末の生体認証／セキュリティキー確認が起動します。
+                <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20"><strong>暗号化パスキー認証必須：</strong>復号ボタンを押すと端末の生体認証／セキュリティキー確認が起動します。
               </div>
             </div>
 
@@ -2605,7 +2605,7 @@
                   </label>
                   <label class="ts-chk-label">
                     <input type="checkbox" id="ts-edit-ci-opt-passkey">
-                    <span>👤 チェックイン用パスキー</span>
+                    <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">チェックイン用パスキー</span>
                   </label>
                 </div>
 
@@ -2636,7 +2636,7 @@
                     ⚠️ 新しいチェックイン用パスキーを登録・検証してください（管理操作認証を通過するまで保存されません）。
                   </div>
                   <div class="ts-inline-row" style="margin-top:6px;">
-                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-ci-reg-passkey">👤 パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-ci-reg-passkey"><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキーを登録・PRF検証</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-ci-clear-passkey" hidden>✕ 登録解除</button>
                   </div>
@@ -2663,7 +2663,7 @@
                   </label>
                   <label class="ts-chk-label">
                     <input type="checkbox" id="ts-edit-mgmt-opt-passkey">
-                    <span>👤 管理用パスキー</span>
+                    <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">管理用パスキー</span>
                   </label>
                 </div>
 
@@ -2694,7 +2694,7 @@
                     ⚠️ 新しい管理用パスキーを登録・PRF検証してください。
                   </div>
                   <div class="ts-inline-row" style="margin-top:6px;">
-                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-mgmt-reg-passkey">👤 管理用パスキーを登録・PRF検証</button>
+                    <button type="button" class="ts-btn ts-btn-sm ts-btn-primary" id="btn-ts-edit-mgmt-reg-passkey"><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">管理用パスキーを登録・PRF検証</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-reg-passkey-new">➕ 新規パスキーを作成して登録</button>
                     <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-edit-mgmt-clear-passkey" hidden>✕ 登録解除</button>
                   </div>
@@ -2820,7 +2820,7 @@
 
             <div id="ts-modal-pk-wrap" class="ts-field" hidden>
               <div style="font-size:0.79rem; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color);">
-                👤 <strong id="ts-modal-pk-label">パスキー認証必須：</strong>実行ボタンを押すとパスキー認証（WebAuthn PRF）が起動します。
+                <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20"><strong id="ts-modal-pk-label">パスキー認証必須：</strong>実行ボタンを押すとパスキー認証（WebAuthn PRF）が起動します。
               </div>
             </div>
 

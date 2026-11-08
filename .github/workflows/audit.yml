@@ -78,6 +78,8 @@ jobs:
         run: node tests/security/clipboard-clear.test.js
       - name: KeeWeb transfer deletion contract tests
         run: node tests/security/keeweb-transfer-deletion.test.js
+      - name: Secure random ID tests
+        run: node tests/security/secure-random-id.test.js
       - name: Zeroize clears Data Transfer receive state
         run: node tests/security/zeroize-dt-rx.test.js
       - name: Emergency zeroize coverage tests

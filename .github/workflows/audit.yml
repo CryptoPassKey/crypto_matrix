@@ -48,6 +48,8 @@ jobs:
         run: node tests/security/tl-beacon-url.test.js
       - name: Guide first-visit tests
         run: node tests/ui/guide-first-visit.test.js
+      - name: Feature icons tests
+        run: node tests/ui/feature-icons.test.js
       - name: Help popover tests
         run: node tests/ui/help-popover.test.js
       - name: TimeLock text triage tests

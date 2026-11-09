@@ -13,7 +13,7 @@ const src = fs.readFileSync(path.join(ROOT, 'contents', 'index.js'), 'utf8');
 const bqSrc = fs.readFileSync(path.join(ROOT, 'contents', 'backup-qr.js'), 'utf8');
 
 const fnStart = src.indexOf('function updateMainMatrix');
-if (fnStart < 0) { console.error('FAIL: updateMainMatrix not found'); process.exit(1); }
+if (fnStart < 0) { console.error('FAIL: updateMainMatrix not found in index.js (extraction target changed; update the test harness)'); process.exit(1); }
 let fnEnd = src.indexOf('\nfunction ', fnStart);
 if (fnEnd < 0) fnEnd = src.length;
 const segment = src.slice(0, fnEnd);
@@ -39,6 +39,11 @@ function check(name, actual, expected) {
   console.log((ok ? 'PASS' : 'FAIL') + ': ' + name + (ok ? '' : ' => got ' + JSON.stringify(actual) + ' expected ' + JSON.stringify(expected)));
   if (ok) pass++; else fail++;
 }
+
+// 抽出の健全性（ガードテストと共通）: 取り出した範囲が盤面生成の本体を
+// 含んでいることを確認し、抽出ずれは理由つきで落とす。
+check('extraction includes LCG constants', segment.includes('1664525') && segment.includes('1013904223') && segment.includes('4294967296'), true);
+check('extraction includes updateMainMatrix and CENTER_CHARS sync', segment.includes('function updateMainMatrix') && segment.includes('CENTER_CHARS.splice'), true);
 
 // 1. 英字を含む英数字シード: 末尾4マスの中央記号が「. / - _」固定
 for (const s of ['abc123', 'MySeed2026', 'seedA', 'a']) {

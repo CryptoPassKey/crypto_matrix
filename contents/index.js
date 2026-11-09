@@ -9,19 +9,23 @@ const CENTER_CHARS = [
   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
   'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
   'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-  'w', 'x', 'y', 'z', '^', '%', '/', '-'
+  'w', 'x', 'y', 'z', '-', '_', '%', '^'
 ];
 
 const ALL_ASCII_SYMBOLS = '!#$%&()*+-/:;=?@^_"`,.<>[\\]{|}~\'';
 
-// 線形合同法＆浮動小数点除算による乱数生成器
+// 線形合同法＆浮動小数点除算による乱数生成器（Crypto Matrix .html と完全互換）
 class LinearCongruentialGenerator {
   constructor(seed) {
-    this.seed = (Number(seed) >>> 0) || 0;
+    this.m = 4294967296; // 2^32
+    this.a = 1664525;
+    this.c = 1013904223;
+    const parsed = Number(seed);
+    this.state = Number.isFinite(parsed) ? parsed : 0;
   }
   next() {
-    this.seed = (Math.imul(1664525, this.seed) + 1013904223) >>> 0;
-    return this.seed / 4294967296; // m = 2^32
+    this.state = (this.a * this.state + this.c) % this.m;
+    return this.state / this.m;
   }
   intRange(min, max) {
     return Math.floor(this.next() * (max - min + 1)) + min;
@@ -91,8 +95,13 @@ function escapeHtml(str) {
 }
 
 function parseSeedValue(raw) {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return Math.trunc(raw);
   const s = String(raw || '0').trim();
-  if (/^\d+$/.test(s)) return (parseInt(s, 10) >>> 0) || 0;
+  if (!s) return 0;
+  if (/^[+-]?\d+$/.test(s)) {
+    const parsed = parseInt(s, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
   let h = 2166136261 >>> 0;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -117,7 +126,7 @@ function estimatePasswordEntropy(pw) {
 }
 
 /**
- * マトリックス配列を生成
+ * マトリックス配列を生成（Crypto Matrix .html と完全同一ロジック）
  */
 function updateMainMatrix(seedValue) {
   const seedNum = parseSeedValue(seedValue);
@@ -131,6 +140,7 @@ function updateMainMatrix(seedValue) {
   // コードの生成順序（記号から4種選抜 → rootCharacters構築 → 各配列生成＆シャッフル）
   const symbolCharacters4 = Number1D.shuffle(symbolCharacters, random).slice(0, 4);
   const rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
+  CENTER_CHARS.splice(0, CENTER_CHARS.length, ...rootCharacters.map(String));
 
   const numberCharactersFilled = Number1D.filledOverMaxTile(numberCharacters, constMaxTileCount);
   const numberCharactersShuffled = Number1D.shuffle(numberCharactersFilled, random);
@@ -141,36 +151,46 @@ function updateMainMatrix(seedValue) {
   const alphabetNumberSymbolCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, symbolCharacters), constMaxTileCount);
   const alphabetNumberSymbolCharactersShuffled = Number1D.shuffle(alphabetNumberSymbolCharactersFilled, random);
 
-  const correspondenceCharactersFilled = Number1D.filledOverMaxTile(rootCharacters, constMaxTileCount);
+  const correspondenceCharactersFilled = rootCharacters.slice();
   const correspondenceCharactersShuffled = Number1D.shuffle(correspondenceCharactersFilled, random);
 
   currentMatrixData = [];
   const container = document.getElementById('div-encrypto-matrix-main');
-  if (!container) return;
-  container.innerHTML = '';
+  if (container) container.innerHTML = '';
 
   for (let i = 0; i < constMaxTileCount; i++) {
     const item = {
       index: i,
-      center: CENTER_CHARS[i],
-      tl: numberCharactersShuffled[i],
-      tr: alphabetNumberCharactersShuffled[i],
-      bl: alphabetNumberSymbolCharactersShuffled[i],
-      br: correspondenceCharactersShuffled[i]
+      center: String(rootCharacters[i]),
+      tl: String(numberCharactersShuffled[i]),
+      tr: String(alphabetNumberCharactersShuffled[i]),
+      bl: String(alphabetNumberSymbolCharactersShuffled[i]),
+      br: String(correspondenceCharactersShuffled[i])
     };
     currentMatrixData.push(item);
 
-    const sq = document.createElement('div');
-    sq.className = 'square';
-    sq.dataset.index = i;
-    sq.innerHTML = `
-      <span class="center-text" data-spot="center">${escapeHtml(item.center)}</span>
-      <span class="corner-text top-left" data-spot="tl">${escapeHtml(item.tl)}</span>
-      <span class="corner-text top-right" data-spot="tr">${escapeHtml(item.tr)}</span>
-      <span class="corner-text bottom-left" data-spot="bl">${escapeHtml(item.bl)}</span>
-      <span class="corner-text bottom-right" data-spot="br">${escapeHtml(item.br)}</span>
-    `;
-    container.appendChild(sq);
+    if (container) {
+      const sq = document.createElement('div');
+      sq.className = 'square';
+      sq.dataset.index = i;
+      sq.innerHTML = `
+        <span class="center-text" data-spot="center">${escapeHtml(item.center)}</span>
+        <span class="corner-text top-left" data-spot="tl">${escapeHtml(item.tl)}</span>
+        <span class="corner-text top-right" data-spot="tr">${escapeHtml(item.tr)}</span>
+        <span class="corner-text bottom-left" data-spot="bl">${escapeHtml(item.bl)}</span>
+        <span class="corner-text bottom-right" data-spot="br">${escapeHtml(item.br)}</span>
+      `;
+      container.appendChild(sq);
+    }
+  }
+
+  const ancSel = document.getElementById('rc-anc-tile');
+  if (ancSel) {
+    const prevVal = ancSel.value;
+    ancSel.innerHTML = CENTER_CHARS.map((ch, i) =>
+      `<option value="${i}">マス [${escapeHtml(ch)}] (${Math.floor(i / 8) + 1}行・${(i % 8) + 1}列)</option>`
+    ).join('');
+    if (prevVal !== undefined && prevVal !== '') ancSel.value = prevVal;
   }
 
   updateVerbalGuide(getRecipeConfig());
@@ -5792,6 +5812,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('seed-words-container'))$('seed-words-container').textContent='';
    if($('seed-armored-text'))scrubDOM($('seed-armored-text'));
    if(Array.isArray(currentMatrixData)){for(let i=0;i<currentMatrixData.length;i++)currentMatrixData[i]='';}
+   updateMainMatrix(0);
    try{window.gc?.();}catch(_){}
    if($('restore-status')){$('restore-status').className='status-msg';$('restore-status').textContent='';}
    $('bq-clear')?.click();

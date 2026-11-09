@@ -540,6 +540,58 @@
       if (cmUpdateToast) cmUpdateToast.classList.remove('is-visible');
     }
 
+    var cmUpdatePrompt = null;
+    var cmUpdatePromptText = null;
+    var cmUpdatePromptWorker = null;
+
+    function cmGetUpdatePrompt() {
+      if (cmUpdatePrompt) return cmUpdatePrompt;
+      var el = document.createElement('div');
+      el.className = 'cm-update-prompt';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      var text = document.createElement('span');
+      text.className = 'cm-update-prompt-text';
+      cmUpdatePromptText = text;
+      var apply = document.createElement('button');
+      apply.type = 'button';
+      apply.className = 'cm-update-prompt-apply';
+      apply.textContent = 'アップデート';
+      apply.addEventListener('click', function () {
+        var worker = cmUpdatePromptWorker;
+        cmHideUpdatePrompt();
+        cmActivateWaitingWorker(worker);
+      });
+      var later = document.createElement('button');
+      later.type = 'button';
+      later.className = 'cm-update-prompt-later';
+      later.textContent = 'あとで';
+      later.addEventListener('click', function () {
+        cmHideUpdatePrompt();
+      });
+      el.appendChild(text);
+      el.appendChild(apply);
+      el.appendChild(later);
+      document.body.appendChild(el);
+      cmUpdatePrompt = el;
+      return el;
+    }
+
+    function cmShowUpdatePrompt(worker) {
+      // Guard per worker, not per session: dismissing one update must not
+      // suppress the prompt for the next version discovered later.
+      if (!worker || worker === cmUpdatePromptWorker) return;
+      cmUpdatePromptWorker = worker;
+      var el = cmGetUpdatePrompt();
+      // Set the message at show time so the live region announces it.
+      cmUpdatePromptText.textContent = '新しいバージョンがあります';
+      el.classList.add('is-visible');
+    }
+
+    function cmHideUpdatePrompt() {
+      if (cmUpdatePrompt) cmUpdatePrompt.classList.remove('is-visible');
+    }
+
     function cmUpdateBlockReason() {
       var blocked = document.querySelectorAll('dialog[open], [aria-modal="true"], [aria-busy="true"], [data-cm-busy="true"]');
       for (var b = 0; b < blocked.length; b++) {
@@ -688,6 +740,20 @@
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
         cmSwRegistration = reg;
+
+        // Offer an update discovered by this launch's background check as soon as
+        // it finishes installing, instead of leaving it unnoticed until the next
+        // launch. A worker installed without an existing controller is the first
+        // install, not an update, so it never triggers the prompt.
+        reg.addEventListener('updatefound', function () {
+          var installing = reg.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', function () {
+            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+              cmShowUpdatePrompt(reg.waiting || installing);
+            }
+          });
+        });
 
         // An update downloaded during a previous session is activated on this launch.
         // Updates discovered by this registration check remain waiting until the next launch

@@ -541,18 +541,18 @@
     }
 
     var cmUpdatePrompt = null;
+    var cmUpdatePromptText = null;
     var cmUpdatePromptWorker = null;
-    var cmUpdatePromptShown = false;
 
     function cmGetUpdatePrompt() {
       if (cmUpdatePrompt) return cmUpdatePrompt;
       var el = document.createElement('div');
       el.className = 'cm-update-prompt';
-      el.setAttribute('role', 'dialog');
-      el.setAttribute('aria-label', 'アップデートのお知らせ');
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
       var text = document.createElement('span');
       text.className = 'cm-update-prompt-text';
-      text.textContent = '新しいバージョンがあります';
+      cmUpdatePromptText = text;
       var apply = document.createElement('button');
       apply.type = 'button';
       apply.className = 'cm-update-prompt-apply';
@@ -578,10 +578,14 @@
     }
 
     function cmShowUpdatePrompt(worker) {
-      if (!worker || cmUpdatePromptShown) return;
-      cmUpdatePromptShown = true;
+      // Guard per worker, not per session: dismissing one update must not
+      // suppress the prompt for the next version discovered later.
+      if (!worker || worker === cmUpdatePromptWorker) return;
       cmUpdatePromptWorker = worker;
-      cmGetUpdatePrompt().classList.add('is-visible');
+      var el = cmGetUpdatePrompt();
+      // Set the message at show time so the live region announces it.
+      cmUpdatePromptText.textContent = '新しいバージョンがあります';
+      el.classList.add('is-visible');
     }
 
     function cmHideUpdatePrompt() {

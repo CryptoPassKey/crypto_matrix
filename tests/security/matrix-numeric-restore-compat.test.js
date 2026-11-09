@@ -1071,7 +1071,8 @@ function boardDigest(w) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
 function recipePassword(w, site, secret, cfg) {
-  return w.eval(`(function(){ const steps = evaluateRecipeSteps(${JSON.stringify(site)}, ${JSON.stringify(secret)}, ${JSON.stringify(cfg)}); return steps.map(s => s.ch).join(''); })()`);
+  w.__cmTestInput = { site, secret, cfg };
+  return w.eval('(function(){ const t = window.__cmTestInput; const steps = evaluateRecipeSteps(t.site, t.secret, t.cfg); return steps.map(function (s) { return s.ch; }).join(""); })()');
 }
 
 (async () => {
@@ -1096,7 +1097,7 @@ function recipePassword(w, site, secret, cfg) {
     const cfg = w.eval('getRecipeConfig()');
     eq('A: recipe cfg kwNum', cfg.kwNum, f.cfg.kwNum);
     eq('A: recipe cfg lenVal', cfg.lenVal, f.cfg.lenVal);
-    eq('A: generated password matches old code', recipePassword(w, f.site, f.secret, cfg), f.password);
+    check('A: generated password matches old code', recipePassword(w, f.site, f.secret, cfg) === f.password);
   }
 
   // ===== B. 完全バックアップ（平文・旧コード作成） =====
@@ -1108,7 +1109,7 @@ function recipePassword(w, site, secret, cfg) {
     eq('B: board digest matches old code', boardDigest(w), f.board);
     eq('B: site restored', $('sim-site').value, f.site);
     eq('B: secret restored', $('sim-secret').value, f.secret);
-    eq('B: generated password matches old code', recipePassword(w, f.site, f.secret, w.eval('getRecipeConfig()')), f.password);
+    check('B: generated password matches old code', recipePassword(w, f.site, f.secret, w.eval('getRecipeConfig()')) === f.password);
   }
 
   // ===== C. 暗号化・完全バックアップ（旧コード作成） =====
@@ -1119,13 +1120,15 @@ function recipePassword(w, site, secret, cfg) {
     eq('C: full backup', data.full, true);
     eq('C: site', data.site, f.site);
     eq('C: secret', data.secret, f.secret);
-    w.eval(`setRecipeConfig(${JSON.stringify(data.cfg)})`);
+    w.__cmTestCfg = data.cfg;
+    w.eval('setRecipeConfig(window.__cmTestCfg)');
     $('input-seed-number').value = '42';
     w.eval(`updateMainMatrix('42')`);
     eq('C: board digest matches old code', boardDigest(w), f.board);
     const candidate = recipePassword(w, data.site, data.secret, data.cfg);
-    eq('C: generated password matches old code', candidate, f.password);
-    const hash = await w.eval(`(async () => { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(${JSON.stringify(candidate)})); return Array.from(new Uint8Array(h)); })()`);
+    check('C: generated password matches old code', candidate === f.password);
+    w.__cmTestCandidate = candidate;
+    const hash = await w.eval('(async () => { const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(window.__cmTestCandidate)); return Array.from(new Uint8Array(h)); })()');
     eq('C: expected hash matches (production full check)', Buffer.from(hash).equals(Buffer.from(data.expected)), true);
     let wrongPwFailed = false;
     try { await P.decodeBip39Blocks(f.words, 'wrong-password-xxxx', true, { seedNum: '42' }); } catch (_) { wrongPwFailed = true; }
@@ -1138,11 +1141,12 @@ function recipePassword(w, site, secret, cfg) {
     const data = await P.decodeBip39Blocks(f.words, f.pw, true, { seedNum: '42' });
     eq('D: seedNumber', data.seedNumber, 42);
     eq('D: settings only', data.full, false);
-    w.eval(`setRecipeConfig(${JSON.stringify(data.cfg)})`);
+    w.__cmTestCfg = data.cfg;
+    w.eval('setRecipeConfig(window.__cmTestCfg)');
     $('input-seed-number').value = '42';
     w.eval(`updateMainMatrix('42')`);
     eq('D: board digest matches old code', boardDigest(w), f.board);
-    eq('D: generated password matches old code', recipePassword(w, f.site, f.secret, data.cfg), f.password);
+    check('D: generated password matches old code', recipePassword(w, f.site, f.secret, data.cfg) === f.password);
   }
 
   // ===== E. 復元失敗時のロールバック（シード未保存の完全バックアップ） =====

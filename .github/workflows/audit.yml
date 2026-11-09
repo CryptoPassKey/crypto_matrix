@@ -49,7 +49,7 @@ jobs:
       - name: Matrix board guard tests
         run: node tests/security/matrix-board-guard.test.js
       - name: SW update prompt tests
-        run: node tests/security/sw-update-prompt.test.js
+        run: node tests/ui/sw-update-prompt.test.js
       - name: Matrix letter-seed symbols tests
         run: node tests/security/matrix-letter-seed-symbols.test.js
       - name: Matrix numeric-seed restore compat tests

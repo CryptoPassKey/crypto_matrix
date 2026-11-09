@@ -93,6 +93,8 @@ const seedInputEl = w.document.getElementById('input-seed-number');
 check('seed input exists', !!seedInputEl, true);
 check('seed input type stays text', seedInputEl && seedInputEl.getAttribute('type'), 'text');
 check('seed input is not locked to numeric inputmode', seedInputEl?.getAttribute('inputmode'), null);
+check('seed input autocapitalize is none', seedInputEl?.getAttribute('autocapitalize'), 'none');
+check('seed input autocorrect is off', seedInputEl?.getAttribute('autocorrect'), 'off');
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

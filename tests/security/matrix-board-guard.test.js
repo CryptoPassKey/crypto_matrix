@@ -13,7 +13,7 @@ const html = fs.readFileSync(path.join(ROOT, 'contents', 'index.html'), 'utf8');
 const src = fs.readFileSync(path.join(ROOT, 'contents', 'index.js'), 'utf8');
 
 const fnStart = src.indexOf('function updateMainMatrix');
-if (fnStart < 0) { console.error('FAIL: updateMainMatrix not found'); process.exit(1); }
+if (fnStart < 0) { console.error('FAIL: updateMainMatrix not found in index.js (extraction target changed; update the test harness)'); process.exit(1); }
 let fnEnd = src.indexOf('\nfunction ', fnStart);
 if (fnEnd < 0) fnEnd = src.length;
 const segment = src.slice(0, fnEnd);
@@ -44,6 +44,12 @@ function check(name, actual, expected) {
   console.log((ok ? 'PASS' : 'FAIL') + ': ' + name + (ok ? '' : ' => got ' + JSON.stringify(actual) + ' expected ' + JSON.stringify(expected)));
   if (ok) pass++; else fail++;
 }
+
+// 抽出の健全性: 取り出した範囲が盤面生成の本体（LCG・updateMainMatrix・
+// CENTER_CHARS 同期）を含んでいることを確認する。将来のコード移動で抽出が
+// ずれた場合は、盤面の不一致ではなくこの項目で理由つきで落ちる。
+check('extraction includes LCG constants', segment.includes('1664525') && segment.includes('1013904223') && segment.includes('4294967296'), true);
+check('extraction includes updateMainMatrix and CENTER_CHARS sync', segment.includes('function updateMainMatrix') && segment.includes('CENTER_CHARS.splice'), true);
 
 // オリジナル単体版ロジックから生成した期待値（seed -> 盤面全体の SHA-256）
 const EXPECTED = {
@@ -76,6 +82,21 @@ check('centers[36..39] differ across seeds', new Set([centers('0').slice(36, 40)
 
 // 中央マスの並びは 0-9, a-z + 記号4つ（rootCharacters の構造）
 check('seed 0 centers[0..35] are 0-9a-z in order', centers('0').slice(0, 36).join(''), '0123456789abcdefghijklmnopqrstuvwxyz');
+
+// 記号選抜の構造（固定化の再発防止）: 末尾4記号は13種の記号プールから
+// 重複なく4つ選ばれ、組み合わせはシードごとに変わる。
+// ダイジェスト照合が「盤面全体の一致」を見るのに対し、こちらは
+// 「記号の選び方そのもの」が壊れていないかを理由つきで示す。
+const SYMBOL_POOL = ['-', '_', '!', '#', '$', '%', '&', '^', '(', ')', '+', '*', '/'];
+const tails = [];
+for (let s = 0; s < 20; s++) {
+  const tail = centers(String(s)).slice(36, 40);
+  tails.push(tail.join(''));
+  check('seed ' + s + ' tail symbols are 4 distinct picks from the 13-symbol pool',
+    tail.length === 4 && new Set(tail).size === 4 && tail.every(c => SYMBOL_POOL.includes(c)), true);
+}
+check('tail symbol combinations vary by seed (>=15 distinct in 20 seeds)', new Set(tails).size >= 15, true);
+check('tail symbols cover the pool broadly (>=10 of 13 in 20 seeds)', new Set(tails.join('').split('')).size >= 10, true);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

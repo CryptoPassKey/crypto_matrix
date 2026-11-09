@@ -71,7 +71,7 @@
     <!-- シードフレーズ番号バー -->
     <div class="seed-bar no-print">
       <label for="input-seed-number" style="font-weight:700; font-size:0.88rem;">カード配列シード番号 (seed):<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字の並び順を決める基準番号です。同じシード番号を入力すれば、世界中どの端末でも全く同じカード文字盤が再現されます。自分だけの秘密の番号を設定することも可能です。">?</button></label>
-      <input type="text" id="input-seed-number" value="0" placeholder="シード番号を入力" inputmode="numeric" autocomplete="off" aria-describedby="seed-live-hint">
+      <input type="text" id="input-seed-number" value="0" placeholder="シードを入力" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="seed-live-hint">
     </div>
 
     <!-- マトリックスの上に配置：現在のパスワード作成手順（説明ボックス） -->
@@ -864,7 +864,7 @@
        <label for="bq-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
          🔑 連動カード配列シード番号 (seed):
        </label>
-       <input type="text" id="bq-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
+       <input type="text" id="bq-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
        <button type="button" class="btn btn-secondary" id="bq-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
      </div>
      <div style="font-size:0.75rem; color:var(--text-sub);">
@@ -1090,7 +1090,7 @@
           <label for="bv-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
             🔑 連動カード配列シード番号 (seed):
           </label>
-          <input type="text" id="bv-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
+          <input type="text" id="bv-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
           <button type="button" class="btn btn-secondary" id="bv-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
@@ -1467,7 +1467,7 @@
         <label class="tl-ink-sky" for="tl-restore-seed-number" style="font-weight:700; font-size:0.86rem; margin:0;">
           🔑 連動カード配列シード番号 (seed):
         </label>
-        <input type="text" id="tl-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0">
+        <input type="text" id="tl-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
         <button type="button" class="btn btn-secondary" id="tl-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
       </div>
       <div style="font-size:0.75rem; color:var(--text-sub);">
@@ -2467,7 +2467,7 @@
             <div id="ts-unlock-seed-wrap" class="ts-seed-bind-banner" style="margin-bottom:10px;">
               <div class="ts-inline-row">
                 <label for="ts-unlock-seed-number" class="ts-seed-bind-label" style="margin:0;">🔑 連動カード配列シード番号 (seed):</label>
-                <input type="text" id="ts-unlock-seed-number" value="0" placeholder="0" style="width:120px; text-align:center; font-family:monospace; font-weight:700;">
+                <input type="text" id="ts-unlock-seed-number" value="0" placeholder="0" style="width:120px; text-align:center; font-family:monospace; font-weight:700;" autocapitalize="none" autocorrect="off" spellcheck="false">
                 <button type="button" class="ts-btn ts-btn-sm" id="ts-btn-sync-card-seed">現在のカード設定を反映</button>
               </div>
               <div class="ts-seed-bind-note">

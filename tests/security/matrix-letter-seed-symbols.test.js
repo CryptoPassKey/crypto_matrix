@@ -88,5 +88,19 @@ check('backup-qr.js restore prefers seedInput', bqSrc.includes("updateMainMatrix
 // 分岐は updateMainMatrix 内の英字シード判定に閉じている
 check('letter-seed branch exists in updateMainMatrix', segment.includes('isLetterSeed') && segment.includes("['.', '/', '-', '_']"), true);
 
+// --- シード入力欄が英字を受け付けること（モバイルで数字キーボードに固定されない） ---
+const seedInputEl = w.document.getElementById('input-seed-number');
+check('seed input exists', !!seedInputEl, true);
+check('seed input type stays text', seedInputEl && seedInputEl.getAttribute('type'), 'text');
+check('seed input is not locked to numeric inputmode', seedInputEl?.getAttribute('inputmode'), null);
+check('seed input autocapitalize is none', seedInputEl?.getAttribute('autocapitalize'), 'none');
+check('seed input autocorrect is off', seedInputEl?.getAttribute('autocorrect'), 'off');
+// 復元・アンロック系のシード欄も、自動変換で文字列が化けないことを保証する
+for (const rid of ['bq-restore-seed-number', 'bv-restore-seed-number', 'tl-restore-seed-number', 'ts-unlock-seed-number']) {
+  const el = w.document.getElementById(rid);
+  check(rid + ' autocapitalize is none', el?.getAttribute('autocapitalize'), 'none');
+  check(rid + ' autocorrect is off', el?.getAttribute('autocorrect'), 'off');
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

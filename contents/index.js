@@ -137,8 +137,14 @@ function updateMainMatrix(seedValue) {
   const numberCharacters = '0123456789'.split('');
   const symbolCharacters = ["-", "_", "!", "#", "$", "%", "&", "^", "(", ")", "+", "*", "/"];
 
+  // 新規ユーザー向け盤面: 英字を含む英数字シードのときだけ、末尾4記号を
+  // 「. / - _」に固定し、左下の記号プールにも '.' を加える。
+  // 数字のみのシード（既存ユーザー・物理カード）は従来の生成と一切変えない。
+  const seedText = (typeof seedValue === 'string') ? seedValue.trim() : '';
+  const isLetterSeed = /^[0-9A-Za-z]+$/.test(seedText) && /[A-Za-z]/.test(seedText);
+
   // コードの生成順序（記号から4種選抜 → rootCharacters構築 → 各配列生成＆シャッフル）
-  const symbolCharacters4 = Number1D.shuffle(symbolCharacters, random).slice(0, 4);
+  const symbolCharacters4 = isLetterSeed ? ['.', '/', '-', '_'] : Number1D.shuffle(symbolCharacters, random).slice(0, 4);
   const rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
   CENTER_CHARS.splice(0, CENTER_CHARS.length, ...rootCharacters.map(String));
 
@@ -148,7 +154,8 @@ function updateMainMatrix(seedValue) {
   const alphabetNumberCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper), constMaxTileCount);
   const alphabetNumberCharactersShuffled = Number1D.shuffle(alphabetNumberCharactersFilled, random);
 
-  const alphabetNumberSymbolCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, symbolCharacters), constMaxTileCount);
+  const blSymbolCharacters = isLetterSeed ? symbolCharacters.concat('.') : symbolCharacters;
+  const alphabetNumberSymbolCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, blSymbolCharacters), constMaxTileCount);
   const alphabetNumberSymbolCharactersShuffled = Number1D.shuffle(alphabetNumberSymbolCharactersFilled, random);
 
   const correspondenceCharactersFilled = rootCharacters.slice();
@@ -5339,7 +5346,7 @@ document.addEventListener('DOMContentLoaded', () => {
   return parsePlainBody(plain,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
  }
  function saveUI(){return{cfg:getRecipeConfig(),site:$('sim-site').value,secret:$('sim-secret').value,seed:appliedSeed,seedInput:$('input-seed-number').value,inc:$('chk-include-card-seed').checked,kind:$('backup-kind').value,words:currentMnemonicWords.slice(),box:$('seed-words-container').innerHTML,summary:$('backup-summary').textContent,cqPinLen:$('cq-pin-length')?.value,cqSymLen:$('cq-symbol-length')?.value,cqSymMode:$('cq-symbol-mode')?.value,cqSymList:$('cq-symbol-list')?.value};}
- function restoreUI(s){currentDisplayMode='recipe';setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix(s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
+ function restoreUI(s){currentDisplayMode='recipe';setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix((s.seedInput !== undefined && s.seedInput !== '') ? s.seedInput : s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
  restoreRecipeFromSeedInput=async function(){
   const request=++restoreRequest,statusEl=$('restore-status');$('btn-restore-seed').disabled=true;statusEl.className='status-msg';statusEl.textContent='全ブロックを検証しています…';
   let previous=null;

@@ -1405,7 +1405,7 @@ async function applyRestore(){
 
    if(old.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=old.cqSymList;
 
-   updateMainMatrix(old.seed);$('input-seed-number').value=old.seedInput;updateSimulationUI();void generateAndRenderSeedPhrase();
+   updateMainMatrix((old.seedInput !== undefined && old.seedInput !== '') ? old.seedInput : old.seed);$('input-seed-number').value=old.seedInput;updateSimulationUI();void generateAndRenderSeedPhrase();
 
   }
 

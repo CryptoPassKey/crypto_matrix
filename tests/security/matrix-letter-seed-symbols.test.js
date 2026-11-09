@@ -92,7 +92,7 @@ check('letter-seed branch exists in updateMainMatrix', segment.includes('isLette
 const seedInputEl = w.document.getElementById('input-seed-number');
 check('seed input exists', !!seedInputEl, true);
 check('seed input type stays text', seedInputEl && seedInputEl.getAttribute('type'), 'text');
-check('seed input is not locked to numeric inputmode', seedInputEl && seedInputEl.getAttribute('inputmode'), null);
+check('seed input is not locked to numeric inputmode', seedInputEl?.getAttribute('inputmode'), null);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

@@ -72,6 +72,9 @@ jobs:
         run: node tests/ui/quick-text-triage.test.js
       - name: Data Transfer text triage tests
         run: node tests/ui/datatransfer-text-triage.test.js
+      - name: SW update prompt tests
+        run: node tests/ui/sw-update-prompt.test.js
+
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js
       - name: Passkey storage migration tests

@@ -8,8 +8,8 @@
  * 触れる変更は、ユーザーの明示的な再決定がある場合にだけ行うこと。
  *
  * 二重の固定:
- *  1. 振る舞い固定: 代表シード24件（境界値・符号・空白・衝突ペア・記号・
- *     日本語・長尺を含む）の盤面ダイジェストが凍結値と一致すること。
+ *  1. 振る舞い固定: 代表シード26件（境界値・符号・空白・衝突ペア・記号・
+ *     日本語・NFC/NFD 同値ペア・長尺を含む）の盤面ダイジェストが凍結値と一致すること。
  *  2. ソース固定: 盤面生成に係るソース断片（parseSeedValue /
  *     updateMainMatrix / seed-key の経路判定部 / board-v2.js 全文）の
  *     ハッシュが凍結値と一致すること。標本化した振る舞いでは捉えきれない
@@ -68,6 +68,8 @@ const BOARD_DIGESTS = [
   ['!#$%&()*+-', '74bd8cdffd8e4cd2f0d826afda7e566dcc559df5675ec62d2cf8da64c10a13bb'],
   ['ab cd', 'f1f0bd196ba5663a0c13a8bfa73c1a36fb63741540824ad99f24786e5f38e433'],
   ['あいうえお', '9da0b06a2fefd4f36bb4e0f3564163f654990bf9b766442e51b7d93c394462f1'],
+  ['\u304c', 'f6e3a1467f5b90cf7a76e529f8f6b75ba0c624adc54f0ac821a37db24e0623f2'],
+  ['\u304b\u3099', 'f6e3a1467f5b90cf7a76e529f8f6b75ba0c624adc54f0ac821a37db24e0623f2'],
   ['p@ssw0rd!', 'dafdc7ed4e574c2381ee36c2d226c9bc99e8314699c90e4be1827145a361b5c2'],
   ['Ab3dF6hJ9kM2nP5qR8sT4vW7xY0zA1bC4eG7hK9mN2pQ5rS8uV1wX4yB6dE9gH0j', '80ad73cd25dca0217c4cc4621be6363ac61a44655bcba6220a1a1f9a488a9a69'],
 ];
@@ -75,7 +77,7 @@ const BOARD_DIGESTS = [
 // ===== 2. ソース固定 =====
 const SOURCE_HASHES = [
   ['index.js parseSeedValue', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function parseSeedValue(')), '905cc2360546a09eb07dd3a2a93c74f6242eba7a4b6b6aab266ae73ff72d9359'],
-  ['index.js updateMainMatrix', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function updateMainMatrix(')), 'cea596a5e0372e6108805d208d59b73852abffe7f85982552c11bf50af959bd0'],
+  ['index.js updateMainMatrix', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function updateMainMatrix(')), '5a9a972f5da3a5f3d39dfb271b9a01df206f4e706d1ad5cbfe8f397575c710c7'],
   ['seed-key.js route classification (trimSeed..classify)', () => {
     const sk = fs.readFileSync(path.join(CONTENTS, 'seed-key.js'), 'utf8');
     const lines = sk.split('\n');
@@ -83,12 +85,12 @@ const SOURCE_HASHES = [
     const classSpan = spanTrim(sk, 'function classify(');
     return sha(sk.slice(sk.indexOf(startLine), sk.indexOf(classSpan) + classSpan.length));
   }, '2a10e98178903965133e6c66a0488f4628ddc0b48365191cf8070ebfd793d472'],
-  ['board-v2.js (whole file)', () => sha(fs.readFileSync(path.join(CONTENTS, 'board-v2.js'), 'utf8')), '8b4efd1ae91eebe7bae3b836413dcbd1befa07965445983d7856b9f20bfb5c57'],
+  ['board-v2.js (whole file)', () => sha(fs.readFileSync(path.join(CONTENTS, 'board-v2.js'), 'utf8')), '05b078410d608d687c56a4263feac7a651365fa230c23ed1ebc31e697c2b52ef'],
 ];
 
 (async () => {
   const w = await loadApp(CONTENTS);
-  check('freeze table is non-empty', BOARD_DIGESTS.length === 24, 'count=' + BOARD_DIGESTS.length);
+  check('freeze table is non-empty', BOARD_DIGESTS.length === 26, 'count=' + BOARD_DIGESTS.length);
   for (const [seed, expected] of BOARD_DIGESTS) {
     w.updateMainMatrix(seed);
     const digest = sha(w.eval('JSON.stringify(currentMatrixData)'));

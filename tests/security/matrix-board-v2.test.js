@@ -20,6 +20,10 @@ const fnStart = src.indexOf('function updateMainMatrix');
 if (fnStart < 0) { console.error('FAIL: updateMainMatrix not found in index.js (extraction target changed; update the test harness)'); process.exit(1); }
 let fnEnd = src.indexOf('\nfunction ', fnStart);
 if (fnEnd < 0) fnEnd = src.length;
+// 注意: 開始位置が 0 なのは意図的。updateMainMatrix は parseSeedValue や
+// Random など index.js 先頭部のトップレベル定義に依存しており、抜粋を
+// 単独で評価するにはそれらを含める必要がある（fnStart から切り取ると
+// 依存が欠けて評価できないことを確認済み）。範囲の終端は関数の直後まで。
 const segment = src.slice(0, fnEnd);
 
 const dom = new JSDOM(html, { url: 'https://localhost/', runScripts: 'outside-only', pretendToBeVisual: true });
@@ -95,6 +99,23 @@ check('v2 trimmed input reproduces same board', boardDigest(' abc123 '), boardDi
 // （v2 が解消する問題そのものの回帰ガード）。
 check('collision pair shares parseSeedValue', w.parseSeedValue('urnUkFZe'), w.parseSeedValue('Zac6VKdc'));
 check('collision pair differs on v2 board', boardDigest('urnUkFZe') !== boardDigest('Zac6VKdc'), true);
+
+// NFC 仕様: 分解形（NFD）で入力しても、合成形（NFC）と同一の盤面になる
+check('NFC: decomposed kana matches precomposed', boardDigest('か\u3099'), boardDigest('\u304c'));
+check('NFC: decomposed accent matches precomposed', boardDigest('e\u0301xyz123'), boardDigest('\u00e9xyz123'));
+
+// モジュール欠落時のガード: CMBoardV2 が読み込めていない状態で v2 シードを
+// 使うと、TypeError ではなく意図したエラーメッセージで止まること。
+// 数字シード（v1 経路）はモジュールなしでも従来どおり動くこと。
+{
+  const savedBoard = w.CMBoardV2;
+  delete w.CMBoardV2;
+  let err = null;
+  try { w.__updateMainMatrix('abc123'); } catch (e) { err = e; }
+  check('missing CMBoardV2 raises intended error', err ? err.name + ': ' + err.message : 'no error', 'Error: updateMainMatrix: seed v2 modules are not loaded');
+  check('numeric seed still works without CMBoardV2', boardDigest('42'), '751d31d70bad31296286001275949b5d28763924895a4ef53b7250a2311d9484');
+  w.CMBoardV2 = savedBoard;
+}
 
 // v1（数字シード）の盤面が変わらないこと（ガードテストの凍結値と同一）
 check('v1 board unchanged seed 0', boardDigest('0'), 'a2124f752e28c4952cdd398cd926968c67f8760f196829ed588ee225c6e609f8');

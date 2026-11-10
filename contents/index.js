@@ -142,7 +142,7 @@ function updateMainMatrix(seedValue) {
   const seedText = (typeof seedValue === 'string') ? seedValue.trim()
     : (typeof seedValue === 'number' && Number.isFinite(seedValue)) ? String(Math.trunc(seedValue)) : '';
   const looksV2 = seedText !== '' && !/^[+-]?[0-9]+$/.test(seedText);
-  const isV2 = looksV2 && typeof window !== 'undefined' && !!window.CMSeedKey && window.CMSeedKey.isV2Seed(seedText);
+  const isV2 = looksV2 && typeof window !== 'undefined' && !!window.CMSeedKey && !!window.CMBoardV2 && window.CMSeedKey.isV2Seed(seedText);
   if (looksV2 && !isV2) throw new Error('updateMainMatrix: seed v2 modules are not loaded');
 
   let rootCharacters, numberCharactersShuffled, alphabetNumberCharactersShuffled, alphabetNumberSymbolCharactersShuffled, correspondenceCharactersShuffled;

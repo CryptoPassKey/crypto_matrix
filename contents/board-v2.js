@@ -26,10 +26,12 @@ window.CMBoardV2 = (() => {
   }
 
   // seedText は trim 済みの v2 シード文字列を渡すこと。
+  // 仕様（2026-11-10 確定）: シード文字列は NFC 正規化してから SHA-256 へ
+  // 渡す。NFD（結合文字の列）で入力されても、NFC と同一の盤面になる。
   function createRandom(seedText) {
     const enc = new TextEncoder();
     const domainBytes = enc.encode(DOMAIN);
-    const seedBytes = enc.encode(String(seedText));
+    const seedBytes = enc.encode(String(seedText).normalize('NFC'));
     const first = new Uint8Array(domainBytes.length + 1 + seedBytes.length);
     first.set(domainBytes, 0);
     first[domainBytes.length] = 0;

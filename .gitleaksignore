@@ -1,0 +1,14 @@
+# recipe-v6-restore-compat fixtures: the flagged values are SHA-256 digests of
+# passwords generated from public test inputs (example.com / test-pass),
+# stored as expected values for restore verification. They are not secrets.
+148abcb098be5f4780eec81a177abc31da38b8e2:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:96
+148abcb098be5f4780eec81a177abc31da38b8e2:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:334
+148abcb098be5f4780eec81a177abc31da38b8e2:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:428
+148abcb098be5f4780eec81a177abc31da38b8e2:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:522
+148abcb098be5f4780eec81a177abc31da38b8e2:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:616
+# Same values re-introduced by the revert commit 3ec33ae (identical file/lines).
+3ec33ae77814b2501a88b311a02ff82b08f27fc4:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:96
+3ec33ae77814b2501a88b311a02ff82b08f27fc4:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:334
+3ec33ae77814b2501a88b311a02ff82b08f27fc4:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:428
+3ec33ae77814b2501a88b311a02ff82b08f27fc4:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:522
+3ec33ae77814b2501a88b311a02ff82b08f27fc4:tests/security/recipe-v6-restore-compat.fixtures.json:generic-api-key:616

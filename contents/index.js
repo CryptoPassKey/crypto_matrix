@@ -1880,7 +1880,9 @@ function packRecipeTo256Bit(cfg, includeCardSeed, seedNumber) {
   const plain = new Uint8Array(28);
   plain[0] = 0x43; // 'C'
   plain[1] = 0x4D; // 'M'
-  plain[2] = (0x02 << 4) | (includeCardSeed ? 1 : 0);
+  const seedIsV2Text = includeCardSeed && typeof seedNumber === 'string' &&
+    typeof window !== 'undefined' && window.CMSeedKey && window.CMSeedKey.isV2Seed(seedNumber);
+  plain[2] = (0x02 << 4) | (includeCardSeed ? 1 : 0) | (seedIsV2Text ? 0x02 : 0);
   plain[3] = ((cfg.kwOrder & 0x0F) << 4) | (cfg.kwFilter & 0x0F);
   plain[4] = cfg.kwNum & 0xFF;
   plain[5] = ((cfg.shiftDir & 0x0F) << 4) | (cfg.baseCorner & 0x0F);
@@ -1965,7 +1967,52 @@ function unpack256BitToRecipe(bytes) {
     symList: decode32BitToSymList(symMask)
   };
 
-  return { cfg, includeCardSeed, seedNumber };
+  const seedTextFollows = (plain[2] & 0x02) === 0x02;
+  return { cfg, includeCardSeed, seedNumber, seedTextFollows };
+}
+
+// v2 シード文字列を運ぶ追加ブロック（24単語ブロック形式）。
+// レイアウト（28バイト平文）: 'C' 'S' len(1..23) seed(UTF-8) ... bind(2)
+// bind = SHA-256(コアブロック全体 || seedバイト列) の先頭2バイト。
+// 難読化は現在のパケット形式に合わせ、salt なしの XOR パターンのみとする。
+function packSeedTextBlock(seedText, coreBytes) {
+  const seedBytes = new TextEncoder().encode(String(seedText));
+  if (seedBytes.length < 1 || seedBytes.length > 23) {
+    throw new Error('このシードはフレーズ形式のバックアップに収まりません（23バイトまで）。QRバックアップをご利用ください。');
+  }
+  const lib = (typeof window !== 'undefined') ? window.sha256 : null;
+  if (!lib || typeof lib.array !== 'function') throw new Error('SHA-256ライブラリが読み込まれていません。');
+  const bindInput = new Uint8Array(coreBytes.length + seedBytes.length);
+  bindInput.set(coreBytes, 0);
+  bindInput.set(seedBytes, coreBytes.length);
+  const bind = lib.array(bindInput);
+  const plain = new Uint8Array(28);
+  plain[0] = 0x43; plain[1] = 0x53; plain[2] = seedBytes.length;
+  plain.set(seedBytes, 3);
+  plain[26] = bind[0]; plain[27] = bind[1];
+  const out = new Uint8Array(32);
+  for (let i = 0; i < 28; i++) out[i] = plain[i] ^ ((i * 41 + 17) & 0xFF);
+  return out;
+}
+
+function unpackSeedTextBlock(block, coreBytes) {
+  if (!(block instanceof Uint8Array) || block.length !== 32) throw new Error('シード文字列ブロックの長さが不正です。');
+  const plain = new Uint8Array(28);
+  for (let i = 0; i < 28; i++) plain[i] = block[i] ^ ((i * 41 + 17) & 0xFF);
+  if (plain[0] !== 0x43 || plain[1] !== 0x53) throw new Error('シード文字列ブロックの形式が不正です。');
+  const len = plain[2];
+  if (len < 1 || len > 23) throw new Error('シード文字列ブロックの長さが不正です。');
+  const seedBytes = plain.slice(3, 3 + len);
+  const lib = (typeof window !== 'undefined') ? window.sha256 : null;
+  if (!lib || typeof lib.array !== 'function') throw new Error('SHA-256ライブラリが読み込まれていません。');
+  const bindInput = new Uint8Array(coreBytes.length + seedBytes.length);
+  bindInput.set(coreBytes, 0);
+  bindInput.set(seedBytes, coreBytes.length);
+  const bind = lib.array(bindInput);
+  if (bind[0] !== plain[26] || bind[1] !== plain[27]) {
+    throw new Error('シード文字列ブロックがこのバックアップと対応しません（別のバックアップのブロックが混在しています）。');
+  }
+  return new TextDecoder('utf-8', { fatal: true }).decode(seedBytes);
 }
 
 async function entropyToBip39Words(entropyBytes) {
@@ -2017,8 +2064,15 @@ async function generateAndRenderSeedPhrase() {
     const cfg = getRecipeConfig();
     const inc = document.getElementById('chk-include-card-seed')?.checked ?? true;
     const seedVal = document.getElementById('input-seed-number')?.value || '0';
-    const entropy = packRecipeTo256Bit(cfg, inc, seedVal);
-    const words = await entropyToBip39Words(entropy);
+    const seedText = (typeof window !== 'undefined' && window.CMSeedKey) ? window.CMSeedKey.trimSeed(seedVal) : seedVal;
+    const isV2 = inc && typeof window !== 'undefined' && window.CMSeedKey && window.CMSeedKey.classify(seedVal) === 'v2';
+    const useV6 = isV2 && typeof window !== 'undefined' && window.CMRecipeV6 && window.CMRecipeV6.canPack(cfg, seedText);
+    const entropy = useV6 ? window.CMRecipeV6.pack(cfg, true, seedText) : packRecipeTo256Bit(cfg, inc, seedVal);
+    let words = await entropyToBip39Words(entropy);
+    if (isV2 && !useV6) {
+      const seedBlock = packSeedTextBlock(seedText, entropy);
+      words = words.concat(await entropyToBip39Words(seedBlock));
+    }
     currentMnemonicWords = words;
 
     box.innerHTML = words.map((w, i) => `
@@ -2037,13 +2091,26 @@ async function restoreRecipeFromSeedInput() {
   const statusEl = document.getElementById('restore-status');
   statusEl.className = 'status-msg';
   try {
-    const entropy = await bip39WordsToEntropy(raw);
-    const { cfg, includeCardSeed, seedNumber } = unpack256BitToRecipe(entropy);
+    const wordList = raw.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (wordList.length !== 24 && wordList.length !== 48) throw new Error(`単語数が ${wordList.length} 語です。24単語（シード文字列を含む場合は48単語）を入力してください。`);
+    const entropy = await bip39WordsToEntropy(wordList.slice(0, 24).join(' '));
+    const { cfg, includeCardSeed, seedNumber, seedTextFollows, seedText } = unpack256BitToRecipe(entropy);
     setRecipeConfig(cfg);
     document.getElementById('chk-include-card-seed').checked = includeCardSeed;
     if (includeCardSeed) {
-      document.getElementById('input-seed-number').value = String(seedNumber);
-      updateMainMatrix(seedNumber);
+      if (typeof seedText === 'string') {
+        document.getElementById('input-seed-number').value = seedText;
+        updateMainMatrix(seedText);
+      } else if (seedTextFollows) {
+        if (wordList.length !== 48) throw new Error('シード文字列ブロック（後半24単語）が不足しています。48単語すべてを入力してください。');
+        const seedBlock = await bip39WordsToEntropy(wordList.slice(24, 48).join(' '));
+        const seedText = unpackSeedTextBlock(seedBlock, entropy);
+        document.getElementById('input-seed-number').value = seedText;
+        updateMainMatrix(seedText);
+      } else {
+        document.getElementById('input-seed-number').value = String(seedNumber);
+        updateMainMatrix(seedNumber);
+      }
     }
     updateSimulationUI();
     statusEl.className = 'status-msg ok';
@@ -3544,7 +3611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
  async function exportKeePassXmlKeyfile({seedNum,password='',passkeyFactor=null,passkeyCred=null,filename=null}){
   const keyData=await generateKeePassXmlKeyfile({seedNum,password,passkeyFactor,passkeyCred});
-  const finalName=filename||`matrix-card-${seedNum}.key`;
+  const finalName=filename||`matrix-card-${String(seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
   const blob=new Blob([keyData.xml],{type:'text/xml;charset=utf-8'});
   downloadBlob(blob,finalName);
   return{filename:finalName,keyData};
@@ -4070,6 +4137,11 @@ document.addEventListener('DOMContentLoaded', () => {
  };
  unpack256BitToRecipe=function(b){
   if(!(b instanceof Uint8Array)||b.length!==32)throw new Error('設定データ長が不正です。');
+  if(typeof window!=='undefined'&&window.CMRecipeV6&&window.CMRecipeV6.isV6(b)){
+   const d6=window.CMRecipeV6.tryUnpack(b);
+   if(!d6)throw new Error('新形式（版6）のデータ検証に失敗しました。');
+   return{cfg:d6.cfg,includeCardSeed:d6.includeCardSeed,seedNumber:0,seedText:d6.seedText,seedTextFollows:false,format:'v6'};
+  }
   const v=versionOf(b);let packet=b;
   if(v===4||v===5){packet=b.slice();packet[2]^=v===4?0x60:0x70;}
   if(v===3)throw new Error('以前のハッシュ補強版のデータです。生成した旧版で復元してください。');
@@ -4084,20 +4156,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const site=$('sim-site').value,secret=$('sim-secret').value;
   const value=evaluateRecipeSteps(site,secret,cfg).map(s=>s.ch).join('');
   if(!value||issue)throw new Error(issue||'先にサイト名・合言葉・読み方を設定して、生成結果を確認してください。');
-  return{cfg,includeSeed,seed:appliedSeed,site,secret,full,value};
+  return{cfg,includeSeed,seed:appliedSeed,seedText:($('input-seed-number')?.value||''),site,secret,full,value};
  }
  async function buildPlainBody(s,core){
   const sym=enc.encode(s.cfg.symList);
   if(sym.length>1024)throw new Error('記号リストは1024バイトまでです。');
+  // v2 シード文字列は256bitコアに収まらないため、本体バージョン3で末尾に
+  // シードブロック（32バイト）を付けて運ぶ。数値シードでは従来の2のまま。
+  const seedBlock=(s.includeSeed&&s.seedText&&typeof window!=='undefined'&&window.CMSeedKey&&window.CMSeedKey.classify(s.seedText)==='v2'&&!(window.CMRecipeV6&&window.CMRecipeV6.isV6(core)))
+   ? packSeedTextBlock(window.CMSeedKey.trimSeed(s.seedText),core) : null;
+  const bodyVer=seedBlock?3:2;
   if(!s.full){
    const len=new Uint8Array(2);new DataView(len.buffer).setUint16(0,sym.length,false);
-   return concat(new Uint8Array([0x43,0x4d,0x53,2]),core,len,sym);
+   return seedBlock
+    ? concat(new Uint8Array([0x43,0x4d,0x53,bodyVer]),core,len,sym,seedBlock)
+    : concat(new Uint8Array([0x43,0x4d,0x53,bodyVer]),core,len,sym);
   }
   const site=enc.encode(s.site),secret=enc.encode(s.secret);
   if(site.length>4096||secret.length>4096)throw new Error('拡張バックアップはサイト名・合言葉各4096バイト、記号リスト1024バイトまでです。');
   const lengths=new Uint8Array(6),view=new DataView(lengths.buffer);
   view.setUint16(0,site.length,false);view.setUint16(2,secret.length,false);view.setUint16(4,sym.length,false);
-  return concat(new Uint8Array([0x43,0x4d,0x58,2]),core,lengths,site,secret,sym,await sha(enc.encode(s.value)));
+  const baseBody=concat(new Uint8Array([0x43,0x4d,0x58,bodyVer]),core,lengths,site,secret,sym,await sha(enc.encode(s.value)));
+  return seedBlock?concat(baseBody,seedBlock):baseBody;
  }
  async function frameBodyToBlocks(body){
   const hash=await sha(body),len=new Uint8Array(4);new DataView(len.buffer).setUint32(0,body.length,false);
@@ -4736,6 +4816,7 @@ document.addEventListener('DOMContentLoaded', () => {
    return Array.from(b, v => v.toString(16).padStart(2, '0')).join('');
  }
 
+ // 正規シードキーで鍵を導出する本体。cleanSeed は解釈済みの文字列を渡すこと。
  async function deriveAppDomainKey(domain, iv, seedNum = '0') {
    const cleanSeed = (seedNum !== undefined && seedNum !== null) ? String(seedNum).trim() : '0';
    let pepper = CM_APP_DOMAIN_PEPPER;
@@ -5217,8 +5298,15 @@ document.addEventListener('DOMContentLoaded', () => {
  generateAndRenderSeedPhrase=async function(){
   const request=++backupRequest;currentMnemonicWords=[];$('btn-copy-seed').disabled=true;
   try{
-   const s=snapshotBackup(),core=packRecipeTo256Bit(s.cfg,s.includeSeed,s.seed);
-   const blocks=s.full?await fullBlocks(s,core):[core],groups=[];
+   const s=snapshotBackup(),V6=(typeof window!=='undefined'&&window.CMRecipeV6)||null;
+   const seedForCore=(s.seedText!==undefined&&s.seedText!=='')?s.seedText:s.seed;
+   const v6Seed=(s.includeSeed&&s.seedText&&typeof window!=='undefined'&&window.CMSeedKey&&window.CMSeedKey.classify(s.seedText)==='v2')?window.CMSeedKey.trimSeed(s.seedText):null;
+   const core=(v6Seed&&V6&&V6.canPack(s.cfg,v6Seed))?V6.pack(s.cfg,true,v6Seed):packRecipeTo256Bit(s.cfg,s.includeSeed,seedForCore);
+   let blocks;
+   if(s.full)blocks=await fullBlocks(s,core);
+   else if(v6Seed&&!(V6&&V6.isV6(core)))blocks=[core,packSeedTextBlock(v6Seed,core)];
+   else blocks=[core];
+   const groups=[];
    for(const b of blocks)groups.push(await entropyToBip39Words(b));
    if(request!==backupRequest)return;
    renderWords(groups,blocks);
@@ -5228,23 +5316,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
  function isFrame(b){return b[0]===0x43&&b[1]===0x58&&b[2]===0x42&&b[3]===2;}
  function parsePlainBody(innerBody,encrypted=false,kdfProfile=null,tagHex='',twoFaMode=0,shamir=null,combo=null){
-  if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x58&&innerBody[3]===2){
-   if(innerBody.length<74)throw new Error('拡張データの長さが不正です。');
+  if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x58&&(innerBody[3]===2||innerBody[3]===3)){
+   const verX=innerBody[3],seedLenX=(verX===3?32:0);
+   if(innerBody.length<74+seedLenX)throw new Error('拡張データの長さが不正です。');
    const cfgData=unpack256BitToRecipe(innerBody.slice(4,36)),v=new DataView(innerBody.buffer,innerBody.byteOffset,innerBody.byteLength);
    const a=v.getUint16(36,false),b=v.getUint16(38,false),c=v.getUint16(40,false);
-   if(a>4096||b>4096||c>1024||42+a+b+c+32!==innerBody.length)throw new Error('保存文字列の長さが不正です。');
+   if(a>4096||b>4096||c>1024||42+a+b+c+32+seedLenX!==innerBody.length)throw new Error('保存文字列の長さが不正です。');
    const decoder=new TextDecoder('utf-8',{fatal:true});let pos=42;
    const site=decoder.decode(innerBody.slice(pos,pos+=a)),secret=decoder.decode(innerBody.slice(pos,pos+=b)),symList=decoder.decode(innerBody.slice(pos,pos+=c));
    cfgData.cfg.symList=symList;
-   return{...cfgData,site,secret,expected:innerBody.slice(pos,pos+32),full:true,encrypted,kdfProfile,tagHex,twoFaMode,shamir,combo};
+   const expectedX=innerBody.slice(pos,pos+32);
+   if(verX===3)cfgData.seedText=unpackSeedTextBlock(innerBody.slice(pos+32),innerBody.slice(4,36));
+   return{...cfgData,site,secret,expected:expectedX,full:true,encrypted,kdfProfile,tagHex,twoFaMode,shamir,combo};
   }
-  if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x53&&innerBody[3]===2){
-   if(innerBody.length<38)throw new Error('設定データの長さが不正です。');
+  if(innerBody[0]===0x43&&innerBody[1]===0x4d&&innerBody[2]===0x53&&(innerBody[3]===2||innerBody[3]===3)){
+   const verS=innerBody[3],seedLenS=(verS===3?32:0);
+   if(innerBody.length<38+seedLenS)throw new Error('設定データの長さが不正です。');
    const cfgData=unpack256BitToRecipe(innerBody.slice(4,36)),v=new DataView(innerBody.buffer,innerBody.byteOffset,innerBody.byteLength);
    const c=v.getUint16(36,false);
-   if(c>1024||38+c!==innerBody.length)throw new Error('記号設定の長さが不正です。');
+   if(c>1024||38+c+seedLenS!==innerBody.length)throw new Error('記号設定の長さが不正です。');
    const decoder=new TextDecoder('utf-8',{fatal:true});
    cfgData.cfg.symList=decoder.decode(innerBody.slice(38,38+c));
+   if(verS===3)cfgData.seedText=unpackSeedTextBlock(innerBody.slice(38+c),innerBody.slice(4,36));
    return{...cfgData,full:false,encrypted,kdfProfile,tagHex,twoFaMode,shamir,combo};
   }
   throw new Error('未対応の拡張バックアップ形式です。');
@@ -5346,7 +5439,9 @@ document.addEventListener('DOMContentLoaded', () => {
   return parsePlainBody(plain,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
  }
  function saveUI(){return{cfg:getRecipeConfig(),site:$('sim-site').value,secret:$('sim-secret').value,seed:appliedSeed,seedInput:$('input-seed-number').value,inc:$('chk-include-card-seed').checked,kind:$('backup-kind').value,words:currentMnemonicWords.slice(),box:$('seed-words-container').innerHTML,summary:$('backup-summary').textContent,cqPinLen:$('cq-pin-length')?.value,cqSymLen:$('cq-symbol-length')?.value,cqSymMode:$('cq-symbol-mode')?.value,cqSymList:$('cq-symbol-list')?.value};}
+
  function restoreUI(s){currentDisplayMode='recipe';setRecipeConfig(s.cfg);$('sim-site').value=s.site;$('sim-secret').value=s.secret;if(s.cqPinLen!==undefined&&$('cq-pin-length'))$('cq-pin-length').value=s.cqPinLen;if(s.cqSymLen!==undefined&&$('cq-symbol-length'))$('cq-symbol-length').value=s.cqSymLen;if(s.cqSymMode!==undefined&&$('cq-symbol-mode'))$('cq-symbol-mode').value=s.cqSymMode;if(s.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=s.cqSymList;updateMainMatrix((s.seedInput !== undefined && s.seedInput !== '') ? s.seedInput : s.seed);$('input-seed-number').value=s.seedInput;$('chk-include-card-seed').checked=s.inc;$('backup-kind').value=s.kind;updateSimulationUI();currentMnemonicWords=s.words;$('seed-words-container').innerHTML=s.box;$('btn-copy-seed').disabled=!s.words.length;setStatus('backup-summary',s.summary);}
+
  restoreRecipeFromSeedInput=async function(){
   const request=++restoreRequest,statusEl=$('restore-status');$('btn-restore-seed').disabled=true;statusEl.className='status-msg';statusEl.textContent='全ブロックを検証しています…';
   let previous=null;
@@ -5374,8 +5469,12 @@ document.addEventListener('DOMContentLoaded', () => {
      throw new Error('このフレーズは暗号化または秘密分散されています。「バックアップ / 暗号化」タブの「復号化」ページの復元欄に入力してください。');
     }
    }else{
-    if(blocks.length!==1)throw new Error('この形式の拡張フレーズには対応していません。以前のハッシュ補強版は生成時の旧版で復元してください。');
-    data={...unpack256BitToRecipe(blocks[0]),full:false,encrypted:false};
+    if(blocks.length===2){
+     const head=unpack256BitToRecipe(blocks[0]);
+     if(!head.seedTextFollows)throw new Error('この形式の拡張フレーズには対応していません。以前のハッシュ補強版は生成時の旧版で復元してください。');
+     data={...head,full:false,encrypted:false,seedText:unpackSeedTextBlock(blocks[1],blocks[0])};
+    }else if(blocks.length!==1)throw new Error('この形式の拡張フレーズには対応していません。以前のハッシュ補強版は生成時の旧版で復元してください。');
+    else{const head=unpack256BitToRecipe(blocks[0]);if(head.seedTextFollows)throw new Error('シード文字列ブロック（後半24単語）が不足しています。48単語すべてを入力してください。');data={...head,full:false,encrypted:false};}
    }
    if(request!==restoreRequest)return;
    previous=saveUI();invalidateBackup();restoring=true;
@@ -5383,7 +5482,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if($('input-seed-number'))$('input-seed-number').dataset.restored='1';
    setRecipeConfig(data.cfg);
    $('chk-include-card-seed').checked=data.includeCardSeed;
-   if(data.includeCardSeed){$('input-seed-number').value=String(data.seedNumber);updateMainMatrix(data.seedNumber);}
+   if(data.includeCardSeed){const seedForRestore=(data.seedText!==undefined&&data.seedText!=='')?data.seedText:String(data.seedNumber);$('input-seed-number').value=seedForRestore;updateMainMatrix(seedForRestore);}
    if(data.full){$('sim-site').value=data.site;$('sim-secret').value=data.secret;}
    $('backup-kind').value=data.full?'full':'settings';
    const effective=getRecipeConfig();
@@ -5845,7 +5944,7 @@ document.addEventListener('DOMContentLoaded', () => {
   isBlindMode:()=>blindMode,
   createEncryptedBip39Backup:async(extended,password,kdfProfile=1,options={})=>{
    if(parseSeedValue($('input-seed-number').value)!==appliedSeed){updateMainMatrix($('input-seed-number').value);updateSimulationUI();}
-   const s=snapshotBackup(extended,true),core=packRecipeTo256Bit(s.cfg,true,s.seed);
+   const s=snapshotBackup(extended,true),core=packRecipeTo256Bit(s.cfg,true,(s.seedText!==undefined&&s.seedText!=='')?s.seedText:s.seed);
    const plainBody=await buildPlainBody(s,core);
    const activeSeed = options?.seedNum !== undefined ? String(options.seedNum).trim() : String(s.seed !== undefined ? s.seed : ($('input-seed-number')?.value || '0')).trim();
    const appBoundBody = await packAppBound('Backup', plainBody, activeSeed);
@@ -5910,8 +6009,15 @@ document.addEventListener('DOMContentLoaded', () => {
   decodeBip39Blocks:async(words,password='',allowOutOfOrder=true,twoFaOpts=null)=>{
    const blocks=[];for(let i=0;i<words.length;i+=24)blocks.push(await bip39WordsToEntropy(words.slice(i,i+24).join(' ')));
    if(!isFrame(blocks[0])){
+    if(blocks.length===2){
+     const head=unpack256BitToRecipe(blocks[0]);
+     if(!head.seedTextFollows)throw new Error('24単語単位のブロック形式が不正です。');
+     return{...head,seedText:unpackSeedTextBlock(blocks[1],blocks[0]),full:false,encrypted:false,kdfProfile:null,tagHex:'',blockCount:2,twoFaMode:0,shamir:null};
+    }
     if(blocks.length!==1)throw new Error('24単語単位のブロック形式が不正です。');
-    return{...unpack256BitToRecipe(blocks[0]),full:false,encrypted:false,kdfProfile:null,tagHex:'',blockCount:1,twoFaMode:0,shamir:null};
+    const head=unpack256BitToRecipe(blocks[0]);
+    if(head.seedTextFollows)throw new Error('シード文字列ブロック（後半24単語）が不足しています。48単語すべてが必要です。');
+    return{...head,full:false,encrypted:false,kdfProfile:null,tagHex:'',blockCount:1,twoFaMode:0,shamir:null};
    }
    if(blocks.length===1)throw new Error('これは複数ブロックバックアップ（24単語×必要ブロック数）の一部です。他のブロックが欠落しています。');
    const decoded=await decodeFull(blocks,password,allowOutOfOrder,twoFaOpts);

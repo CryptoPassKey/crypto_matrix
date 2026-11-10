@@ -112,3 +112,7 @@ jobs:
         run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state
         run: node tests/security/zeroize-timesecret.test.js
+      - name: Seed Vault migration matrix
+        run: node tests/compatibility/seed-vault-migration-matrix.test.js
+      - name: Data Transfer protocol matrix
+        run: node tests/compatibility/data-transfer-protocol-matrix.test.js

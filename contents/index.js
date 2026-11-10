@@ -149,10 +149,10 @@ function updateMainMatrix(seedValue) {
 
   if (isV2) {
     // v2: SHA-256 キーストリームで駆動する。消費順序は v1 と同じ
-    // （左上 → 右上 → 左下 → 右下）。末尾4記号は「. / - _」固定で、
+    // （左上 → 右上 → 左下 → 右下）。末尾4記号は「@ . / -」固定で、
     // 左下の記号プールには '.' を加える（新規ユーザー向け仕様）。
     const v2random = window.CMBoardV2.createRandom(window.CMSeedKey.canonicalSeedKey(seedText));
-    const symbolCharacters4 = ['.', '/', '-', '_'];
+    const symbolCharacters4 = ['@', '.', '/', '-'];
     rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
     numberCharactersShuffled = v2random.shuffle(Number1D.filledOverMaxTile(numberCharacters, constMaxTileCount));
     alphabetNumberCharactersShuffled = v2random.shuffle(Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper), constMaxTileCount));

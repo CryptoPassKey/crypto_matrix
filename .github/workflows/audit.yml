@@ -54,6 +54,12 @@ jobs:
         run: node tests/security/matrix-letter-seed-symbols.test.js
       - name: Matrix numeric-seed restore compat tests
         run: node tests/security/matrix-numeric-restore-compat.test.js
+      - name: Recipe v6 codec tests
+        run: node tests/security/recipe-v6.test.js
+      - name: Recipe v6 integration tests
+        run: node tests/security/recipe-v6-integration.test.js
+      - name: Recipe v6 restore compat tests
+        run: node tests/security/recipe-v6-restore-compat.test.js
       - name: Guide first-visit tests
         run: node tests/ui/guide-first-visit.test.js
       - name: Feature icons tests

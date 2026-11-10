@@ -91,6 +91,11 @@ check('v2 case matters (Abc123 != ABC123)', boardDigest('Abc123') !== boardDiges
 // trim された入力は同じ盤面（正規化の一貫性）
 check('v2 trimmed input reproduces same board', boardDigest(' abc123 '), boardDigest('abc123'));
 
+// 32bit 衝突ペア: 数値化すると同じ値になる2つの文字列でも、v2 では盤面が異なる
+// （v2 が解消する問題そのものの回帰ガード）。
+check('collision pair shares parseSeedValue', w.parseSeedValue('urnUkFZe'), w.parseSeedValue('Zac6VKdc'));
+check('collision pair differs on v2 board', boardDigest('urnUkFZe') !== boardDigest('Zac6VKdc'), true);
+
 // v1（数字シード）の盤面が変わらないこと（ガードテストの凍結値と同一）
 check('v1 board unchanged seed 0', boardDigest('0'), 'a2124f752e28c4952cdd398cd926968c67f8760f196829ed588ee225c6e609f8');
 check('v1 board unchanged seed 42', boardDigest('42'), '751d31d70bad31296286001275949b5d28763924895a4ef53b7250a2311d9484');

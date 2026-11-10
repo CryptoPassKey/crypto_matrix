@@ -566,15 +566,17 @@
     onGenerated
   }) {
     const preset = getPreset();
-    const seedNum = typeof preset.getValidSeedOrPrompt === 'function'
+    let seedNum = typeof preset.getValidSeedOrPrompt === 'function'
       ? preset.getValidSeedOrPrompt(statusElId)
       : Number(getCurrentCardSeed()) || 0;
     if (seedNum === null) return;
+    // 以後の受け渡しは数値化せず入力文字列で行い、正規シードキーで解釈させる。
+    seedNum = getCurrentCardSeed();
 
     const cleanPw = Array.from(String(defaultPassword || '')).length >= 12 ? String(defaultPassword) : '';
 
     if (window.__SKIP_KEYFILE_MODAL__ || typeof preset.showKeyfileModal !== 'function') {
-      const filename = `cryptomatrix-card-${seedNum}.key`;
+      const filename = `cryptomatrix-card-${String(seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
       const res = await preset.exportKeePassXmlKeyfile({
         seedNum,
         password: cleanPw,
@@ -590,7 +592,7 @@
       { seedNum, defaultPassword: cleanPw, defaultPasskey: Boolean(defaultPasskey), context },
       async (opts) => {
         try {
-          const filename = `cryptomatrix-card-${opts.seedNum}.key`;
+          const filename = `cryptomatrix-card-${String(opts.seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
           const res = await preset.exportKeePassXmlKeyfile({
             seedNum: opts.seedNum,
             password: opts.password,

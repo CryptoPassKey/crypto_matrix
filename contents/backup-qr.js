@@ -1307,7 +1307,7 @@ async function review(){
 
    ...(protLine?[protLine]:[]),
 
-   `読み方：${profileLabel(pCode)} ／ カード配列シード番号：${d.includeCardSeed?d.seedNumber:'未保存（現在のカードを使用）'}`,
+   `読み方：${profileLabel(pCode)} ／ カード配列シード番号：${d.includeCardSeed?((d.seedText!==undefined&&d.seedText!=='')?d.seedText:d.seedNumber):'未保存（現在のカードを使用）'}`,
 
    d.full?`サイト名：${d.site}\n合言葉：保存あり（安全のためここには表示しません）`:'サイト名・合言葉：含まれていません（現在ページ上部に入力されている値を使用します）',
 
@@ -1353,7 +1353,7 @@ async function applyRestore(){
 
   $('chk-include-card-seed').checked=d.includeCardSeed;
 
-  if(d.includeCardSeed){$('input-seed-number').value=String(d.seedNumber);updateMainMatrix(d.seedNumber);}
+  if(d.includeCardSeed){const seedForRestore=(d.seedText!==undefined&&d.seedText!=='')?d.seedText:String(d.seedNumber);$('input-seed-number').value=seedForRestore;updateMainMatrix(seedForRestore);}
 
   if(d.full){$('sim-site').value=d.site;$('sim-secret').value=d.secret;}
 
@@ -1405,7 +1405,9 @@ async function applyRestore(){
 
    if(old.cqSymList!==undefined&&$('cq-symbol-list'))$('cq-symbol-list').value=old.cqSymList;
 
+
    updateMainMatrix((old.seedInput !== undefined && old.seedInput !== '') ? old.seedInput : old.seed);$('input-seed-number').value=old.seedInput;updateSimulationUI();void generateAndRenderSeedPhrase();
+
 
   }
 
@@ -2040,9 +2042,12 @@ function syncProtectionUI(){
 
 async function generateAndDownloadKeyfile(){
 
- const seedNum=window.MatrixCardPreset?.getValidSeedOrPrompt?window.MatrixCardPreset.getValidSeedOrPrompt('bq-status'):(parseSeedValue?parseSeedValue($('input-seed-number')?.value):0);
+ let seedNum=window.MatrixCardPreset?.getValidSeedOrPrompt?window.MatrixCardPreset.getValidSeedOrPrompt('bq-status'):(parseSeedValue?parseSeedValue($('input-seed-number')?.value):0);
 
  if(seedNum===null)return;
+
+ // 以後の受け渡しは数値化せず入力文字列で行い、正規シードキーで解釈させる。
+ seedNum=($('input-seed-number')?.value||'0');
 
  const usePass=$('bq-opt-password')?.checked;
 
@@ -2062,7 +2067,7 @@ async function generateAndDownloadKeyfile(){
 
   try{
 
-   const filename=`cryptomatrix-card-${seedNum}.key`;
+   const filename=`cryptomatrix-card-${String(seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
 
    const res=await window.MatrixCardPreset.exportKeePassXmlKeyfile({
 
@@ -2098,7 +2103,7 @@ async function generateAndDownloadKeyfile(){
 
   try{
 
-   const filename=`cryptomatrix-card-${opts.seedNum}.key`;
+   const filename=`cryptomatrix-card-${String(opts.seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
 
    const res=await window.MatrixCardPreset.exportKeePassXmlKeyfile({
 
@@ -2690,9 +2695,12 @@ function initBonusVault(){
 
  $('bv-gen-keyfile')?.addEventListener('click',async()=>{
 
-  const seedNum=window.MatrixCardPreset?.getValidSeedOrPrompt?window.MatrixCardPreset.getValidSeedOrPrompt('bv-encrypt-status'):(parseSeedValue?parseSeedValue($('input-seed-number')?.value):0);
+  let seedNum=window.MatrixCardPreset?.getValidSeedOrPrompt?window.MatrixCardPreset.getValidSeedOrPrompt('bv-encrypt-status'):(parseSeedValue?parseSeedValue($('input-seed-number')?.value):0);
 
   if(seedNum===null)return;
+
+  // 以後の受け渡しは数値化せず入力文字列で行い、正規シードキーで解釈させる。
+  seedNum=($('input-seed-number')?.value||'0');
 
   const usePass=$('bv-opt-password')?.checked;
 
@@ -2712,7 +2720,7 @@ function initBonusVault(){
 
    try{
 
-    const filename=`vault-card-${seedNum}.key`;
+    const filename=`vault-card-${String(seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
 
     const res=await window.MatrixCardPreset.exportKeePassXmlKeyfile({
 
@@ -2748,7 +2756,7 @@ function initBonusVault(){
 
    try{
 
-    const filename=`vault-card-${opts.seedNum}.key`;
+    const filename=`vault-card-${String(opts.seedNum).replace(/[^0-9A-Za-z._-]/g,'_')}.key`;
 
     const res=await window.MatrixCardPreset.exportKeePassXmlKeyfile({
 
@@ -3340,7 +3348,7 @@ function initBonusVault(){
         const curSeed = $('input-seed-number')?.value || '0';
         if (!window.MatrixCardPreset?.generateKeePassXmlKeyfile) throw new Error('キーファイル生成モジュールが利用できません。');
         const keyData = await window.MatrixCardPreset.generateKeePassXmlKeyfile({
-         seedNum: (typeof parseSeedValue === 'function' ? parseSeedValue(curSeed) : (parseInt(curSeed, 10) || 0))
+         seedNum: curSeed
         });
         if (!keyData || !keyData.xml) throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
         attachments.push({
@@ -3964,7 +3972,7 @@ function initBonusVault(){
        const seedNum=$('input-seed-number')?.value||'0';
        if(!window.MatrixCardPreset?.generateKeePassXmlKeyfile)throw new Error('キーファイル生成モジュールが利用できません。');
        const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
-        seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0))
+        seedNum
        });
        if(!keyData||!keyData.xml)throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');
        attachments.push({
@@ -5397,7 +5405,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
    if(!window.MatrixCardPreset?.generateKeePassXmlKeyfile)throw new Error('キーファイル生成モジュールが利用できません。');
    const keyData=await window.MatrixCardPreset.generateKeePassXmlKeyfile({
-    seedNum:(typeof parseSeedValue==='function'?parseSeedValue(seedNum):(parseInt(seedNum,10)||0)),
+    seedNum,
     password:cardPw||pw
    });
    if(!keyData||!keyData.xml)throw new Error('KeePassキーファイル(.key)の生成に失敗しました。');

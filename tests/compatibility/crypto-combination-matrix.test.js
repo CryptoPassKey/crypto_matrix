@@ -146,10 +146,9 @@ function makeDecryptFactors(combo, overrides = {}) {
     check(`CMS3 ${m}-of-${n} restores every threshold subset (${subsets.length})`, subsetFailures === 0, `${subsetFailures} subset(s) failed`);
     const insufficient = indices.slice(0, m - 1).map(index => ({ index, data: raw[index - 1], m, n, setId: 'fixture-set-A' }));
     check(`CMS3 ${m}-of-${n} rejects fewer than threshold`, await rejects(() => M.shamirCombine(insufficient)));
-    const duplicate = [
-      { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' },
-      { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' }
-    ];
+    const duplicate = Array.from({ length: m }, () => ({
+      index: 1, data: raw[0], m, n, setId: 'fixture-set-A'
+    }));
     check(`CMS3 ${m}-of-${n} rejects duplicate share indices`, await rejects(() => M.shamirCombine(duplicate)));
     const mixed = [
       { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' },

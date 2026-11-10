@@ -1,6 +1,6 @@
 // 新規ユーザー向け盤面仕様（v2 世代）: 文字列シード（数字のみでないシード）は
 // v2 盤面（SHA-256 キーストリーム駆動）になり、末尾4マスの中央記号は
-// 「. / - _」固定、左下の記号プールには '.' が加わる。
+// 「@ . / -」固定、左下の記号プールには '.' が加わる。
 // v2 盤面の正確なダイジェストは matrix-board-v2.test.js が参照実装の凍結値で
 // 固定する。本ファイルは盤面の構成規則（固定記号・プール・大小区別）と、
 // 数字のみのシード（既存ユーザー・物理カード）の盤面が一切変わらないこと、
@@ -55,9 +55,9 @@ function check(name, actual, expected) {
 check('extraction includes LCG constants', segment.includes('1664525') && segment.includes('1013904223') && segment.includes('4294967296'), true);
 check('extraction includes updateMainMatrix and CENTER_CHARS sync', segment.includes('function updateMainMatrix') && segment.includes('CENTER_CHARS.splice'), true);
 
-// 1. 英字を含む英数字シード: 末尾4マスの中央記号が「. / - _」固定
+// 1. 英字を含む英数字シード: 末尾4マスの中央記号が「@ . / -」固定
 for (const s of ['abc123', 'MySeed2026', 'seedA', 'a']) {
-  check('letter seed ' + JSON.stringify(s) + ' centers[36..39]', board(s).slice(36, 40).map(t => t.center).join(' '), '. / - _');
+  check('letter seed ' + JSON.stringify(s) + ' centers[36..39]', board(s).slice(36, 40).map(t => t.center).join(' '), '@ . / -');
 }
 // 中央マスの先頭36は従来どおり 0-9, a-z
 check('letter seed centers[0..35] unchanged', board('abc123').slice(0, 36).map(t => t.center).join(''), '0123456789abcdefghijklmnopqrstuvwxyz');
@@ -84,7 +84,7 @@ check('letter seed abc123 differs from #155 interim board', boardDigest('abc123'
 // 別の盤面になる（v2 でも維持）。
 check('case sensitivity: ABC123 differs from abc123', boardDigest('ABC123') !== boardDigest('abc123'), true);
 check('case sensitivity: Abc123 differs from abc123', boardDigest('Abc123') !== boardDigest('abc123'), true);
-check('case variants also get fixed tail symbols', board('ABC123').slice(36, 40).map(t => t.center).join(' '), '. / - _');
+check('case variants also get fixed tail symbols', board('ABC123').slice(36, 40).map(t => t.center).join(' '), '@ . / -');
 
 // 2. 対象外の入力は従来どおり（ダイジェストは従来仕様の値）
 // 数字のみのシード（文字列・2^32超を含む）
@@ -93,7 +93,7 @@ check('numeric seed 9999999999 board unchanged', boardDigest('9999999999'), '840
 check('numeric seed 123 board unchanged', boardDigest('123'), '30ea032697dbb53179475b0620700195c852cd5340ba6d5f13e9c5d9f8732398');
 // 空白を含む文字列も v2 分類では文字列シードとして v2 盤面になる
 // （#155 暫定仕様では対象外だった。v2 では分類が正規シードキーに一元化された）
-check('string seed "hello world" gets v2 fixed tail symbols', board('hello world').slice(36, 40).map(t => t.center).join(' '), '. / - _');
+check('string seed "hello world" gets v2 fixed tail symbols', board('hello world').slice(36, 40).map(t => t.center).join(' '), '@ . / -');
 check('string seed "hello world" differs from legacy LCG board', boardDigest('hello world') !== '0b8579d67e1358db4a2cddf8a8054251f4ebea1fc3311c1c01567f91d0020a61', true);
 
 // 3. 復元経路の契約: 保存済み状態の復元では、数値化された seed ではなく
@@ -101,7 +101,7 @@ check('string seed "hello world" differs from legacy LCG board', boardDigest('he
 check('index.js restoreUI prefers seedInput', src.includes("updateMainMatrix((s.seedInput !== undefined && s.seedInput !== '') ? s.seedInput : s.seed)"), true);
 check('backup-qr.js restore prefers seedInput', bqSrc.includes("updateMainMatrix((old.seedInput !== undefined && old.seedInput !== '') ? old.seedInput : old.seed)"), true);
 // 分岐は updateMainMatrix 内の v2 判定に閉じている
-check('v2 branch exists in updateMainMatrix', segment.includes('CMBoardV2') && segment.includes("['.', '/', '-', '_']"), true);
+check('v2 branch exists in updateMainMatrix', segment.includes('CMBoardV2') && segment.includes("['@', '.', '/', '-']"), true);
 
 // --- シード入力欄が英字を受け付けること（モバイルで数字キーボードに固定されない） ---
 const seedInputEl = w.document.getElementById('input-seed-number');

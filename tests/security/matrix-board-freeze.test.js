@@ -58,26 +58,26 @@ const BOARD_DIGESTS = [
   ['+42', 'aca5abfa75da88323bf62747ffad4090d460fcfb2781f1323c3e79288215a287'],
   [' 42 ', 'aca5abfa75da88323bf62747ffad4090d460fcfb2781f1323c3e79288215a287'],
   // v2: 英数字・記号シード（SHA-256 経路）
-  ['abc123', 'c1881d88b6e103f64c47d314b2afde6c9142a8a8fc1664abfbcacb600e9f8905'],
-  ['Abc123', 'f0d5168b638061de383f6fa06b5f7ebb66a366a641eea88a19560fd4d661c827'],
-  ['ABC123', '043d9c7528944f32aca3af2d2c4365cc9d0e895ddfdd98910659be195a274d70'],
-  ['aB3-xY9zQwEr', '5b19c798323b90189c423d32df271194609bb8b096329dc6460bfc91b2ee8987'],
-  ['urnUkFZe', '7fb4c8f849646984bdb6be2580cb9b3824cbf1d7080f601101c25d46e0d7f764'],
-  ['Zac6VKdc', '0257ee834257846281d60ef5a05443669c75ca26b2186c39c773ea7a88bc5a7d'],
-  ['....', 'ee8f90797b50f1cd55a83aabe1de245357d7f052e36bcdb64c96bb84f69cc8dc'],
-  ['!#$%&()*+-', '74bd8cdffd8e4cd2f0d826afda7e566dcc559df5675ec62d2cf8da64c10a13bb'],
-  ['ab cd', 'f1f0bd196ba5663a0c13a8bfa73c1a36fb63741540824ad99f24786e5f38e433'],
-  ['あいうえお', '9da0b06a2fefd4f36bb4e0f3564163f654990bf9b766442e51b7d93c394462f1'],
-  ['\u304c', 'f6e3a1467f5b90cf7a76e529f8f6b75ba0c624adc54f0ac821a37db24e0623f2'],
-  ['\u304b\u3099', 'f6e3a1467f5b90cf7a76e529f8f6b75ba0c624adc54f0ac821a37db24e0623f2'],
-  ['p@ssw0rd!', 'dafdc7ed4e574c2381ee36c2d226c9bc99e8314699c90e4be1827145a361b5c2'],
-  ['Ab3dF6hJ9kM2nP5qR8sT4vW7xY0zA1bC4eG7hK9mN2pQ5rS8uV1wX4yB6dE9gH0j', '80ad73cd25dca0217c4cc4621be6363ac61a44655bcba6220a1a1f9a488a9a69'],
+  ['abc123', '20220db91a5b149544cd684c9ee45a5d952c8bb76fbfba187e25157a373e63bf'],
+  ['Abc123', 'f1d9d89351b3eb57adbf23458d94fb1eddddfd5d1bffa78c17cd0b5c0d886bcd'],
+  ['ABC123', '0fd60fc5b620af8356bd77746126cba960fc5421061b01f4beba4b407f84d4cb'],
+  ['aB3-xY9zQwEr', '58d0392e4087fc623ad6872d174369f5dd78d2e7b622b071bdb53cf26e0ce5b8'],
+  ['urnUkFZe', '9ee5ab8a8c6e725fa9e5e3d58763017d3bd61d4530bce23e4b7e519303cf40ce'],
+  ['Zac6VKdc', 'b25add85d6c316cf782b4b916486ca9ce687e67b0be4af5fd8a0be6d87afe2af'],
+  ['....', '22e9deaf8e1f1fea0ece156712e9573ce52fe71881189938a95167569cad637c'],
+  ['!#$%&()*+-', '7187605ed23b7e26c6586dcc78dd09c78eefa23c7bb43efc92bd2768f9e755d2'],
+  ['ab cd', '0d3a32f166921df7b01255a7a9570380a042959f8202d957383dfd0462c94c45'],
+  ['あいうえお', '498df66653931efc233cb6b86e8f13b7c202bcb5ddfd054d6abd0ae2c48420b1'],
+  ['\u304c', '7e7969021913a84a5d531a0ae1c0b8560677d37ad3c58d07581f8100f1d3982a'],
+  ['\u304b\u3099', '7e7969021913a84a5d531a0ae1c0b8560677d37ad3c58d07581f8100f1d3982a'],
+  ['p@ssw0rd!', 'fb6abbc36f61c17aa6e80a66d3a27b3fd10abc503caafc083107708ca19d75f6'],
+  ['Ab3dF6hJ9kM2nP5qR8sT4vW7xY0zA1bC4eG7hK9mN2pQ5rS8uV1wX4yB6dE9gH0j', '7e72fa7869358ffd35ff3ecdfb2f93ee11c9e8e4e0c6e85cf083e86322ec1eb4'],
 ];
 
 // ===== 2. ソース固定 =====
 const SOURCE_HASHES = [
   ['index.js parseSeedValue', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function parseSeedValue(')), '905cc2360546a09eb07dd3a2a93c74f6242eba7a4b6b6aab266ae73ff72d9359'],
-  ['index.js updateMainMatrix', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function updateMainMatrix(')), '5a9a972f5da3a5f3d39dfb271b9a01df206f4e706d1ad5cbfe8f397575c710c7'],
+  ['index.js updateMainMatrix', () => sha(spanTrim(fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8'), 'function updateMainMatrix(')), '9206c764989f988b97dd818d6c3a4e868b239ff7065e34b04b9affa958d8d2c2'],
   ['seed-key.js route classification (trimSeed..classify)', () => {
     const sk = fs.readFileSync(path.join(CONTENTS, 'seed-key.js'), 'utf8');
     const lines = sk.split('\n');

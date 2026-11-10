@@ -57,16 +57,16 @@ check('v2 modules loaded', typeof w.CMSeedKey + '/' + typeof w.CMBoardV2, 'objec
 
 // 参照実装から生成した固定ベクタ（仕様バージョン: CM-BOARD-V2）
 const EXPECTED_V2 = {
-  'abc123': 'ded0729b40aa29dcb2f4796d240cbc8d29ce8e81d55d085b7fba6485d7f8d086',
-  'MySeed2026': 'b1a20a1e283fd94b08edcedc2ea84f75998e37b10b4e5c983b67c9e47d7cc309',
-  'Xk9$mQ2!vR7/pL4.wZ8-nT': 'f212296ad3fb36cf0dcb4cfc62fd8d68e1aa21b961f532b3033fab26beb0d321',
-  'seed/with.dots_and-dashes': '20b34b7ccbe499387676dcc790bf07b600c12a282b92aca25029175337d4a05c',
-  '....': '6b2ff5cdff6a211ea9ef31675df3c0bc2b5f878bc90ddaa4f566027148d68ddb',
-  'a': '5c1616a7bd889f892551fa21cddd41c955f49b8a53d52fd2c18e57cb31d43d24',
-  'Z9': '67205779ec98f38c89bf5445d483f79d2040b3e45194dbf598bbf960cdb9d9ae',
-  'パスワード盤面': '741005a30a661af1a5b5f266b3c26dca37d1ee8e962deeaaef82cdb70be110a8',
-  'Abc123': 'da642718fb978b56771844d3dba5ab6fb2e5065944990534fbfadd6acba6b465',
-  'ABC123': 'd68a700919c613591e60788c479f7c2d346793a2f5e751bf8887b7fc611c60cb',
+  'abc123': '13d707ba7c9487c81990644b607d76e34a37e7961478aa9a4ba85a97a92abf19',
+  'MySeed2026': 'cedd33ea22d8df4a9afed1eb8b7fce3151d7e9eb11f0ee842afd5587d6a74219',
+  'Xk9$mQ2!vR7/pL4.wZ8-nT': '747628796f06dd0a656c7f9690bce41fddeee6ca8c9e86b9d5edf25f87d6abbb',
+  'seed/with.dots_and-dashes': '0deca7e73c71256e0ebf00d77630d9e934b781c1010c15c1e694599c03c89c9d',
+  '....': '115370c0f667b4eab3581f21eadd4208094c623f3fa00d0651c3d0371867bd0d',
+  'a': 'b7e89caff49c4d12da1caa623d4ae64328de1e9008681c9071df2f44c4bc0661',
+  'Z9': '885fd87d047086d5c83b75bb7771fa30eeee3a023b6d89d34643ecec87124b98',
+  'パスワード盤面': '392ea99538686676be2c1085ac91886bb0af77c24c876d76d915d7845cc41aef',
+  'Abc123': '73a30f2a86bb28e019f2a99714afb718828908763f1edefc75b2b6161725dc08',
+  'ABC123': '87d70152c1e59f5b98471988925b62f3447004c80007baa27249e01bd79adfc6',
 };
 for (const [seed, digest] of Object.entries(EXPECTED_V2)) {
   check('v2 board digest ' + JSON.stringify(seed), boardDigest(seed), digest);
@@ -75,7 +75,7 @@ for (const [seed, digest] of Object.entries(EXPECTED_V2)) {
 // v2 の構造
 for (const s of ['abc123', 'MySeed2026', 'seed/with.dots_and-dashes']) {
   const md = tiles(s);
-  check('v2 tail symbols fixed ' + JSON.stringify(s), md.slice(36, 40).map(t => t.center).join(' '), '. / - _');
+  check('v2 tail symbols fixed ' + JSON.stringify(s), md.slice(36, 40).map(t => t.center).join(' '), '@ . / -');
   check('v2 centers[0..35] are 0-9a-z in order ' + JSON.stringify(s), md.slice(0, 36).map(t => t.center).join(''), '0123456789abcdefghijklmnopqrstuvwxyz');
   const blPool = new Set(md.map(t => t.bl));
   check('v2 bl pool can contain dot ' + JSON.stringify(s), typeof blPool.has('.'), 'boolean'); // 存在可否は盤面依存のため型のみ（網羅は次項）

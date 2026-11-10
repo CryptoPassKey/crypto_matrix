@@ -119,7 +119,8 @@ function makeDecryptFactors(combo, overrides = {}) {
     check('CMA1 app-bound backup roundtrip exact', bytesEqual(restored, PLAIN));
     check('CMA1 rejects a different card-array seed', await rejects(() => M.unpackAppBound('Backup', bound, '271828')));
     check('CMA1 rejects a different application domain', await rejects(() => M.unpackAppBound('Vault', bound, '314159')));
-    const changed = new Uint8Array(bound); changed[changed.length - 1] ^= 0x80;
+    // Preserve the VM realm's Uint8Array brand so unpackAppBound reaches AES-GCM authentication.
+    const changed = bound.slice(); changed[changed.length - 1] ^= 0x80;
     check('CMA1 rejects ciphertext tampering', await rejects(() => M.unpackAppBound('Backup', changed, '314159')));
   } catch (error) { check('CMA1 app-bound tests complete', false, error && error.stack || String(error)); }
 

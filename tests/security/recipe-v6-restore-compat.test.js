@@ -69,7 +69,7 @@ function cfgEq(a, b) {
     $('sim-site').value = c.site;
     $('sim-secret').value = c.secret;
     w.updateSimulationUI();
-    eq('[' + c.name + '] generated password matches production (digest)', sha256($('sim-output-pw').textContent), c.expected.passwordAfterRestoreSha256);
+    eq('[' + c.name + '] generated password matches production (digest)', sha256($('sim-output-pw').textContent), c.expected.generatedOutputSha256);
     eq('[' + c.name + '] board matches production', w.eval('JSON.stringify(currentMatrixData)'), c.expected.boardAfterRestore);
   }
 

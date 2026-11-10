@@ -1353,7 +1353,7 @@ async function applyRestore(){
 
   $('chk-include-card-seed').checked=d.includeCardSeed;
 
-  if(d.includeCardSeed){$('input-seed-number').value=String(d.seedNumber);updateMainMatrix(d.seedNumber);}
+  if(d.includeCardSeed){const seedForRestore=(d.seedText!==undefined&&d.seedText!=='')?d.seedText:String(d.seedNumber);$('input-seed-number').value=seedForRestore;updateMainMatrix(seedForRestore);}
 
   if(d.full){$('sim-site').value=d.site;$('sim-secret').value=d.secret;}
 

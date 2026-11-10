@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.25.0-bip39-v6';
+const VERSION = 'cm-v3.26.0-board-v2';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -106,7 +106,8 @@ const FILES = [
   "seed-vault.js",
   "passkey-store.js",
   "seed-key.js",
-  "recipe-v6.js"
+  "recipe-v6.js",
+  "board-v2.js"
 ];
 
 

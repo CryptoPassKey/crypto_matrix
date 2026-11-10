@@ -102,7 +102,7 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.24.0-sw-update-prompt'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.25.0-recipe-v6'));
 
   // ===== シナリオA: 「あとで」→ 別の新版では再び出る =====
   {

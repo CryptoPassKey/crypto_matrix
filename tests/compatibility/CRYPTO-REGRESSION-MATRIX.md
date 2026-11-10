@@ -35,3 +35,8 @@ High-memory profiles use representative combinations to bound normal CI runtime 
 - Generate fixtures from a known-good baseline revision, not the code under test after a regression.
 - Never regenerate historical fixtures merely to make a failing test pass.
 - Document source revision, reason, format, and expected plaintext for each fixture change.
+
+## Additional invariants
+
+- CMA1 seed-bound encryption: correct seed/domain roundtrip; wrong seed, wrong domain, and ciphertext tampering must fail.
+- CMS3 Shamir: every threshold-sized subset is checked for 2-of-3, 3-of-5, and 4-of-7; fewer than threshold, duplicate indices, and mixed set identifiers must be rejected.

@@ -112,6 +112,53 @@ function makeDecryptFactors(combo, overrides = {}) {
     check('Duress container recovers decoy slot', decoyResult.isDuress === true && bytesEqual(decoyResult.innerBody, decoy));
     check('Duress container rejects unrelated password', await rejects(() => M.decryptBodyCME2(dual, 'unrelated-wrong-password', {})));
   } catch (error) { check('Duress dual roundtrip completes', false, error && error.stack || String(error)); }
+  // Seed-bound app encryption: domain and seed are part of the recovery contract.
+  try {
+    const bound = await M.packAppBound('Backup', new Uint8Array(PLAIN), '314159');
+    const restored = await M.unpackAppBound('Backup', bound, '314159');
+    check('CMA1 app-bound backup roundtrip exact', bytesEqual(restored, PLAIN));
+    check('CMA1 rejects a different card-array seed', await rejects(() => M.unpackAppBound('Backup', bound, '271828')));
+    check('CMA1 rejects a different application domain', await rejects(() => M.unpackAppBound('Vault', bound, '314159')));
+    const changed = new Uint8Array(bound); changed[changed.length - 1] ^= 0x80;
+    check('CMA1 rejects ciphertext tampering', await rejects(() => M.unpackAppBound('Backup', changed, '314159')));
+  } catch (error) { check('CMA1 app-bound tests complete', false, error && error.stack || String(error)); }
+
+  // CMS3 Shamir threshold combinations: every M-sized subset must restore.
+  const shamirSecret = Uint8Array.from({ length: 64 }, (_, i) => (i * 19 + 37) & 0xff);
+  function combinations(items, choose) {
+    const out = [];
+    function visit(start, picked) {
+      if (picked.length === choose) { out.push(picked.slice()); return; }
+      for (let i = start; i < items.length; i++) { picked.push(items[i]); visit(i + 1, picked); picked.pop(); }
+    }
+    visit(0, []); return out;
+  }
+  for (const [m, n] of [[2, 3], [3, 5], [4, 7]]) {
+    const raw = M.shamirSplit(new Uint8Array(shamirSecret), m, n);
+    const indices = Array.from({ length: n }, (_, i) => i + 1);
+    const subsets = combinations(indices, m);
+    let subsetFailures = 0;
+    for (const subset of subsets) {
+      const selected = subset.map(index => ({ index, data: raw[index - 1], m, n, setId: 'fixture-set-A' }));
+      try { if (!bytesEqual(M.shamirCombine(selected), shamirSecret)) subsetFailures++; }
+      catch (_) { subsetFailures++; }
+    }
+    check(`CMS3 ${m}-of-${n} restores every threshold subset (${subsets.length})`, subsetFailures === 0, `${subsetFailures} subset(s) failed`);
+    const insufficient = indices.slice(0, m - 1).map(index => ({ index, data: raw[index - 1], m, n, setId: 'fixture-set-A' }));
+    check(`CMS3 ${m}-of-${n} rejects fewer than threshold`, await rejects(() => M.shamirCombine(insufficient)));
+    const duplicate = [
+      { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' },
+      { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' }
+    ];
+    check(`CMS3 ${m}-of-${n} rejects duplicate share indices`, await rejects(() => M.shamirCombine(duplicate)));
+    const mixed = [
+      { index: 1, data: raw[0], m, n, setId: 'fixture-set-A' },
+      { index: 2, data: raw[1], m, n, setId: 'fixture-set-B' },
+      ...indices.slice(2, m).map(index => ({ index, data: raw[index - 1], m, n, setId: 'fixture-set-A' }))
+    ];
+    check(`CMS3 ${m}-of-${n} rejects mixed set identifiers`, await rejects(() => M.shamirCombine(mixed)));
+  }
+
   console.log(`crypto-combination-matrix: ${pass} passed, ${fail} failed`);
   if (failures.length) console.error(failures.join('\n'));
   process.exitCode = fail ? 1 : 0;

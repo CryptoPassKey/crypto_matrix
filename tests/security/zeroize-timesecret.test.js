@@ -173,6 +173,9 @@ async function loadPage() {
   check('非破壊: 保管庫が2件とも残る', app.listVaults().length === 2);
   const dec = await app.decryptVault(vid, { password: PW });
   check('非破壊: 正しいパスワードで再復号できる', dec.text === SECRET);
+  let wrongPasswordRejected = false;
+  try { await app.decryptVault(vid, { password: 'definitely-wrong-password' }); } catch (_) { wrongPasswordRejected = true; }
+  check('異常系: 誤った復元用パスワードを拒否する', wrongPasswordRejected);
   await openViaUI();
   check('非破壊: 消去後も通常の表示フローが機能する', $('ts-decrypted-view').textContent.includes(SECRET));
 

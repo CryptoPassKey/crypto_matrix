@@ -1,5 +1,5 @@
 {
- "generatedFrom": "pre-fix production main (2026-11-11, after #163 merge), created with contents/index.js before the Backup seed canonicalization fix",
+ "generatedFrom": "pre-fix production code: contents/index.js at commit ed77326a0c3a73aa344dbd16f4f60553bede4f9e (main after #163 merge, before the Backup seed canonicalization fix). Regeneration: see tests/compatibility/generate-backup-seed-fixtures.js",
  "cases": [
   {
    "name": "legacy-letter",
@@ -763,5 +763,6 @@
    "site": "example.com",
    "secret": "<MASKED_SECRET_001>"
   }
- ]
+ ],
+ "generatedFromCommit": "ed77326a0c3a73aa344dbd16f4f60553bede4f9e"
 }

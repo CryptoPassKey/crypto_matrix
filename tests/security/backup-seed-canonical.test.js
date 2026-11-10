@@ -10,7 +10,10 @@
  * 旧形式（数値化シード）へフォールバックする。
  *
  * フィクスチャ（backup-seed-canonical.fixtures.json）は修正前の本番コードで
- * 生成した実バックアップで、以後変更しない。
+ * 生成した実バックアップで、以後変更しない。生成元コミットはフィクスチャ内に
+ * 記録し、さらに本テスト内で「旧キー（数値化シード）では開け、正規キーでは
+ * 開けない」ことを暗号学的に検証する（自己申告に依存しない）。
+ * CMA1 を持たない旧形式ボディがフォールバックなしで通ることも明示的に検証する。
  */
 const fs = require('fs');
 const path = require('path');
@@ -83,6 +86,55 @@ function eq(name, a, b) { check(name, a === b, 'got ' + JSON.stringify(a) + ' ex
   const r5 = await restoreWith(legacyNumeric.words, '424242');
   eq('[legacy numeric] seed number restored', r5.seedNumber, 424242);
   check('[legacy numeric] no legacy fallback', !r5.legacySeedFallback);
+
+  // ===== 2b. フィクスチャの生成元を暗号学的に検証する =====
+  // 旧形式フィクスチャの内層は、旧キー（String(parseSeedValue(seed))）でのみ
+  // 開き、正規キーでは開けないはずである。これが成り立つことが、フィクスチャが
+  // 修正前の鍵形式で作られたことの独立検証になる。
+  check('fixture provenance commit recorded', /^[0-9a-f]{40}$/.test(FIXTURES.generatedFromCommit || ''));
+  async function fixtureInnerBody(fx) {
+    const blocks = [];
+    for (let i = 0; i < fx.words.length; i += 24) blocks.push(await P.bip39WordsToEntropy(fx.words.slice(i, i + 24).join(' ')));
+    const { body } = await P.reassembleStreamGroup(blocks, true);
+    const dec = await P.decryptBodyCME2(body, fx.pw, null);
+    return dec.innerBody;
+  }
+  for (const fx of FIXTURES.cases) {
+    const inner = await fixtureInnerBody(fx);
+    check('[' + fx.name + '] inner body is CMA1', inner[0] === 0x43 && inner[1] === 0x4d && inner[2] === 0x41 && inner[3] === 0x31);
+    const legacyKey = String(w.parseSeedValue(fx.seed));
+    const viaLegacy = await P.unpackAppBound('Backup', inner, legacyKey);
+    const viaHelper = await P.unpackBackupBody(inner, fx.seed);
+    check('[' + fx.name + '] opens with the legacy (numeric-form) key', viaLegacy[0] === 0x43 && viaLegacy[1] === 0x4d && viaLegacy[2] === 0x58 && Buffer.from(viaLegacy).equals(Buffer.from(viaHelper.plain)));
+    eq('[' + fx.name + '] production restore path fallback usage', viaHelper.legacySeedFallback, fx.name === 'legacy-letter');
+    const canonicalKey = w.CMSeedKey.canonicalSeedKey(fx.seed);
+    if (canonicalKey !== legacyKey) {
+      await rejects('[' + fx.name + '] does NOT open with the canonical key (proves pre-fix key form)', P.unpackAppBound('Backup', inner, canonicalKey));
+    } else {
+      eq('[' + fx.name + '] numeric seed: canonical key equals legacy key', canonicalKey, legacyKey);
+    }
+  }
+
+  // ===== 2c. CMA1 を持たない旧形式ボディ（フォールバックなしで通る） =====
+  {
+    const goodWords = await createWith('424242');
+    const blocks0 = [];
+    for (let i = 0; i < goodWords.length; i += 24) blocks0.push(await P.bip39WordsToEntropy(goodWords.slice(i, i + 24).join(' ')));
+    const { body } = await P.reassembleStreamGroup(blocks0, true);
+    const dec = await P.decryptBodyCME2(body, PW, null);
+    const unb = await P.unpackBackupBody(dec.innerBody, '424242');
+    // 取り出した平文本体を、CMA1 を挟まずに CME2 で包み直した旧形式バックアップ
+    const cme = await P.encryptBodyCME2(unb.plain, PW, 0, { usePassword: true });
+    const blocks = await P.frameBodyToBlocks(cme);
+    const words = [];
+    for (const b of blocks) words.push(...await P.entropyToBip39Words(b));
+    const r6 = await restoreWith(words, '424242');
+    eq('[no-CMA1 legacy] restores without app-bound layer', r6.seedNumber, 424242);
+    check('[no-CMA1 legacy] no legacy fallback involved', !r6.legacySeedFallback);
+    const probe = new TextEncoder().encode('plain-body-without-cma1');
+    const u0 = await P.unpackBackupBody(probe, '424242');
+    check('[no-CMA1 legacy] unpackBackupBody passes body through untouched', u0.legacySeedFallback === false && Buffer.from(u0.plain).equals(Buffer.from(probe)));
+  }
 
   // ===== 3. 異常系 =====
   await rejects('[wrong seed] numeric fixture rejected', restoreWith(legacyNumeric.words, '111111'));

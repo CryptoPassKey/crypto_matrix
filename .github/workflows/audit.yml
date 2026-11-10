@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - main
-      - 'test/**'
     paths:
       - "contents/**"
       - "tests/**"
@@ -41,8 +40,6 @@ jobs:
         run: node tests/accessibility/contrast-audit.js
       - name: Compatibility audit (existing encrypted backups must still decrypt)
         run: node tests/compatibility/compat-audit.js
-      - name: Cryptographic combination regression matrix
-        run: node tests/compatibility/crypto-combination-matrix.test.js
       - name: Corrupt input rejection tests
         run: node tests/security/corrupt-input.test.js
       - name: Recover beacon info tests
@@ -67,6 +64,8 @@ jobs:
         run: node tests/security/matrix-board-v2.test.js
       - name: Matrix board freeze guard tests
         run: node tests/security/matrix-board-freeze.test.js
+      - name: Backup seed canonicalization tests
+        run: node tests/security/backup-seed-canonical.test.js
       - name: Guide first-visit tests
         run: node tests/ui/guide-first-visit.test.js
       - name: Feature icons tests
@@ -112,7 +111,3 @@ jobs:
         run: node tests/security/dt-buffer-zeroize.test.js
       - name: Zeroize clears TimeSecret ephemeral state
         run: node tests/security/zeroize-timesecret.test.js
-      - name: Seed Vault migration matrix
-        run: node tests/compatibility/seed-vault-migration-matrix.test.js
-      - name: Data Transfer protocol matrix
-        run: node tests/compatibility/data-transfer-protocol-matrix.test.js

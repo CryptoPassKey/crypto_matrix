@@ -130,36 +130,51 @@ function estimatePasswordEntropy(pw) {
  */
 function updateMainMatrix(seedValue) {
   const seedNum = parseSeedValue(seedValue);
-  const random = new Random(seedNum);
 
   const alphabetLower = 'abcdefghijklmnopqrstuvwxyz'.split('');
   const alphabetUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   const numberCharacters = '0123456789'.split('');
   const symbolCharacters = ["-", "_", "!", "#", "$", "%", "&", "^", "(", ")", "+", "*", "/"];
 
-  // 新規ユーザー向け盤面: 英字を含む英数字シードのときだけ、末尾4記号を
-  // 「. / - _」に固定し、左下の記号プールにも '.' を加える。
-  // 数字のみのシード（既存ユーザー・物理カード）は従来の生成と一切変えない。
-  const seedText = (typeof seedValue === 'string') ? seedValue.trim() : '';
-  const isLetterSeed = /^[0-9A-Za-z]+$/.test(seedText) && /[A-Za-z]/.test(seedText);
 
-  // コードの生成順序（記号から4種選抜 → rootCharacters構築 → 各配列生成＆シャッフル）
-  const symbolCharacters4 = isLetterSeed ? ['.', '/', '-', '_'] : Number1D.shuffle(symbolCharacters, random).slice(0, 4);
-  const rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
+  // 第2世代（v2）判定は正規シードキー（CMSeedKey）の分類に従う。
+  // 数字のみのシード（v1）は従来の生成処理を一切変えない。
+  const seedText = (typeof seedValue === 'string') ? seedValue.trim()
+    : (typeof seedValue === 'number' && Number.isFinite(seedValue)) ? String(Math.trunc(seedValue)) : '';
+  const looksV2 = seedText !== '' && !/^[+-]?[0-9]+$/.test(seedText);
+  const isV2 = looksV2 && typeof window !== 'undefined' && !!window.CMSeedKey && window.CMSeedKey.isV2Seed(seedText);
+  if (looksV2 && !isV2) throw new Error('updateMainMatrix: seed v2 modules are not loaded');
+
+  let rootCharacters, numberCharactersShuffled, alphabetNumberCharactersShuffled, alphabetNumberSymbolCharactersShuffled, correspondenceCharactersShuffled;
+
+  if (isV2) {
+    // v2: SHA-256 キーストリームで駆動する。消費順序は v1 と同じ
+    // （左上 → 右上 → 左下 → 右下）。末尾4記号は「. / - _」固定で、
+    // 左下の記号プールには '.' を加える（新規ユーザー向け仕様）。
+    const v2random = window.CMBoardV2.createRandom(window.CMSeedKey.canonicalSeedKey(seedText));
+    const symbolCharacters4 = ['.', '/', '-', '_'];
+    rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
+    numberCharactersShuffled = v2random.shuffle(Number1D.filledOverMaxTile(numberCharacters, constMaxTileCount));
+    alphabetNumberCharactersShuffled = v2random.shuffle(Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper), constMaxTileCount));
+    alphabetNumberSymbolCharactersShuffled = v2random.shuffle(Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, symbolCharacters, ['.']), constMaxTileCount));
+    correspondenceCharactersShuffled = v2random.shuffle(rootCharacters.slice());
+  } else {
+    const random = new Random(seedNum);
+    // コードの生成順序（記号から4種選抜 → rootCharacters構築 → 各配列生成＆シャッフル）
+    const symbolCharacters4 = Number1D.shuffle(symbolCharacters, random).slice(0, 4);
+    rootCharacters = [].concat(numberCharacters, alphabetLower, symbolCharacters4);
+    const numberCharactersFilled = Number1D.filledOverMaxTile(numberCharacters, constMaxTileCount);
+    numberCharactersShuffled = Number1D.shuffle(numberCharactersFilled, random);
+    const alphabetNumberCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper), constMaxTileCount);
+    alphabetNumberCharactersShuffled = Number1D.shuffle(alphabetNumberCharactersFilled, random);
+    const alphabetNumberSymbolCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, symbolCharacters), constMaxTileCount);
+    alphabetNumberSymbolCharactersShuffled = Number1D.shuffle(alphabetNumberSymbolCharactersFilled, random);
+    const correspondenceCharactersFilled = rootCharacters.slice();
+    correspondenceCharactersShuffled = Number1D.shuffle(correspondenceCharactersFilled, random);
+  }
+
+
   CENTER_CHARS.splice(0, CENTER_CHARS.length, ...rootCharacters.map(String));
-
-  const numberCharactersFilled = Number1D.filledOverMaxTile(numberCharacters, constMaxTileCount);
-  const numberCharactersShuffled = Number1D.shuffle(numberCharactersFilled, random);
-
-  const alphabetNumberCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper), constMaxTileCount);
-  const alphabetNumberCharactersShuffled = Number1D.shuffle(alphabetNumberCharactersFilled, random);
-
-  const blSymbolCharacters = isLetterSeed ? symbolCharacters.concat('.') : symbolCharacters;
-  const alphabetNumberSymbolCharactersFilled = Number1D.filledOverMaxTile([].concat(numberCharacters, alphabetLower, alphabetUpper, blSymbolCharacters), constMaxTileCount);
-  const alphabetNumberSymbolCharactersShuffled = Number1D.shuffle(alphabetNumberSymbolCharactersFilled, random);
-
-  const correspondenceCharactersFilled = rootCharacters.slice();
-  const correspondenceCharactersShuffled = Number1D.shuffle(correspondenceCharactersFilled, random);
 
   currentMatrixData = [];
   const container = document.getElementById('div-encrypto-matrix-main');

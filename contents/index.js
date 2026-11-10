@@ -4845,6 +4845,34 @@ document.addEventListener('DOMContentLoaded', () => {
    return cryptoAPI().importKey('raw', keyHash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
  }
 
+ // Backup ドメイン専用のシード解釈。正規シードキー（CMSeedKey）へ一元化する。
+ // 数字シードは従来の数値解釈 String(parseSeedValue(...)) を維持し、それ以外は
+ // trim 済みの文字列そのものを使う。Vault / TimeSecret / TimeLock は対象外。
+ function canonicalBackupSeed(seed) {
+   const raw = (seed === undefined || seed === null) ? '0' : String(seed).trim();
+   const effective = raw === '' ? '0' : raw;
+   if (typeof window !== 'undefined' && window.CMSeedKey) return window.CMSeedKey.canonicalSeedKey(effective);
+   return effective;
+ }
+
+ // Backup 復元側: まず正規キーで復号し、認証に失敗した場合に限り、旧実装の
+ // 数値化シード（String(parseSeedValue(...))）でも一度だけ試す。unpackAppBound
+ // が例外を送出するのは CMA1 の認証失敗時だけであり、非 CMA1 の旧形式ボディは
+ // そのまま返るため、このフォールバックは認証失敗時にしか動かない。復号後の
+ // 形式検証（parsePlainBody）の失敗では再試行しない。
+ async function unpackBackupBody(bodyBytes, restoreSeed) {
+   const canonical = canonicalBackupSeed(restoreSeed);
+   try {
+     const plain = await unpackAppBound('Backup', bodyBytes, canonical);
+     return { plain, legacySeedFallback: false };
+   } catch (err) {
+     const legacy = String(parseSeedValue(String(restoreSeed ?? '0').trim() || '0'));
+     if (legacy === canonical) throw err;
+     const plain = await unpackAppBound('Backup', bodyBytes, legacy);
+     return { plain, legacySeedFallback: true };
+   }
+ }
+
  async function packAppBound(domain, plainBytes, seedNum = '0') {
    const iv = crypto.getRandomValues(new Uint8Array(12));
    const appKey = await deriveAppDomainKey(domain, iv, seedNum);
@@ -5407,14 +5435,17 @@ document.addEventListener('DOMContentLoaded', () => {
    if(body[0]===0x43&&body[1]===0x4d&&body[2]===0x45&&(body[3]===2||body[3]===3)){
     const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(body,password,twoFaOpts);
     const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
-    const plain = await unpackAppBound('Backup', innerBody, restoreSeed);
-    const res=parsePlainBody(plain,true,kdfProfile,tagHex,combo,null,combo);
+    const unb = await unpackBackupBody(innerBody, restoreSeed);
+    const res=parsePlainBody(unb.plain,true,kdfProfile,tagHex,combo,null,combo);
     if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
+    if(unb.legacySeedFallback)res.legacySeedFallback=true;
     return res;
    }
    const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
-   const plain = await unpackAppBound('Backup', body, restoreSeed);
-   return parsePlainBody(plain,false,null,tagHex,0,null,null);
+   const unb = await unpackBackupBody(body, restoreSeed);
+   const res=parsePlainBody(unb.plain,false,null,tagHex,0,null,null);
+   if(unb.legacySeedFallback)res.legacySeedFallback=true;
+   return res;
   }
   // Multiple tag groups -> check for Shamir M-of-N shares
   const shareMap=new Map();
@@ -5444,14 +5475,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if(cmeBody[0]===0x43&&cmeBody[1]===0x4d&&cmeBody[2]===0x45&&(cmeBody[3]===2||cmeBody[3]===3)){
    const {innerBody,kdfProfile,combo,isLegacyPK2Migrated}=await decryptBodyCME2(cmeBody,password,twoFaOpts);
    const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
-   const plain = await unpackAppBound('Backup', innerBody, restoreSeed);
-   const res=parsePlainBody(plain,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
+   const unb = await unpackBackupBody(innerBody, restoreSeed);
+   const res=parsePlainBody(unb.plain,true,kdfProfile,hexTag(refSetId.slice(0,4)),combo,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},combo);
    if(isLegacyPK2Migrated)res.isLegacyPK2Migrated=true;
+   if(unb.legacySeedFallback)res.legacySeedFallback=true;
    return res;
   }
   const restoreSeed = twoFaOpts?.seedNum !== undefined ? twoFaOpts.seedNum : ($('bq-restore-seed-number')?.value || $('input-restore-seed-number')?.value || $('input-seed-number')?.value || '0');
-  const plain = await unpackAppBound('Backup', cmeBody, restoreSeed);
-  return parsePlainBody(plain,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
+  const unb = await unpackBackupBody(cmeBody, restoreSeed);
+  const res=parsePlainBody(unb.plain,false,null,hexTag(refSetId.slice(0,4)),0,{m:refM,n:refN,usedShares:selected.map(s=>s.index)},null);
+  if(unb.legacySeedFallback)res.legacySeedFallback=true;
+  return res;
  }
  function saveUI(){return{cfg:getRecipeConfig(),site:$('sim-site').value,secret:$('sim-secret').value,seed:appliedSeed,seedInput:$('input-seed-number').value,inc:$('chk-include-card-seed').checked,kind:$('backup-kind').value,words:currentMnemonicWords.slice(),box:$('seed-words-container').innerHTML,summary:$('backup-summary').textContent,cqPinLen:$('cq-pin-length')?.value,cqSymLen:$('cq-symbol-length')?.value,cqSymMode:$('cq-symbol-mode')?.value,cqSymList:$('cq-symbol-list')?.value};}
 
@@ -5961,7 +5995,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(parseSeedValue($('input-seed-number').value)!==appliedSeed){updateMainMatrix($('input-seed-number').value);updateSimulationUI();}
    const s=snapshotBackup(extended,true),core=packRecipeTo256Bit(s.cfg,true,(s.seedText!==undefined&&s.seedText!=='')?s.seedText:s.seed);
    const plainBody=await buildPlainBody(s,core);
-   const activeSeed = options?.seedNum !== undefined ? String(options.seedNum).trim() : String(s.seed !== undefined ? s.seed : ($('input-seed-number')?.value || '0')).trim();
+   const activeSeed = canonicalBackupSeed(options?.seedNum !== undefined ? options.seedNum : ((s.seedText !== undefined && s.seedText !== '') ? s.seedText : (s.seed !== undefined ? s.seed : ($('input-seed-number')?.value || '0'))));
    const appBoundBody = await packAppBound('Backup', plainBody, activeSeed);
    const shamirM=Number(options?.shamirM||1),shamirN=Number(options?.shamirN||1);
    const usePass=options?.usePassword!==undefined?!!options.usePassword:!!password;
@@ -6054,6 +6088,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAllBoundSeedBadges:()=>updateAllBoundSeedBadges(),
   packAppBound:(domain,plainBytes,seedNum)=>packAppBound(domain,plainBytes,seedNum),
   unpackAppBound:(domain,bodyBytes,seedNum)=>unpackAppBound(domain,bodyBytes,seedNum),
+  unpackBackupBody:(bodyBytes,seed)=>unpackBackupBody(bodyBytes,seed),
   deriveAppDomainKey:(domain,iv,seedNum)=>deriveAppDomainKey(domain,iv,seedNum),
   shamirSplit:(secretBytes,m,n)=>shamirSplit(secretBytes,m,n),
   shamirCombine:shareItems=>shamirCombine(shareItems),

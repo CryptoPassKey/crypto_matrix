@@ -608,6 +608,13 @@ function appendQrOrNotice(figure,qrText){
 
 
 
+/**
+ * Update the encrypted-backup output label to match the selected format.
+ * @param {boolean} isArmored Whether the active output uses PGP-armored text.
+ */
+function setBackupOutputFormatLabel(isArmored){
+}
+
 function updateSec3Display(format,isInitial=false){
 
  if(!artifact)return;
@@ -632,6 +639,13 @@ function updateSec3Display(format,isInitial=false){
 
   $('bq-active-format-label').textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式');
 
+ }
+
+ setBackupOutputFormatLabel(isArmored);
+
+ const outputFormatLabel=$('bq-output-format-label');
+ if(outputFormatLabel){
+  outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式');
  }
 
  if($('bq-copy'))$('bq-copy').disabled=false;

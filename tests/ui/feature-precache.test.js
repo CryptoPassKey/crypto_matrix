@@ -68,9 +68,26 @@ check('guide hero keeps password-gen img',
   html.slice(html.indexOf('cm-guide-hero'), html.indexOf('cm-guide-hero') + 200).includes('feature-password-gen.webp'));
 check('bip39 section head has no feature img',
   !html.slice(html.indexOf('id="section-bip39-plain"'), html.indexOf('id="section-bip39-plain"') + 600).includes('feature-bip39'));
+const qrSideStart = html.indexOf('cm-qr-side-row');
+const qrSideEnd = html.indexOf('id="seed-qr-list"', qrSideStart);
+const seedQrId = 'id="seed-qr-list"';
+const qrSideMarkup = qrSideStart >= 0 && qrSideEnd >= 0 ? html.slice(qrSideStart, qrSideEnd + seedQrId.length) : '';
 check('bip39 img sits in QR side row beside seed-qr-list',
-  html.includes('cm-qr-side') && html.indexOf('feature-bip39.webp') > html.indexOf('cm-qr-side') && html.indexOf('feature-bip39.webp') < html.indexOf('id="seed-qr-list"'));
+  qrSideMarkup.includes('feature-bip39.webp') && qrSideMarkup.indexOf('feature-bip39.webp') < qrSideMarkup.indexOf('id="seed-qr-list"'));
+check('encrypted backup output label element exists',
+  html.includes('id="bq-output-format-label"'));
+check('encrypted backup output label updater is called by renderer',
+  backupQr.includes('setBackupOutputFormatLabel(isArmored)'));
+check('encrypted backup output label updater writes the selected format',
+  backupQr.includes('function setBackupOutputFormatLabel(isArmored)') &&
+  backupQr.includes("outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式')"));
 const themeCss = fs.readFileSync(path.join(ROOT, 'contents', 'theme-cyber.css'), 'utf8');
+const bqSideStart = html.indexOf('cm-qr-side-row', qrSideStart + 1);
+check('backup img sits in QR side row beside bq-qr-list',
+  bqSideStart > qrSideStart && html.indexOf('feature-backup.webp', bqSideStart) > bqSideStart && html.indexOf('feature-backup.webp', bqSideStart) < html.indexOf('id="bq-qr-list"'));
+check('encrypt panel head has no feature img',
+  !html.slice(html.indexOf('id="bq-panel-encrypt"'), html.indexOf('id="bq-panel-encrypt"') + 400).includes('feature-'));
+check('side img size is 180px for QR balance', themeCss.includes('.cm-qr-side img { width: 180px; height: 180px;'));
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
 

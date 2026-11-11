@@ -75,12 +75,11 @@ check('bip39 img sits in QR side row beside seed-qr-list',
   qrSideMarkup.includes('feature-bip39.webp') && qrSideMarkup.indexOf('feature-bip39.webp') < qrSideMarkup.indexOf('id="seed-qr-list"'));
 check('encrypted backup output label element exists',
   html.includes('id="bq-output-format-label"'));
-check('encrypted backup output label logic is wired into renderer',
-  backupQr.includes("const outputFormatLabel=$('bq-output-format-label')") && backupQr.includes('outputFormatLabel.textContent=(isArmored?'));
-check('BIP39 output label text is configured',
-  backupQr.includes("'BIP39 24単語ブロック形式'"));
-check('PGP output label text is configured',
-  backupQr.includes("'PGPアーマード形式'"));
+check('encrypted backup output label updater is called by renderer',
+  backupQr.includes('setBackupOutputFormatLabel(isArmored)'));
+check('encrypted backup output label updater writes the selected format',
+  backupQr.includes('function setBackupOutputFormatLabel(isArmored)') &&
+  backupQr.includes("outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式')"));
 const themeCss = fs.readFileSync(path.join(ROOT, 'contents', 'theme-cyber.css'), 'utf8');
 const bqSideStart = html.indexOf('cm-qr-side-row', qrSideStart + 1);
 check('backup img sits in QR side row beside bq-qr-list',

@@ -288,7 +288,6 @@
     <button type="button" class="btn btn-secondary" id="btn-toggle-cq" style="padding:4px 10px; font-size:0.78rem;">▼ 開く</button>
   </div>
 </h2>
-<img src="feature-password-gen.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
 <div id="cq-collapsible-body" class="mode-section-body">
 <p class="cq-note">物理カード単体でも手作業で再現できます。どちらかを選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
@@ -664,7 +663,6 @@
       <div class="section-title">
         <span>復元フレーズ（24単語・暗号化なし）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
       </div>
-      <img src="feature-bip39.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
       <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
         現在の設定を <strong>BIP39規格（24単語）</strong> と <strong>QRコード</strong> として自動作成・表示します（暗号化なし）。
       </p>
@@ -720,7 +718,10 @@
 <div id="backup-summary" class="no-print" role="status" aria-live="polite"></div>
 <!-- END EXTENDED BIP39 BACKUP -->
       <div id="seed-words-container" style="width:100%; margin:12px 0;"></div>
-      <div id="seed-qr-list" aria-label="シードフレーズのQRコード自動表示"></div>
+      <div class="cm-qr-side-row">
+        <div class="cm-qr-side no-print" aria-hidden="true"><img src="feature-bip39.webp" alt="" width="120" height="120"></div>
+        <div id="seed-qr-list" aria-label="シードフレーズのQRコード自動表示"></div>
+      </div>
 
       <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-color);" class="no-print">
         <label for="input-restore-seed" style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">

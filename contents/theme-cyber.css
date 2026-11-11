@@ -3607,6 +3607,11 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 .cm-feature-img-lg { display: block; width: 160px; height: 160px; max-width: 60%; object-fit: contain; margin: 10px auto; }
 .help-popover-img { display: block; width: 150px; height: 150px; object-fit: contain; margin: 8px auto 4px; }
 .help-popover-img[hidden] { display: none; }
+.cm-qr-side-row { display: flex; align-items: center; gap: 8px; }
+.cm-qr-side { flex: 0 0 auto; }
+.cm-qr-side img { width: 120px; height: 120px; object-fit: contain; display: block; }
+.cm-qr-side-row #seed-qr-list { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 639px) { .cm-qr-side { display: none; } }
 .verbal-guide-card.guide-collapsed .guide-toggle-ico { transform: rotate(-90deg); }
 .verbal-guide-card.guide-collapsed .verbal-guide-header { margin-bottom: 0; }
 @media (pointer: coarse) { .guide-toggle-btn { min-height: 38px; padding: 7px 14px; } }

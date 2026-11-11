@@ -88,6 +88,8 @@ check('backup img sits in QR side row beside bq-qr-list',
 check('encrypt panel head has no feature img',
   !html.slice(html.indexOf('id="bq-panel-encrypt"'), html.indexOf('id="bq-panel-encrypt"') + 400).includes('feature-'));
 check('side img size is 180px for QR balance', themeCss.includes('.cm-qr-side img { width: 180px; height: 180px;'));
+check('side img shrinks (not hidden) on small screens',
+  !themeCss.includes('.cm-qr-side { display: none; }') && themeCss.includes('.cm-qr-side img { width: 88px; height: 88px; }'));
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
 

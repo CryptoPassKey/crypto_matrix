@@ -17,12 +17,12 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script src="theme-init.js"></script>
-<link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="legacy.css">
-<link rel="stylesheet" href="theme-cyber.css">
+<script src="theme-init.js?v=3.28.5"></script>
+<link rel="stylesheet" href="app.css?v=3.28.5">
+<link rel="stylesheet" href="legacy.css?v=3.28.5">
+<link rel="stylesheet" href="theme-cyber.css?v=3.28.5">
 
-<link rel="stylesheet" href="dt-camera.css">
+<link rel="stylesheet" href="dt-camera.css?v=3.28.5">
 
 </head>
 <body class="cm-body">
@@ -30,58 +30,60 @@
 <header class="cm-header"><div class="cm-header-in">
   <button type="button" class="cm-logo" id="cm-update-trigger" aria-label="最新版を確認・更新" title="タップして最新版を確認"><img src="emblem.png" alt="" class="cm-logo-img" width="38" height="38"></button>
   <div class="cm-title-wrap">
-    <h1 class="cm-title cm-mono">CRYPTO<span>_</span>MATRIX</h1>
-    <div class="cm-subtitle cm-mono">CryptoPassKey<span class="cm-sub-extra"> | Secure · Private · Offline</span></div>
+    <div class="cm-title-row">
+      <h1 class="cm-title cm-mono">CRYPTO<span>_</span>MATRIX</h1>
+      <span class="cm-unit-code cm-mono">3.28</span>
+    </div>
+    <div class="cm-subtitle cm-mono">CryptoPassKey</div>
   </div>
   <div class="cm-tools cm-mono">
-    <button type="button" id="cm-airgap" class="cm-badge cm-b-green" title="パスワード生成・バックアップ・保管庫・タイムカプセル暗号化はすべて端末内で完結し、外部通信を一切行いません（タイムカプセル復号時に自動取得を選んだ場合のみdrand公開乱数ビーコンを取得します。手動ビーコン入力なら完全オフラインで復号可能です）。"><span class="cm-dot"></span><span class="cm-hide-sm">AIR-GAP READY · 通常通信 0</span></button>
+    <button type="button" id="cm-airgap" class="cm-badge cm-b-green" title="パスワード生成・バックアップ・暗号化・タイムカプセルはすべて端末内で完結し、外部通信を一切行いません（タイムカプセル復号時に自動取得を選んだ場合のみdrand公開乱数ビーコンを取得します。手動ビーコン入力なら完全オフラインで復号可能です）。"><span class="cm-dot"></span><span class="cm-hide-sm">AIR-GAP READY · 通常通信 0</span></button>
     <button type="button" id="cm-csp" class="cm-badge cm-b-cyan" title="CSP（コンテンツ・セキュリティ・ポリシー）により、任意の外部サーバーへの通信はブラウザレベルで遮断されています（タイムカプセル解禁確認用の公開drandエンドポイントのみ許可）。"><img src="csp-icon.png" class="cm-badge-img" alt="" width="18" height="18"><span class="cm-hide-sm">CSP 通信保護</span></button>
     <button type="button" id="cm-net" class="cm-badge"></button>
     <button type="button" id="cm-install" class="cm-btn"><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="cm-hide-sm" id="cm-install-label">アプリを追加</span></button>
-    <button type="button" id="cm-help" class="cm-btn" disabled><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span class="cm-hide-sm">ヘルプ / チュートリアル</span></button>
+    <button type="button" id="cm-help" class="cm-btn" title="キーボードショートカット一覧（?キー）"><svg class="cm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span class="cm-hide-sm">ショートカット [?]</span></button>
     <button type="button" id="cm-theme-toggle" class="cm-btn cm-btn-sq"></button>
   </div>
 </div></header>
 <nav class="cm-map" aria-label="機能一覧">
-  <button type="button" class="cm-map-chip" data-target="tab-quick"><img src="tab-quick.png" alt="" width="22" height="22"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-recipe"><img src="tab-recipe.png" alt="" width="22" height="22"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-backup"><img src="tab-backup.png" alt="" width="22" height="22"><span>バックアップ / 暗号化</span><span class="cm-map-role">保存・暗号化</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-vault"><img src="tab-vault.png" alt="" width="22" height="22"><span>セキュア保管庫</span><span class="cm-map-role">まとめて保管</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-timelock"><img src="tab-capsule.png" alt="" width="22" height="22"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-timesecret"><img src="tab-timesecret.png" alt="" width="22" height="22"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-datatransfer"><img src="tab-transfer.png" alt="" width="22" height="22"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-quick" data-mod="01"><span class="cm-map-idx">1</span><img src="tab-quick.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-recipe" data-mod="02"><span class="cm-map-idx">2</span><img src="tab-recipe.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-backup" data-mod="03"><span class="cm-map-idx">3</span><img src="tab-backup.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>バックアップ</span><span class="cm-map-role">設定の保存・復元</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-vault" data-mod="04"><span class="cm-map-idx">4</span><img src="tab-vault.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-timelock" data-mod="05"><span class="cm-map-idx">5</span><img src="tab-capsule.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-map-idx">6</span><img src="tab-timesecret.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-datatransfer" data-mod="07"><span class="cm-map-idx">7</span><img src="tab-transfer.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></span></button>
 </nav>
 <div class="cm-info" id="cm-badge-info" hidden><span id="cm-badge-info-text"></span><button type="button" id="cm-badge-info-close">閉じる</button></div>
 <noscript><div class="cm-error">JavaScript を有効にしてください。</div></noscript>
 <main class="cm-main">
   <section aria-label="マトリックス盤面"><div id="cm-board" class="cm-legacy cm-board">
-<body>
   <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <div>
+    <div class="cm-deck-header">
+      <div class="cm-deck-title-group">
+        <div class="cm-deck-eyebrow">MATRIX CIPHER DECK</div>
         <h2 class="cm-legacy-hero-title">暗号マトリックス＆マイ・レシピ管理</h2>
-        <p class="subtitle">物理カード配列の完全再現・パスワード算出・BIP39 24単語／高強度暗号化・秘密分散バックアップ</p>
+        <p class="subtitle">カード配列からパスワードを決定論的に算出・バックアップ</p>
       </div>
-      <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <div id="peek-control-slot"></div>
-        <button type="button" class="btn btn-danger" id="btn-zeroize" style="padding:6px 12px; font-size:0.78rem;" title="カード配列シード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><img src="destruct-icon.png" class="cm-btn-img" alt="" width="20" height="20">緊急消去</button>
+      <div class="cm-deck-controls no-print">
+        <div class="seed-bar no-print">
+          <label for="input-seed-number">カード番号:<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字の並び順を決める基準番号（シード番号）です。同じ番号を入力すれば、世界中どの端末でも全く同じカード文字盤が再現されます。自分だけの秘密の番号を設定することも可能です。">?</button></label>
+          <input type="text" id="input-seed-number" value="0" placeholder="カード番号" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="seed-live-hint">
+        </div>
+        <div class="cm-deck-actions">
+          <div id="peek-control-slot"></div>
+          <button type="button" class="btn btn-danger" id="btn-zeroize" title="カード番号・サイト名・合言葉・レシピ設定・復元欄・クリップボードをすべて即座に初期化・消去します"><img src="destruct-icon.png" class="cm-btn-img" alt="" width="20" height="20">緊急消去</button>
+        </div>
       </div>
     </div>
 
-    <!-- シードフレーズ番号バー -->
-    <div class="seed-bar no-print">
-      <label for="input-seed-number" style="font-weight:700; font-size:0.88rem;">カード配列シード番号 (seed):<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字の並び順を決める基準番号です。同じシード番号を入力すれば、世界中どの端末でも全く同じカード文字盤が再現されます。自分だけの秘密の番号を設定することも可能です。">?</button></label>
-      <input type="text" id="input-seed-number" value="0" placeholder="シードを入力" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="seed-live-hint">
-    </div>
-
-    <!-- マトリックスの上に配置：現在のパスワード作成手順（説明ボックス） -->
+    <!-- 作成手順（折りたたみ可能なプロトコルガイド） -->
     <div class="verbal-guide-card">
       <div class="verbal-guide-header">
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span>📖 現在のパスワード作成手順</span>
-          <span class="mode-pill" id="verbal-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
+        <div class="verbal-guide-title-box">
+          <span class="verbal-guide-title">📖 作成手順</span>
+          <span class="mode-pill" id="verbal-mode-badge">✅ 使用中：1. マイレシピ</span>
         </div>
-        <span style="font-size:0.76rem; color:var(--text-sub); font-weight:400;">（現在の設定に応じた読み取り手順）</span>
         <button type="button" id="btn-guide-toggle" class="guide-toggle-btn" aria-expanded="true" aria-controls="verbal-recipe-steps"><span class="guide-toggle-label">閉じる</span><span class="guide-toggle-ico" aria-hidden="true">▾</span></button>
       </div>
       <ol class="verbal-guide-list" id="verbal-recipe-steps"></ol>
@@ -89,6 +91,51 @@
 
     <!-- マトリックス表示 ＋ 直下ルート再生バー -->
     <div class="matrix-stage" id="matrix-stage-box">
+      <div class="cm-matrix-bezel-bar no-print">
+        <div class="cm-bezel-left">
+          <span class="cm-bezel-led"></span>
+        </div>
+        <div class="cm-bezel-legend" role="note" aria-label="マスの四隅・中央の文字配置凡例">
+          <span class="cm-legend-item cm-leg-tl" title="暗証番号用：数字のみ">[左上] 数字</span>
+          <span class="cm-legend-item cm-leg-tr" title="英数パスワード用：英大文字・英小文字・数字">[右上] 英大小数字</span>
+          <span class="cm-legend-item cm-leg-center" title="マスキー：盤面特定用の基準文字">[中央] 基準文字</span>
+          <span class="cm-legend-item cm-leg-bl" title="標準パスワード本文用：英大文字・英小文字・数字・記号">[左下] 英大小数字記号</span>
+          <span class="cm-legend-item cm-leg-br" title="対応文字：英小文字・数字・記号">[右下] 英小数字記号</span>
+          <button type="button" id="btn-cell-layout-info" class="cm-bezel-help-btn" aria-expanded="false" aria-controls="cm-cell-layout-card" title="1マスの文字配置と役割の詳細を表示"><span class="cm-bezel-help-ico">ℹ️</span><span>マス構造</span></button>
+        </div>
+      </div>
+
+      <!-- 1マス（セル）の文字構成図パネル（折りたたみ可能） -->
+      <div id="cm-cell-layout-card" class="cm-cell-layout-card no-print" style="display:none;" aria-hidden="true">
+        <div class="cm-cell-layout-head">
+          <div class="cm-cell-layout-title-wrap">
+            <span class="cm-cell-layout-dot"></span>
+            <span class="cm-cell-layout-title">1マスの文字配置と役割</span>
+          </div>
+          <button type="button" id="btn-close-cell-layout" class="cm-cell-layout-close" aria-label="閉じる">✕ 閉じる</button>
+        </div>
+        <div class="cm-cell-layout-body">
+          <div class="cm-cell-layout-preview">
+            <div class="cm-cell-preview-box">
+              <div class="cm-prev-corner cm-prev-tl"><span class="cm-prev-tag">左上</span><span class="cm-prev-val">7</span><span class="cm-prev-sub">数字 (0-9)</span></div>
+              <div class="cm-prev-corner cm-prev-tr"><span class="cm-prev-tag">右上</span><span class="cm-prev-val">K</span><span class="cm-prev-sub">英大小数字</span></div>
+              <div class="cm-prev-center"><span class="cm-prev-tag">中央</span><span class="cm-prev-val">a</span><span class="cm-prev-sub">基準文字 (マスキー)</span></div>
+              <div class="cm-prev-corner cm-prev-bl"><span class="cm-prev-tag">左下 ★本文</span><span class="cm-prev-val">#</span><span class="cm-prev-sub">英大小数字記号</span></div>
+              <div class="cm-prev-corner cm-prev-br"><span class="cm-prev-tag">右下</span><span class="cm-prev-val">w</span><span class="cm-prev-sub">英小数字記号(対応)</span></div>
+            </div>
+          </div>
+          <div class="cm-cell-layout-details">
+            <ul class="cm-cell-layout-list">
+              <li><span class="cm-leg-chip cm-leg-center">[中央] 基準文字</span><p>サイト名や合言葉の文字を探す<strong>インデックスキー</strong>。全40マスに「0〜9」「a〜z」「記号4種」が1文字ずつ重複なく割り当てられています。</p></li>
+              <li><span class="cm-leg-chip cm-leg-bl">[左下] 英大小数字記号</span><p><strong>標準パスワード本文の基本読み取り角</strong>。英大文字・英小文字・数字・記号のすべてを含み、複雑で強固なパスワードを生成します。</p></li>
+              <li><span class="cm-leg-chip cm-leg-tl">[左上] 数字のみ</span><p><strong>銀行ATMやスマートフォンの暗証番号（PIN）</strong>用。0〜9の数字のみを配置しています。</p></li>
+              <li><span class="cm-leg-chip cm-leg-tr">[右上] 英大小数字</span><p><strong>記号が使用できないWebサイト向け</strong>の英数パスワード用。英大文字・英小文字・数字を含みます。</p></li>
+              <li><span class="cm-leg-chip cm-leg-br">[右下] 英小数字記号</span><p><strong>対応文字</strong>。基準文字（0-9, a-z, 記号4種）をシャッフルした配置で、四隅なぞりや交互抽出などに使用します。</p></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <!-- パターン文字予告HUDオーバーレイ -->
       <div id="stroke-char-hud" class="stroke-char-hud" aria-live="polite" style="display:none;">
         <div class="stroke-char-badge" id="stroke-hud-badge">A</div>
@@ -99,7 +146,7 @@
       </div>
 
       <div class="matrix-scroll">
-        <div id="div-encrypto-matrix-main"></div>
+        <div id="div-encrypto-matrix-main" title="クリックでルート再生 / 一時停止"></div>
       </div>
 
       <!-- 既存互換テンプレート -->
@@ -115,21 +162,40 @@
 
       <!-- マトリックス直下：リアルタイム確認＆1文字ずつルート再生プレイヤー -->
       <div class="live-player-bar no-print">
+        <div class="live-result-row" id="live-result-row">
+          <div class="cm-pw-readout-unit">
+            <div class="cm-pw-readout-head">
+              <span class="cm-pw-readout-label">生成パスワード<button type="button" class="help-btn" aria-label="説明を表示" data-help="生成パスワードはカード・サイト名・合言葉・レシピ設定から決定論的に算出されます。文字種と長さから計算するビット数は理論値で、実際の推測困難性を保証しません。安全性はシードや入力情報の探索空間にも制約されます。">?</button></span>
+              <span class="mode-pill" id="live-mode-badge">✅ 使用中：1. マイレシピ</span>
+            </div>
+            <div class="pw-chars-box" id="sim-output-pw"></div>
+            <div class="cm-pw-meta-line" id="sim-output-meta"></div>
+          </div>
+          <div class="cm-trace-switch-bank" id="trace-controls-bar">
+            <button type="button" class="btn" id="btn-play-trace" title="現在のマイ・レシピまたは簡単生成モードの通常ルートをマトリックス上で1文字ずつ再生します"><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">通常ルート再生</button>
+            <button type="button" class="btn btn-outline" id="btn-play-stroke" title="文字や記号の形を盤面上で指でなぞる「パターンルート」でパスワードを生成・再生します（Androidのパターン解除感覚）"><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターンルート再生</button>
+            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
+            <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します"><img src="stop-icon.png" class="cm-btn-img" alt="" width="20" height="20">停止</button>
+            <button type="button" class="btn btn-secondary" id="btn-copy-pw" title="コピー（30秒後にクリップボードから自動消去）"><img src="copy-icon.png" class="cm-btn-img" alt="" width="20" height="20">コピー</button>
+            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送します"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに追加</button>
+          </div>
+        </div>
+
         <div class="live-inputs-row">
-          <div>
+          <div class="cm-sim-field">
             <label for="sim-site">サイト<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを作成したいWebサイト名やサービス名（例: 1Password, Google, Appleなど）です。ここに入力した文字をカード盤面上で探してパスワードを算出します。">?</button></label>
             <input type="text" id="sim-site" value="1Password" placeholder="例: 1Password">
           </div>
-          <div>
+          <div class="cm-sim-field">
             <label for="sim-secret">合言葉<button type="button" class="help-btn" aria-label="説明を表示" data-help="あなただけが知っている秘密の言葉（マスターキー）です。サイト名と合言葉の組み合わせによって、サイトごとに推測不可能な全く異なる強力なパスワードがカードから作られます。">?</button></label>
             <input type="text" id="sim-secret" value="KeePass" placeholder="例: KeePass">
-            <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px; line-height:1.4;">
-              💡 合言葉作りに困ったら？ <a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=passphrase" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline;" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能を開きます">KeePassの生成機能を使う</a>
+            <div class="cm-sim-secret-hint">
+              💡 合言葉作りに困ったら？ <a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=passphrase" target="CryptoPassKeyKeeWeb" title="完全ローカル・ゼロナレッジのKeePassパスワード生成機能を開きます">KeePassの生成機能を使う</a>
             </div>
-            <div id="sim-secret-status" role="status" aria-live="polite" style="display:none; font-size:0.75rem; color:var(--accent); margin-top:4px; padding:4px 8px; background:rgba(2,132,199,0.1); border:1px solid var(--accent); border-radius:4px;"></div>
+            <div id="sim-secret-status" role="status" aria-live="polite" style="display:none;"></div>
           </div>
-          <div>
-            <label for="sim-speed">再生スピード（1文字あたり）<button type="button" class="help-btn" aria-label="説明を表示" data-help="読み取りガイドのアニメーション速度を調整します。カードを手元で確認しながら操作するのに適した速さに設定してください。">?</button></label>
+          <div class="cm-sim-field">
+            <label for="sim-speed">再生速度<button type="button" class="help-btn" aria-label="説明を表示" data-help="読み取りガイドのアニメーション速度（1文字あたり）を調整します。カードを手元で確認しながら操作するのに適した速さに設定してください。">?</button></label>
             <div class="sim-speed-control">
               <input type="range" id="sim-speed" min="100" max="1500" step="50" value="500" aria-label="再生速度（1文字あたりの時間）">
               <output id="sim-speed-value" for="sim-speed">0.5秒/文字</output>
@@ -137,31 +203,12 @@
           </div>
         </div>
 
-        <div class="live-result-row" id="live-result-row">
-          <div style="width:100%;">
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
-              <span style="font-size:0.78rem; font-weight:700; color:var(--text-sub);">生成パスワード：<button type="button" class="help-btn" aria-label="説明を表示" data-help="生成パスワードはカード・サイト名・合言葉・レシピ設定から決定論的に算出されます。文字種と長さから計算するビット数は理論値で、実際の推測困難性を保証しません。安全性はシードや入力情報の探索空間にも制約されます。">?</button></span>
-              <span class="mode-pill" id="live-mode-badge">✅ 現在使用中：1. マイ・レシピ全組み合わせ設定</span>
-            </div>
-            <div class="pw-chars-box" id="sim-output-pw"></div>
-            <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;" id="sim-output-meta"></div>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; width:100%; align-items:center;" id="trace-controls-bar">
-            <button type="button" class="btn" id="btn-play-trace" title="現在のマイ・レシピまたは簡単生成モードの通常ルートをマトリックス上で1文字ずつ再生します"><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">通常ルート再生</button>
-            <button type="button" class="btn btn-outline" id="btn-play-stroke" style="font-size:0.85rem;" title="文字や記号の形を盤面上で指でなぞる「パターンルート」でパスワードを生成・再生します（Androidのパターン解除感覚）"><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターンルート再生</button>
-            <button type="button" class="btn btn-outline" id="btn-pause-trace" style="display:none; font-weight:700;" title="再生を一時停止／再開します（自分のペースで1文字ずつ確認できます）"><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
-            <button type="button" class="btn btn-danger" id="btn-stop-trace" style="display:none;" title="再生を停止して最初に戻します"><img src="stop-icon.png" class="cm-btn-img" alt="" width="20" height="20">停止</button>
-            <button type="button" class="btn btn-secondary" id="btn-copy-pw"><img src="copy-icon.png" class="cm-btn-img" alt="" width="20" height="20">コピー（30秒後自動消去）</button>
-            <button type="button" class="btn btn-outline" id="btn-transfer-to-keeweb" style="font-weight:700;" title="算出したパスワードをKeePassエントリーまたはKeePassマスターパスワードに転送します"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassエントリーに追加</button>
-          </div>
-        </div>
-
         <!-- パターン公式デザイン一覧バー -->
         <div class="gesture-design-bar" id="gesture-design-bar" style="display:none;">
-          <div style="font-size:0.80rem; font-weight:700; color:#3bdd79; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px;">
-            <span><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターンデザイン一覧（自然な書き順）：</span>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:0.72rem; color:#32e775; font-weight:normal;">クリックで即座に切り替え</span>
+          <div class="gesture-bar-head">
+            <span><img src="pattern-icon.png" class="cm-btn-img" alt="" width="20" height="20">パターン一覧：</span>
+            <div class="gesture-bar-actions">
+              <span class="gesture-bar-hint">クリックで切り替え</span>
               <button type="button" class="btn btn-outline" id="btn-close-gesture-bar" style="padding:2px 8px; font-size:0.72rem;" title="パターンデザイン一覧を非表示にします">✕ 閉じる</button>
             </div>
           </div>
@@ -221,7 +268,7 @@
           </div>
         </div>
 
-        <div class="step-status-banner" id="sim-step-banner" role="status" aria-live="polite">▶ ボタンを押すと、すぐ上のマトリックスで拾う角が1文字ずつ順番に光ります。</div>
+        <div class="step-status-banner" id="sim-step-banner" role="status" aria-live="polite">▶ 盤面または再生ボタンを押すと、拾う角が1文字ずつ順番に光ります。</div>
         <div class="trace-log-box" id="sim-trace-log"></div>
       </div>
     </div>
@@ -231,19 +278,19 @@
 <section class="section-card no-print is-collapsed" id="card-quick" aria-labelledby="cq-title">
 <h2 class="section-title" id="cq-title">
   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-    <span>かんたん生成モード<button type="button" class="help-btn" aria-label="説明を表示" data-help="複雑な設定をせず、ワンクリックで数字のみの「暗証番号」または英数字・記号入りの「強固なパスワード」を作成できる初心者向けの簡易モードです。紙や金属の物理カードだけでも手作業で同じパスワードを再現できます。">?</button></span>
-    <span class="mode-pill inactive" id="cq-section-badge">未選択（1. マイ・レシピ全組み合わせ設定を使用中）</span>
+    <span>かんたんモード<button type="button" class="help-btn" aria-label="説明を表示" data-help="複雑な設定をせず、ワンクリックで数字のみの「暗証番号」または英数字・記号入りの「強固なパスワード」を作成できる初心者向けの簡易モードです。紙や金属の物理カードだけでも手作業で同じパスワードを再現できます。">?</button></span>
+    <span class="mode-pill inactive" id="cq-section-badge">未選択（1. マイレシピ使用中）</span>
   </div>
   <div style="display:flex; gap:6px; flex-wrap:wrap;" class="no-print">
-    <button type="button" class="btn btn-outline" id="btn-quick-switch-pin" style="padding:4px 10px; font-size:0.78rem;">🔢 暗証番号（数字のみ）を使う</button>
-    <button type="button" class="btn btn-outline" id="btn-quick-switch-symbol" style="padding:4px 10px; font-size:0.78rem;">🔐 パスワード（英大小・数字・記号）を使う</button>
-    <button type="button" class="btn btn-secondary" id="btn-toggle-cq" style="padding:4px 10px; font-size:0.78rem;">▼ かんたん生成モードを開く</button>
+    <button type="button" class="btn btn-outline" id="btn-quick-switch-pin" style="padding:4px 10px; font-size:0.78rem;">🔢 暗証番号</button>
+    <button type="button" class="btn btn-outline" id="btn-quick-switch-symbol" style="padding:4px 10px; font-size:0.78rem;">🔐 パスワード</button>
+    <button type="button" class="btn btn-secondary" id="btn-toggle-cq" style="padding:4px 10px; font-size:0.78rem;">▼ 開く</button>
   </div>
 </h2>
 <div id="cq-collapsible-body" class="mode-section-body">
-<p class="cq-note">カード単体でも手作業で同じパスワードを再現できるモードです。以下の2種類から選んで「このモードを使う」を押してください。</p>
+<p class="cq-note">物理カード単体でも手作業で再現できます。どちらかを選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
-<section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>銀行などの暗証番号（数字のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMやクレジットカード、携帯電話の画面ロックなどで使われる4〜12桁の数字のみのパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMキャッシュカードは4桁、スマートフォン画面ロックは4〜6桁、各種Webサービスは6〜8桁など、利用先の仕様に合わせて必要な数字の長さを選びます。">?</button></label><select id="cq-pin-length"><option value="4" selected>4桁</option>
+<section class="cq-panel" id="cq-panel-pin"><div class="cq-panel-head"><h3>暗証番号（数字のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMやクレジットカード、携帯電話の画面ロックなどで使われる4〜12桁の数字のみのパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-pin-badge">未選択</span></div><div class="cq-row"><label for="cq-pin-length">桁数<button type="button" class="help-btn" aria-label="説明を表示" data-help="銀行ATMキャッシュカードは4桁、スマートフォン画面ロックは4〜6桁、各種Webサービスは6〜8桁など、利用先の仕様に合わせて必要な数字の長さを選びます。">?</button></label><select id="cq-pin-length"><option value="4" selected>4桁</option>
 <option value="5">5桁</option>
 <option value="6">6桁</option>
 <option value="7">7桁</option>
@@ -252,7 +299,7 @@
 <option value="10">10桁</option>
 <option value="11">11桁</option>
 <option value="12">12桁</option></select><button type="button" class="btn btn-outline" id="cq-pin-apply"><img src="pin-icon.png" class="cm-btn-img" alt="" width="20" height="20">このモードを使う</button></div><p>対応するマスの左上を読む。足りなければ次のマスから左上を順に読み足す。</p></section>
-<section class="cq-panel" id="cq-panel-symbol"><div class="cq-panel-head"><h3>パスワード（英大小・数字・記号）<button type="button" class="help-btn" aria-label="説明を表示" data-help="英大文字・小文字・数字・記号をバランスよく含んだパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-symbol-badge">未選択</span></div><div class="cq-row"><label for="cq-symbol-length">文字数<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトのパスワード要件に合わせて長さを選びます。16文字以上に設定すると、総当たり解析への耐性が高まります。">?</button></label><select id="cq-symbol-length"><option value="16">16文字</option>
+<section class="cq-panel" id="cq-panel-symbol"><div class="cq-panel-head"><h3>パスワード（英数・記号）<button type="button" class="help-btn" aria-label="説明を表示" data-help="英大文字・小文字・数字・記号をバランスよく含んだパスワードをカードから導出します。">?</button></h3><span class="mode-pill inactive" id="cq-symbol-badge">未選択</span></div><div class="cq-row"><label for="cq-symbol-length">文字数<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトのパスワード要件に合わせて長さを選びます。16文字以上に設定すると、総当たり解析への耐性が高まります。">?</button></label><select id="cq-symbol-length"><option value="16">16文字</option>
 <option value="17">17文字</option>
 <option value="18">18文字</option>
 <option value="19">19文字</option>
@@ -269,20 +316,20 @@
 <option value="30">30文字</option>
 <option value="31">31文字</option>
 <option value="32">32文字</option></select><button type="button" class="btn btn-outline" id="cq-symbol-apply">このモードを使う</button></div>
-<p>本文は左下。末尾4文字は、カードから「英大文字・英小文字・数字・許可記号」の順に追加する。</p>
-<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『ホワイトリスト』は入力した記号だけを許可し、『ブラックリスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0" selected>すべて許可</option><option value="2">ホワイトリスト（入力した記号だけ許可）</option><option value="1">ブラックリスト（入力した記号を除外）</option></select></div>
+<p>本文は左下。末尾4文字は「英大・英小・数字・記号」の順に追加。</p>
+<div class="cq-row"><label for="cq-symbol-mode">記号ルール<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトによって利用できる記号や使えない記号が異なります。『標準（推奨）』は一般的な記号を含め、『許可リスト』は入力した記号だけを許可し、『除外リスト』は特定の使えない記号を除外します。使えない記号に当たった際も自動的に安全な文字に代替移動して強度を維持します。">?</button></label><select id="cq-symbol-mode"><option value="0" selected>すべて許可</option><option value="2">許可リスト（入力記号のみ）</option><option value="1">除外リスト（入力記号を禁止）</option></select></div>
 <div class="cq-row" style="margin-top:8px"><label for="cq-symbol-list">対象記号<button type="button" class="help-btn" aria-label="説明を表示" data-help="許可または除外したい記号を続けて入力します（例: -_!#）。Webサイトで使える記号が決まっている場合に設定します。">?</button></label><input type="text" id="cq-symbol-list" value="-_!#" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cq-symbol-help"></div>
-<p class="cq-note" id="cq-symbol-help">記号を区切りなしで入力（例：-_!#）。英数字は常に許可。ルール変更時は生成値が変わるため、運用中の設定は変更しないでください。</p></section>
+<p class="cq-note" id="cq-symbol-help">区切りなしで入力（例：-_!#）。</p></section>
 </div>
-<details><summary>かんたん生成モード：物理カードだけで再現する手順（タップして開く）</summary><ol>
+<details><summary>物理カードでの読み取り手順</summary><ol>
 <li>英字A〜Zは小文字として中央のマスを探す。中央にない文字（ドット・空白・日本語など）は飛ばす。「-」「/」「^」「%」は中央にあるので使う。</li>
-<li>サイト名→合言葉の順に読む。「銀行などの暗証番号（数字のみ）」は左上、「パスワード（英大小・数字・記号）」の本文は左下。</li>
+<li>サイト名→合言葉の順に読む。「暗証番号」は左上、「パスワード」の本文は左下。</li>
 <li>禁止記号に当たったら、次のマスの左下へ進み、許可された文字まで飛ばす。次の入力文字は、その文字の中央マスから改めて探す。</li>
 <li>本文が足りなければ、最後に採用したマスの次から同じ角を読み足す。順序は左→右、行末は次の行の左端、右下の次は左上。</li>
-<li>「パスワード（英大小・数字・記号）」では、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
+<li>「パスワード」では、最後の4文字を残して本文を作る。その次から右上の英大文字を探して採用→さらに次から右上の英小文字を探して採用→次のマスの左上数字→さらに次から左下の許可記号を探して採用。</li>
 </ol></details>
-<p id="cq-status" role="status" aria-live="polite" data-mode="recipe">【現在使用中のモード】1. マイ・レシピ全組み合わせ設定</p>
-<p class="cq-warning">ホワイトリストが空の場合や、指定した記号がカード上に1つも存在しない場合は、意図しない文字への置き換えを防ぎ安全のため生成を停止します。合言葉や設定はカードとは別の場所で管理してください。</p>
+<p id="cq-status" role="status" aria-live="polite" data-mode="recipe">【使用中】1. マイレシピ</p>
+<p class="cq-warning">許可記号がカード上に存在しない場合は安全のため生成を停止します。合言葉や設定はカードとは別の場所で管理してください。</p>
 </div>
 </section>
 <!-- END CARD QUICK -->
@@ -290,13 +337,13 @@
     <div class="section-card active-mode-section" id="section-recipe-detail">
       <div class="section-title">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span>1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字をどのように拾い、どの方向へ何マス移動し、どの角の文字を組み合わせるかという「自分だけの読み取りルール」を細かくカスタマイズする上級設定です。">?</button></span>
-          <span class="mode-pill" id="recipe-section-badge">✅ 現在使用中</span>
+          <span>マイレシピ詳細設定<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の文字をどのように拾い、どの方向へ何マス移動し、どの角の文字を組み合わせるかという「自分だけの読み取りルール」を細かくカスタマイズする上級設定です。">?</button></span>
+          <span class="mode-pill" id="recipe-section-badge">✅ 使用中</span>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" class="no-print">
-          <button type="button" class="btn btn-mode-active" id="btn-use-recipe" style="padding:4px 10px; font-size:0.78rem;">✅ 現在このモードを使用中</button>
+          <button type="button" class="btn btn-mode-active" id="btn-use-recipe" style="padding:4px 10px; font-size:0.78rem;">✅ 使用中</button>
           <button type="button" class="btn btn-outline" id="btn-reset-recipe" style="padding:4px 10px; font-size:0.78rem;">標準に戻す</button>
-          <button type="button" class="btn btn-outline" id="btn-random-recipe" style="padding:4px 10px; font-size:0.78rem;">高強度ランダム生成</button>
+          <button type="button" class="btn btn-outline" id="btn-random-recipe" style="padding:4px 10px; font-size:0.78rem;">ランダム生成</button>
           <button type="button" class="btn btn-secondary" id="btn-toggle-recipe" style="padding:4px 10px; font-size:0.78rem;">▲ 折りたたむ</button>
         </div>
       </div>
@@ -305,7 +352,7 @@
       <div class="recipe-grid">
         <!-- G1: キーワード結合＆文字数抽出 -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">1</span>キーワード結合 ＆ 文字抽出数</div>
+          <div class="field-group-title"><span class="badge">1</span>キーワード結合・抽出</div>
           <div class="sub-row">
             <label for="rc-kw-order">結合順:<button type="button" class="help-btn" aria-label="説明を表示" data-help="キーワードとサイト名を結合する順番です。「サイト名→合言葉」または「合言葉→サイト名」の順で盤面上の探索を行います。">?</button></label>
             <select id="rc-kw-order" class="rc-input">
@@ -342,7 +389,7 @@
 
         <!-- G2: 8方向＋自由マス数の位置シフト -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">2</span>マス目の位置シフト（8方向 × 自由マス数）</div>
+          <div class="field-group-title"><span class="badge">2</span>マス目の位置シフト</div>
           <div class="sub-row">
             <label for="rc-shift-dir">移動方向:<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード上の基準マスからパスワード算出マスへ移動する方向（上・下・左・右・斜め）を設定します。">?</button></label>
             <select id="rc-shift-dir" class="rc-input">
@@ -365,14 +412,18 @@
           <div class="sub-row">
             <label for="rc-shift-n">距離 N (横):<button type="button" class="help-btn" aria-label="説明を表示" data-help="水平方向への移動マス数です。0を設定すると水平移動なしになります。">?</button></label>
             <input type="number" id="rc-shift-n" class="rc-input" value="1" min="0" max="63">
-            <label for="rc-shift-m" style="min-width:65px;">距離 M (縦):<button type="button" class="help-btn" aria-label="説明を表示" data-help="垂直方向への移動マス数です。0を設定すると垂直移動なしになります。">?</button></label>
+            <span style="font-size:0.75rem; color:var(--text-sub);">マス</span>
+          </div>
+          <div class="sub-row">
+            <label for="rc-shift-m">距離 M (縦):<button type="button" class="help-btn" aria-label="説明を表示" data-help="垂直方向への移動マス数です。0を設定すると垂直移動なしになります。">?</button></label>
             <input type="number" id="rc-shift-m" class="rc-input" value="1" min="0" max="63">
+            <span style="font-size:0.75rem; color:var(--text-sub);">マス</span>
           </div>
         </div>
 
         <!-- G3: 四隅の開始角 ＆ 1マス内の取得パターン -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">3</span>四隅の読み取り角 ＆ 1マス内の順序</div>
+          <div class="field-group-title"><span class="badge">3</span>読み取り角・取得順</div>
           <div class="sub-row">
             <label for="rc-base-corner">基準の角:<button type="button" class="help-btn" aria-label="説明を表示" data-help="カード盤面のどの隅を基点にするかを指定します。左上・右上・左下・右下から選択できます。">?</button></label>
             <select id="rc-base-corner" class="rc-input">
@@ -415,8 +466,7 @@
 
         <!-- G4: 記号のホワイトリスト・ブラックリスト ＆ 強度維持代替移動 -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge" style="background:#1ab1ff;">4</span>記号ルール（WL/BL）＆ 暗号強度維持の代替移動<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトやサービスによって利用できる記号や禁止されている記号がまちまちです（例: ハイフンのみ可、特殊記号不可など）。ここで許可記号（ホワイトリスト）や禁止記号（ブラックリスト）を設定すると、使えない記号に当たった際も自動的に別の安全な文字へ代替移動し、パスワードの強度と再現性を保ちます。">?</button></div>
-          <div style="font-size:0.75rem; color:var(--text-sub); margin:-4px 0 8px 0;">※サイトによって使える記号や使えない記号がまちまちでも、自動で安全な文字に代替移動して強度を維持します。</div>
+          <div class="field-group-title"><span class="badge" style="background:#1ab1ff;">4</span>記号ルール・代替移動<button type="button" class="help-btn" aria-label="説明を表示" data-help="Webサイトやサービスによって利用できる記号や禁止されている記号がまちまちです（例: ハイフンのみ可、特殊記号不可など）。ここで許可記号（ホワイトリスト）や禁止記号（ブラックリスト）を設定すると、使えない記号に当たった際も自動的に別の安全な文字へ代替移動し、パスワードの強度と再現性を保ちます。">?</button></div>
           <div class="sub-row">
             <label for="rc-sym-mode">記号制限:<button type="button" class="help-btn" aria-label="説明を表示" data-help="使用する記号の制限方法です。「なし」「ホワイトリスト（指定した記号のみ許可）」「ブラックリスト（指定した記号を除外）」から選べます。">?</button></label>
             <select id="rc-sym-mode" class="rc-input">
@@ -449,7 +499,10 @@
           <div class="sub-row">
             <label for="rc-sym-fb-dist">代替移動 K:<button type="button" class="help-btn" aria-label="説明を表示" data-help="代替文字を探す際の移動マス数です。">?</button></label>
             <input type="number" id="rc-sym-fb-dist" class="rc-input" value="1" min="1" max="39">
-            <label for="rc-sym-fb-corner" style="min-width:55px;">移動先角:<button type="button" class="help-btn" aria-label="説明を表示" data-help="代替文字探索時の基準角を指定します。">?</button></label>
+            <span style="font-size:0.75rem; color:var(--text-sub);">マス</span>
+          </div>
+          <div class="sub-row">
+            <label for="rc-sym-fb-corner">移動先角:<button type="button" class="help-btn" aria-label="説明を表示" data-help="代替文字探索時の基準角を指定します。">?</button></label>
             <select id="rc-sym-fb-corner" class="rc-input">
               <option value="0" selected>元の角と同じ位置（記号・大小維持）</option>
               <option value="1">時計回りで1つ次の角へシフト</option>
@@ -462,7 +515,7 @@
 
         <!-- G5: 先頭ソルト（前ソルト） -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">5</span>先頭に追加する四隅なぞり（前ソルト）</div>
+          <div class="field-group-title"><span class="badge">5</span>先頭追加（前ソルト）</div>
           <div class="sub-row">
             <label for="rc-pre-target">対象マス:<button type="button" class="help-btn" aria-label="説明を表示" data-help="プレフィックス（先頭に付ける文字）を取得するマスを指定します。">?</button></label>
             <select id="rc-pre-target" class="rc-input">
@@ -504,7 +557,7 @@
 
         <!-- G6: 末尾ソルト（後ソルト） -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">6</span>末尾に追加する四隅なぞり（後ソルト）</div>
+          <div class="field-group-title"><span class="badge">6</span>末尾追加（後ソルト）</div>
           <div class="sub-row">
             <label for="rc-suf-target">対象マス:<button type="button" class="help-btn" aria-label="説明を表示" data-help="サフィックス（末尾に付ける文字）を取得するマスを指定します。">?</button></label>
             <select id="rc-suf-target" class="rc-input">
@@ -546,7 +599,7 @@
 
         <!-- G7: 秘密のアンカーマス ＆ 任意位置挿入 -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">7</span>秘密の起点マス（アンカー）＆ 挿入位置</div>
+          <div class="field-group-title"><span class="badge">7</span>起点マス（アンカー）</div>
           <div class="sub-row">
             <label for="rc-anc-tile">起点マス:<button type="button" class="help-btn" aria-label="説明を表示" data-help="アンカー文字（固定挿入文字）を取得するマスを指定します。">?</button></label>
             <select id="rc-anc-tile" class="rc-input"></select>
@@ -572,7 +625,7 @@
 
         <!-- G8: 仕上げ変換 ＆ 自由な文字数指定 -->
         <div class="field-group">
-          <div class="field-group-title"><span class="badge">8</span>仕上げ並び替え ＆ 出力文字数（自由数値入力）</div>
+          <div class="field-group-title"><span class="badge">8</span>並び替え・文字数</div>
           <div class="sub-row">
             <label for="rc-post-mode">並び替え:<button type="button" class="help-btn" aria-label="説明を表示" data-help="算出した文字列を最終的に並び替えるルールです。">?</button></label>
             <select id="rc-post-mode" class="rc-input">
@@ -589,15 +642,15 @@
               <option value="0" selected>制限なし（生成されたすべての文字を出力）</option>
               <option value="1">先頭から L 文字に切り揃える</option>
               <option value="2">末尾から L 文字に切り揃える</option>
-              <option value="3">かんたん生成モード：銀行などの暗証番号（数字のみ・L桁）</option>
-              <option value="4">かんたん生成モード（旧互換）：パスワード（英大小・数字・L文字）</option>
-              <option value="5">かんたん生成モード：パスワード（英大小・数字・記号・L文字）</option>
+              <option value="3">かんたんモード：暗証番号（数字のみ・L桁）</option>
+              <option value="4">かんたんモード（旧互換）：英数（L文字）</option>
+              <option value="5">かんたんモード：パスワード（英大小・数字・記号・L文字）</option>
             </select>
           </div>
           <div class="sub-row">
             <label for="rc-len-val">文字数 L:<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードの最終的な文字数を指定します。">?</button></label>
             <input type="number" id="rc-len-val" class="rc-input" value="16" min="1" max="128">
-            <span style="font-size:0.75rem; color:var(--text-sub);">文字（4桁PINなら「4」を入力）</span>
+            <span style="font-size:0.75rem; color:var(--text-sub);">文字</span>
           </div>
         </div>
       </div>
@@ -607,16 +660,16 @@
     <!-- BIP39 24単語バックアップ＆復元 -->
     <div class="section-card" id="section-bip39-plain">
       <div class="section-title">
-        <span>BIP39復元フレーズ — 24単語／拡張バックアップ（暗号化なし・自動作成）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
+        <span>復元フレーズ（24単語・暗号化なし）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
       </div>
       <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
-        現在の設定や入力を <strong>BIP39規格（256bit＋SHA-256チェックサム）の24英単語（または24単語×必要ブロック数）</strong> とその <strong>QRコード</strong> としてリアルタイムに自動作成・表示します（暗号化なし）。パスワードによる暗号化を行う場合は、上部の「暗号化」ページに切り替えて作成してください。
+        現在の設定を <strong>BIP39規格（24単語）</strong> と <strong>QRコード</strong> として自動作成・表示します（暗号化なし）。
       </p>
 
       <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
-          <span><strong>いずれか「お好みの形式1つ」を保存すれば100%復元可能です</strong>（すべて保存する必要はありません）</span>
+          <span><strong>いずれか1つの形式で保存すれば復元できます</strong></span>
         </div>
         <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで100%復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
@@ -624,14 +677,14 @@
       <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;" class="no-print">
         <label style="font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;">
           <input type="checkbox" id="chk-include-card-seed" checked style="width:17px; height:17px;">
-          カード配列シード番号 (seed) も復元フレーズに含める<button type="button" class="help-btn" aria-label="説明を表示" data-help="チェックを入れると、カード盤面の並び順（シード番号）も一緒にバックアップされます。カード番号を忘れてしまってもこのバックアップだけでカード盤面ごと100%復元できるため、通常はチェックを入れたままにすることを推奨します。">?</button>
+          カード番号も復元フレーズに含める<button type="button" class="help-btn" aria-label="説明を表示" data-help="チェックを入れると、カード盤面の並び順（カード番号 / シード番号）も一緒にバックアップされます。カード番号を忘れてしまってもこのバックアップだけでカード盤面ごと100%復元できるため、通常はチェックを入れたままにすることを推奨します。">?</button>
         </label>
               </div>
       <div class="bq-action-group no-print">
         <div class="bq-action-group-label">作成・保存</div>
         <div class="bq-row">
-          <button type="button" class="btn" id="btn-generate-seed">復元フレーズとQRを再生成</button>
-          <button type="button" class="btn btn-secondary" id="btn-copy-seed"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>復元フレーズを全てコピー（30秒後自動消去）</button>
+          <button type="button" class="btn" id="btn-generate-seed">再生成</button>
+          <button type="button" class="btn btn-secondary" id="btn-copy-seed" title="復元フレーズをコピー（30秒後に自動消去）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>フレーズをコピー</button>
           <button type="button" class="btn btn-outline" id="btn-save-seed-txt" style="padding:6px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
           <button type="button" class="btn btn-outline" id="btn-save-seed-qr" style="padding:6px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
         </div>
@@ -645,10 +698,9 @@
       </div>
 
       <div class="cloud-warning">
-        <div class="cloud-warning-head">⚠️ 警告：暗号化なしの24単語シードフレーズ・QRコードは絶対にクラウドに保存ダメ、ゼッタイ！</div>
+        <div class="cloud-warning-head">⚠️ 警告：暗号化なしの24単語フレーズ・QRコードはクラウドに保存しないでください</div>
         <div class="cm-txt-deep" style="font-size:0.8rem;">
-          NEVER STORE YOUR UNENCRYPTED SEED PHRASE OR QR CODE IN THE CLOUD!<br>
-          クラウドメモ・メール・写真フォルダ（スクショ）への平文保存は情報流出の直接原因となります。必ず紙に控えてオフライン保管するか、「暗号化」ページで暗号化バックアップを作成してください。
+          クラウドメモ・メール・写真フォルダへの平文保存は情報流出の原因となります。紙に控えてオフライン保管するか、下の「暗号化バックアップ」をご利用ください。
         </div>
       </div>
 
@@ -669,19 +721,19 @@
 
       <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-color);" class="no-print">
         <label for="input-restore-seed" style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">
-          🔄 復元フレーズを入力（暗号化なし：24単語 ／ PGPアーマード形式 ／ 拡張バックアップ）：
+          🔄 復元フレーズ入力：
         </label>
-        <textarea id="input-restore-seed" class="seed-textarea" placeholder="24単語、または拡張バックアップ（PGPアーマードテキスト または 24単語×必要ブロック数）を入力。"></textarea>
+        <textarea id="input-restore-seed" class="seed-textarea" placeholder="24単語、または拡張バックアップを入力"></textarea>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <button type="button" class="btn" id="btn-restore-seed">全ブロックを検証して復元</button>
-          <button type="button" class="btn btn-secondary" id="btn-print-page"><img src="print-icon.png" class="cm-btn-img" alt="" width="20" height="20">このページを印刷</button>
+          <button type="button" class="btn" id="btn-restore-seed">検証して復元</button>
+          <button type="button" class="btn btn-secondary" id="btn-print-page"><img src="print-icon.png" class="cm-btn-img" alt="" width="20" height="20">印刷</button>
         </div>
         <div id="restore-status" class="status-msg"></div>
       </div>
     </div>
 
 <section class="section-card" id="backup-qr" data-ready="false">
- <h2 class="section-title">拡張バックアップ（暗号化・秘密分散・二段階認証）＆ 印刷QRからの復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定やサイト・合言葉を、パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）を自由に組み合わせて暗号化し、BIP39フレーズと統合QRコードでバックアップ・復元する領域です。保護は単独でも作成できます。暗号化なしのフレーズとQRコードは「バックアップ」ページの「BIP39復元フレーズ」に自動表示されます。">?</button></h2>
+ <h2 class="section-title">暗号化バックアップ・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定やサイト・合言葉を、パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）を自由に組み合わせて暗号化し、BIP39フレーズと統合QRコードでバックアップ・復元する領域です。保護は単独でも作成できます。暗号化なしのフレーズとQRコードは上の「復元フレーズ（24単語・暗号化なし）」に自動表示されます。">?</button></h2>
  <div class="cm-subtab-bar cm-subtab-bar-inner" role="tablist" aria-label="暗号化・復号化">
   <button type="button" class="cm-subtab-btn is-active" id="bq-tab-btn-encrypt" role="tab" aria-selected="true" aria-controls="bq-panel-encrypt">暗号化</button>
   <button type="button" class="cm-subtab-btn" id="bq-tab-btn-decrypt" role="tab" aria-selected="false" aria-controls="bq-panel-decrypt">復号化</button>
@@ -692,55 +744,55 @@
    <label for="bq-scope">保存形式<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定のみ保存するか、マイレシピ設定・サイト名・合言葉まで含む拡張バックアップにするかを選べます。拡張にすると、カードなしでも全設定を再現できます。">?</button></label>
    <select id="bq-scope">
      <option value="extended" selected>拡張バックアップ（すべて保存）</option>
-     <option value="basic">設定のみ（シード・レシピのみ保存）</option>
+     <option value="basic">設定のみ（カード番号・レシピのみ保存）</option>
     </select>
     <div id="bq-scope-desc" class="bq-select-desc"></div>
   </div>
 
   <div class="cm-panel-slate" style="border-width:1px; border-style:solid; border-radius:8px; padding:12px 14px; margin:12px 0;">
-   <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+   <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護方法（複数選択可）:</div>
    <div style="display:flex; flex-direction:column; gap:8px;">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-password" checked style="width:17px; height:17px;">
-     🔐 復元用パスワード（12文字以上・16文字以上推奨）（パスフレーズによる暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップデータを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいパスフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button>
+     🔐 パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスフレーズによる暗号化。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button>
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-keyfile" style="width:17px; height:17px;">
-     <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル（手元のファイルや専用.keyファイルによる暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段の写真やPDFファイル、または専用に生成した「鍵ファイル」を暗号化キーとして使う方式です。このファイルとパスワード等の両方がないと絶対に復元できなくなります。">?</button>
+     <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル<button type="button" class="help-btn" aria-label="説明を表示" data-help="手元のファイル（普段の写真やPDFファイルなど）や専用に生成した「.key鍵ファイル」を暗号化キーとして使う方式です。このファイルとパスワード等の両方がないと絶対に復元できなくなります。">?</button>
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-passkey" style="width:17px; height:17px;">
-     <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="端末の生体認証（Touch ID / Face ID / 指紋認証）やハードウェアセキュリティキー（YubiKey）、パスワードマネージャー（Bitwarden等）による本人確認でバックアップを強力にロックします。">?</button>
+     <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー<button type="button" class="help-btn" aria-label="説明を表示" data-help="iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系等のPRF対応認証器による暗号化。端末の生体認証（Touch ID / Face ID / 指紋認証）でバックアップを強力にロックします。">?</button>
     </label>
    </div>
    <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-    <label for="bq-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術（秘密分散）です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
+    <label for="bq-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散<button type="button" class="help-btn" aria-label="説明を表示" data-help="Shamir M-of-N秘密分散。バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
     <select id="bq-shamir">
-     <option value="1-1" selected>分割なし（通常：1枚のQRに統合）</option>
-     <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2枚で復元）</option>
-     <option value="2-2">2-of-2 秘密分散（全2シェア両方で復元）</option>
-     <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3枚で復元）</option>
+     <option value="1-1" selected>分割なし（1枚のQRに統合）</option>
+     <option value="2-3">2-of-3 秘密分散（3シェア中 任意の2枚で復元）</option>
+     <option value="2-2">2-of-2 秘密分散（2シェア両方で復元）</option>
+     <option value="3-5">3-of-5 秘密分散（5シェア中 任意の3枚で復元）</option>
     </select>
      <div id="bq-shamir-desc" class="bq-select-desc"></div>
    </div>
    <div id="bq-protection-badge" class="cm-prot-init" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; border-width:1px; border-style:solid;">
-    現在の保護方式：復元用パスワード単独
+    現在の保護方式：パスワード単独
    </div>
 
    <!-- カード配列シード連動表示 -->
    <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
      <div style="display:flex; align-items:center; gap:8px;">
-       <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
+       <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード番号:</span>
        <span id="bq-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
      </div>
      <div style="font-size:0.75rem; color:var(--text-sub);">
-       ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
+       ※現在のカード番号と連動して暗号鍵が導出されます。
      </div>
    </div>
   </div>
 
   <div class="bq-row" id="bq-kdf-row">
-   <label for="bq-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを何百万回も複雑に暗号計算（ストレッチング）してコンピューターの総当たり解析に耐えられるようにする強度の設定です。推奨設定（PBKDF2 210万回）のままで十分強力です。">?</button></label>
+   <label for="bq-kdf">暗号化強度<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスワードを何百万回も複雑に暗号計算（ストレッチング）してコンピューターの総当たり解析に耐えられるようにする強度の設定です。推奨設定（PBKDF2 210万回）のままで十分強力です。">?</button></label>
    <select id="bq-kdf">
      <option value="3">Argon2id（メモリ64MB / 3回 / PC・スマホ両用推奨）</option>
      <option value="4">Argon2id（メモリ128MB / 3回 / PC推奨・⚠️スマホ高負荷）</option>
@@ -755,11 +807,11 @@
 
   <div class="bq-row" id="bq-password-row">
    <div style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-     <label for="bq-password" style="font-weight:700;">復元用パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップデータを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button></label>
+     <label for="bq-password" style="font-weight:700;">パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップデータを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上の推測されにくいフレーズを推奨）です。このパスワードはバックアップの中に記録されないため、絶対に忘れないよう別保管してください。">?</button></label>
      <button type="button" class="btn-toggle-pw-visibility" data-target="bq-password,bq-password-confirm" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
    </div>
    <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-     💡 強力な復元用パスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=bq" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、この復元用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
+     💡 強力なパスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=bq" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、このパスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
    </div>
    <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
      <div class="duress-field">
@@ -778,25 +830,23 @@
    <label for="bq-keyfile" style="font-weight:700;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="お手元の任意のファイル（画像・PDF等）や専用の.keyファイルです。ファイルの中身が1ビットでも変化すると復元できなくなるため、絶対に編集・上書き・画像圧縮しないで保管してください。">?</button></label>
    <input type="file" id="bq-keyfile">
     <button type="button" class="btn btn-outline" id="bq-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
-    <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
+    <div id="bq-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">任意のファイルを選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。</div>
   </div>
 
   <div class="bq-row cm-passkey-note cm-panel-blue" id="bq-passkey-row" hidden style="padding:10px 12px; border-radius:8px; border-width:1px; border-style:solid; font-size:0.82rem; line-height:1.5;">
-   🔐 <strong>パスキー保護（WebAuthn PRF暗号鍵導出）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。【動作対応認証器】iCloudキーチェーン（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）／Googleパスワードマネージャー（Android端末の生体認証、Chromeブラウザ環境）／YubiKey 5シリーズ・Security Key（ファームウェア5.2以上）／Windows Hello（Windows 11）">?</button><br>
-   ハードウェア暗号鍵導出（WebAuthn PRF）に対応したパスキーでのみ暗号化・復元が可能です。<br>
+   🔐 <strong>パスキー保護（WebAuthn PRF）：</strong><button type="button" class="help-btn" aria-label="説明を表示" data-help="ハードウェア・生体認証による暗号鍵導出（WebAuthn PRF拡張）を用いてバックアップを暗号化します。復元時も同じパスキーが必要です。【動作対応認証器】iCloudキーチェーン（iPhone/iPad: iOS 18以降、Mac: macOS 15以降、Safari 18以降）／Googleパスワードマネージャー（Android端末の生体認証、Chromeブラウザ環境）／YubiKey 5シリーズ・Security Key（ファームウェア5.2以上）／Windows Hello（Windows 11）">?</button><br>
+   WebAuthn PRF対応のパスキーで暗号化・復元が可能です。<br>
    <div id="bq-passkey-manager" class="cm-passkey-manager-slot"></div>
    <div style="margin-top:6px; font-size:0.78rem;">
-     <span class="cm-warn-red">※パスキー保護を利用するには、お使いの端末・ブラウザ・パスキーの保存先がWebAuthn PRFに対応している必要があります。対応していない環境では登録・復元できない場合があります。その場合は「パスワード保護」または「キーファイル保護」をご利用ください。⚠️ iPhoneで外付けYubiKeyを使用する場合、PRF拡張が利用できない、または動作が不安定なことがあります。</span>
+     <span class="cm-warn-red">※PRF非対応環境では登録・復元できない場合があります。その場合は「パスワード」または「キーファイル」をご利用ください。</span>
    </div>
   </div>
 
-  
-
-  <p class="bq-warning">復元用パスワードや保護キー（キーファイル・パスキー）は、QRコードや24単語ブロックの中には記録されません。紛失・削除すると復元できなくなるため、バックアップとは別の場所で大切に管理してください。秘密分散（M-of-N）を選択した場合は、分割された各QRコード（またはフレーズ）を別々の保管場所（自宅・実家・貸金庫など、止むを得ずクラウドを利用する場合はGoogleドライブ・OneDrive・Dropbox等の異なるサービス間）へ分けて保管してください。</p>
+  <p class="bq-warning">パスワード・キーファイル・パスキーはバックアップ内に記録されないため、別の場所で管理してください。秘密分散を選択した場合は、各シェアを別々の場所に分けて保管してください。</p>
   <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <span>💡</span>
-      <span>保存する形式は<strong>1つで大丈夫です</strong>（すべて保存する必要はありません）</span>
+      <span><strong>いずれか1つの形式で保存すれば復元できます</strong></span>
     </div>
     <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで確実に復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
   </div>
@@ -804,8 +854,8 @@
   <div class="bq-action-group">
    <div class="bq-action-group-label">作成・保存</div>
    <div class="bq-row">
-   <button type="button" class="btn btn-outline" id="bq-create"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化バックアップ（24単語×ブロック＆統合QR）を作成</button>
-   <button type="button" class="btn btn-secondary" id="bq-copy" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>暗号化フレーズをコピー（30秒後自動消去）</button>
+   <button type="button" class="btn btn-outline" id="bq-create"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化バックアップを作成</button>
+   <button type="button" class="btn btn-secondary" id="bq-copy" disabled title="暗号化フレーズをコピー（30秒後に自動消去）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>フレーズをコピー</button>
    <button type="button" class="btn btn-outline" id="bq-save-txt" style="padding:6px 10px; font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
    <button type="button" class="btn btn-outline" id="bq-save-qr" style="padding:6px 10px; font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
    <button type="button" class="btn btn-outline" id="bq-save-cmenc" style="padding:6px 10px; font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>暗号化ファイル保存 (.cmenc)</button>
@@ -828,15 +878,15 @@
   </div>
   <div class="bq-status" id="bq-status" role="status" aria-live="polite"></div>
   <div id="bq-words-container" style="width:100%; margin-bottom:10px;"></div>
-  <label for="bq-output">暗号化復元フレーズ（BIP39 24単語×必要ブロック数 — QRが読めない環境でもこのフレーズから復元できます）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
+  <label for="bq-output">暗号化復元フレーズ（BIP39）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
   <textarea id="bq-output" readonly autocomplete="off" spellcheck="false" placeholder="上のボタンを押すと、暗号化されたBIP39 24単語×必要ブロック数がここに生成されます。"></textarea>
  </div>
  <div id="bq-print-summary"></div><div id="bq-qr-list"></div>
  </div>
  <div id="bq-panel-decrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-decrypt" hidden>
  <div class="no-print" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:14px">
-  <h3>印刷したQRコード ／ 復元フレーズからの検証・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と同じ設定を復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
-  <p>統合QRコードの読み取り、または24単語フレーズの貼り付けで復元します。</p>
+  <h3>QRコード・復元フレーズから復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="紙に印刷したQRコードをカメラで読み取るか、メモした24単語（または暗号化ファイル）を入力することで、カードが手元になくても作成時と同じ設定を復元できます。カメラが使えない環境でもファイル選択や文字入力で復元可能です。">?</button></h3>
+  <p>QRコードの読み取り、または復元フレーズの貼り付けで復元します。</p>
   <div class="cm-restore-steps" id="bq-restore-steps" aria-label="復元の手順">
     <div class="cm-restore-steps-title">復元の手順</div>
     <ol class="cm-steps-list">
@@ -847,37 +897,37 @@
       <li class="cm-step" data-step="3"><span class="cm-step-badge">3</span><span class="cm-step-label">復元を実行</span></li>
     </ol>
   </div>
-   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>カメラを停止</button><label for="bq-image" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像・復元ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple style="display:none;"><span style="font-size:0.75rem;color:var(--text-sub);">複数のQR画像／.cmenc／.txtをまとめて選択できます</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">読み取りをリセット</button></div>
+   <div class="bq-row"><button type="button" class="btn btn-outline" id="bq-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQR読取</button><button type="button" class="btn btn-secondary" id="bq-stop" disabled>停止</button><label for="bq-image" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>ファイルを選択</label><input type="file" id="bq-image" accept="image/*,.cmenc,.txt,text/plain,application/octet-stream" multiple style="display:none;"><span style="font-size:0.75rem;color:var(--text-sub);">QR画像 / .cmenc / .txt（複数可）</span><button type="button" class="btn btn-secondary" id="bq-reset-parts">リセット</button></div>
   <video id="bq-video" playsinline muted hidden></video>
   <div class="bq-status" id="bq-scan-status" role="status" aria-live="polite"></div>
-  <label for="bq-import">復元フレーズ（24単語 ／ 拡張・暗号化バックアップの全ブロック ／ 秘密分散のMシェア分）または読み取ったQRデータ<button type="button" class="help-btn" aria-label="説明を表示" data-help="復元に使う24単語フレーズ、拡張バックアップの全ブロック、または秘密分散のMシェア分を入力またはQRスキャンで貼り付けてください。">?</button></label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="カメラや画像でQRを読み取るか、24単語×必要ブロック数（秘密分散の場合は必要Mシェア分）を入力してください。"></textarea>
+  <label for="bq-import">復元フレーズ / QRデータ<button type="button" class="help-btn" aria-label="説明を表示" data-help="復元に使う24単語フレーズ、拡張バックアップの全ブロック、または秘密分散のMシェア分を入力またはQRスキャンで貼り付けてください。">?</button></label><textarea id="bq-import" autocomplete="off" spellcheck="false" placeholder="QRを読み取るか、復元フレーズ（秘密分散は必要シェア分）を入力してください。"></textarea>
   <div class="bq-row">
    <div style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-     <label for="bq-restore-password">復元用パスワード（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にパスワードを設定した場合のみ入力が必要です。">?</button></label>
+     <label for="bq-restore-password">パスワード（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にパスワードを設定した場合のみ入力が必要です。">?</button></label>
      <button type="button" class="btn-toggle-pw-visibility" data-target="bq-restore-password" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
    </div>
-   <input type="password" id="bq-restore-password" autocomplete="current-password" placeholder="パスワードなしの場合は空欄">
+   <input type="password" id="bq-restore-password" autocomplete="current-password" placeholder="未設定時は空欄">
    <label for="bq-restore-keyfile">キーファイル（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にキーファイルを設定した場合のみ選択が必要です。">?</button></label>
    <input type="file" id="bq-restore-keyfile">
    <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
        <label for="bq-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
-         🔑 連動カード配列シード番号 (seed):
+         🔑 連動カード番号:
        </label>
        <input type="text" id="bq-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
-       <button type="button" class="btn btn-secondary" id="bq-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
+       <button type="button" class="btn btn-secondary" id="bq-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカード番号を反映">現在のカード番号を反映</button>
      </div>
      <div style="font-size:0.75rem; color:var(--text-sub);">
-       ※カード配列シード連動：作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます。
+       ※作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます。
      </div>
    </div>
-   <button type="button" class="btn btn-outline" id="bq-review">読み込み・検証して内容を確認</button>
+   <button type="button" class="btn btn-outline" id="bq-review">検証して内容を確認</button>
   </div>
   <div id="bq-verified-block" hidden>
     <div class="bq-verified-divider"></div>
     <div class="bq-verified-head">✓ 検証済みの内容</div>
   </div>
-  <div id="bq-preview" hidden></div><button type="button" class="btn" id="bq-apply" disabled><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">確認した内容で復元を実行</button>
+  <div id="bq-preview" hidden></div><button type="button" class="btn" id="bq-apply" disabled><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">復元を実行</button>
   <p>印刷後は必ず復元テストを実施してから元データを破棄してください。</p>
  </div>
  </div>
@@ -887,100 +937,100 @@
 <section class="section-card no-print" id="bonus-vault" style="margin-top:24px;">
   <h2 class="section-title">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span>汎用セキュア保管庫（Vault）— 暗号化 ＆ 秘密分散（既存パスワード・機密文章・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで暗号化・分割保管できる多機能保管庫です。暗号化には PBKDF2-SHA512 と AES-256-GCM を使用します。">?</button></span>
-      <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル・ゼロナレッジ</span>
+      <span>データ暗号化（テキスト・ファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの既存パスワードや秘密の日本語メモ、機密ファイル（画像・PDF・ZIP等）を、パスワード・キーファイル・生体認証（パスキー）・秘密分散（Shamir）のお好みの組み合わせで強力に暗号化・復号できる機能です。サーバーには一切送信されず、暗号化ファイル（.cmenc）やテキストとして手元で安全に管理できます。暗号化には PBKDF2-SHA512 と AES-256-GCM を使用します。">?</button></span>
+      <span class="mode-pill" style="background:#192329; color:#1aaeff; border-color:#00abf7;">🛡️ 完全ローカル</span>
     </div>
   </h2>
 
   <p class="cm-km-label" style="margin:0 0 12px; font-size:0.86rem;">
-    お手元の既存パスワード、機密メモ、重要ファイルなどを、<strong>外部送信ゼロ</strong>で暗号化・分割保存・復元できます。
+    テキストやファイルを<strong>外部送信ゼロ</strong>で暗号化・分割保存・復号できます。
   </p>
 
   <!-- タブ切り替え（暗号化作成／復元・復号） -->
   <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
-    <button type="button" class="btn" id="bv-tab-btn-encrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>暗号化 ＆ 秘密分散を作成</button>
-    <button type="button" class="btn btn-outline" id="bv-tab-btn-decrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>復元・復号する</button>
+    <button type="button" class="btn" id="bv-tab-btn-encrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>暗号化を作成</button>
+    <button type="button" class="btn btn-outline" id="bv-tab-btn-decrypt" style="font-size:0.82rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>復号する</button>
   </div>
 
   <!-- パネル1: 暗号化作成 -->
   <div id="bv-panel-encrypt">
     <div style="display:flex; gap:16px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
-      <span style="font-size:0.86rem; font-weight:700;">対象データ形式:</span>
+      <span style="font-size:0.86rem; font-weight:700;">対象:</span>
       <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.86rem;">
         <input type="radio" name="bv-target-type" id="bv-type-text" value="text" checked>
-        📝 テキスト（既存パスワード・日本語メモ・秘密鍵など）
+        📝 テキスト
       </label>
       <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.86rem;">
         <input type="radio" name="bv-target-type" id="bv-type-file" value="file">
-        📁 ファイル（画像・PDF・Office・ZIPなど任意のファイル）
+        📁 ファイル
       </label>
     </div>
 
     <!-- テキスト入力欄 -->
     <div id="bv-input-text-area" style="margin-bottom:12px;">
       <label for="bv-text-content" style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:4px;">
-        暗号化したいテキスト／パスワード／文章:<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットの秘密鍵、銀行口座メモ、既存のマスターパスワードなど、誰にも見られたくない秘密のテキストを入力します。強力な暗号化によって安全に保護・保管されます。">?</button>
+        テキスト:<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットの秘密鍵、銀行口座メモ、既存のマスターパスワードなど、誰にも見られたくない秘密のテキストを入力します。強力な暗号化によって安全に保護・保管されます。">?</button>
       </label>
-      <textarea id="bv-text-content" class="seed-textarea" style="min-height:90px;" placeholder="例: 既存のパスワード、アカウントID、シークレットメモ、日本語の機密文章、秘密鍵などを入力してください。"></textarea>
+      <textarea id="bv-text-content" class="seed-textarea" style="min-height:90px;" placeholder="例: パスワード、シークレットメモ、機密文章、秘密鍵など"></textarea>
     </div>
 
     <!-- ファイル選択欄 -->
     <div id="bv-input-file-area" class="cm-dropzone" hidden style="margin-bottom:12px; padding:12px; border-radius:8px; border-width:1px; border-style:dashed;">
       <label for="bv-file-input" style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
-        暗号化したいファイルを選択:<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスポートの写真、身分証明書のPDF、秘密の文書など、保護したい任意のファイル（最大約20MB推奨）を選択します。ファイルごと強力に暗号化されます。">?</button>
+        ファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="画像・PDF・Office・ZIPなど任意のファイル（最大約20MB推奨）を選択します。ファイルごと強力に暗号化されます。">?</button>
       </label>
       <input type="file" id="bv-file-input">
-      <div id="bv-file-info" style="font-size:0.8rem; color:var(--text-sub); margin-top:6px;">※ファイルは外部サーバーに送信されず、すべてブラウザ内で暗号化されます。復号時に元のファイル名も自動復元されます。</div>
+      <div id="bv-file-info" style="font-size:0.8rem; color:var(--text-sub); margin-top:6px;">※すべてブラウザ内で暗号化されます。復号時に元のファイル名も復元されます。</div>
     </div>
 
     <!-- 保護設定ボックス -->
     <div class="cm-panel-slate" style="border-width:1px; border-style:solid; border-radius:8px; padding:12px 14px; margin:12px 0;">
-      <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護・暗号化の方法（組み合わせ自由・単独利用もOK）:</div>
+      <div class="cm-guide-heading" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">🛡️ 保護方法（複数選択可）:</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-password" checked style="width:17px; height:17px;">
-          🔐 復元用パスワード（12文字以上・16文字以上推奨）（パスフレーズによる暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上のパスフレーズ推奨）です。">?</button>
+          🔐 パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="パスフレーズによる暗号化。データを暗号化するためのパスワードです。総当たり攻撃を防ぐため12文字以上が必須（16文字以上のパスフレーズ推奨）です。">?</button>
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-keyfile" style="width:17px; height:17px;">
-          <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル（手元のファイルや専用.keyファイルによる暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段の写真・PDFや専用作成した鍵ファイルを暗号鍵として使用します。">?</button>
+          <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル<button type="button" class="help-btn" aria-label="説明を表示" data-help="手元のファイルや専用.keyファイルによる暗号化。普段の写真・PDFや専用作成した鍵ファイルを暗号鍵として使用します。">?</button>
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
           <input type="checkbox" id="bv-opt-passkey" style="width:17px; height:17px;">
-          <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（iCloud・Googleパスワードマネージャー・YubiKey 5系等 PRF対応認証器による暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="PRF対応のパスキー（iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系）でのみ復元できます。PRF非対応パスキーでは復元できません。">?</button>
+          <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー<button type="button" class="help-btn" aria-label="説明を表示" data-help="iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系等のPRF対応認証器による暗号化。PRF非対応パスキーでは復元できません。">?</button>
         </label>
       </div>
 
       <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-        <label for="bv-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N）:<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータを復元できない数学的暗号技術（秘密分散）です。">?</button></label>
+        <label for="bv-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散<button type="button" class="help-btn" aria-label="説明を表示" data-help="Shamir M-of-N秘密分散。データを複数個のシェアに分割し、『3個中2個』などの指定個数が揃わないと元のデータを復元できない数学的暗号技術です。">?</button></label>
         <select id="bv-shamir">
-          <option value="1-1" selected>分割なし（通常：1個の暗号化データ）</option>
-          <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個で復元）</option>
-          <option value="2-2">2-of-2 秘密分散（全2シェア両方で復元）</option>
-          <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3個で復元）</option>
+          <option value="1-1" selected>分割なし（1個の暗号化データ）</option>
+          <option value="2-3">2-of-3 秘密分散（3シェア中 任意の2個で復元）</option>
+          <option value="2-2">2-of-2 秘密分散（2シェア両方で復元）</option>
+          <option value="3-5">3-of-5 秘密分散（5シェア中 任意の3個で復元）</option>
         </select>
          <div id="bv-shamir-desc" class="bq-select-desc"></div>
       </div>
 
       <div id="bv-protection-badge" class="cm-prot-init" style="margin-top:10px; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:700; border-width:1px; border-style:solid;">
-        現在の保護方式：復元用パスワード単独
+        現在の保護方式：パスワード単独
       </div>
 
       <!-- カード配列シード連動表示 -->
       <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
+          <span class="cm-label-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード番号:</span>
           <span id="bv-bound-seed-badge" class="cm-seed-chip" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
-          ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
+          ※現在のカード番号と連動して暗号鍵が導出されます。
         </div>
       </div>
     </div>
 
     <!-- KDF強度 -->
     <div class="bq-row" id="bv-kdf-row">
-      <label for="bv-kdf">暗号化強度（KDFプロファイル）<button type="button" class="help-btn" aria-label="説明を表示" data-help="ストレッチング計算回数の設定です。推奨設定（PBKDF2 210万回）で十分強力です。">?</button></label>
+      <label for="bv-kdf">暗号化強度<button type="button" class="help-btn" aria-label="説明を表示" data-help="ストレッチング計算回数の設定です。推奨設定（PBKDF2 210万回）で十分強力です。">?</button></label>
       <select id="bv-kdf">
         <option value="3">Argon2id（メモリ64MB / 3回 / PC・スマホ両用推奨）</option>
         <option value="4">Argon2id（メモリ128MB / 3回 / PC推奨・⚠️スマホ高負荷）</option>
@@ -996,11 +1046,11 @@
     <!-- パスワード入力行 -->
     <div class="bq-row" id="bv-password-row">
       <div style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <label for="bv-password" style="font-weight:700;">復元用パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップを暗号化するパスワードです。12文字以上・英大小数字記号を混ぜた16文字以上を推奨します。このパスワードを忘れると復元できなくなります。">?</button></label>
+        <label for="bv-password" style="font-weight:700;">パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="データを暗号化するパスワードです。12文字以上・英大小数字記号を混ぜた16文字以上を推奨します。このパスワードを忘れると復元できなくなります。">?</button></label>
         <button type="button" class="btn-toggle-pw-visibility" data-target="bv-password,bv-password-confirm" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
       </div>
       <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-        💡 強力な復元用パスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=bv" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、この復元用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
+        💡 強力なパスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=bv" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、このパスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
       </div>
       <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
         <div class="duress-field">
@@ -1020,19 +1070,17 @@
       <label for="bv-keyfile" style="font-weight:700;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル:<button type="button" class="help-btn" aria-label="説明を表示" data-help="普段お使いの写真・PDF等のファイル、または専用に生成した .key ファイルを使って暗号化する追加認証です。ファイルを失うと復元できなくなります。">?</button></label>
       <input type="file" id="bv-keyfile">
       <button type="button" class="btn btn-outline" id="bv-gen-keyfile" style="padding:5px 10px; font-size:0.78rem; font-weight:600;"><img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassキーファイル(.key)生成</button>
-      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">お手元の任意のファイル（画像・PDF等）を選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。復元時にはこのファイルが必要です。</div>
+      <div id="bv-keyfile-status" style="width:100%; font-size:0.78rem; color:#1dfbbd;">任意のファイルを選択するか、「KeePassキーファイル(.key)生成」で作成したファイルを保管してください。</div>
     </div>
 
     <!-- パスキー説明行 -->
     <div class="bq-row cm-passkey-note cm-panel-blue" id="bv-passkey-row" hidden style="padding:8px 10px; border-radius:6px; border-width:1px; border-style:solid; font-size:0.8rem;">
-      🔐 <strong>パスキー保護：</strong> お使いの生体認証（Touch ID / Face ID / 指紋認証）またはセキュリティキー（YubiKey）による認証で保護します。暗号化・復号実行時に認証画面が表示されます。<br>
+      🔐 <strong>パスキー保護：</strong> 生体認証またはセキュリティキー（YubiKey）で保護します。<br>
       <div id="bv-passkey-manager" class="cm-passkey-manager-slot"></div>
     </div>
 
-    
-
     <div style="margin:14px 0 8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-      <button type="button" class="btn" id="bv-btn-encrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化 ＆ 秘密分散データを作成</button>
+      <button type="button" class="btn" id="bv-btn-encrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号データを作成</button>
     </div>
 
     <div id="bv-encrypt-status" class="status-msg" role="status" aria-live="polite"></div>
@@ -1040,13 +1088,13 @@
     <!-- 作成結果表示エリア -->
     <div id="bv-encrypt-result" class="cm-panel-result" hidden style="margin-top:14px; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-        <span style="font-weight:700; font-size:0.88rem; color:var(--accent-strong);">✅ 暗号化・秘密分散の生成完了</span>
+        <span style="font-weight:700; font-size:0.88rem; color:var(--accent-strong);">✅ 暗号データの作成完了</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;" id="bv-result-actions"></div>
       </div>
       <div class="save-format-guide-box no-print cm-guide-box" style="margin:8px 0 10px; padding:10px 14px; font-size:0.83rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span>💡</span>
-          <span>保存する形式は<strong>1つで大丈夫です</strong>（すべて保存する必要はありません）</span>
+          <span><strong>いずれか1つの形式で保存すれば復元できます</strong></span>
         </div>
         <button type="button" class="help-btn" aria-label="各保存形式の特徴と選び方" data-help="【各保存形式の特徴と選び方（どれか1つで復元可能）】&#10;&#10;📱 QR画像 (PNG)：&#10;スマホカメラ派・手軽さ重視。スマホで瞬時にスキャンして復元できます。紙に印刷して金庫に保管する物理バックアップにも最適です。&#10;&#10;📋 テキスト (.txt)：&#10;コピペ派・カメラなしPC環境。カメラがないPCでもテキストをコピー＆ペーストするだけで復元できます。メモ帳やオフラインUSB保管にも。&#10;&#10;📁 暗号化ファイル (.cmenc)：&#10;ファイル保存派・ドラッグ＆ドロップ復元派。&#10;「cmencってなに？」→ CryptoMatrix Encrypted file の略称です。AES-256-GCM ＋ ChaCha20-Poly1305の二重暗号化バイナリファイル。ファイルを画面にドラッグ＆ドロップするだけで一発復元可能。クラウドやUSBにそのまま保管しても安全です。&#10;&#10;📥 KeePass エントリー保存：&#10;パスワードマネージャー連携派。ボタン一発でKeePassにエントリーを作成。QRコード画像とキーファイル(.key)の両方が自動添付されるため迷う必要がありません！">?</button>
       </div>
@@ -1058,49 +1106,49 @@
   <div id="bv-panel-decrypt" hidden>
     <div style="margin-bottom:12px;">
       <label style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
-        暗号化データまたは秘密分散シェアの入力／QRスキャン／ファイル選択:
+        暗号化データの入力 / 読み込み:
       </label>
       <div class="bv-no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
-        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
-        <button type="button" class="btn btn-secondary" id="bv-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
+        <button type="button" class="btn btn-outline" id="bv-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQR読取</button>
+        <button type="button" class="btn btn-secondary" id="bv-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>停止</button>
         <label for="bv-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
-          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像ファイルを選択
+          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像を選択
         </label>
         <input type="file" id="bv-restore-qr-img" accept="image/*" style="display:none;">
         <label for="bv-restore-file" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>暗号化ファイル（.cmenc）を選択（複数選択可）
+          <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>暗号化ファイル (.cmenc) を選択
         </label>
         <input type="file" id="bv-restore-file" multiple style="display:none;">
         <span id="bv-restore-file-name" style="font-size:0.8rem; color:var(--text-sub); align-self:center;"></span>
       </div>
       <video id="bv-video" class="cm-frame-sky" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border-width:2px; border-style:solid; margin-bottom:8px; background:#e1e5ea;"></video>
-      <textarea id="bv-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="暗号化されたテキスト（-----BEGIN CRYPTOMATRIX VAULT...-----）を貼り付けるか、上のQRスキャン・画像読込・ファイル選択をご利用ください。秘密分散の場合は必要シェア分（例: 2シェア分）を続けて貼り付けるか、連続してQRコードをスキャンできます。"></textarea>
+      <textarea id="bv-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="暗号化テキストを貼り付けるか、上のQR読取・ファイル選択をご利用ください（秘密分散は必要シェア分）。"></textarea>
     </div>
 
     <div class="bq-row">
       <div style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <label for="bv-restore-password">復元用パスワード（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にパスワードを設定した場合のみ入力が必要です。">?</button></label>
+        <label for="bv-restore-password">パスワード（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号化時にパスワードを設定した場合のみ入力が必要です。">?</button></label>
         <button type="button" class="btn-toggle-pw-visibility" data-target="bv-restore-password" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
       </div>
-      <input type="password" id="bv-restore-password" autocomplete="current-password" placeholder="パスワード未設定の場合は空欄">
-      <label for="bv-restore-keyfile">キーファイル（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="バックアップ作成時にキーファイルを設定した場合のみ選択が必要です。">?</button></label>
+      <input type="password" id="bv-restore-password" autocomplete="current-password" placeholder="未設定時は空欄">
+      <label for="bv-restore-keyfile">キーファイル（設定時のみ）<button type="button" class="help-btn" aria-label="説明を表示" data-help="作成時にキーファイルを設定した場合のみ選択が必要です。">?</button></label>
       <input type="file" id="bv-restore-keyfile">
       <div class="cm-panel-deep" style="width:100%; border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-top:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <label for="bv-restore-seed-number" class="cm-label-sky" style="font-weight:700; font-size:0.84rem; margin:0;">
-            🔑 連動カード配列シード番号 (seed):
+            🔑 連動カード番号:
           </label>
           <input type="text" id="bv-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
-          <button type="button" class="btn btn-secondary" id="bv-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
+          <button type="button" class="btn btn-secondary" id="bv-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカード番号を反映">現在のカード番号を反映</button>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
-          ※カード配列シード連動：作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます。
+          ※作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます。
         </div>
       </div>
     </div>
 
     <div style="margin:12px 0 8px;">
-      <button type="button" class="btn" id="bv-btn-decrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">復号・復元を実行</button>
+      <button type="button" class="btn" id="bv-btn-decrypt" style="padding:8px 18px; font-size:0.9rem;"><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">復号を実行</button>
     </div>
 
     <div id="bv-decrypt-status" class="status-msg" role="status" aria-live="polite"></div>
@@ -1108,13 +1156,13 @@
     <!-- 復号結果表示エリア -->
     <div id="bv-decrypt-result" class="cm-panel-result-ok" hidden style="margin-top:14px; padding:12px; border-radius:8px; border-width:1px; border-style:solid;">
       <div style="margin-bottom:6px;">
-        <span class="cm-result-title" style="font-weight:700; font-size:0.88rem;" id="bv-decrypted-title">✅ 復号・復元に成功しました！</span>
+        <span class="cm-result-title" style="font-weight:700; font-size:0.88rem;" id="bv-decrypted-title">✅ 復号に成功しました</span>
       </div>
       <div class="bq-action-group">
         <div class="bq-action-group-label">結果の保存</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-secondary" id="bv-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
-          <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>ファイルをダウンロード</button>
+          <button type="button" class="btn btn-secondary" id="bv-copy-decrypted" style="font-size:0.78rem;" title="コピー（30秒後に自動消去）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
+          <button type="button" class="btn btn-outline" id="bv-download-decrypted" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>ダウンロード</button>
         </div>
       </div>
       <div id="bv-decrypted-content" class="cm-panel-slate" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; padding:10px; border-radius:6px; border-width:1px; border-style:solid; max-height:300px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
@@ -1122,7 +1170,7 @@
       <div class="bq-action-group bq-action-group-manage">
         <div class="bq-action-group-label">表示管理</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-danger" id="bv-close-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>閉じてメモリ消去</button>
+          <button type="button" class="btn btn-danger" id="bv-close-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>閉じて消去</button>
         </div>
       </div>
     </div>
@@ -1134,15 +1182,15 @@
 <section class="section-card no-print" id="timelock-section" style="margin-top:24px;">
   <h2 class="section-title tl-ink-amber" style="border-bottom-color:#78350f;">
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span>5. タイムカプセル（Time Lock / Time Capsule）— 指定時刻まで開けない暗号化カプセル<button type="button" class="help-btn" aria-label="説明を表示" data-help="League of Entropyの分散型ランダムネスビーコン（drand quicknet / BLS12-381 IBE）を利用し、指定した未来の時刻（ラウンド）に到達するまで作成者本人も含め誰も復号できないタイムカプセル暗号を作成します。暗号化時は外部通信ゼロで完全オフライン動作し、復号時も手動ビーコン貼り付けによるエアギャップ復元に対応しています。">?</button></span>
-      <span class="mode-pill tl-ink-amber" style="background:#292119; border-color:#f59e0b;">⏳ drand quicknet (tlock IBE) ＋ CME3 二重保護</span>
+      <span>タイムカプセル（指定時刻まで開けない暗号化）<button type="button" class="help-btn" aria-label="説明を表示" data-help="League of Entropyの分散型ランダムネスビーコン（drand quicknet / BLS12-381 IBE）を利用し、指定した未来の時刻（ラウンド）に到達するまで作成者本人も含め誰も復号できないタイムカプセル暗号を作成します。暗号化時は外部通信ゼロで完全オフライン動作し、復号時も手動ビーコン貼り付けによるエアギャップ復元に対応しています。">?</button></span>
+      <span class="mode-pill tl-ink-amber" style="background:#292119; border-color:#f59e0b;">⏳ drand tlock ＋ 二重保護</span>
     </div>
   </h2>
 
   <!-- サブタブ切り替え（作成 ／ 解禁・復元） -->
   <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px; flex-wrap:wrap;">
-    <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>タイムカプセル作成（カプセル封入）</button>
-    <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>タイムカプセル解禁・復元</button>
+    <button type="button" class="btn" id="tl-tab-btn-encrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>カプセル作成</button>
+    <button type="button" class="btn btn-outline" id="tl-tab-btn-decrypt" style="font-size:0.84rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>解禁・復号</button>
   </div>
 
   <!-- =========================================================
@@ -1153,39 +1201,39 @@
     <!-- ステップ1：保護対象データの選択 -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div class="tl-ink-amber" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">
-        ステップ1：封入する保護対象データ（ペイロード）を選択
+        1. 対象データ
       </div>
       <div style="display:flex; gap:14px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem;">
           <input type="radio" name="tl-target-type" id="tl-type-text" value="text" checked>
-          📝 テキスト（パスワード・日本語メモ・秘密鍵・遺言・バックアップフレーズ等）
+          📝 テキスト
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem;">
           <input type="radio" name="tl-target-type" id="tl-type-file" value="file">
-          📁 ファイル（画像・PDF・ZIP・.cmenc・.kdbx等 任意のバイナリ）
+          📁 ファイル
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem;">
           <input type="radio" name="tl-target-type" id="tl-type-transferred" value="transferred" disabled>
-          🔗 拡張バックアップ / 保管庫から転記された暗号化データ
+          🔗 転記データ
         </label>
       </div>
 
       <!-- テキスト入力欄 -->
       <div id="tl-input-text-area">
         <label for="tl-text-content" style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:4px;">
-          タイムカプセルで封入するテキスト／パスワード／文章:
+          テキスト:
         </label>
-        <textarea id="tl-text-content" class="seed-textarea" style="min-height:90px;" placeholder="指定時刻まで封印したいパスワード、秘密のメモ、日本語文章、絵文字、複数行テキストなどを入力してください。"></textarea>
+        <textarea id="tl-text-content" class="seed-textarea" style="min-height:90px;" placeholder="指定時刻まで封印したいパスワード、メモ、文章などを入力してください。"></textarea>
       </div>
 
       <!-- ファイル入力欄（ドラッグ＆ドロップ対応） -->
       <div id="tl-input-file-area" class="cm-dropzone" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:dashed;">
         <label for="tl-file-input" style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:6px;">
-          封入するファイルを選択（またはここへドラッグ＆ドロップ / 最大20MB）:
+          ファイル（最大20MB）:
         </label>
         <input type="file" id="tl-file-input">
         <div id="tl-file-info" style="font-size:0.8rem; color:var(--text-sub); margin-top:6px;">
-          ※ファイル名・MIMEタイプ・バイナリ内容がすべて暗号化カプセル内に保護され、解禁時に元のファイル名で復元されます。
+          ※解禁時に元のファイル名で復元されます。
         </div>
       </div>
 
@@ -1193,7 +1241,7 @@
       <div id="tl-input-transferred-area" class="cm-panel-amber" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:solid;">
         <div id="tl-transferred-summary"></div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-outline" id="tl-btn-clear-transferred" style="padding:4px 10px; font-size:0.76rem;">✕ 転記データを解除して通常のテキスト/ファイル入力に戻る</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-clear-transferred" style="padding:4px 10px; font-size:0.76rem;">✕ 転記データを解除</button>
         </div>
       </div>
     </div>
@@ -1201,22 +1249,22 @@
     <!-- ステップ2：保護タイプの選択 -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div class="tl-ink-amber" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">
-        ステップ2：保護タイプの選択<button type="button" class="help-btn" aria-label="説明を表示" data-help="「時間解禁のみ」は指定時刻になればパスワードなしですぐに開けられます。「パスワード付き」は指定時刻の到来に加えて、あなただけのパスワードやキーファイル等の認証を要求して二重に保護します。">?</button>
+        2. 保護タイプ<button type="button" class="help-btn" aria-label="説明を表示" data-help="「時間解禁のみ」は指定時刻になればパスワードなしですぐに開けられます。「パスワード付き」は指定時刻の到来に加えて、あなただけのパスワードやキーファイル等の認証を要求して二重に保護します。">?</button>
       </div>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:10px;">
         <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #38bdf8; border-radius:8px; cursor:pointer; background:#192329;">
           <input type="radio" name="tl-mode" id="tl-mode-a" value="A" style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
-            <strong class="tl-ink-sky" style="font-size:0.88rem;">📦 タイムカプセル（時間解禁のみ — 指定時刻まで開封不可）<button type="button" class="help-btn" aria-label="説明を表示" data-help="すでにパスワード保護された拡張バックアップ/保管庫の暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル・セルフコントロール用途に適しています。">?</button></strong><br>
-            指定時刻（対象ラウンド）が到来するまで誰も復号できません。<strong>解禁時刻の到来後は、追加のタイムカプセル用パスワードなしで開封できます。</strong><br>
+            <strong class="tl-ink-sky" style="font-size:0.88rem;">📦 時間解禁のみ<button type="button" class="help-btn" aria-label="説明を表示" data-help="すでにパスワード保護された暗号化データをそのまま時間ロックしたい場合や、自分へのタイムカプセル用途に適しています。">?</button></strong><br>
+            指定時刻まで復号不可。<strong>解禁時刻の到来後はパスワードなしで開封できます。</strong><br>
           </div>
         </label>
 
         <label style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border:1.5px solid #f59e0b; border-radius:8px; cursor:pointer; background:#292119;">
           <input type="radio" name="tl-mode" id="tl-mode-b" value="B" checked style="margin-top:4px;">
           <div style="font-size:0.82rem; line-height:1.5;">
-            <strong class="tl-ink-amber" style="font-size:0.88rem;">🛡️ 追加暗号化保護タイムカプセル（時刻解禁 ＋ パスワード／パスキー／秘密分散 ★推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="カプセルファイルが第三者に渡っても、解禁時刻の到来だけでは開封できません。設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。">?</button></strong><br>
-            指定時刻の到来 <strong>かつ</strong> 設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。<br>
+            <strong class="tl-ink-amber" style="font-size:0.88rem;">🛡️ 時刻解禁 ＋ 追加保護（推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="カプセルファイルが第三者に渡っても、解禁時刻の到来だけでは開封できません。設定した追加保護（パスワード／キーファイル／パスキー／秘密分散）が揃わない限り復号できません。">?</button></strong><br>
+            指定時刻の到来 <strong>かつ</strong> 追加保護（パスワード・キーファイル等）が揃わないと復号できません。<br>
           </div>
         </label>
       </div>
@@ -1226,25 +1274,25 @@
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
         <div class="tl-ink-amber" style="font-weight:700; font-size:0.88rem;">
-          ステップ3：解禁日時（ロック解除時刻）の指定
+          3. 解禁日時
         </div>
       </div>
 
       <div style="display:flex; gap:16px; margin-bottom:10px; flex-wrap:wrap;">
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem; font-weight:600;">
           <input type="radio" name="tl-time-mode" id="tl-time-mode-abs" value="abs" checked>
-          📅 日時を直接指定（絶対時刻）
+          📅 日時を指定
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem; font-weight:600;">
           <input type="radio" name="tl-time-mode" id="tl-time-mode-rel" value="rel">
-          ⏱️ 現在からの経過時間で指定（相対時刻）
+          ⏱️ 経過時間で指定
         </label>
       </div>
 
       <!-- クイックプリセットボタン -->
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center;">
-        <span style="font-size:0.78rem; color:var(--text-sub);">クイック設定：</span>
-        <button type="button" class="btn btn-outline tl-preset-time-btn" data-sec="30" style="padding:3px 8px; font-size:0.75rem;">⚡ 30秒後（動作テスト用）</button>
+        <span style="font-size:0.78rem; color:var(--text-sub);">クイック：</span>
+        <button type="button" class="btn btn-outline tl-preset-time-btn" data-sec="30" style="padding:3px 8px; font-size:0.75rem;">⚡ 30秒後</button>
         <button type="button" class="btn btn-outline tl-preset-time-btn" data-sec="3600" style="padding:3px 8px; font-size:0.75rem;">🕐 1時間後</button>
         <button type="button" class="btn btn-outline tl-preset-time-btn" data-sec="86400" style="padding:3px 8px; font-size:0.75rem;">📅 24時間後</button>
         <button type="button" class="btn btn-outline tl-preset-time-btn" data-sec="604800" style="padding:3px 8px; font-size:0.75rem;">🗓️ 7日後</button>
@@ -1276,53 +1324,53 @@
     <!-- ステップ4：追加保護オプション（秘密分散 ＆ パスワード保護） -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div class="tl-ink-amber" style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">
-        ステップ4：秘密分散（Shamir）＆ 追加保護オプション
+        4. 秘密分散・追加保護
       </div>
 
       <!-- カード配列シード連動表示 -->
       <div class="cm-panel-deep" style="border-width:1px; border-style:solid; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="tl-ink-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード配列シード番号:</span>
+          <span class="tl-ink-sky" style="font-weight:700; font-size:0.82rem;">🔑 連動カード番号:</span>
           <span class="tl-ink-amber cm-chip-dark" id="tl-bound-seed-badge" style="font-family:monospace; font-weight:700; padding:2px 8px; border-radius:4px; border-width:1px; border-style:solid;">#0</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-sub);">
-          ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます。
+          ※現在のカード番号と連動して暗号鍵が導出されます。
         </div>
       </div>
 
       <div class="bq-row" style="margin-bottom:10px;">
-        <label for="tl-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散（Shamir M-of-N 分散保管）:</label>
+        <label for="tl-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散:</label>
         <select id="tl-shamir">
-          <option value="1-1" selected>分割なし（通常：1個のタイムカプセルカプセル）</option>
-          <option value="2-3">2-of-3 秘密分散（全3シェア中 任意の2個＋解禁時刻到来で復元）</option>
-          <option value="2-2">2-of-2 秘密分散（全2シェア両方＋解禁時刻到来で復元）</option>
-          <option value="3-5">3-of-5 秘密分散（全5シェア中 任意の3個＋解禁時刻到来で復元）</option>
+          <option value="1-1" selected>分割なし（1個のカプセル）</option>
+          <option value="2-3">2-of-3 秘密分散（3シェア中 任意の2個で復元）</option>
+          <option value="2-2">2-of-2 秘密分散（2シェア両方で復元）</option>
+          <option value="3-5">3-of-5 秘密分散（5シェア中 任意の3個で復元）</option>
         </select>
       </div>
 
       <!-- パスワード保護オプション群 -->
       <div id="tl-mode-b-options" style="border-top:1px dashed var(--border-color); padding-top:10px; margin-top:8px;">
         <div class="tl-ink-sky" style="font-weight:700; font-size:0.84rem; margin-bottom:8px;">
-          🛡️ 追加の保護・暗号化要素（組み合わせ自由・単独利用もOK）:
+          🛡️ 追加保護（複数選択可）:
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
             <input type="checkbox" id="tl-opt-password" checked style="width:17px; height:17px;">
-            🔐 復元用パスワード（12文字以上必須・16文字以上推奨）
+            🔐 パスワード（12文字以上・16文字以上推奨）<button type="button" class="help-btn" aria-label="説明を表示" data-help="タイムカプセルにパスワード二重保護を追加します。総当たりを防ぐため12文字以上必須（16文字以上推奨）。">?</button>
           </label>
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
             <input type="checkbox" id="tl-opt-keyfile" style="width:17px; height:17px;">
-            🔑 キーファイル（手元のファイルや専用.keyファイルによる二要素保護）
+            <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル<button type="button" class="help-btn" aria-label="説明を表示" data-help="手元のファイルや専用.keyファイルによる二要素保護。">?</button>
           </label>
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
             <input type="checkbox" id="tl-opt-passkey" style="width:17px; height:17px;">
-            <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（WebAuthn PRF暗号鍵導出）
+            <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー<button type="button" class="help-btn" aria-label="説明を表示" data-help="WebAuthn PRF認証器による生体認証暗号化。">?</button>
           </label>
         </div>
 
         <div class="bq-row" id="tl-kdf-row">
-          <label for="tl-kdf">暗号化強度（KDFプロファイル）:</label>
+          <label for="tl-kdf">暗号化強度:</label>
           <select id="tl-kdf">
             <option value="3">Argon2id（メモリ64MB / 3回 / PC・スマホ両用推奨）</option>
             <option value="4">Argon2id（メモリ128MB / 3回 / PC推奨・⚠️スマホ高負荷）</option>
@@ -1337,19 +1385,19 @@
         <!-- パスワード入力行 -->
         <div class="bq-row" id="tl-password-row">
           <div style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <label for="tl-password" style="font-weight:700;">復元用パスワード（12文字以上・16文字以上推奨）:</label>
+            <label for="tl-password" style="font-weight:700;">パスワード（12文字以上・16文字以上推奨）:</label>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <button type="button" class="btn btn-outline" id="tl-btn-use-transferred-pw" style="padding:2px 8px; font-size:0.74rem;">🔄 転記元のパスワードを引き継ぐ</button>
               <button type="button" class="btn-toggle-pw-visibility" data-target="tl-password,tl-password-confirm" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>パスワードを表示</button>
             </div>
           </div>
           <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-            💡 強力な復元用パスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=tl" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、この復元用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
+            💡 強力なパスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=tl" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に生成し、このパスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
           </div>
           <div class="duress-form-grid" style="width:100%; margin-bottom:4px;">
             <div class="duress-field">
               <label for="tl-password" style="font-size:0.78rem; display:block; margin-bottom:4px; color:var(--text-sub);">パスワード入力:</label>
-              <input type="password" id="tl-password" autocomplete="new-password" placeholder="12文字以上（16文字以上のパスフレーズ推奨）" style="width:100%;">
+              <input type="password" id="tl-password" autocomplete="new-password" placeholder="12文字以上（16文字以上推奨）" style="width:100%;">
             </div>
             <div class="duress-field">
               <label for="tl-password-confirm" style="font-size:0.78rem; display:block; margin-bottom:4px; color:var(--text-sub);">再入力（確認用）:</label>
@@ -1369,10 +1417,8 @@
 
         <!-- パスキー強い警告行 -->
         <div class="bq-row cm-panel-red" id="tl-passkey-row" hidden style="padding:10px 12px; border-radius:8px; border-width:1.5px; border-style:solid; font-size:0.8rem; line-height:1.55;">
-          ⚠️ <strong>【重要警告：パスキー併用時のドメイン拘束と独立復元ツール制限】</strong><br>
-          WebAuthnパスキー（PRF拡張）はブラウザ仕様により<strong>「現在のドメイン（同一オリジン）」に厳密に拘束</strong>されます。<br>
-          ・パスキーを有効にしたカプセルは、<strong>このドメインでしか開けない可能性があり、単体HTMLの「独立復元ツール（timelock-recover.html）」や別ドメインでは復元できません。</strong><br>
-          ・数ヶ月〜数年後の長期タイムカプセル保管では、端末買い替えやドメイン変更で開けなくなるリスクがあるため、パスキーを使わず<strong>「パスワード ＋ キーファイル」または「Shamir秘密分散」</strong>のご利用を強く推奨します。<br>
+          ⚠️ <strong>【重要：パスキー併用時のドメイン制限】</strong><br>
+          WebAuthnパスキーはブラウザ仕様により<strong>現在のドメインに拘束</strong>されます。長期保管では端末変更等で開けなくなるリスクがあるため、<strong>「パスワード ＋ キーファイル」または「秘密分散」</strong>を推奨します。<br>
           <div id="tl-passkey-manager" class="cm-passkey-manager-slot"></div>
         </div>
       </div>
@@ -1384,7 +1430,7 @@
     <!-- ステップ6：暗号化実行ボタン -->
     <div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <button type="button" class="btn cm-btn-capsule" id="tl-btn-encrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700;">
-        <img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">タイムカプセル・カプセルを作成（暗号化実行）
+        <img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">タイムカプセルを作成
       </button>
     </div>
 
@@ -1396,22 +1442,22 @@
       <div id="tl-verification-box" style="margin-bottom:10px;"></div>
 
       <div style="margin-bottom:6px;">
-        <span class="cm-visual-capsule"><svg class="cm-visual cm-visual-capsule tl-visual-inline" width="34" height="34" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="38" height="15" rx="7.5"></rect><path d="M24 14v15"></path><circle class="cm-visual-card" cx="35" cy="34" r="8.6"></circle><path d="M35 29.6V34l3 2"></path></g></svg></span><span class="tl-ink-amber" style="font-weight:700; font-size:0.9rem;">ステップ7：カプセルの保存 ＆ リカバリーガイド出力</span>
+        <span class="cm-visual-capsule"><svg class="cm-visual cm-visual-capsule tl-visual-inline" width="34" height="34" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="38" height="15" rx="7.5"></rect><path d="M24 14v15"></path><circle class="cm-visual-card" cx="35" cy="34" r="8.6"></circle><path d="M35 29.6V34l3 2"></path></g></svg></span><span class="tl-ink-amber" style="font-weight:700; font-size:0.9rem;">カプセルの保存</span>
       </div>
       <div class="bq-action-group bv-no-print">
         <div class="bq-action-group-label">作成・保存</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>タイムカプセル保存 (.cmtl)</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-save-cmtl" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>カプセル保存 (.cmtl)</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-txt" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>テキスト保存 (.txt)</button>
-          <button type="button" class="btn btn-secondary" id="tl-btn-copy" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後消去）</button>
+          <button type="button" class="btn btn-secondary" id="tl-btn-copy" style="padding:5px 10px; font-size:0.8rem;" title="コピー（30秒後に自動消去）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
           <button type="button" class="btn btn-outline" id="tl-btn-save-qr" style="padding:5px 10px; font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>QR画像保存 (PNG)</button>
-          <button type="button" class="btn btn-outline" id="tl-btn-save-guide" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>リカバリーガイド保存 (.txt)</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-save-guide" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>ガイド保存 (.txt)</button>
         </div>
       </div>
       <div class="bq-action-group bv-no-print">
         <div class="bq-action-group-label">転送・検証</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-outline" id="tl-btn-test-restore" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>解禁・復元タブへ転記して検証</button>
+          <button type="button" class="btn btn-outline" id="tl-btn-test-restore" style="padding:5px 10px; font-size:0.8rem; font-weight:700;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>解禁・復号タブへ転記</button>
           <button type="button" class="btn btn-outline" id="tl-btn-transfer-keeweb" style="padding:5px 10px; font-size:0.8rem; font-weight:700;" title="KeePassに新規エントリーとして保存（QR画像・カプセルファイル・リカバリーガイドをすべて自動添付）"><img src="keepass-icon.png" class="cm-btn-img" alt="" width="20" height="20">KeePassに保存</button>
         </div>
       </div>
@@ -1425,7 +1471,7 @@
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div id="tl-qr-container" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
         <div class="cm-pane-flex" style="flex:1; max-width:100%; box-sizing:border-box;">
-          <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">タイムカプセル・アーマード文字列（CRYPTOMATRIX TIMELOCK）:</label>
+          <label for="tl-output-text" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">カプセル文字列（CRYPTOMATRIX TIMELOCK）:</label>
           <textarea id="tl-output-text" readonly autocomplete="off" spellcheck="false" class="cm-radius-6 cm-bbox" style="width:100%; height:110px; font-family:monospace; font-size:0.74rem; padding:8px; word-break:break-all; overflow-wrap:anywhere;"></textarea>
         </div>
       </div>
@@ -1440,38 +1486,38 @@
   <div id="tl-panel-decrypt" hidden>
     <div id="tl-restore-dropzone" style="background:#1b2027; border:1.5px dashed #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <label style="font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;">
-        1. タイムカプセルカプセル (.cmtl / .txt / QR) の読み込み（ドラッグ＆ドロップ対応）:
+        1. カプセルデータ (.cmtl / .txt / QR) の読み込み:
       </label>
       <div class="bv-no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
         <label for="tl-restore-file" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; margin:0;">
-          <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>カプセルファイル (.cmtl / .txt) を選択（複数シェア可）
+          <svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>ファイル (.cmtl / .txt) を選択
         </label>
         <input type="file" id="tl-restore-file" accept=".cmtl,.txt,image/*,application/octet-stream,text/plain" multiple style="display:none;">
-        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
-        <button type="button" class="btn btn-secondary" id="tl-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>カメラを停止</button>
+        <button type="button" class="btn btn-outline" id="tl-btn-camera" style="font-size:0.8rem;"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQR読取</button>
+        <button type="button" class="btn btn-secondary" id="tl-btn-camera-stop" style="font-size:0.8rem;" disabled><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>停止</button>
         <label for="tl-restore-qr-img" class="btn btn-outline" style="cursor:pointer; font-size:0.8rem; margin:0;">
-          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像ファイルを選択
+          <img src="image-icon.png" class="cm-btn-img" alt="" width="20" height="20">QR画像を選択
         </label>
         <input type="file" id="tl-restore-qr-img" accept="image/*" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>入力をリセット</button>
+        <button type="button" class="btn btn-secondary" id="tl-btn-reset-restore" style="font-size:0.8rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>リセット</button>
         <span class="tl-ink-emerald" id="tl-restore-file-name" style="font-size:0.8rem;"></span>
       </div>
       <video id="tl-video" class="cm-frame-amber" playsinline muted hidden style="width:100%; max-width:400px; border-radius:8px; border-width:2px; border-style:solid; margin-bottom:8px;"></video>
-      <label for="tl-restore-text" style="font-size:0.8rem; color:var(--text-sub); display:block; margin-bottom:4px;">アーマード文字列の貼り付け（秘密分散の場合は必要Mシェア分を続けて貼り付け）:</label>
-      <textarea id="tl-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="-----BEGIN CRYPTOMATRIX TIMELOCK----- から始まる文字列を貼り付けるか、上のボタンで .cmtl ファイル／QR画像を読み込んでください。"></textarea>
+      <label for="tl-restore-text" style="font-size:0.8rem; color:var(--text-sub); display:block; margin-bottom:4px;">カプセル文字列の貼り付け（秘密分散は必要シェア分）:</label>
+      <textarea id="tl-restore-text" class="seed-textarea" style="min-height:90px;" placeholder="-----BEGIN CRYPTOMATRIX TIMELOCK----- から始まる文字列を貼り付けるか、ファイル／QR画像を読み込んでください。"></textarea>
     </div>
 
     <!-- 連動カード配列シード番号 -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <label class="tl-ink-sky" for="tl-restore-seed-number" style="font-weight:700; font-size:0.86rem; margin:0;">
-          🔑 連動カード配列シード番号 (seed):
+          🔑 連動カード番号:
         </label>
         <input type="text" id="tl-restore-seed-number" style="width:120px; font-weight:700; font-family:monospace; padding:4px 8px; font-size:0.86rem; text-align:center;" value="0" placeholder="0" autocapitalize="none" autocorrect="off" spellcheck="false">
-        <button type="button" class="btn btn-secondary" id="tl-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカードシード番号を反映">現在のカード設定を反映</button>
+        <button type="button" class="btn btn-secondary" id="tl-btn-sync-card-seed" style="padding:4px 8px; font-size:0.75rem;" title="上部の現在のカード番号を反映">現在のカード番号を反映</button>
       </div>
       <div style="font-size:0.75rem; color:var(--text-sub);">
-        ※カード配列シード連動：作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ解禁・復号されます。
+        ※作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます。
       </div>
     </div>
 
@@ -1481,37 +1527,36 @@
     <!-- drandビーコン取得方法 -->
     <div style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div class="tl-ink-amber" style="font-weight:700; font-size:0.86rem; margin-bottom:8px;">
-        2. 時間解禁キー（drand ラウンド署名ビーコン）の取得・検証方法:
+        2. 時間解禁キー（drand ビーコン）の取得:
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.84rem; font-weight:600;">
           <input type="radio" name="tl-beacon-mode" id="tl-beacon-mode-online" value="online" checked>
-          🌐 drand公開ネットワークから自動取得してBLS署名を数学的検証（オンライン環境）
+          🌐 drand公開ネットワークから自動取得（オンライン）
         </label>
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.84rem; font-weight:600;">
           <input type="radio" name="tl-beacon-mode" id="tl-beacon-mode-manual" value="manual">
-          📋 ビーコンJSONまたは署名（signature）を直接貼り付け（完全オフライン／エアギャップ環境）
+          📋 ビーコンJSON / 署名を手動貼り付け（完全オフライン）
         </label>
       </div>
 
       <div id="tl-manual-beacon-box" class="cm-panel-beacon" hidden style="margin-top:10px; padding:10px; border-width:1px; border-style:solid; border-radius:6px;">
         <label for="tl-manual-beacon-input" style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:4px;">
-          対象ラウンドのdrandビーコンJSON（<code>{"round":...,"signature":"..."}</code>）または96文字の16進数署名:
+          対象ラウンドのビーコンJSON または 96文字の16進数署名:
         </label>
         <textarea id="tl-manual-beacon-input" class="cm-radius-4 cm-bbox" style="width:100%; height:68px; font-family:monospace; font-size:0.76rem; padding:6px;" placeholder='例: {"round":12345678,"randomness":"...","signature":"8a9b..."} または 96文字のsignature hex'></textarea>
         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
-          ※オフライン端末で復号する場合、別のオンライン端末で下に表示される取得URLへアクセスし、取得したJSONを貼り付けてください。
+          ※オフライン端末で復号する場合、別の端末で下のURLから取得したJSONを貼り付けてください。
         </div>
         <div id="tl-beacon-url-box" hidden style="margin-top:10px;">
-          <div style="font-size:0.8rem; font-weight:700; margin-bottom:4px;">📡 このカプセルのビーコン取得URL（対象: <span id="tl-beacon-round"></span>）</div>
-          <div style="font-size:0.75rem; color:var(--text-sub); line-height:1.6; margin-bottom:6px;">ビーコンJSONは公開情報です。別のオンライン端末で開いて取得し、上の欄に貼り付けてください。取得したJSONはこの端末で署名検証するため、取得に使った端末や経路を信用する必要はありません。</div>
+          <div style="font-size:0.8rem; font-weight:700; margin-bottom:4px;">📡 ビーコン取得URL（対象: <span id="tl-beacon-round"></span>）</div>
+          <div style="font-size:0.75rem; color:var(--text-sub); line-height:1.6; margin-bottom:6px;">取得したJSONはこの端末で署名検証するため、取得経路を信用する必要はありません。</div>
           <div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">
             <div style="flex:1; min-width:230px; font-size:0.76rem; line-height:1.7;">
               <a id="tl-beacon-url-link" class="tl-ink-sky" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a><br>
               予備: <a id="tl-beacon-url-link2" class="tl-ink-sky" href="#" target="_blank" rel="noopener noreferrer" style="word-break:break-all;"></a><br>
               <button type="button" class="btn btn-secondary" id="tl-btn-copy-beacon-url" style="font-size:0.75rem; padding:4px 10px; margin-top:4px;">📋 URLをコピー</button>
               <span id="tl-beacon-copy-status" style="font-size:0.75rem; margin-left:6px;"></span>
-              <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px;">QRコードにはJSONではなく取得URLが入っています。</div>
             </div>
             <div id="tl-beacon-qr"></div>
           </div>
@@ -1522,27 +1567,27 @@
     <!-- 認証要素入力欄（パスワード設定時） -->
     <div id="tl-restore-auth-box" hidden style="background:#1b2027; border:1px solid #304257; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
       <div class="tl-ink-sky" style="font-weight:700; font-size:0.86rem; margin-bottom:8px;">
-        3. 復元用パスワード・保護キーの入力:
+        3. パスワード・保護キーの入力:
       </div>
       <div class="bq-row" id="tl-restore-pw-wrap">
-        <label for="tl-restore-password">復元用パスワード:</label>
+        <label for="tl-restore-password">パスワード:</label>
         <input type="password" id="tl-restore-password" autocomplete="current-password" placeholder="作成時に設定したパスワードを入力">
         <button type="button" class="btn-toggle-pw-visibility" data-target="tl-restore-password" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; cursor:pointer; text-decoration:underline;">👁️ 表示</button>
       </div>
       <div class="bq-row" id="tl-restore-kf-wrap" style="margin-top:8px;">
         <label for="tl-restore-keyfile">キーファイル:</label>
         <input type="file" id="tl-restore-keyfile">
-        <button type="button" class="btn btn-outline" id="tl-restore-gen-keyfile" style="padding:4px 10px; font-size:0.76rem;">🔑 カードからキーファイル(.key)を再生成してセット</button>
+        <button type="button" class="btn btn-outline" id="tl-restore-gen-keyfile" style="padding:4px 10px; font-size:0.76rem;">🔑 カードから.keyを再生成</button>
         <div class="tl-ink-emerald" id="tl-restore-keyfile-status" style="width:100%; font-size:0.76rem;"></div>
       </div>
       <div class="tl-ink-sky cm-panel-sky" id="tl-restore-pk-notice" hidden style="margin-top:8px; padding:8px 10px; border-width:1px; border-style:solid; border-radius:6px; font-size:0.8rem;">
-        <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">このカプセルには<strong>WebAuthn PRFパスキー保護</strong>が含まれています。「解禁・復号を実行」を押すと端末の生体認証／セキュリティキー確認が表示されます。
+        <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20"><strong>パスキー保護あり：</strong>復号実行時に生体認証／セキュリティキー確認が表示されます。
       </div>
     </div>
 
     <div style="margin:12px 0;">
       <button type="button" class="btn" id="tl-btn-decrypt" style="padding:10px 22px; font-size:0.95rem; font-weight:700;">
-        <img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">タイムカプセル解禁・復号を実行
+        <img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">解禁・復号を実行
       </button>
     </div>
 
@@ -1551,15 +1596,15 @@
     <!-- 復号結果表示エリア -->
     <div id="tl-decrypt-result" hidden style="margin-top:14px; padding:12px 14px; background:#064e3b; border-radius:8px; border:1.5px solid #10b981;">
       <div style="margin-bottom:6px;">
-        <span class="tl-ink-emerald" style="font-weight:700; font-size:0.9rem;">✅ ビーコン検証と復号に成功しました！</span>
+        <span class="tl-ink-emerald" style="font-weight:700; font-size:0.9rem;">✅ 復号に成功しました</span>
       </div>
       <div class="bq-action-group">
         <div class="bq-action-group-label">結果の保存・転送</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー（30秒後自動消去）</button>
-          <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ファイルをダウンロード</button>
-          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec3" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>拡張バックアップ（復元欄）へ送る</button>
-          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec4" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>セキュア保管庫（復号欄）へ送る</button>
+          <button type="button" class="btn btn-secondary" id="tl-copy-decrypted" style="font-size:0.78rem;" title="コピー（30秒後に自動消去）"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>コピー</button>
+          <button type="button" class="btn btn-outline" id="tl-download-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ダウンロード</button>
+          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec3" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>バックアップ（復元欄）へ送る</button>
+          <button type="button" class="btn btn-outline cm-btn-route" id="tl-route-sec4" style="font-size:0.78rem; display:none;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>データ暗号化（復号欄）へ送る</button>
         </div>
       </div>
       <div id="tl-decrypted-content" style="white-space:pre-wrap; word-break:break-all; overflow-wrap:anywhere; font-family:var(--font-ui); font-size:0.86rem; background:#111827; color:#f9fafb; padding:10px; border-radius:6px; border:1px solid #374151; max-height:320px; overflow-y:auto; max-width:100%; box-sizing:border-box;"></div>
@@ -1567,7 +1612,7 @@
       <div class="bq-action-group bq-action-group-manage">
         <div class="bq-action-group-label">表示管理</div>
         <div class="bq-row">
-          <button type="button" class="btn btn-danger" id="tl-close-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>閉じてメモリ消去</button>
+          <button type="button" class="btn btn-danger" id="tl-close-decrypted" style="font-size:0.78rem;"><svg class="cm-btn-ico" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>閉じて消去</button>
         </div>
       </div>
     </div>
@@ -1581,8 +1626,8 @@
       <img src="seal-icon.png" class="cm-seal-img" alt="" width="72" height="72">
       <p style="margin:0 0 10px; font-size:12px; line-height:1.8; color:var(--text-sub, #8fa3bf);">
         🔒 このアプリは<strong style="color:var(--accent, #34f58a);">ローカル完結・オフラインファースト設計</strong>です。
-        パスワード算出・バックアップ・保管庫・タイムカプセル暗号化はすべてお使いの端末内で完結し、外部サーバーへの通信は一切行いません（タイムカプセル復号時にオンライン取得を選択した場合のみ公開drand乱数ビーコンを取得します。手動ビーコン入力なら復号も完全オフラインで実行可能）。<br>
-        シード・合言葉・生成パスワードが外部に送信されることはありません。機密性の高い操作は、ネットワークを切断した環境（エアギャップ）での利用を推奨します。
+        パスワード算出・バックアップ・データ暗号化・タイムカプセルはすべて端末内で完結し、外部サーバーへの通信は一切行いません（タイムカプセル復号時にオンライン取得を選択した場合のみ公開drand乱数ビーコンを取得します）。<br>
+        カード番号・合言葉・生成パスワードが外部に送信されることはありません。
       </p>
       <a href="https://nistrel.com/u/9FHmMlF1xzwb0ByG#k=Vum6_A0nUqdWhyLFYUeq30jMzxpKabwhTFwd31dF_Xo" target="_blank" rel="noopener noreferrer" class="cm-link-neon" style="font-weight:600; text-decoration:underline;">Contact us</a>
     </footer>
@@ -1594,7 +1639,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:2px;">
         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
           <span style="font-size:0.74rem; font-weight:700; color:var(--text-sub);">生成パスワード：</span>
-          <span class="mode-pill" id="sticky-mode-badge" style="font-size:0.7rem; padding:1px 8px;">✅ 1. マイ・レシピ全組み合わせ設定</span>
+          <span class="mode-pill" id="sticky-mode-badge" style="font-size:0.7rem; padding:1px 8px;">✅ 使用中：1. マイレシピ</span>
         </div>
         <button type="button" class="btn btn-outline" id="btn-sticky-toggle" style="padding:2px 8px; font-size:0.7rem; border-radius:12px; margin-left:auto;" title="バーを最小化/展開">▾ 最小化</button>
       </div>
@@ -1920,9 +1965,19 @@
   </div>
 
   </div></section>
-  <section aria-label="設定">
+  <section aria-label="設定" class="cm-module-bay" id="cm-module-bay">
+    <div class="cm-module-bay-header no-print" id="cm-module-bay-header">
+      <div class="cm-module-bay-id">
+        <span class="cm-module-led"></span>
+        <span class="cm-module-code cm-mono" id="cm-active-module-code">1</span>
+      </div>
+      <div class="cm-module-bay-title">
+        <span class="cm-module-name" id="cm-active-module-name">かんたんモード</span>
+        <span class="cm-module-role" id="cm-active-module-desc">すぐ生成</span>
+      </div>
+    </div>
     <div class="cm-tablist" role="tablist">
-      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">バックアップ / 暗号化</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">セキュア保管庫</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムカプセル</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><img src="tab-transfer.png" class="cm-tab-ico" alt="" width="20" height="20">データ転送</button>
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">データ暗号化</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムカプセル</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><img src="tab-transfer.png" class="cm-tab-ico" alt="" width="20" height="20">データ転送</button>
     </div>
     <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
     <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
@@ -1941,14 +1996,14 @@
         <div class="ts-header-row">
           <h2 class="ts-title">
             <img src="tab-timesecret.png" width="24" height="24" alt="" style="border-radius:4px;">
-            <span>タイムシークレット（チェックイン型・複数時限金庫）</span>
+            <span>タイムシークレット（チェックイン型・時限金庫）</span>
             <button type="button" class="help-btn" id="btn-ts-help" aria-label="タイムシークレットの解説を表示" data-help="一定期間ごとにチェックインすることでデータを維持・保護する時限金庫です。期限切れ時は非抽出可能な専用デバイス鍵を破棄して復号不能化します。暗号化・チェックイン・管理操作の3系統独立認証に対応。クリックで詳細解説を表示します。">?</button>
           </h2>
           <span id="ts-state-badge" class="ts-state-pill" data-state="UNINITIALIZED">登録なし（0件）</span>
         </div>
 
         <p class="ts-lead">
-          複数の金庫を独立に管理できる、チェックイン型の時限金庫です。
+          定期チェックインで維持される時限金庫を複数管理できます。
         </p>
 
         <div id="ts-global-status" class="ts-status-bar" role="status" aria-live="polite" hidden></div>
@@ -1957,17 +2012,17 @@
         <!-- ==================== VIEW 1: MULTI-VAULT LIST VIEW (一覧画面) ==================== -->
         <div id="ts-list-view">
           <div class="ts-subtoolbar">
-            <div class="ts-subtoolbar-title">📋 タイムシークレット一覧</div>
+            <div class="ts-subtoolbar-title">📋 一覧</div>
             <button type="button" class="ts-btn ts-btn-primary ts-btn-sm" id="btn-ts-new-vault" style="flex:0 0 auto;">➕ 新規作成</button>
           </div>
 
           <div id="ts-list-empty" class="ts-empty-card">
             <svg class="cm-visual cm-visual-secret ts-empty-visual" width="92" height="92" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle class="cm-visual-bg" cx="24" cy="24" r="22" stroke="none"></circle><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="28" height="28" rx="6"></rect><rect x="15" y="15" width="18" height="18" rx="4" opacity=".5"></rect><circle class="cm-visual-card" cx="24" cy="24" r="6.4"></circle><path d="M24 20.4V24l2.6 1.8"></path></g></svg>
-            <div class="ts-empty-title">まだタイムシークレットが作成されていません</div>
+            <div class="ts-empty-title">まだ作成されていません</div>
             <p class="ts-empty-desc">
-              定期チェックインまたは指定日時まで維持したいテキストや任意のファイルを、用途ごとに自由な名前を付けて複数保管できます。チェックイン認証と復号・管理操作の認証は個別に設定可能です。
+              定期チェックインまたは指定日時まで維持したいテキストやファイルを、用途ごとに複数保管できます。
             </p>
-            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-empty-new" style="flex:0 0 auto;">✨ 新しいタイムシークレットを作成</button>
+            <button type="button" class="ts-btn ts-btn-primary" id="btn-ts-empty-new" style="flex:0 0 auto;">✨ 新規作成</button>
           </div>
 
           <div id="ts-list-table-wrap" class="ts-table-wrap" hidden>
@@ -1990,53 +2045,53 @@
         <div id="ts-create-view" hidden>
           <div class="ts-nav-bar">
             <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-create-back">← 一覧に戻る</button>
-            <h3 class="ts-view-heading">➕ 新規タイムシークレット作成</h3>
+            <h3 class="ts-view-heading">➕ 新規作成</h3>
           </div>
 
           <!-- Step 1: Name & Unified Payload Selection (Text / File / Transfer from Sec 3/4) -->
           <div class="ts-block-card">
-            <h3 class="ts-block-title">1. 名前と保護対象データ（ペイロード）の選択</h3>
+            <h3 class="ts-block-title">1. 名前と対象データ</h3>
             <div class="ts-field">
-              <label for="ts-vault-label">タイムシークレットの名前:</label>
-              <input type="text" id="ts-vault-label" maxlength="80" placeholder="用途がわかる名前を入力（例：非常用シークレット、家族への連絡メモ）">
+              <label for="ts-vault-label">名前:</label>
+              <input type="text" id="ts-vault-label" maxlength="80" placeholder="例：非常用シークレット、家族への連絡メモ">
             </div>
 
             <div class="ts-field">
-              <label style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:6px;">封入する保護対象データ（ペイロード）を選択:</label>
+              <label style="font-weight:700; font-size:0.84rem; display:block; margin-bottom:6px;">対象:</label>
               <div class="ts-radio-row" role="radiogroup" aria-label="封入ペイロード種別" style="margin-bottom:8px;">
                 <label class="ts-radio-chip">
                   <input type="radio" name="ts-payload-type" id="ts-type-text" value="text" checked>
-                  <span>📝 テキスト（パスワード・メモ・秘密鍵など）</span>
+                  <span>📝 テキスト</span>
                 </label>
                 <label class="ts-radio-chip">
                   <input type="radio" name="ts-payload-type" id="ts-type-file" value="file">
-                  <span>📁 ファイル（画像・PDF・ZIP・.cmenc・.kdbxなど）</span>
+                  <span>📁 ファイル</span>
                 </label>
                 <label class="ts-radio-chip">
                   <input type="radio" name="ts-payload-type" id="ts-type-transferred" value="transferred" disabled>
-                  <span id="ts-type-transferred-label">🔗 拡張バックアップ・保管庫から転記（既存暗号化データ）</span>
+                  <span id="ts-type-transferred-label">🔗 転記データ</span>
                 </label>
               </div>
             </div>
 
             <!-- テキスト入力エリア -->
             <div id="ts-input-text-area" class="ts-field">
-              <label for="ts-secret-text">保管するテキスト:</label>
-              <textarea id="ts-secret-text" placeholder="保護したいテキスト・パスワード・緊急連絡メモ・引き継ぎ情報などを入力してください（内部で構造化コンテナに格納され、復号時はそのまま画面に表示されます）。"></textarea>
+              <label for="ts-secret-text">テキスト:</label>
+              <textarea id="ts-secret-text" placeholder="保護したいテキスト・パスワード・メモなどを入力してください。"></textarea>
             </div>
 
             <!-- ファイル入力エリア -->
             <div id="ts-input-file-area" class="ts-field cm-panel-card" hidden style="padding:12px; border-radius:8px; border:1.5px dashed var(--border-color, #304257);">
               <label for="ts-secret-file" style="margin:0 0 6px; font-size:0.82rem; font-weight:700; display:block;">
-                📎 封入するファイルを選択（最大20MB）:
+                📎 ファイル（最大20MB）:
               </label>
               <input type="file" id="ts-secret-file" style="max-width:100%;">
               <div id="ts-attached-file-chip" class="ts-file-chip" hidden style="margin-top:6px;">
                 <span id="ts-attached-file-text"></span>
-                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-file">✕ ファイルを解除してテキスト入力に戻す</button>
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-file">✕ 解除</button>
               </div>
               <div style="font-size:0.78rem; color:var(--text-sub); margin-top:6px;">
-                ※元のファイル名・MIMEタイプ・バイナリ内容が暗号化コンテナ内にそのまま保持され、復号時に元のファイルとしてダウンロードできます。
+                ※復号時に元のファイルとしてダウンロードできます。
               </div>
             </div>
 
@@ -2044,30 +2099,29 @@
             <div id="ts-input-transferred-area" class="ts-field cm-panel-amber" hidden style="padding:12px; border-radius:8px; border-width:1.5px; border-style:solid;">
               <div id="ts-transferred-summary"></div>
               <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-transferred">✕ 転記データを解除してテキスト入力に戻す</button>
-                <span id="ts-transferred-notice" class="cm-note-sky" style="font-size:0.75rem;">※既存の暗号化データは復号・再暗号化されず、元の形式のまま安全に封入されます。</span>
+                <button type="button" class="ts-btn ts-btn-sm" id="btn-ts-clear-transferred">✕ 転記データを解除</button>
               </div>
             </div>
           </div>
 
           <!-- Step 2: Deadline Settings (Relative / Absolute / Quick Presets) -->
           <div class="ts-block-card">
-            <h3 class="ts-block-title">2. 期限設定（相対時間・絶対時刻・クイック設定）</h3>
+            <h3 class="ts-block-title">2. 期限設定</h3>
 
             <div class="ts-radio-row" role="radiogroup" aria-label="期限設定方式">
               <label class="ts-radio-chip">
                 <input type="radio" name="ts-time-mode" id="ts-time-mode-rel" value="relative" checked>
-                <span>⏱️ 現在からの経過時間で指定（相対時間）</span>
+                <span>⏱️ 経過時間で指定</span>
               </label>
               <label class="ts-radio-chip">
                 <input type="radio" name="ts-time-mode" id="ts-time-mode-abs" value="absolute">
-                <span>📅 日時を直接指定（絶対時刻）</span>
+                <span>📅 日時を指定</span>
               </label>
             </div>
 
             <div class="ts-quick-preset-bar" aria-label="期限クイック設定">
-              <span class="ts-quick-preset-label">クイック設定：</span>
-              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn ts-preset-test" data-sec="30">⚡ 30秒後（動作テスト用）</button>
+              <span class="ts-quick-preset-label">クイック：</span>
+              <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn ts-preset-test" data-sec="30">⚡ 30秒後</button>
               <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="3600">🕐 1時間後</button>
               <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn" data-sec="86400">📅 24時間後</button>
               <button type="button" class="ts-btn ts-btn-sm ts-preset-time-btn is-active" data-sec="604800">🗓️ 7日後</button>
@@ -2089,59 +2143,59 @@
 
             <!-- Absolute Datetime Input -->
             <div id="ts-time-abs-box" class="ts-inline-row" style="margin-bottom:8px;" hidden>
-              <label for="ts-datetime-input" style="margin:0; font-size:0.82rem; font-weight:700;">固定期限日時（チェックインしてもこの日時は変わりません）:</label>
+              <label for="ts-datetime-input" style="margin:0; font-size:0.82rem; font-weight:700;">固定期限日時:</label>
               <input type="datetime-local" id="ts-datetime-input" step="1" style="max-width:260px;">
             </div>
 
             <div id="ts-test-duration-warning" class="ts-test-warn-box" hidden>
-              🧪 <strong>動作確認用設定：</strong>1分未満（30秒後など）の設定は期限切れ処理の動作テスト専用です。通常の保管運用では十分な猶予期間を設定してください。
+              🧪 <strong>動作確認用設定：</strong>1分未満の設定はテスト専用です。通常の保管運用では十分な猶予期間を設定してください。
             </div>
             <div id="ts-initial-deadline-preview" class="ts-deadline-preview"></div>
           </div>
 
           <!-- Step 3: Separated 3-Layer Authentication & Seed Binding -->
           <div class="ts-block-card">
-            <h3 class="ts-block-title">3. 認証方式の設定（暗号化・チェックイン・管理操作を独立管理）</h3>
+            <h3 class="ts-block-title">3. 認証方式</h3>
 
             <!-- Card Array Seed Binding Banner (Unified with Sections 3, 4, 5) -->
             <div class="ts-seed-bind-banner">
               <div class="ts-seed-bind-main">
-                <span class="ts-seed-bind-label">🔑 連動カード配列シード番号:</span>
+                <span class="ts-seed-bind-label">🔑 連動カード番号:</span>
                 <span id="ts-bound-seed-badge" class="ts-seed-badge">#0</span>
               </div>
               <div class="ts-seed-bind-note">
-                ※カード配列シード連動：現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます（キーファイル設定とは独立して動作します）。
+                ※現在のカード番号と連動して暗号鍵が導出されます。
               </div>
             </div>
 
             <!-- 3-1. Encryption Authentication -->
             <div class="ts-auth-subcard">
               <div class="ts-auth-subhead">
-                <span class="ts-auth-subtag ts-tag-enc">3-1. 暗号化の認証方式</span>
-                <span class="ts-auth-subcaption">データの復号に必要です（1つ以上選択・複数選択時はすべて必須）</span>
+                <span class="ts-auth-subtag ts-tag-enc">3-1. 暗号化の認証</span>
+                <span class="ts-auth-subcaption">データの復号に必要です</span>
               </div>
 
               <label class="ts-chk-label">
                 <input type="checkbox" id="ts-opt-password" checked>
-                <span>🔑 パスワード（KDF鍵導出）</span>
+                <span>🔑 パスワード</span>
               </label>
               <div id="ts-pw-panel" class="ts-factor-panel">
                 <div style="width:100%; font-size:0.75rem; color:var(--text-sub); margin-top:2px; margin-bottom:6px; line-height:1.4;">
-                  💡 強力な暗号化用パスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=ts-enc" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に自動生成し、暗号化用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
+                  💡 強力なパスワードをお持ちでない場合：<a class="cm-keeweb-gen-link" href="keeweb/index.html#generator&amp;cmTarget=ts-enc" target="CryptoPassKeyKeeWeb" style="color:var(--accent); text-decoration:underline; font-weight:600;" title="KeePassで安全に自動生成し、暗号化用パスワード欄へ反映します">KeePassで安全に自動生成・保管する</a>
                 </div>
                 <div class="ts-field">
                   <div class="ts-label-split">
-                    <label for="ts-password">暗号化パスワード（12文字以上）:</label>
+                    <label for="ts-password">パスワード（12文字以上）:</label>
                     <button type="button" class="ts-toggle-pw" data-target="ts-password,ts-password-confirm">👁️ 表示</button>
                   </div>
-                  <input type="password" id="ts-password" autocomplete="new-password" placeholder="12文字以上の強力なパスワードを入力">
+                  <input type="password" id="ts-password" autocomplete="new-password" placeholder="12文字以上のパスワードを入力">
                 </div>
                 <div class="ts-field">
-                  <label for="ts-password-confirm">暗号化パスワード（確認用再入力）:</label>
+                  <label for="ts-password-confirm">再入力（確認用）:</label>
                   <input type="password" id="ts-password-confirm" autocomplete="new-password" placeholder="確認のためもう一度入力">
                 </div>
                 <div class="ts-field" style="margin-bottom:0;">
-                  <label for="ts-kdf-profile">鍵導出関数（KDF強度プロファイル）:</label>
+                  <label for="ts-kdf-profile">暗号化強度:</label>
                   <select id="ts-kdf-profile">
                     <option value="3" selected>Argon2id 標準（64MB / 3回 · PC・スマホ推奨）</option>
                     <option value="4">Argon2id 高強度（128MB / 3回 · PC推奨）</option>
@@ -2153,7 +2207,7 @@
 
               <label class="ts-chk-label">
                 <input type="checkbox" id="ts-opt-keyfile">
-                <span>📄 キーファイル（他セクション共通 KeePass <code>.key</code> または任意ファイル）</span>
+                <span>📄 キーファイル</span>
               </label>
               <div id="ts-kf-panel" class="ts-factor-panel" hidden>
                 <div class="ts-inline-row" style="margin-bottom:6px;">
@@ -2165,7 +2219,7 @@
 
               <label class="ts-chk-label" style="margin-bottom:0;">
                 <input type="checkbox" id="ts-opt-passkey">
-                <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（WebAuthn PRF 暗号鍵導出）</span>
+                <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー</span>
               </label>
               <div id="ts-pk-panel" style="margin-top:6px;" hidden>
                 <div id="ts-passkey-slot" class="cm-passkey-manager-slot"></div>
@@ -2175,26 +2229,26 @@
             <!-- 3-2. Check-In Authentication -->
             <div class="ts-auth-subcard">
               <div class="ts-auth-subhead">
-                <span class="ts-auth-subtag ts-tag-ci">3-2. チェックインの認証方式</span>
-                <span class="ts-auth-subcaption">期限の維持・延長に必要です（暗号化とは独立して専用検証情報で照合）</span>
+                <span class="ts-auth-subtag ts-tag-ci">3-2. チェックインの認証</span>
+                <span class="ts-auth-subcaption">期限の延長に必要です</span>
               </div>
 
               <div class="ts-ci-grid">
                 <label class="ts-chk-label">
                   <input type="checkbox" id="ts-ci-opt-none">
-                  <span>⚡ 認証なし（ワンクリックで期限延長）</span>
+                  <span>⚡ 認証なし</span>
                 </label>
                 <label class="ts-chk-label">
                   <input type="checkbox" id="ts-ci-opt-password" checked>
-                  <span>🔑 パスワード（チェックイン専用検証）</span>
+                  <span>🔑 パスワード</span>
                 </label>
                 <label class="ts-chk-label">
                   <input type="checkbox" id="ts-ci-opt-keyfile">
-                  <span>📄 キーファイル（登録キーファイル照合）</span>
+                  <span>📄 キーファイル</span>
                 </label>
                 <label class="ts-chk-label">
                   <input type="checkbox" id="ts-ci-opt-passkey">
-                  <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー（チェックイン用パスキー独立検証）</span>
+                  <span><img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー</span>
                 </label>
               </div>
 
@@ -2466,12 +2520,12 @@
             <!-- Card Array Seed Binding Input for Seed-Bound Vaults -->
             <div id="ts-unlock-seed-wrap" class="ts-seed-bind-banner" style="margin-bottom:10px;">
               <div class="ts-inline-row">
-                <label for="ts-unlock-seed-number" class="ts-seed-bind-label" style="margin:0;">🔑 連動カード配列シード番号 (seed):</label>
+                <label for="ts-unlock-seed-number" class="ts-seed-bind-label" style="margin:0;">🔑 連動カード番号:</label>
                 <input type="text" id="ts-unlock-seed-number" value="0" placeholder="0" style="width:120px; text-align:center; font-family:monospace; font-weight:700;" autocapitalize="none" autocorrect="off" spellcheck="false">
-                <button type="button" class="ts-btn ts-btn-sm" id="ts-btn-sync-card-seed">現在のカード設定を反映</button>
+                <button type="button" class="ts-btn ts-btn-sm" id="ts-btn-sync-card-seed">現在のカード番号を反映</button>
               </div>
               <div class="ts-seed-bind-note">
-                ※カード配列シード連動：作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます。
+                ※作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます。
               </div>
             </div>
             <div id="ts-unlock-legacy-seed-note" class="ts-legacy-seed-note" hidden>
@@ -2846,39 +2900,39 @@
         <div class="dt-header-row">
           <h2 class="dt-title">
             <svg class="cm-tab-ico" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01"/></svg>
-            <span>データ転送（オフラインQR高速送受信）</span>
+            <span>データ転送（オフラインQR送受信）</span>
             <button type="button" class="help-btn" aria-label="データ転送の説明を表示" data-help="ネットワークやBluetoothを使わず、連続再生されるQRコードとカメラだけで端末間のファイル・テキスト転送を行います。1周目で全データブロックを順番に送り、2周目以降はLT修復フレーム（Fountain符号）を送るため、途中で取りこぼしがあっても最小限の枚数で自動復元されます。送信には Systematic LT Fountain ハイブリッド方式を使い、CRC32 でデータの完全性を検証します。">?</button>
           </h2>
           <span id="dt-state-badge" class="dt-state-pill" data-state="IDLE">待機中</span>
         </div>
 
         <p class="dt-lead">
-          インターネット・Wi-Fi・Bluetoothを使わず、QRコードだけでファイル・テキストを転送します（完全オフライン）。
+          QRコードとカメラだけで、端末間のファイル・テキストを完全オフラインで転送します。
         </p>
 
         <!-- Sub-Tab Switcher (送信 / 受信) -->
         <div class="dt-subtab-bar" role="tablist" aria-label="データ転送の送信・受信切り替え">
           <button type="button" class="dt-subtab-btn is-active" id="dt-tab-btn-tx" role="tab" aria-selected="true" aria-controls="dt-panel-tx">
             <span class="dt-subtab-main">📤 送信</span>
-            <span class="dt-subtab-sub">ファイル・データをQRコードに変換して送信</span>
+            <span class="dt-subtab-sub">QRコードで送信</span>
           </button>
           <button type="button" class="dt-subtab-btn" id="dt-tab-btn-rx" role="tab" aria-selected="false" aria-controls="dt-panel-rx">
             <span class="dt-subtab-main">📥 受信</span>
-            <span class="dt-subtab-sub">カメラ・画像からQRコードを読み取って復元</span>
+            <span class="dt-subtab-sub">カメラで読み取り</span>
           </button>
         </div>
 
         <!-- ==================== SUB-PANEL 1: TRANSMIT (送信) ==================== -->
         <div id="dt-panel-tx" class="dt-subpanel" role="tabpanel" aria-labelledby="dt-tab-btn-tx">
-          <div id="dt-tx-status" class="dt-status-bar">送信するファイルを選択するか、テキストを入力して「QRコードを準備」を押してください。</div>
+          <div id="dt-tx-status" class="dt-status-bar">ファイルを選択するかテキストを入力して「QRコードを準備」を押してください。</div>
 
           <!-- Step 1: Data Input (File or Text) -->
           <div class="dt-card">
-            <h3 class="dt-card-title">1. 送信するファイルまたはテキストの選択</h3>
+            <h3 class="dt-card-title">1. 送信データ</h3>
 
             <div class="dt-dropzone" id="dt-tx-dropzone">
               <label for="dt-tx-file" class="dt-dropzone-label">
-                📁 送信するファイルを選択（クリックまたはドラッグ＆ドロップ / 最大64 MiB）
+                📁 ファイルを選択（ドラッグ＆ドロップ可 / 最大64 MiB）
               </label>
               <input type="file" id="dt-tx-file" class="dt-file-input">
               <div id="dt-tx-file-chip" class="dt-file-chip" hidden>
@@ -2888,15 +2942,15 @@
             </div>
 
             <div class="dt-field" style="margin-top:10px; margin-bottom:0;">
-              <label for="dt-tx-text">テキストを直接送信する場合（ファイル未選択時に使用）:</label>
-              <textarea id="dt-tx-text" rows="3" placeholder="送信したいテキスト・メモ・設定データなどを入力してください（ファイルを選択している場合はファイルが優先されます）。"></textarea>
-              <div id="dt-tx-text-meta" class="dt-hint">ファイル未選択時は、ここに入力したテキストが message.txt として送信されます。</div>
+              <label for="dt-tx-text">テキスト送信（ファイル未選択時）:</label>
+              <textarea id="dt-tx-text" rows="3" placeholder="送信したいテキストを入力してください（ファイル選択時はファイルが優先されます）。"></textarea>
+              <div id="dt-tx-text-meta" class="dt-hint">message.txt として送信されます。</div>
             </div>
           </div>
 
           <!-- Step 2: Transfer Settings (FPS & Chunk Size) -->
           <div class="dt-card">
-            <h3 class="dt-card-title">2. 送信設定（変更は自動保存され、準備後・送信中でも速度変更可能）</h3>
+            <h3 class="dt-card-title">2. 送信設定</h3>
             <div class="dt-settings-grid">
               <div class="dt-setting-box">
                 <div class="dt-setting-head">
@@ -2904,7 +2958,7 @@
                   <output id="dt-fps-value" for="dt-fps" class="dt-setting-val">10 枚/秒</output>
                 </div>
                 <input type="range" id="dt-fps" min="3" max="60" step="1" value="10" class="dt-slider">
-                <div class="dt-hint">読み取りづらい場合は 6〜10 枚/秒 に下げて「先頭QRに戻す」をお試しください。</div>
+                <div class="dt-hint">読み取りづらい場合は 6〜10 枚/秒 に下げてください。</div>
               </div>
 
               <div class="dt-setting-box">
@@ -2916,7 +2970,7 @@
                   <input type="range" id="dt-chunk-size" min="80" max="2800" step="20" value="800" class="dt-slider">
                   <input type="number" id="dt-chunk-size-number" min="80" max="2800" step="20" value="800" class="dt-chunk-num" aria-label="1枚あたりのデータ量（バイト）">
                 </div>
-                <div class="dt-hint">スマホ画面同士では 400〜800 B が読み取りやすく安定します。</div>
+                <div class="dt-hint">スマホ同士は 400〜800 B が安定します。</div>
               </div>
             </div>
 
@@ -2928,7 +2982,7 @@
               <button type="button" class="dt-btn dt-btn-primary" id="dt-prepare-tx"><img src="qr-frame-icon.png" class="cm-btn-img" alt="" width="20" height="20">QRコードを準備</button>
               <button type="button" class="dt-btn dt-btn-play" id="dt-play-tx" disabled><img src="play-icon.png" class="cm-btn-img" alt="" width="20" height="20">送信開始</button>
               <button type="button" class="dt-btn" id="dt-pause-tx" disabled><img src="pause-icon.png" class="cm-btn-img" alt="" width="20" height="20">一時停止</button>
-              <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled><img src="rewind-icon.png" class="cm-btn-img" alt="" width="20" height="20">先頭QRに戻す</button>
+              <button type="button" class="dt-btn" id="dt-reset-tx-head" disabled><img src="rewind-icon.png" class="cm-btn-img" alt="" width="20" height="20">先頭に戻す</button>
               <button type="button" class="dt-btn dt-btn-sm dt-btn-danger" id="dt-clear-tx"><img src="trash-icon.png" class="cm-btn-img" alt="" width="20" height="20">クリア</button>
             </div>
           </div>
@@ -2937,7 +2991,7 @@
           <div class="dt-card">
             <div class="dt-stage-header">
               <h3 class="dt-card-title" style="margin:0;">3. QRコード表示（タップで再生／一時停止）</h3>
-              <span class="dt-stage-tip">まずは先頭QR（Data 1）を受信側で読み取ってから送信開始</span>
+              <span class="dt-stage-tip">先頭QRを受信側で読み取ってから送信開始</span>
             </div>
 
             <div class="dt-qr-stage" id="dt-tx-stage" title="タップして送信開始／一時停止を切り替え">
@@ -2945,7 +2999,7 @@
               <div id="dt-tx-placeholder" class="dt-stage-placeholder">
                 <div class="dt-placeholder-icon">📤</div>
                 <div class="dt-placeholder-title">QRコード未準備</div>
-                <div class="dt-placeholder-sub">上の「⚡ QRコードを準備」を押すと、ここに先頭QRコードが大きく表示されます</div>
+                <div class="dt-placeholder-sub">上の「QRコードを準備」を押すと、ここに先頭QRコードが表示されます</div>
               </div>
               
             </div>
@@ -2971,22 +3025,22 @@
 
             <div class="dt-blockmap-box">
               <div class="dt-blockmap-header">
-                <span class="dt-blockmap-title">送信ブロックマップ（任意のブロックをタップすると、1周目のその位置から再生します）</span>
+                <span class="dt-blockmap-title">送信ブロックマップ（タップでその位置から再生）</span>
               </div>
               <canvas id="dt-tx-blockmap" class="dt-blockmap-canvas" width="500" height="24" role="slider" tabindex="-1" aria-label="送信ブロック位置の選択" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-valuetext="転送データなし" aria-disabled="true"></canvas>
-              <div id="dt-tx-block-summary" class="dt-hint">「QRコードを準備」を実行すると、送信ブロックマップが表示されます。</div>
+              <div id="dt-tx-block-summary" class="dt-hint">「QRコードを準備」を実行すると表示されます。</div>
             </div>
           </div>
         </div>
 
         <!-- ==================== SUB-PANEL 2: RECEIVE (受信) ==================== -->
         <div id="dt-panel-rx" class="dt-subpanel" role="tabpanel" aria-labelledby="dt-tab-btn-rx" hidden>
-          <div id="dt-rx-status" class="dt-status-bar">待機中です。「カメラでQRを読み取る」を押し、送信側でQRコードの連続表示を開始してください。</div>
+          <div id="dt-rx-status" class="dt-status-bar">待機中です。「カメラでQR読取」を押し、送信側でQR表示を開始してください。</div>
 
           <!-- Completion Card (shown on completion) -->
           <div id="dt-rx-completion-card" class="dt-completion-card" hidden>
             <div class="dt-completion-header">
-              <span class="dt-completion-badge">✅ 受信・復元完了（CRC32整合性確認済み）</span>
+              <span class="dt-completion-badge">✅ 受信・復元完了（CRC32確認済み）</span>
             </div>
             <div class="dt-stats-grid" style="margin-bottom:10px;">
               <div class="dt-stat-item">
@@ -3004,29 +3058,29 @@
             </div>
 
             <div class="dt-field">
-              <label for="dt-rx-filename-input">保存するファイル名（送信元のファイル名が自動設定されます・変更可能）:</label>
+              <label for="dt-rx-filename-input">保存ファイル名:</label>
               <input type="text" id="dt-rx-filename-input" value="received-file.bin" placeholder="保存するファイル名">
             </div>
 
             <div id="dt-rx-text-preview-wrap" class="dt-field" hidden>
-              <label for="dt-rx-text-preview">復元されたテキスト内容（読み取り専用プレビュー）:</label>
+              <label for="dt-rx-text-preview">復元テキスト:</label>
               <textarea id="dt-rx-text-preview" rows="4" readonly></textarea>
             </div>
 
             <div class="dt-action-row" style="margin-bottom:0;">
-              <button type="button" class="dt-btn dt-btn-play" id="dt-copy-result" hidden>📋 テキストをコピー</button>
+              <button type="button" class="dt-btn dt-btn-play" id="dt-copy-result" hidden>📋 コピー</button>
               <button type="button" class="dt-btn dt-btn-primary" id="dt-download-result"><img src="save-icon.png" class="cm-btn-img" alt="" width="20" height="20">ファイルを保存</button>
-              <button type="button" class="dt-btn" id="dt-rx-again">🔄 もう一度受信する</button>
+              <button type="button" class="dt-btn" id="dt-rx-again">🔄 もう一度受信</button>
             </div>
           </div>
 
           <!-- Camera & Image Controls -->
           <div class="dt-card">
-            <h3 class="dt-card-title">1. カメラから読み取り</h3>
+            <h3 class="dt-card-title">1. カメラ読み取り</h3>
             <div class="dt-action-row">
-              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQRを読み取る</button>
-              <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ カメラを停止</button>
-              <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx"><img src="refresh-icon.png" class="cm-btn-img" alt="" width="20" height="20">最初からリセット</button>
+              <button type="button" class="dt-btn dt-btn-primary" id="dt-start-camera"><img src="camera-icon.png" class="cm-btn-img" alt="" width="20" height="20">カメラでQR読取</button>
+              <button type="button" class="dt-btn" id="dt-stop-camera" disabled>⏹ 停止</button>
+              <button type="button" class="dt-btn dt-btn-sm" id="dt-reset-rx"><img src="refresh-icon.png" class="cm-btn-img" alt="" width="20" height="20">リセット</button>
             </div>
 
             <div class="dt-compat-row">
@@ -3043,7 +3097,7 @@
               <div id="dt-camera-placeholder" class="dt-stage-placeholder">
                 <div class="dt-placeholder-icon cm-visual-transfer"><svg class="cm-visual cm-visual-transfer" width="56" height="56" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6H9a3 3 0 0 0-3 3v6"></path><path d="M33 6h6a3 3 0 0 1 3 3v6"></path><path d="M15 42H9a3 3 0 0 1-3-3v-6"></path><path d="M33 42h6a3 3 0 0 0 3-3v-6"></path><path d="M24 13v15"></path><path d="M17.5 22.5L24 29l6.5-6.5"></path><path d="M14 37.5h20"></path></g></svg></div>
                 <div class="dt-placeholder-title">カメラ停止中</div>
-                <div class="dt-placeholder-sub">「カメラでQRを読み取る」を押した後、送信側でQRコードの連続表示を開始してください</div>
+                <div class="dt-placeholder-sub">「カメラでQR読取」を押した後、送信側でQR表示を開始してください</div>
               </div>
               <div id="dt-camera-complete" class="dt-camera-complete" role="status" aria-live="polite" hidden>
                 <div class="dt-camera-complete-icon" aria-hidden="true">✓</div>
@@ -3083,7 +3137,7 @@
                 </span>
               </div>
               <canvas id="dt-rx-blockmap" class="dt-blockmap-canvas" width="500" height="24" aria-label="受信ブロック取得状況マップ"></canvas>
-              <div id="dt-rx-block-summary" class="dt-hint">QRコードの読み取りを開始すると、ブロックごとの取得状態が表示されます。</div>
+              <div id="dt-rx-block-summary" class="dt-hint">読み取りを開始すると、ブロックごとの取得状態が表示されます。</div>
             </div>
           </div>
         </div>
@@ -3091,10 +3145,80 @@
     </div>
   </section>
 </main>
+<nav class="cm-footer-dock no-print" aria-label="フッター機能クイック切り替え">
+  <div class="cm-footer-dock-in">
+    <div class="cm-footer-dock-chips">
+      <button type="button" class="cm-footer-chip" data-target="tab-quick" data-mod="01"><span class="cm-footer-idx">1</span><img src="tab-quick.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-recipe" data-mod="02"><span class="cm-footer-idx">2</span><img src="tab-recipe.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-backup" data-mod="03"><span class="cm-footer-idx">3</span><img src="tab-backup.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>バックアップ</span><span class="cm-map-role">設定の保存・復元</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-vault" data-mod="04"><span class="cm-footer-idx">4</span><img src="tab-vault.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-timelock" data-mod="05"><span class="cm-footer-idx">5</span><img src="tab-capsule.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-footer-idx">6</span><img src="tab-timesecret.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-datatransfer" data-mod="07"><span class="cm-footer-idx">7</span><img src="tab-transfer.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></span></button>
+    </div>
+  </div>
+</nav>
+<nav class="cm-mobile-dock no-print" aria-label="モバイル固定ナビゲーション">
+  <div class="cm-mobile-dock-inner">
+    <button type="button" class="cm-mob-chip" data-target="tab-quick" data-mod="01"><span class="cm-mob-num">1</span><span class="cm-mob-txt">簡易</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-recipe" data-mod="02"><span class="cm-mob-num">2</span><span class="cm-mob-txt">レシピ</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-backup" data-mod="03"><span class="cm-mob-num">3</span><span class="cm-mob-txt">復元</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-vault" data-mod="04"><span class="cm-mob-num">4</span><span class="cm-mob-txt">暗号化</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-timelock" data-mod="05"><span class="cm-mob-num">5</span><span class="cm-mob-txt">カプセル</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-mob-num">6</span><span class="cm-mob-txt">秘匿</span></button>
+    <button type="button" class="cm-mob-chip" data-target="tab-datatransfer" data-mod="07"><span class="cm-mob-num">7</span><span class="cm-mob-txt">転送</span></button>
+    <button type="button" class="cm-mob-chip cm-mob-top" id="btn-mob-jump-top" aria-label="盤面へジャンプ"><span class="cm-mob-num">▲</span><span class="cm-mob-txt">盤面</span></button>
+  </div>
+</nav>
 <div id="cm-footer-slot" class="cm-legacy cm-footer-slot"></div>
-<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey v3.0.0 <span>· build data-transfer-integrated</span></div>
+<div class="cm-build-version" aria-label="アプリのバージョン">CryptoPassKey 3.28</div>
 </div>
-<script src="layout.js"></script>
+<div id="cm-toast-hub" class="cm-toast-hub" aria-live="polite"></div>
+<div id="cm-shortcuts-modal" class="cm-modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="cm-shortcuts-title">
+  <div class="cm-modal-box">
+    <div class="cm-modal-header">
+      <div class="cm-modal-title-row">
+        <span class="cm-modal-dot"></span>
+        <h3 id="cm-shortcuts-title" class="cm-modal-title cm-mono">KEYBOARD SHORTCUTS // 操作キー一覧</h3>
+      </div>
+      <button type="button" class="cm-modal-close" id="btn-shortcuts-close" aria-label="閉じる">✕</button>
+    </div>
+    <div class="cm-modal-body">
+      <div class="cm-sc-grid">
+        <div class="cm-sc-section">
+          <div class="cm-sc-sec-title cm-mono"><span>01</span> モジュール切替</div>
+          <div class="cm-sc-list">
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">1</kbd></span><span class="cm-sc-label">かんたんモード（すぐ生成）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">2</kbd></span><span class="cm-sc-label">マイレシピ詳細（細かく設定）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">3</kbd></span><span class="cm-sc-label">バックアップ（設定の保存・復元）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">4</kbd></span><span class="cm-sc-label">データ暗号化（テキスト・ファイル）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">5</kbd></span><span class="cm-sc-label">タイムカプセル（時間で開錠）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">6</kbd></span><span class="cm-sc-label">タイムシークレット（チェックイン型）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">7</kbd></span><span class="cm-sc-label">データ転送（QRで送受信）</span></div>
+          </div>
+        </div>
+        <div class="cm-sc-section">
+          <div class="cm-sc-sec-title cm-mono"><span>02</span> 盤面・再生コントロール</div>
+          <div class="cm-sc-list">
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd cm-kbd-wide">Space</kbd></span><span class="cm-sc-label">盤面ルート再生 / 一時停止</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">←</kbd><kbd class="cm-kbd">→</kbd></span><span class="cm-sc-label">一時停止中に1文字戻る / 進む</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">M</kbd></span><span class="cm-sc-label">盤面へジャンプ（盤面スクロール）</span></div>
+          </div>
+          <div class="cm-sc-sec-title cm-mono" style="margin-top:14px;"><span>03</span> セキュリティ・表示</div>
+          <div class="cm-sc-list">
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">T</kbd></span><span class="cm-sc-label">表示モード切替（ライト ⇄ ダーク）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">V</kbd></span><span class="cm-sc-label">覗き見防止（秘密情報のぼかし ON/OFF）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">Esc</kbd></span><span class="cm-sc-label">閉じる / 再生停止</span></div>
+            <div class="cm-sc-item cm-sc-danger"><span class="cm-kbd-grp"><kbd class="cm-kbd cm-kbd-danger">Esc ×3</kbd></span><span class="cm-sc-label"><strong>🚨 緊急消去</strong>（全消去）</span></div>
+            <div class="cm-sc-item"><span class="cm-kbd-grp"><kbd class="cm-kbd">?</kbd></span><span class="cm-sc-label">この一覧を表示 / 閉じる</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cm-sc-footer-note">※ 入力欄フォーカス中や日本語入力中は誤操作を防ぐためショートカットは無効化されます。</div>
+    </div>
+  </div>
+</div>
+<script src="layout.js?v=3.28.5"></script>
 <script src="qr-encoder.js"></script>
 <script src="argon2.umd.min.js"></script>
 <script src="vendor/tlock.bundle.js"></script>
@@ -3107,13 +3231,13 @@
 <script src="seed-key.js"></script>
 <script src="recipe-v6.js"></script>
 <script src="board-v2.js"></script>
-<script src="index.js"></script>
+<script src="index.js?v=3.28.5"></script>
 <script src="field-hint.js"></script>
-<script src="backup-qr.js"></script>
+<script src="backup-qr.js?v=3.28.5"></script>
 <script src="restore-steps.js"></script>
-<script src="timelock.js"></script>
-<script src="timesecret.js"></script>
+<script src="timelock.js?v=3.28.5"></script>
+<script src="timesecret.js?v=3.28.5"></script>
 <script src="data-transfer.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=3.28.5"></script>
 </body>
 </html>

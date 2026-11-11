@@ -28,8 +28,9 @@ function buildDom(light) {
   const rd = f => fs.readFileSync(path.join(CONTENTS, f), 'utf8');
   let html = rd('index.html');
   for (const css of ['app.css', 'legacy.css', 'theme-cyber.css']) {
+    // バージョンクエリ（?v=...）付きの link でも差し替えできるよう正規表現で一致させる
     html = html.replace(
-      `<link rel="stylesheet" href="${css}">`,
+      new RegExp(`<link rel="stylesheet" href="${css.replace('.', '\\.')}(\\?[^"]*)?">`),
       () => `<style>\n${rd(css)}\n</style>`,
     );
   }

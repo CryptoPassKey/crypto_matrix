@@ -436,7 +436,7 @@ function renderEncryptedWords(groups,shares=null,armoredText='',phraseText='',is
 
    <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px;">
 
-     <div style="font-size:0.82rem; font-weight:700; color:#334155;">
+     <div style="font-size:0.82rem; font-weight:700; color:var(--text-main);">
 
        📜 出力形式（現在: <span id="bq-active-format-label">PGPアーマード形式</span>）
 
@@ -1994,7 +1994,7 @@ function syncProtectionUI(){
 
   const factors=[];
 
-  if(usePass)factors.push('復元用パスワード');
+  if(usePass)factors.push('パスワード');
 
   if(useKeyfile)factors.push('キーファイル');
 
@@ -2492,7 +2492,7 @@ function initBonusVault(){
 
    const svg=qrSVG(text);
 
-   return `<figure class="bv-qr-figure cm-qr-fig" style="margin:0;text-align:center;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:#475569;margin-top:2px;">${caption}</figcaption></figure>`;
+   return `<figure class="bv-qr-figure cm-qr-fig" style="margin:0;text-align:center;padding:6px;display:inline-block;flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem;color:var(--text-sub);margin-top:2px;">${caption}</figcaption></figure>`;
 
   }catch(_){
 
@@ -2594,7 +2594,7 @@ function initBonusVault(){
 
    const factors=[];
 
-   if(usePass)factors.push('復元用パスワード');
+   if(usePass)factors.push('パスワード');
 
    if(useKeyfile)factors.push('キーファイル');
 
@@ -3992,7 +3992,7 @@ function initBonusVault(){
         `4. KeePassキーファイル: matrix-card-${seedNum}.key`,
         '',
         '【復元方法】',
-        'CryptoMatrixの「セキュア保管庫」タブの復号欄に上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
+        'CryptoMatrixの「データ暗号化」タブの復号欄に上記暗号化データを貼り付けるか、添付のQRコード画像または.cmencファイルを読み込ませるだけで復号できます。'
        ].join('\n');
 
        const baseAppUrl = window.location.href.split(/[?#]/)[0];
@@ -4233,7 +4233,7 @@ function initBonusVault(){
  $('bv-btn-sync-card-seed')?.addEventListener('click', () => {
   const curSeed = ($('input-seed-number')?.value || '0').trim();
   if ($('bv-restore-seed-number')) $('bv-restore-seed-number').value = curSeed;
-  bvMessage('bv-decrypt-status', `現在のカード配列シード番号 (#${curSeed}) を反映しました。`);
+  bvMessage('bv-decrypt-status', `現在のカード番号 (#${curSeed}) を反映しました。`);
  });
 
  $('bv-btn-decrypt')?.addEventListener('click',async()=>{

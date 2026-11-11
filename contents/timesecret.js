@@ -5302,7 +5302,7 @@
     $('ts-btn-sync-card-seed')?.addEventListener('click', () => {
       const curSeed = getCurrentCardSeed();
       if ($('ts-unlock-seed-number')) $('ts-unlock-seed-number').value = curSeed;
-      setStatusMsg('ts-unlock-status', `🔑 現在のカード配列シード番号 (#${curSeed}) を反映しました。`, 'info');
+      setStatusMsg('ts-unlock-status', `🔑 現在のカード番号 (#${curSeed}) を反映しました。`, 'info');
     });
 
     $('btn-ts-unlock-cancel')?.addEventListener('click', () => {

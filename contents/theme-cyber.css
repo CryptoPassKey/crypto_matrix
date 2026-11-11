@@ -1,44 +1,44 @@
-/* Cyber dark layer on top of the original (auto-darkened) stylesheet. Visual only. */
+/* Cyber dark layer on top of the original stylesheet. Visual only. */
 :root {
-  /* T1 統一トークン（ダーク = BLACK HACKER）。正の定義はこのファイルに置く */
-  --bg-main: #090d14;
-  --surface-sub: #0d1420;
-  --card-bg: #131b26;
-  --card-raised: #182233;
-  --input-bg: #0c1220;
-  --text-main: #e5edf7;
-  --text-sub: #93a5bc;
-  --border-color: #293747;
-  --border-strong: #3a4e68;
-  --accent: #00e58a;
-  --accent-strong: #3cf59f;
-  --accent-light: rgba(0, 229, 138, 0.12);
-  --accent-fg: #06251a;
-  --cyan: #00c8ff;
-  --focus-ring: #00c8ff;
-  --success: #00e58a;
-  --success-bg: rgba(0, 229, 138, 0.12);
-  --warning: #ffb224;
-  --warning-bg: rgba(255, 178, 36, 0.12);
-  --danger: #ff5c6c;
-  --danger-bg: rgba(255, 92, 108, 0.12);
-  --feat-generate: #00e58a;
-  --feat-generate-soft: rgba(0, 229, 138, 0.12);
+  /* T1 統一トークン（ダーク = BLACK HACKER: Stealth Cipher Console） */
+  --bg-main: #05080d;
+  --surface-sub: #080d15;
+  --card-bg: #0b111b;
+  --card-raised: #0f1724;
+  --input-bg: #060a10;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #1e2d42;
+  --border-strong: #2d4463;
+  --accent: #10b981;
+  --accent-strong: #00ff88;
+  --accent-light: rgba(16, 185, 129, 0.14);
+  --accent-fg: #02180e;
+  --cyan: #38bdf8;
+  --focus-ring: #38bdf8;
+  --success: #10b981;
+  --success-bg: #062419;
+  --warning: #fbbf24;
+  --warning-bg: #291805;
+  --danger: #f43f5e;
+  --danger-bg: #2a0a12;
+  --feat-generate: #10b981;
+  --feat-generate-soft: rgba(16, 185, 129, 0.14);
   --feat-backup: #38bdf8;
-  --feat-backup-soft: rgba(56, 189, 248, 0.12);
+  --feat-backup-soft: rgba(56, 189, 248, 0.14);
   --feat-vault: #a78bfa;
-  --feat-vault-soft: rgba(167, 139, 250, 0.12);
+  --feat-vault-soft: rgba(167, 139, 250, 0.14);
   --feat-capsule: #fbbf24;
-  --feat-capsule-soft: rgba(251, 191, 36, 0.12);
-  --feat-transfer: #00c8ff;
-  --feat-transfer-soft: rgba(0, 200, 255, 0.12);
+  --feat-capsule-soft: rgba(251, 191, 36, 0.14);
+  --feat-transfer: #38bdf8;
+  --feat-transfer-soft: rgba(56, 189, 248, 0.14);
   --feat-passkey: #2fe6a7;
-  --feat-passkey-soft: rgba(47, 230, 167, 0.12);
-  --feat-secret: #00a8d6;
-  --feat-secret-soft: rgba(0, 168, 214, 0.12);
+  --feat-passkey-soft: rgba(47, 230, 167, 0.14);
+  --feat-secret: #22d3ee;
+  --feat-secret-soft: rgba(34, 211, 238, 0.14);
   --feat-secret-strong: #075985;
-  --matrix-green: var(--feat-generate);
-  --matrix-border: var(--feat-generate);
+  --matrix-green: #00ff88;
+  --matrix-border: #10b981;
   --font-ui: "Fira Code", "JetBrains Mono", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", ui-monospace, monospace;
 }
 html, body { background: var(--bg-main) !important; color: var(--text-main); }
@@ -117,23 +117,23 @@ html.light .cm-legacy .cm-bq-card { background: #f8fafc !important; }
 /* ===== Light mode ===== */
 html.light {
   color-scheme: light;
-  /* T1 統一トークン（ライト = WHITE HACKER） */
-  --bg-main: #f7f9fc; --surface-sub: #eef3f8; --card-bg: #ffffff; --card-raised: #ffffff;
-  --input-bg: #ffffff; --text-main: #17243a; --text-sub: #4a5a73;
-  --border-color: #dce3ea; --border-strong: #b9c6d6;
-  --accent: #168653; --accent-strong: #0f7043; --accent-light: rgba(22, 134, 83, 0.1); --accent-fg: #ffffff;
-  --cyan: #2878d0; --focus-ring: #2878d0;
-  --success: #0f7043; --success-bg: #e9f7f0;
-  --warning: #9a6206; --warning-bg: #fdf3e0;
-  --danger: #c62f3b; --danger-bg: #fdecec;
-  --feat-generate: #168653; --feat-generate-soft: rgba(22, 134, 83, 0.1);
-  --feat-backup: #2878d0; --feat-backup-soft: rgba(40, 120, 208, 0.1);
-  --feat-vault: #7c53c9; --feat-vault-soft: rgba(124, 83, 201, 0.1);
+  /* T1 統一トークン（ライト = WHITE HACKER: Precision Security Audit Lab） */
+  --bg-main: #edf1f7; --surface-sub: #e2e8f0; --card-bg: #ffffff; --card-raised: #f8fafc;
+  --input-bg: #f8fafc; --text-main: #0f172a; --text-sub: #334155;
+  --border-color: #cbd5e1; --border-strong: #94a3b8;
+  --accent: #047857; --accent-strong: #065f46; --accent-light: rgba(4, 120, 87, 0.1); --accent-fg: #ffffff;
+  --cyan: #0369a1; --focus-ring: #0284c7;
+  --success: #065f46; --success-bg: #ecfdf5;
+  --warning: #92400e; --warning-bg: #fffbeb;
+  --danger: #b91c1c; --danger-bg: #fef2f2;
+  --feat-generate: #047857; --feat-generate-soft: rgba(4, 120, 87, 0.1);
+  --feat-backup: #0284c7; --feat-backup-soft: rgba(2, 132, 199, 0.1);
+  --feat-vault: #6d28d9; --feat-vault-soft: rgba(109, 40, 217, 0.1);
   --feat-capsule: #b45309; --feat-capsule-soft: rgba(180, 83, 9, 0.1);
-  --feat-transfer: #0e7fa8; --feat-transfer-soft: rgba(14, 127, 168, 0.1);
-  --feat-transfer-strong: #0b6fa0;
-  --feat-passkey: #0b7a55; --feat-passkey-soft: rgba(11, 122, 85, 0.1);
-  --feat-secret: #0e7fa8; --feat-secret-soft: rgba(14, 127, 168, 0.1);
+  --feat-transfer: #0369a1; --feat-transfer-soft: rgba(3, 105, 161, 0.1);
+  --feat-transfer-strong: #075985;
+  --feat-passkey: #047857; --feat-passkey-soft: rgba(4, 120, 87, 0.1);
+  --feat-secret: #0e7490; --feat-secret-soft: rgba(14, 116, 144, 0.1);
 }
 html.light .cm-legacy, html.light .cm-legacy *:not(button):not(button *) { color: var(--text-main); }
 
@@ -244,7 +244,21 @@ html:not(.light) body::before {
     linear-gradient(0deg, rgba(56,214,245,.05) 1px, transparent 1px);
   background-size: auto, 44px 44px, 44px 44px;
 }
-html:not(.light) .cm-app > * { position: relative; z-index: 1; }
+html:not(.light) .cm-app > *:not(.cm-mobile-dock):not(#sticky-pw-bar) { position: relative; z-index: 1; }
+
+.cm-mobile-dock {
+  display: none !important;
+}
+@media (max-width: 1024px) {
+  .cm-mobile-dock {
+    display: block !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+  }
+}
 html:not(.light) .cm-app > header {
   box-shadow: 0 1px 0 rgba(0,229,138,.25), 0 8px 30px -18px rgba(0,229,138,.35);
 }
@@ -1264,10 +1278,11 @@ html.light .cm-legacy #timelock-section .tl-ink-gray { color: #334155 !important
 
 /* ===== T2-2: カード・パネル・入力欄のクラス化（旧インライン色指定の受け皿） ===== */
 .cm-legacy .cm-guide-box {
-  background: #19291e;
-  border: 1.5px solid #0eaa47;
+  background: #0b121e;
+  border: 1px solid #1e2d42;
+  border-left: 3px solid #10b981;
   border-radius: 8px;
-  color: #3fd97c;
+  color: #94a3b8;
 }
 html.light .cm-legacy .cm-guide-box {
   background: var(--surface-sub);
@@ -1315,25 +1330,6 @@ html.light .cm-tab[aria-controls="tab-timesecret"][aria-selected="true"] {
 html.light .cm-tab[aria-controls="tab-datatransfer"][aria-selected="true"] {
   color: var(--feat-transfer-strong); background: var(--feat-transfer-soft);
   border-color: var(--feat-transfer); box-shadow: inset 0 -3px 0 var(--feat-transfer);
-}
-html.light .cm-map-chip[data-target="tab-quick"].is-active,
-html.light .cm-map-chip[data-target="tab-recipe"].is-active {
-  border-color: var(--feat-generate); box-shadow: inset 0 0 0 1px var(--feat-generate); color: var(--feat-generate);
-}
-html.light .cm-map-chip[data-target="tab-backup"].is-active {
-  border-color: var(--feat-backup); box-shadow: inset 0 0 0 1px var(--feat-backup); color: var(--feat-backup);
-}
-html.light .cm-map-chip[data-target="tab-vault"].is-active {
-  border-color: var(--feat-vault); box-shadow: inset 0 0 0 1px var(--feat-vault); color: var(--feat-vault);
-}
-html.light .cm-map-chip[data-target="tab-timelock"].is-active {
-  border-color: var(--feat-capsule); box-shadow: inset 0 0 0 1px var(--feat-capsule); color: var(--feat-capsule);
-}
-html.light .cm-map-chip[data-target="tab-timesecret"].is-active {
-  border-color: var(--feat-secret); box-shadow: inset 0 0 0 1px var(--feat-secret); color: var(--feat-secret-strong);
-}
-html.light .cm-map-chip[data-target="tab-datatransfer"].is-active {
-  border-color: var(--feat-transfer); box-shadow: inset 0 0 0 1px var(--feat-transfer); color: var(--feat-transfer-strong);
 }
 /* セクションカード: 上端に機能色の細いアクセント（ライトのみ、控えめに） */
 html.light .cm-legacy #card-quick,
@@ -1394,7 +1390,7 @@ html:not(.light) .cm-board .square.stroke-preview-tile {
 .cm-guide-heading { color: #6382b5; }
 html:not(.light) .cm-guide-heading { color: var(--text-sub); }
 .cm-warn-red { color: #e92f2f; }
-html:not(.light) .cm-warn-red { color: var(--danger); }
+html:not(.light) .cm-warn-red { color: #f85d78; }
 .cm-guide-violet { color: #a855f7; }
 html:not(.light) .cm-guide-violet { color: #c084fc; }
 .cm-km-violet { color: #610bf4; }
@@ -1409,8 +1405,8 @@ html:not(.light) .cm-note-muted { color: #8799b5; }
 html.light .cm-legacy .cm-note-muted { color: #7889a1; }
 
 /* ===== T4: 生成要素の状態色クラス（JS の色直接代入から移行） ===== */
-.cm-prot-init { background: #19291f; color: #1dfbbd; border-color: #0eaa47; }
-html.light .cm-legacy .cm-prot-init { background: var(--surface-sub); color: #0b7a44; border-color: #cfd8e3; }
+.cm-prot-init { background: #0b121e; color: #34d399; border-color: #1e2d42; }
+html.light .cm-legacy .cm-prot-init { background: var(--surface-sub); color: #096e3c; border-color: #cfd8e3; }
 .cm-prot-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
 html:not(.light) .cm-prot-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
 .cm-prot-err { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
@@ -1439,7 +1435,7 @@ html.light .cm-legacy .cm-strength-weak { color: #b91c1c; }
 html.light .cm-legacy .cm-strength-mid { color: #b45309; }
 html.light .cm-legacy .cm-strength-strong { color: #065f46; }
 html.light .cm-legacy .cm-seed-chip { color: #b45309; }
-html.light .cm-legacy .duress-modal-body .cm-prot-init { color: #0b7a44 !important; }
+html.light .cm-legacy .duress-modal-body .cm-prot-init { color: #096e3c !important; }
 
 /* ===== T4: パネル・チップ等のテーマクラス（汎用 [style*= ルールの依存解消用） ===== */
 .cm-panel-slate { background: #192129; border-color: #304257; }
@@ -1454,12 +1450,12 @@ html.light .cm-legacy .cm-panel-guide { background: var(--surface-sub); border-c
 html.light .cm-legacy .cm-dropzone { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-result { background: #1b2027; }
 html.light .cm-legacy .cm-panel-result { background: var(--surface-sub); }
-.cm-panel-result-ok { background: #19291e; border-color: #0eaa47; }
+.cm-panel-result-ok { background: #0b121e; border-color: #10b981; }
 html.light .cm-legacy .cm-panel-result-ok { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-amber { background: #292119; border-color: #f59e0b; }
 html.light .cm-legacy .cm-panel-amber { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-red { background: #291919; border-color: #ef4444; color: #fca5a5; }
-html.light .cm-legacy .cm-panel-red { background: var(--surface-sub); border-color: #cfd8e3; color: #c62f3b; }
+html.light .cm-legacy .cm-panel-red { background: var(--surface-sub); border-color: #cfd8e3; color: #b02834; }
 .cm-panel-beacon { background: #111827; border-color: #4b5563; }
 html.light .cm-legacy .cm-panel-beacon { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-sky { background: #192029; border-color: #0284c7; }
@@ -1493,7 +1489,7 @@ html.light .cm-legacy .cm-frame-sky { border-color: #cfd8e3; }
 .cm-frame-amber { border-color: #f59e0b; }
 html.light .cm-legacy .cm-frame-amber { border-color: #cfd8e3; }
 .cm-result-title { color: #1dfbbd; }
-html.light .cm-legacy .cm-result-title { color: #0b7a44; }
+html.light .cm-legacy .cm-result-title { color: #096e3c; }
 .cm-txt-deep { color: #192029; }
 html.light .cm-legacy .cm-txt-deep { color: var(--text-main); }
 .cm-link-neon { color: #1aff78; }
@@ -1503,7 +1499,7 @@ html.light .cm-legacy .cm-link-neon { color: #0b7a44 !important; }
 html:not(.light) .cm-legacy .cm-link-sky { color: #1ab1ff; }
 html.light .cm-legacy .cm-link-sky { color: #0b7a44 !important; }
 .cm-txt-sky { color: #1aaeff; }
-html.light .cm-legacy .cm-txt-sky { color: #0b7a44 !important; }
+html.light .cm-legacy .cm-txt-sky { color: #096e3c !important; }
 .cm-guide-emerald { color: #10b981; }
 html.light .cm-legacy .cm-guide-emerald { color: #0b7a44; }
 .cm-row-goldline { border-bottom: 1px dashed #a88700; }
@@ -1518,7 +1514,7 @@ html:not(.light) #btn-cm-consent-close { color: #8799b5; }
 html:not(.light) .duress-modal-close { color: #8799b5; }
 /* ライトでは汎用の本文色ルール（html.light .cm-legacy *）より優先して現行値を維持する */
 html.light .cm-legacy .cm-guide-heading { color: #3f619b; }
-html.light .cm-legacy .cm-passkey-note { color: #3b65dd; }
+html.light .cm-legacy .cm-passkey-note { color: #2f56c4; }
 html.light .cm-legacy .cm-warn-red { color: var(--danger); }
 html.light .cm-legacy .cm-guide-violet { color: #9333ea; }
 html.light .cm-legacy .cm-km-label { color: #3f619b; }
@@ -2659,7 +2655,7 @@ html.light .cm-legacy #timesecret-section .ts-modal-confirm-box {
   text-decoration: underline;
   padding: 0;
 }
-html.light #timesecret-section .ts-toggle-pw { color: #1f6fc4; }
+html.light #timesecret-section .ts-toggle-pw { color: #1a5da6; }
 #timesecret-section .ts-kf-status {
   font-size: 0.75rem;
   color: var(--text-sub);
@@ -3749,3 +3745,1441 @@ html.light .cm-legacy .cm-guide-icon { color: inherit; }
 .tl-visual-inline { vertical-align: -9px; margin-right: 6px; }
 #datatransfer-section .dt-placeholder-icon svg { display: block; }
 .cm-guide-icon { vertical-align: -3px; margin-right: 6px; }
+
+
+/* ============================================================================
+ * GENERATIONAL REDESIGN: WHITE HACKER (LIGHT) × BLACK HACKER (DARK)
+ * Complete architectural & visual system for CryptoMatrix
+ * ============================================================================ */
+
+/* 1. Global Chassis & Subtle Technical Grid */
+html:not(.light) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(30, 58, 95, 0.14) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(30, 58, 95, 0.14) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+html.light body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(148, 163, 184, 0.16) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(148, 163, 184, 0.16) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.cm-app > *:not(.cm-mobile-dock):not(#sticky-pw-bar) { position: relative; z-index: 1; }
+
+
+
+/* 2. Left Deck Control Header (.cm-deck-header) */
+.cm-legacy .cm-deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background-color: #09101a !important;
+  border: 1px solid #1e2d42 !important;
+  border-left: 4px solid #38bdf8 !important;
+}
+html.light .cm-legacy .cm-deck-header {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-left: 4px solid #0284c7 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+.cm-legacy .cm-deck-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 240px;
+}
+.cm-legacy .cm-deck-eyebrow {
+  font-family: "Fira Code", ui-monospace, monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #38bdf8 !important;
+  line-height: 1.2;
+}
+html.light .cm-legacy .cm-deck-eyebrow {
+  color: #0369a1 !important;
+}
+.cm-legacy .container h2.cm-legacy-hero-title {
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+  color: #f8fafc !important;
+}
+html.light .cm-legacy .container h2.cm-legacy-hero-title {
+  color: #0f172a !important;
+}
+.cm-legacy .container .subtitle {
+  font-size: 0.72rem !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  color: #94a3b8 !important;
+  text-align: left !important;
+}
+html.light .cm-legacy .container .subtitle {
+  color: #334155 !important;
+}
+
+.cm-legacy .cm-deck-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cm-legacy .cm-deck-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Compact Hardware Seed Register (.seed-bar) */
+.cm-legacy .seed-bar {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  background-color: #060a10 !important;
+  border: 1px solid #263850 !important;
+}
+html.light .cm-legacy .seed-bar {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #94a3b8 !important;
+}
+.cm-legacy .seed-bar label {
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  color: #cbd5e1 !important;
+  white-space: nowrap;
+  margin: 0 !important;
+}
+html.light .cm-legacy .seed-bar label {
+  color: #0f172a !important;
+}
+.cm-legacy #input-seed-number {
+  width: 110px !important;
+  min-width: 80px !important;
+  max-width: 150px !important;
+  padding: 4px 8px !important;
+  font-family: "Fira Code", ui-monospace, monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  text-align: center;
+  border-radius: 4px !important;
+  background-color: #0b1320 !important;
+  color: #00ff88 !important;
+  border: 1px solid #10b981 !important;
+}
+html.light .cm-legacy #input-seed-number {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #0284c7 !important;
+}
+
+/* Guarded Emergency Zeroize Switch (#btn-zeroize) */
+html:not(.light) .cm-legacy #btn-zeroize,
+.cm-legacy #btn-zeroize {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 11px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  border-radius: 6px !important;
+  background-color: #4c0519 !important;
+  background-image: linear-gradient(180deg, #650922 0%, #3b0514 100%) !important;
+  color: #ffe4e6 !important;
+  border: 1.5px solid #f43f5e !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+html:not(.light) .cm-legacy #btn-zeroize *,
+.cm-legacy #btn-zeroize * {
+  color: #ffe4e6 !important;
+}
+html:not(.light) .cm-legacy #btn-zeroize:hover,
+.cm-legacy #btn-zeroize:hover {
+  background-color: #be123c !important;
+  color: #ffffff !important;
+  border-color: #fda4af !important;
+}
+html.light .cm-legacy #btn-zeroize {
+  background-color: #b91c1c !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1.5px solid #7f1d1d !important;
+  box-shadow: 0 1px 2px rgba(185, 28, 28, 0.25) !important;
+}
+html.light .cm-legacy #btn-zeroize * {
+  color: #ffffff !important;
+}
+html.light .cm-legacy #btn-zeroize:hover {
+  background-color: #991b1b !important;
+}
+
+/* 3. MATRIX STAGE: Precision Instrument Core (.matrix-stage) */
+html:not(.light) .cm-board .matrix-stage {
+  background-color: #070b12 !important;
+  background-image: radial-gradient(120% 80% at 50% 0%, rgba(16, 185, 129, 0.07), transparent 65%) !important;
+  border: 1.5px solid #1e324a !important;
+  border-top: 2px solid #10b981 !important;
+  border-radius: 10px !important;
+  padding: 10px 12px 12px !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(56, 189, 248, 0.08) !important;
+}
+html.light .cm-board .matrix-stage {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  border: 1.5px solid #94a3b8 !important;
+  border-top: 3px solid #0284c7 !important;
+  border-radius: 10px !important;
+  padding: 10px 12px 12px !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07), inset 0 1px 0 #ffffff !important;
+}
+html:not(.light) .cm-board .matrix-stage::after {
+  display: none !important;
+}
+
+/* Matrix Bezel Telemetry Bar (.cm-matrix-bezel-bar) */
+.cm-legacy .cm-matrix-bezel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  background-color: #0b1320 !important;
+  border: 1px solid #1a2a3e !important;
+  font-family: "Fira Code", ui-monospace, monospace;
+}
+html.light .cm-legacy .cm-matrix-bezel-bar {
+  background-color: #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.cm-legacy .cm-bezel-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cm-legacy .cm-bezel-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #00ff88 !important;
+  box-shadow: 0 0 6px #00ff88;
+}
+html.light .cm-legacy .cm-bezel-led {
+  background-color: #047857 !important;
+  box-shadow: none;
+}
+.cm-legacy .cm-bezel-code {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #cbd5e1 !important;
+}
+html.light .cm-legacy .cm-bezel-code {
+  color: #1e293b !important;
+}
+.cm-legacy .cm-bezel-legend {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.cm-legacy .cm-legend-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.cm-legacy .cm-legend-item.cm-leg-tl {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.cm-legacy .cm-legend-item.cm-leg-tr {
+  color: #c084fc !important;
+  background: rgba(192, 132, 252, 0.1);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+}
+.cm-legacy .cm-legend-item.cm-leg-center {
+  color: #f8fafc !important;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.cm-legacy .cm-legend-item.cm-leg-bl {
+  color: #34d399 !important;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+.cm-legacy .cm-legend-item.cm-leg-br {
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+html.light .cm-legacy .cm-legend-item.cm-leg-tl {
+  color: #0369a1 !important;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+}
+html.light .cm-legacy .cm-legend-item.cm-leg-tr {
+  color: #6d28d9 !important;
+  background: #f3e8ff;
+  border: 1px solid #e9d5ff;
+}
+html.light .cm-legacy .cm-legend-item.cm-leg-center {
+  color: #0f172a !important;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+html.light .cm-legacy .cm-legend-item.cm-leg-bl {
+  color: #047857 !important;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+html.light .cm-legacy .cm-legend-item.cm-leg-br {
+  color: #b45309 !important;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+}
+.cm-legacy .cm-bezel-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #111e30;
+  border: 1px solid #2b4566;
+  color: #38bdf8;
+  transition: all 0.15s ease;
+}
+.cm-legacy .cm-bezel-help-btn:hover {
+  background: #192d47;
+  border-color: #38bdf8;
+}
+html.light .cm-legacy .cm-bezel-help-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #026aa1;
+}
+html.light .cm-legacy .cm-bezel-help-btn:hover {
+  background: #e2e8f0;
+  border-color: #026aa1;
+}
+
+/* 1マス（セル）の文字構成図パネル (.cm-cell-layout-card) */
+.cm-cell-layout-card {
+  margin-bottom: 8px;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+html:not(.light) .cm-cell-layout-card {
+  background: #090e18;
+  border: 1px solid #1a2a3e;
+  border-left: 3px solid #38bdf8;
+  color: #e2e8f0;
+}
+html.light .cm-cell-layout-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 3px solid #0284c7;
+  color: #1e293b;
+}
+.cm-cell-layout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+html.light .cm-cell-layout-head {
+  border-bottom-color: #e2e8f0;
+}
+.cm-cell-layout-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.cm-cell-layout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+}
+html.light .cm-cell-layout-dot {
+  background: #0284c7;
+}
+.cm-cell-layout-close {
+  background: transparent;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-sub, #94a3b8);
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.cm-cell-layout-close:hover {
+  color: #ef4444;
+}
+.cm-cell-layout-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .cm-cell-layout-body {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+.cm-cell-preview-box {
+  width: 140px;
+  aspect-ratio: 1 / 0.85;
+  position: relative;
+  border-radius: 6px;
+  padding: 4px;
+}
+html:not(.light) .cm-cell-preview-box {
+  background: #0c1420;
+  border: 1px solid #1f334d;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+html.light .cm-cell-preview-box {
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  border-bottom: 2px solid #64748b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.cm-prev-corner, .cm-prev-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.cm-prev-corner.cm-prev-tl { top: 4px; left: 6px; text-align: left; }
+.cm-prev-corner.cm-prev-tr { top: 4px; right: 6px; text-align: right; }
+.cm-prev-corner.cm-prev-bl { bottom: 4px; left: 6px; text-align: left; }
+.cm-prev-corner.cm-prev-br { bottom: 4px; right: 6px; text-align: right; }
+.cm-prev-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.cm-prev-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: inherit;
+}
+.cm-prev-center .cm-prev-val {
+  font-size: 1.4rem;
+}
+.cm-prev-tag {
+  font-size: 0.55rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.cm-prev-sub {
+  display: none;
+}
+.cm-prev-tl .cm-prev-val { color: #38bdf8; }
+.cm-prev-tr .cm-prev-val { color: #c084fc; }
+.cm-prev-center .cm-prev-val { color: #f8fafc; }
+.cm-prev-bl .cm-prev-val { color: #34d399; }
+.cm-prev-br .cm-prev-val { color: #fbbf24; }
+html.light .cm-prev-tl .cm-prev-val { color: #0369a1; }
+html.light .cm-prev-tr .cm-prev-val { color: #6d28d9; }
+html.light .cm-prev-center .cm-prev-val { color: #0f172a; }
+html.light .cm-prev-bl .cm-prev-val { color: #047857; }
+html.light .cm-prev-br .cm-prev-val { color: #b45309; }
+
+.cm-cell-layout-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cm-cell-layout-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+@media (max-width: 500px) {
+  .cm-cell-layout-list li {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+.cm-leg-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cm-leg-chip.cm-leg-tl { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); }
+.cm-leg-chip.cm-leg-tr { color: #c084fc; background: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.35); }
+.cm-leg-chip.cm-leg-center { color: #f8fafc; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); }
+.cm-leg-chip.cm-leg-bl { color: #34d399; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.4); }
+.cm-leg-chip.cm-leg-br { color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); }
+html.light .cm-leg-chip.cm-leg-tl { color: #0369a1; background: #e0f2fe; border: 1px solid #bae6fd; }
+html.light .cm-leg-chip.cm-leg-tr { color: #6d28d9; background: #f3e8ff; border: 1px solid #e9d5ff; }
+html.light .cm-leg-chip.cm-leg-center { color: #0f172a; background: #f1f5f9; border: 1px solid #cbd5e1; }
+html.light .cm-leg-chip.cm-leg-bl { color: #047857; background: #dcfce7; border: 1px solid #bbf7d0; }
+html.light .cm-leg-chip.cm-leg-br { color: #b45309; background: #fef3c7; border: 1px solid #fde68a; }
+
+.cm-cell-layout-list p {
+  margin: 0;
+  color: #94a3b8;
+}
+html.light .cm-cell-layout-list p {
+  color: #475569;
+}
+.cm-cell-layout-list p strong {
+  color: #f8fafc;
+}
+html.light .cm-cell-layout-list p strong {
+  color: #0f172a;
+}
+
+/* 4. 8x5 MATRIX KEYCELLS (#div-encrypto-matrix-main & .square) */
+.cm-board .matrix-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 2px 0 6px !important;
+}
+.cm-board #div-encrypto-matrix-main {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  cursor: pointer !important;
+  user-select: none;
+}
+.cm-board .square {
+  cursor: pointer !important;
+}
+
+/* BLACK HACKER Key Module */
+html:not(.light) .cm-board .square {
+  aspect-ratio: 1 / 0.82 !important;
+  background-color: #0c1420 !important;
+  background-image: linear-gradient(180deg, #111c2d 0%, #0b121e 100%) !important;
+  border: 1px solid #1f334d !important;
+  border-bottom: 2px solid #2b4566 !important;
+  border-radius: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+html:not(.light) .cm-board .square:hover {
+  border-color: #38bdf8 !important;
+  background-color: #111e30 !important;
+  transform: translateY(-1px);
+}
+html:not(.light) .cm-board .center-text {
+  color: #f8fafc !important;
+  font-size: 1.55rem !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+/* Distinct Corner Color Hierarchy in BLACK HACKER */
+html:not(.light) .cm-board .corner-text.top-left:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #38bdf8 !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+}
+html:not(.light) .cm-board .corner-text.top-right:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #c084fc !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+}
+html:not(.light) .cm-board .corner-text.bottom-left:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #34d399 !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+}
+html:not(.light) .cm-board .corner-text.bottom-right:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #fbbf24 !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+}
+
+/* WHITE HACKER Precision Machined Keycap */
+html.light .cm-board .square {
+  aspect-ratio: 1 / 0.82 !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #94a3b8 !important;
+  border-bottom: 2.5px solid #64748b !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+}
+html.light .cm-board .square:hover {
+  border-color: #0284c7 !important;
+  border-bottom-color: #0369a1 !important;
+  background-color: #f0f9ff !important;
+  transform: translateY(-1px);
+}
+html.light .cm-board .center-text {
+  color: #0f172a !important;
+  font-size: 1.55rem !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+/* Distinct Corner Color Hierarchy in WHITE HACKER */
+html.light .cm-board .corner-text.top-left:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #0369a1 !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+}
+html.light .cm-board .corner-text.top-right:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #6d28d9 !important;
+  font-size: 0.86rem !important;
+  font-weight: 800 !important;
+}
+html.light .cm-board .corner-text.bottom-left:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #047857 !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+}
+html.light .cm-board .corner-text.bottom-right:not(.preview-char-spot):not(.start-char-spot):not(.active-char-spot) {
+  color: #b45309 !important;
+  font-size: 0.86rem !important;
+  font-weight: 800 !important;
+}
+
+/* Active Cell & Laser Spot Illumination */
+html:not(.light) .cm-board #div-encrypto-matrix-main .square.active-tile,
+html:not(.light) .cm-board #div-encrypto-matrix-main .square.stroke-active-tile {
+  background-color: #063922 !important;
+  background-image: linear-gradient(135deg, #073b23 0%, #055833 100%) !important;
+  border: 2px solid #00ff88 !important;
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.35), 0 0 18px rgba(0, 255, 136, 0.5) !important;
+}
+html:not(.light) .cm-board .active-char-spot {
+  background-color: #00ff88 !important;
+  color: #02140a !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.85) !important;
+}
+html.light .cm-board #div-encrypto-matrix-main .square.active-tile,
+html.light .cm-board #div-encrypto-matrix-main .square.stroke-active-tile {
+  background-color: #d1fae5 !important;
+  background-image: none !important;
+  border: 2px solid #047857 !important;
+  border-bottom: 3px solid #065f46 !important;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.2) !important;
+}
+html.light .cm-board .active-char-spot {
+  background-color: #047857 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 4px rgba(4, 120, 87, 0.4) !important;
+}
+
+/* 5. DEDICATED CRYPTOGRAPHIC OUTPUT UNIT & TRACE SWITCH BANK (.live-player-bar) */
+.cm-legacy .live-player-bar {
+  margin-top: 6px !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+  background-color: #09101b !important;
+  border: 1px solid #1e2d42 !important;
+}
+html.light .cm-legacy .live-player-bar {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.cm-legacy .live-result-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 0 0 10px 0 !important;
+  margin-bottom: 10px !important;
+  border-top: none !important;
+  border-bottom: 1px solid #1e2d42 !important;
+}
+html.light .cm-legacy .live-result-row {
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+
+.cm-legacy .cm-pw-readout-unit {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #04070c !important;
+  border: 1px solid #1e3a5f !important;
+  border-left: 4px solid #00ff88 !important;
+}
+html.light .cm-legacy .cm-pw-readout-unit {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #94a3b8 !important;
+  border-left: 4px solid #0284c7 !important;
+}
+
+.cm-legacy .cm-pw-readout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.cm-legacy .cm-pw-readout-label {
+  font-family: "Fira Code", ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #38bdf8 !important;
+}
+html.light .cm-legacy .cm-pw-readout-label {
+  color: #0369a1 !important;
+}
+
+/* Password Character Readout (#sim-output-pw) */
+.cm-legacy .pw-chars-box {
+  padding: 6px 8px !important;
+  border-radius: 5px !important;
+  background-color: #070d17 !important;
+  border: 1px solid #1a2c44 !important;
+  min-height: 38px !important;
+}
+html.light .cm-legacy .pw-chars-box {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.cm-legacy .cm-pw-meta-line {
+  font-size: 0.74rem;
+  color: #94a3b8 !important;
+  margin-top: 4px;
+}
+html.light .cm-legacy .cm-pw-meta-line {
+  color: #334155 !important;
+}
+
+/* Trace Action Switch Bank (#trace-controls-bar) */
+.cm-legacy .cm-trace-switch-bank {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+.cm-legacy #trace-controls-bar .btn {
+  width: 100% !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  line-height: 1.25 !important;
+}
+
+/* Primary Route Execute Button (#btn-play-trace) */
+html:not(.light) .cm-legacy #btn-play-trace,
+html:not(.light) .cm-legacy #btn-sticky-play {
+  background-color: #064e3b !important;
+  background-image: linear-gradient(180deg, #065f46 0%, #064e3b 100%) !important;
+  color: #ecfdf5 !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.28) !important;
+}
+html:not(.light) .cm-legacy #btn-play-trace:hover:not(:disabled),
+html:not(.light) .cm-legacy #btn-sticky-play:hover:not(:disabled) {
+  background-color: #047857 !important;
+  border-color: #00ff88 !important;
+  color: #ffffff !important;
+}
+html.light .cm-legacy #btn-play-trace,
+html.light .cm-legacy #btn-sticky-play {
+  background-color: #047857 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1.5px solid #065f46 !important;
+  box-shadow: 0 1px 3px rgba(4, 120, 87, 0.25) !important;
+}
+html.light .cm-legacy #btn-play-trace:hover:not(:disabled),
+html.light .cm-legacy #btn-sticky-play:hover:not(:disabled) {
+  background-color: #065f46 !important;
+}
+
+/* Copy Password Switch (#btn-copy-pw) */
+html:not(.light) .cm-legacy #btn-copy-pw {
+  background-color: #0c2e47 !important;
+  background-image: linear-gradient(180deg, #0f3857 0%, #0a263b 100%) !important;
+  color: #e0f2fe !important;
+  border: 1.5px solid #0284c7 !important;
+  box-shadow: none !important;
+}
+html:not(.light) .cm-legacy #btn-copy-pw:hover:not(:disabled) {
+  background-color: #0369a1 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+html.light .cm-legacy #btn-copy-pw {
+  background-color: #0369a1 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1.5px solid #075985 !important;
+}
+html.light .cm-legacy #btn-copy-pw * {
+  color: #ffffff !important;
+}
+html.light .cm-legacy #btn-copy-pw:hover:not(:disabled) {
+  background-color: #075985 !important;
+}
+html:not(.light) .cm-legacy .bq-select-desc {
+  background-color: #0b1320 !important;
+  color: #cbd5e1 !important;
+  border-color: #1e2d42 !important;
+}
+
+/* Simulation Input Fields (.live-inputs-row) */
+.cm-legacy .live-inputs-row {
+  gap: 8px !important;
+  margin-bottom: 6px !important;
+}
+.cm-legacy .cm-sim-field label {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #cbd5e1 !important;
+  margin-bottom: 3px !important;
+}
+html.light .cm-legacy .cm-sim-field label {
+  color: #0f172a !important;
+}
+.cm-legacy .cm-sim-field input[type="text"] {
+  padding: 6px 9px !important;
+  font-size: 0.88rem !important;
+  border-radius: 5px !important;
+}
+.cm-legacy .cm-sim-secret-hint {
+  font-size: 0.7rem !important;
+  color: #94a3b8 !important;
+  margin-top: 3px !important;
+  line-height: 1.35 !important;
+}
+html.light .cm-legacy .cm-sim-secret-hint {
+  color: #334155 !important;
+}
+.cm-legacy .cm-keeweb-gen-link {
+  color: #38bdf8 !important;
+  text-decoration: underline !important;
+  font-weight: 700;
+}
+html.light .cm-legacy .cm-keeweb-gen-link {
+  color: #0369a1 !important;
+}
+.cm-legacy .step-status-banner {
+  margin-top: 6px !important;
+  padding: 6px 10px !important;
+  font-size: 0.76rem !important;
+  border-radius: 5px !important;
+}
+
+/* Gesture Design Bar semantic classes (High Contrast in Light & Dark) */
+.cm-legacy .gesture-bar-head {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #34d399 !important;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cm-legacy .gesture-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cm-legacy .gesture-bar-hint {
+  font-size: 0.72rem;
+  color: #6ee7b7 !important;
+  font-weight: 500;
+}
+html.light .cm-legacy .gesture-design-bar {
+  background-color: #f0fdf4 !important;
+  border: 1.5px solid #047857 !important;
+}
+html.light .cm-legacy .gesture-bar-head,
+html.light .cm-legacy .gesture-cat-label {
+  color: #065f46 !important;
+}
+html.light .cm-legacy .gesture-bar-hint {
+  color: #047857 !important;
+}
+html.light .cm-legacy .gesture-pill {
+  background-color: #ffffff !important;
+  color: #065f46 !important;
+  border-color: #047857 !important;
+}
+html.light .cm-legacy .gesture-pill.active {
+  background-color: #047857 !important;
+  color: #ffffff !important;
+}
+
+/* 6. Passkey Status Box (.cm-passkey-status-box) */
+.cm-legacy .cm-passkey-status-box {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #0c1422 !important;
+  border: 1px solid #334155 !important;
+}
+.cm-legacy .cm-passkey-status-box.is-saved {
+  background-color: #071f33 !important;
+  border-color: #0284c7 !important;
+}
+.cm-legacy .cm-passkey-status-ico {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.cm-legacy .cm-passkey-status-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #f1f5f9 !important;
+}
+.cm-legacy .cm-passkey-status-box.is-saved .cm-passkey-status-title {
+  color: #38bdf8 !important;
+}
+.cm-legacy .cm-passkey-status-desc {
+  font-size: 0.74rem;
+  color: #94a3b8 !important;
+  margin-top: 2px;
+}
+html.light .cm-legacy .cm-passkey-status-box {
+  background-color: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+}
+html.light .cm-legacy .cm-passkey-status-box.is-saved {
+  background-color: #f0f9ff !important;
+  border-color: #0284c7 !important;
+}
+html.light .cm-legacy .cm-passkey-status-title {
+  color: #0f172a !important;
+}
+html.light .cm-legacy .cm-passkey-status-box.is-saved .cm-passkey-status-title {
+  color: #0369a1 !important;
+}
+html.light .cm-legacy .cm-passkey-status-desc {
+  color: #334155 !important;
+}
+
+/* 7. Right-Hand Module Cards (.section-card) */
+.cm-module-bay .cm-panel > .section-card,
+.cm-module-bay .cm-subtab-panel > .section-card {
+  border-radius: 0 0 10px 10px !important;
+  padding: 14px 16px !important;
+}
+html:not(.light) .cm-legacy .section-card {
+  background-color: #0b111b !important;
+  border: 1px solid #1e2d42 !important;
+  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.8) !important;
+}
+html.light .cm-legacy .section-card {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+}
+.cm-module-bay .cm-subtab-bar {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  background-color: #080d16 !important;
+  border-left: 1px solid #1e2d42 !important;
+  border-right: 1px solid #1e2d42 !important;
+  border-bottom: 1px solid #1e2d42 !important;
+}
+html.light .cm-module-bay .cm-subtab-bar {
+  background-color: #f1f5f9 !important;
+  border-left: 1px solid #cbd5e1 !important;
+  border-right: 1px solid #cbd5e1 !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+
+/* Verbal Guide Card: One-line slim inspector when collapsed, rich protocol timeline when open */
+.cm-board .verbal-guide-card {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  margin-top: 6px !important;
+  margin-bottom: 0 !important;
+  border-radius: 6px !important;
+  background-color: #080d16 !important;
+  border: 1px solid #1a2a3e !important;
+  border-left: 3px solid #38bdf8 !important;
+  transition: all 0.18s ease;
+}
+html.light .cm-board .verbal-guide-card {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-left: 3px solid #0284c7 !important;
+}
+
+/* 閉じた時（guide-collapsed）：完全1行スリムバー */
+.cm-board .verbal-guide-card.guide-collapsed {
+  padding: 3px 8px !important;
+  min-height: 28px !important;
+  max-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.cm-board .verbal-guide-card.guide-collapsed .verbal-guide-header {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+.cm-board .verbal-guide-card.guide-collapsed .verbal-guide-title-box {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+.cm-board .verbal-guide-card.guide-collapsed .verbal-guide-title {
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  color: #e2e8f0 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+html.light .cm-board .verbal-guide-card.guide-collapsed .verbal-guide-title {
+  color: #0f172a !important;
+}
+.cm-board .verbal-guide-card.guide-collapsed #verbal-mode-badge {
+  font-size: 0.68rem !important;
+  padding: 1px 5px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+  max-width: 200px !important;
+}
+@media (max-width: 640px) {
+  .cm-board .verbal-guide-card.guide-collapsed .verbal-guide-title {
+    font-size: 0.72rem !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+  }
+  .cm-board .verbal-guide-card.guide-collapsed #verbal-mode-badge {
+    max-width: 140px !important;
+  }
+}
+.cm-board .verbal-guide-card.guide-collapsed .verbal-guide-sub {
+  display: none !important;
+}
+.cm-board .verbal-guide-card.guide-collapsed .guide-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  align-self: center !important;
+  justify-content: center !important;
+  padding: 1px 6px !important;
+  font-size: 0.7rem !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+  white-space: nowrap !important;
+}
+
+/* 開いた時（expanded）：プロトコルタイムライン */
+.cm-board .verbal-guide-card:not(.guide-collapsed) {
+  padding: 10px 14px !important;
+}
+.cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-header {
+  margin-bottom: 8px !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1px solid #1a2a3e !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+html.light .cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-header {
+  border-bottom-color: #cbd5e1 !important;
+}
+.cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-title-box {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+.cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-title {
+  font-size: 0.84rem !important;
+  font-weight: 800 !important;
+  color: #f8fafc !important;
+}
+html.light .cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-title {
+  color: #0f172a !important;
+}
+.cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-sub {
+  font-size: 0.74rem !important;
+  color: #94a3b8 !important;
+}
+html.light .cm-board .verbal-guide-card:not(.guide-collapsed) .verbal-guide-sub {
+  color: #475569 !important;
+}
+.cm-board .verbal-guide-list {
+  padding-left: 20px !important;
+  margin: 0 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.6 !important;
+}
+.cm-board .verbal-guide-list li {
+  margin-bottom: 6px !important;
+  color: #cbd5e1 !important;
+}
+html.light .cm-board .verbal-guide-list li {
+  color: #1e293b !important;
+}
+
+/* マイレシピ詳細：濃い緑背景の完全撤廃＆パラメータモジュール化 */
+html:not(.light) .cm-legacy #section-recipe-detail .field-group,
+html:not(.light) .cm-legacy .field-group {
+  background-color: #0b121e !important;
+  background-image: none !important;
+  border: 1px solid #1e2d42 !important;
+  border-left: 3px solid #10b981 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+html:not(.light) .cm-legacy .field-group-title {
+  color: #f1f5f9 !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+}
+html:not(.light) .cm-legacy .field-group .badge {
+  background-color: #062419 !important;
+  border: 1px solid #10b981 !important;
+  color: #34d399 !important;
+  font-weight: 800 !important;
+}
+html.light .cm-legacy #section-recipe-detail .field-group,
+html.light .cm-legacy .field-group {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  border: 1px solid #cbd5e1 !important;
+  border-left: 3px solid #0284c7 !important;
+  border-radius: 6px !important;
+}
+html.light .cm-legacy .field-group-title {
+  color: #0f172a !important;
+}
+html.light .cm-legacy .field-group .badge {
+  background-color: #e0f2fe !important;
+  border: 1px solid #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
+
+html:not(.light) .cm-legacy .field-group select,
+html:not(.light) .cm-legacy .field-group input[type="text"],
+html:not(.light) .cm-legacy .field-group input[type="number"] {
+  background-color: #060a12 !important;
+  border: 1px solid #1e2d42 !important;
+  color: #f1f5f9 !important;
+  border-radius: 4px !important;
+}
+html.light .cm-legacy .field-group select,
+html.light .cm-legacy .field-group input[type="text"],
+html.light .cm-legacy .field-group input[type="number"] {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  border-radius: 4px !important;
+}
+
+/* 8. Responsive Mobile & Small Viewport Optimization */
+@media (max-width: 640px) {
+  .cm-legacy .cm-deck-header {
+    padding: 6px 8px !important;
+    gap: 4px !important;
+  }
+  .cm-legacy .container .subtitle {
+    display: none !important;
+  }
+  .cm-legacy .cm-deck-controls {
+    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+  .cm-legacy .seed-bar {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding: 3px 6px !important;
+    gap: 4px !important;
+  }
+  .cm-legacy .seed-bar label {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 135px !important;
+  }
+  .cm-legacy #input-seed-number {
+    width: 44px !important;
+    min-width: 36px !important;
+    padding: 2px 4px !important;
+    font-size: 0.8rem !important;
+  }
+  .cm-legacy .cm-deck-actions {
+    flex-shrink: 0 !important;
+  }
+  .cm-legacy #btn-zeroize {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+  .cm-board #div-encrypto-matrix-main {
+    gap: 3px !important;
+  }
+  .cm-board .square {
+    aspect-ratio: 1 / 0.9 !important;
+    border-radius: 4px !important;
+  }
+  .cm-board .center-text {
+    font-size: 1.15rem !important;
+  }
+  .cm-board .corner-text {
+    font-size: 0.66rem !important;
+    padding: 0 1px !important;
+  }
+  .cm-legacy .cm-trace-switch-bank {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 380px) {
+  .cm-board .center-text {
+    font-size: 1.0rem !important;
+  }
+  .cm-board .corner-text {
+    font-size: 0.58rem !important;
+  }
+  .cm-legacy .cm-trace-switch-bank {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ============================================================================
+ * HIGH-PRECISION CYBER CONSOLE REFINEMENTS
+ * Tactical Military & Cryptographic Hardware Details
+ * ============================================================================ */
+
+/* 1. Industrial Form Controls: Sharp, Chamfered, Professional */
+html:not(.light) .cm-legacy select,
+html:not(.light) .cm-legacy input[type="text"],
+html:not(.light) .cm-legacy input[type="password"],
+html:not(.light) .cm-legacy input[type="number"],
+html:not(.light) .cm-legacy textarea {
+  background-color: #060a10 !important;
+  border: 1px solid #1e2d42 !important;
+  color: #f1f5f9 !important;
+  border-radius: 5px !important;
+  font-family: var(--font-ui) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+html:not(.light) .cm-legacy select:focus,
+html:not(.light) .cm-legacy input[type="text"]:focus,
+html:not(.light) .cm-legacy input[type="password"]:focus,
+html:not(.light) .cm-legacy input[type="number"]:focus,
+html:not(.light) .cm-legacy textarea:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 1px #10b981, 0 0 8px rgba(16, 185, 129, 0.25) !important;
+  outline: none !important;
+}
+html.light .cm-legacy select,
+html.light .cm-legacy input[type="text"],
+html.light .cm-legacy input[type="password"],
+html.light .cm-legacy input[type="number"],
+html.light .cm-legacy textarea {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  border-radius: 5px !important;
+  font-family: var(--font-ui) !important;
+}
+html.light .cm-legacy select:focus,
+html.light .cm-legacy input[type="text"]:focus,
+html.light .cm-legacy input[type="password"]:focus,
+html.light .cm-legacy input[type="number"]:focus,
+html.light .cm-legacy textarea:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 1px #0284c7, 0 0 6px rgba(2, 132, 199, 0.2) !important;
+  outline: none !important;
+}
+
+/* 2. Tactile Button Engineering (Physical Switch Physics) */
+html:not(.light) .cm-legacy .btn-secondary,
+html:not(.light) .cm-legacy .btn-outline {
+  background-color: #0c1420 !important;
+  background-image: linear-gradient(180deg, #111a28 0%, #080d16 100%) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #1e2d42 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+html:not(.light) .cm-legacy .btn-secondary:hover:not(:disabled),
+html:not(.light) .cm-legacy .btn-outline:hover:not(:disabled) {
+  border-color: #38bdf8 !important;
+  color: #f8fafc !important;
+  background-color: #111c2e !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 10px rgba(56, 189, 248, 0.22) !important;
+}
+html:not(.light) .cm-legacy .btn:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.light .cm-legacy .btn-secondary,
+html.light .cm-legacy .btn-outline {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #1e293b !important;
+  border: 1px solid #94a3b8 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+}
+html.light .cm-legacy .btn-secondary:hover:not(:disabled),
+html.light .cm-legacy .btn-outline:hover:not(:disabled) {
+  border-color: #0284c7 !important;
+  background-color: #f0f9ff !important;
+  color: #0369a1 !important;
+}
+html.light .cm-legacy .btn:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* 3. Section Titles & Module Card Headers */
+.cm-legacy .section-title {
+  padding: 10px 14px !important;
+  margin: -14px -16px 12px -16px !important;
+  border-bottom: 1px solid #1e2d42 !important;
+  background-color: #080d16 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+html.light .cm-legacy .section-title {
+  background-color: #f8fafc !important;
+  border-bottom-color: #cbd5e1 !important;
+}
+
+/* Mode Pills & Status Badges: Crisp, High-Contrast */
+html:not(.light) .cm-legacy .mode-pill {
+  background-color: #062419 !important;
+  color: #34d399 !important;
+  border: 1px solid #10b981 !important;
+  font-weight: 700 !important;
+  border-radius: 4px !important;
+  padding: 2px 7px !important;
+}
+html:not(.light) .cm-legacy .mode-pill.inactive {
+  background-color: #0c1420 !important;
+  color: #94a3b8 !important;
+  border-color: #1e2d42 !important;
+}
+html.light .cm-legacy .mode-pill {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #047857 !important;
+  font-weight: 700 !important;
+  border-radius: 4px !important;
+  padding: 2px 7px !important;
+}
+html.light .cm-legacy .mode-pill.inactive {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* 4. Quick Mode & QR Figure Layout Refinements */
+.cm-legacy #card-quick .cq-grid {
+  grid-template-columns: 1fr !important;
+}
+@media screen {
+  .cm-legacy #seed-qr-list figure,
+  .cm-legacy #bq-qr-list figure {
+    width: 240px !important;
+    margin: 10px auto !important;
+    padding: 12px !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+  }
+  .cm-legacy #seed-qr-list figure figcaption,
+  .cm-legacy #bq-qr-list figure figcaption {
+    margin-top: 6px !important;
+    font-size: 0.76rem !important;
+    line-height: 1.4 !important;
+    color: var(--text-sub) !important;
+  }
+}

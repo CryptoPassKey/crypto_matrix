@@ -34,8 +34,8 @@ check('device key loss warning kept', secText.includes('デバイス鍵を失う
 check('physical storage limitation kept', secText.includes('全データ完全消去を保証するものではありません'));
 check('clock anomaly box kept', secText.includes('端末時計の巻き戻し（5分以上の逆行）を検知したため'));
 check('deletion verified box kept', secText.includes('期限切れ金庫のチェックイン復活はできません'));
-check('test duration warning kept', secText.includes('期限切れ処理の動作テスト専用です'));
-check('seed linkage notes kept', secText.includes('現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます') && secText.includes('作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます'));
+check('test duration warning kept', secText.includes('1分未満の設定はテスト専用です'));
+check('seed linkage notes kept', secText.includes('現在のカード番号と連動して暗号鍵が導出されます') && secText.includes('作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

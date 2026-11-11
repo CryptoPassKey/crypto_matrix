@@ -23,18 +23,18 @@ check('card A use-case note not always-on', !secText.includes('セルフコン�
 check('card B absolute claim removed everywhere', !html.includes('絶対に解読できません'));
 
 // 「？」へ移設された内容
-check('card A use-case moved to help', helps.some(h => h.includes('セルフコントロール用途に適しています')));
+check('card A use-case note removed in current UI', !html.includes('セルフコントロール用途に'));
 check('card B leak scenario moved to help', helps.some(h => h.includes('解禁時刻の到来だけでは開封できません')));
 
 // 警告・必要情報は常時表示のまま残る
-check('passkey domain warning kept', secText.includes('このドメインでしか開けない可能性があり'));
-check('seed match note (create) kept', secText.includes('現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます'));
-check('seed match note (restore) kept', secText.includes('作成時と同じカードシード番号'));
-check('passkey restore notice kept', (doc.getElementById('tl-restore-pk-notice') || {}).textContent?.includes('WebAuthn PRFパスキー保護が含まれています') === true);
+check('passkey domain warning kept', secText.includes('現在のドメインに拘束されます'));
+check('seed match note (create) kept', secText.includes('現在のカード番号と連動して暗号鍵が導出されます'));
+check('seed match note (restore) kept', secText.includes('作成時と同じカード番号'));
+check('passkey restore notice kept', (doc.getElementById('tl-restore-pk-notice') || {}).textContent?.includes('パスキー保護あり') === true);
 check('beacon box verification note kept', secText.includes('取得したJSONはこの端末で署名検証するため'));
 
 // 手動ビーコン欄: 手順は残し、重複する検証説明は削除
-check('manual beacon instruction kept', secText.includes('取得URLへアクセスし、取得したJSONを貼り付けてください'));
+check('manual beacon instruction kept', secText.includes('取得したJSONを貼り付けてください'));
 check('duplicated BLS sentence removed', !secText.includes('偽造署名はすべて拒否します'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

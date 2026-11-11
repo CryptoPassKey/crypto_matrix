@@ -2198,7 +2198,7 @@ function initHelpTooltips(){
 
   const helpImg=$('help-popover-img');
 
-  if(helpImg){const src=btn.dataset.helpImg;helpImg.onload=()=>{if(popover.classList.contains('visible'))positionPopover();};helpImg.onerror=()=>{helpImg.hidden=true;if(popover.classList.contains('visible'))positionPopover();};if(src){helpImg.src=src;helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
+  if(helpImg){const src=btn.dataset.helpImg;helpImg.onload=()=>{if(popover.classList.contains('visible'))positionPopover();};helpImg.onerror=()=>{helpImg.hidden=true;if(popover.classList.contains('visible'))positionPopover();};if(src){helpImg.src=src;helpImg.style.display='';helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
 
   popover.classList.add('visible');
 

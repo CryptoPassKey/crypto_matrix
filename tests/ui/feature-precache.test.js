@@ -61,5 +61,18 @@ check('popover img has onerror fallback', backupQr.includes('helpImg.onerror='))
 check('app.js has feature image error fallback', appJs.includes('読み込み失敗時のフォールバック'));
 check('app.js sweeps broken images via naturalWidth', appJs.includes('naturalWidth'));
 
+// レビュー指摘: フォールバックは静的イラスト専用（再利用されるポップオーバー画像を除外）
+check('app.js fallback excludes help-popover-img',
+  appJs.includes("el.id !== 'help-popover-img'") && appJs.includes("!el.classList.contains('help-popover-img')"));
+check('backup-qr.js clears inline display when reshowing help img',
+  backupQr.includes("helpImg.style.display=''"));
+
+// レビュー指摘: ポップオーバーの高さ制限と内部スクロール
+const legacyCss = fs.readFileSync(path.join(ROOT, 'contents', 'legacy.css'), 'utf8');
+const popoverRule = (legacyCss.match(/\.help-popover \{[^}]*\}/) || [''])[0];
+check('help-popover rule found in legacy.css', popoverRule.length > 0);
+check('help-popover has max-height', popoverRule.includes('max-height'));
+check('help-popover has overflow-y auto', popoverRule.includes('overflow-y: auto'));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

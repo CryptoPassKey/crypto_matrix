@@ -1192,6 +1192,9 @@ body.blind-mode #seed-qr-list {
   position: absolute;
   z-index: 99999;
   max-width: 440px;
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
   background: #5074c8;
   color: #192129;
   border: 1px solid #6d87ac;

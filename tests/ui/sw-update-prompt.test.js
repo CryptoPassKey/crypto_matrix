@@ -102,7 +102,45 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.3-mobile-side-img'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.4-sw-css-revalidate'));
+
+// SW プリキャッシュの行動検証: theme-cyber.css は HTTP キャッシュを再検証して取得し、addAll には含めない
+{
+  const vm = require('vm');
+  const listeners = {};
+  const addedAll = [];
+  const puts = [];
+  const fetches = [];
+  const fakeCache = {
+    addAll: async (files) => { addedAll.push(...files); },
+    put: async (key, res) => { puts.push(key); },
+    match: async () => undefined,
+  };
+  const sandbox = {
+    console,
+    Response: class { constructor(body) { this.body = body; } },
+    fetch: async (url, opts) => { fetches.push([url, opts]); return { ok: true, status: 200 }; },
+    caches: {
+      open: async () => fakeCache,
+      keys: async () => [],
+      delete: async () => true,
+    },
+  };
+  sandbox.self = {
+    addEventListener: (type, fn) => { listeners[type] = fn; },
+    skipWaiting: () => {},
+    clients: { claim: async () => {} },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(swJs, sandbox);
+  let installed;
+  listeners.install({ waitUntil: (pr) => { installed = pr; } });
+  await installed;
+  check('precache addAll excludes theme-cyber.css', !addedAll.includes('theme-cyber.css') && addedAll.includes('app.css'));
+  check('theme-cyber.css fetched with cache reload',
+    fetches.some(([u, o]) => u === 'theme-cyber.css' && o && o.cache === 'reload'));
+  check('theme-cyber.css stored via cache.put', puts.includes('theme-cyber.css'));
+}
 
   // ===== シナリオA: 「あとで」→ 別の新版では再び出る =====
   {

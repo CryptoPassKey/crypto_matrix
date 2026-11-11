@@ -613,10 +613,6 @@ function appendQrOrNotice(figure,qrText){
  * @param {boolean} isArmored Whether the active output uses PGP-armored text.
  */
 function setBackupOutputFormatLabel(isArmored){
- const outputFormatLabel=$('bq-output-format-label');
- if(outputFormatLabel){
-  outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式');
- }
 }
 
 function updateSec3Display(format,isInitial=false){

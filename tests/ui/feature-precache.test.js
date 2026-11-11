@@ -88,6 +88,52 @@ check('backup img sits in QR side row beside bq-qr-list',
 check('encrypt panel head has no feature img',
   !html.slice(html.indexOf('id="bq-panel-encrypt"'), html.indexOf('id="bq-panel-encrypt"') + 400).includes('feature-'));
 check('side img size is 180px for QR balance', themeCss.includes('.cm-qr-side img { width: 180px; height: 180px;'));
+// レスポンシブ評価: 実際の CSS から 639px ブレークポイントを適用し、幅ごとの実効値を検証する
+{
+  const css = themeCss;
+  let mediaBlock = '';
+  let baseCss = css;
+  // '@media (max-width: 639px)' ブロックは複数あるため、すべて抽出して統合する
+  for (;;) {
+    const mediaStart = baseCss.indexOf('@media (max-width: 639px)');
+    if (mediaStart < 0) break;
+    const open = baseCss.indexOf('{', mediaStart);
+    let depth = 0, end = open;
+    for (let i = open; i < baseCss.length; i++) {
+      if (baseCss[i] === '{') depth++;
+      else if (baseCss[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    mediaBlock += baseCss.slice(open + 1, end) + '\n';
+    baseCss = baseCss.slice(0, mediaStart) + baseCss.slice(end + 1);
+  }
+  const rulesOf = (segment) => {
+    const map = {};
+    for (const m of segment.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sel = m[1].trim();
+      const decls = {};
+      for (const d of m[2].split(';')) {
+        const kv = d.split(':');
+        if (kv.length >= 2) decls[kv[0].trim()] = kv.slice(1).join(':').trim();
+      }
+      map[sel] = Object.assign(map[sel] || {}, decls);
+    }
+    return map;
+  };
+  const baseRules = rulesOf(baseCss);
+  const smallRules = rulesOf(mediaBlock);
+  const eff = (sel, width) => Object.assign({}, baseRules[sel] || {}, width <= 639 ? (smallRules[sel] || {}) : {});
+  check('responsive @390: side img is 88px and visible',
+    eff('.cm-qr-side img', 390).width === '88px' && eff('.cm-qr-side', 390).display !== 'none');
+  check('responsive @390: row is flex (side-by-side with QR)',
+    eff('.cm-qr-side-row', 390).display === 'flex');
+  check('responsive @1024: side img is 180px',
+    eff('.cm-qr-side img', 1024).width === '180px');
+  check('responsive @1024: row is flex (side-by-side with QR)',
+    eff('.cm-qr-side-row', 1024).display === 'flex');
+}
+
+check('side img shrinks (not hidden) on small screens',
+  !themeCss.includes('.cm-qr-side { display: none; }') && themeCss.includes('.cm-qr-side img { width: 88px; height: 88px; }'));
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
 

@@ -3611,7 +3611,7 @@ html.light .cm-legacy #datatransfer-section .dt-dot-missing { background: #cbd5e
 .cm-qr-side { flex: 0 0 auto; }
 .cm-qr-side img { width: 180px; height: 180px; object-fit: contain; display: block; }
 .cm-qr-side-row #seed-qr-list, .cm-qr-side-row #bq-qr-list { flex: 1 1 auto; min-width: 0; }
-@media (max-width: 639px) { .cm-qr-side { display: none; } }
+@media (max-width: 639px) { .cm-qr-side img { width: 88px; height: 88px; } .cm-qr-side-row { gap: 6px; } }
 .verbal-guide-card.guide-collapsed .guide-toggle-ico { transform: rotate(-90deg); }
 .verbal-guide-card.guide-collapsed .verbal-guide-header { margin-bottom: 0; }
 @media (pointer: coarse) { .guide-toggle-btn { min-height: 38px; padding: 7px 14px; } }

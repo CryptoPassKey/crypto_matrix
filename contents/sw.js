@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.29.2-backup-output-label';
+const VERSION = 'cm-v3.29.4-sw-css-revalidate';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -121,13 +121,20 @@ const FILES = [
 ];
 
 
+// Files fetched with HTTP-cache revalidation during precache. addAll() may be
+// served a stale copy from the browser HTTP cache right after a deploy, which
+// would pin the old stylesheet into the new worker's cache.
+const REVALIDATE_FILES = ['theme-cyber.css'];
+
 self.addEventListener('install', (e) => {
   // Precache the complete new app. The first rollout upgrades older workers once,
   // because those old app pages do not yet contain the manual-update controls.
   // After this release is active, later updates wait for an explicit user request.
   e.waitUntil(
     caches.open(VERSION)
-      .then((c) => c.addAll(FILES))
+      .then((c) => c.addAll(FILES.filter((f) => !REVALIDATE_FILES.includes(f)))
+        .then(() => Promise.all(REVALIDATE_FILES.map((f) => fetch(f, { cache: 'reload' })
+          .then((r) => { if (!r.ok) throw new Error('precache failed: ' + f); return c.put(f, r); })))))
       .then(() => caches.open(MANUAL_UPDATE_MARKER))
       .then((marker) => marker.match('./enabled'))
       .then((enabled) => enabled ? undefined : self.skipWaiting())

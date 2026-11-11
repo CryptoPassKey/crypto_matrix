@@ -819,7 +819,7 @@
       m.shamir && m.shamir.n > 1
         ? `あり（Shamir ${m.shamir.m}-of-${m.shamir.n} 秘密分散：全${m.shamir.n}シェア中、任意の${m.shamir.m}シェアが必要）`
         : 'なし（単一カプセル）';
-    const usesPasskey = m.mode === 'B' && (m.combo === 2 || m.combo === 3);
+    const usesPasskey = m.mode === 'B' && [2, 3, 5, 6].includes(m.combo);
 
     return [
       '========================================================================',

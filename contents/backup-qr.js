@@ -634,6 +634,11 @@ function updateSec3Display(format,isInitial=false){
 
  }
 
+ const outputFormatLabel=$('bq-output-format-label');
+ if(outputFormatLabel){
+  outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式');
+ }
+
  if($('bq-copy'))$('bq-copy').disabled=false;
 
  if($('bq-save-txt'))$('bq-save-txt').disabled=false;

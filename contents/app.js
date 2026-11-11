@@ -927,7 +927,7 @@
         if (t) {
           t.click();
           syncMap();
-          setTimeout(function () { t.click(); syncMap(); }, 50);
+          setTimeout(syncMap, 50);
         }
       }
     } catch (e) {}
@@ -1162,6 +1162,8 @@
 
     // Esc handling (works even while typing if user wants to cancel)
     if (e.key === 'Escape' || e.key === 'Esc') {
+      // 長押しの自動リピートと、他のハンドラが処理済み（preventDefault 済み）の Esc は数えない
+      if (e.repeat || e.defaultPrevented) return;
       var modal = document.getElementById('cm-shortcuts-modal');
       if (modal && !modal.hasAttribute('hidden')) {
         e.preventDefault();

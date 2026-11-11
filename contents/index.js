@@ -897,6 +897,8 @@ function stopMatrixTrace() {
 
 function stepMatrixTrace(delta) {
   if (!traceIsPaused || !traceStepRunner) return false;
+  // ストロークの描画プレビュー中（再生中・一時停止中とも）はステップ移動しない
+  if (strokePreviewTimer || strokePreviewState) return false;
   const targetIdx = traceCurrentIndex + delta;
   if (targetIdx < 0) return false;
   const total = (currentEvalSteps && currentEvalSteps.length) || 0;

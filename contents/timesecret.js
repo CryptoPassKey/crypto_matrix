@@ -4469,6 +4469,8 @@
 
     syncAuthModalFactorFields();
 
+    if ($('ts-modal-delete-img')) $('ts-modal-delete-img').hidden = action !== 'delete';
+
     const confirmWrap = $('ts-modal-confirm-wrap');
     if (confirmWrap) {
       confirmWrap.hidden = action !== 'delete';

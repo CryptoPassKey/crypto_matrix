@@ -2156,6 +2156,8 @@ function initHelpTooltips(){
 
    `</div>`+
 
+   `<img id="help-popover-img" class="help-popover-img" alt="" hidden>`+
+
    `<div class="help-popover-body" id="help-popover-body"></div>`;
 
   document.body.appendChild(popover);
@@ -2193,6 +2195,10 @@ function initHelpTooltips(){
   btn.setAttribute('aria-expanded','true');
 
   if(bodyEl)bodyEl.textContent=text;
+
+  const helpImg=$('help-popover-img');
+
+  if(helpImg){const src=btn.dataset.helpImg;if(src){helpImg.src=src;helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
 
   popover.classList.add('visible');
 

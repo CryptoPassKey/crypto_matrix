@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.28.6-timelock-passkey-combos';
+const VERSION = 'cm-v3.29.0-feature-illustrations';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -57,6 +57,16 @@ const FILES = [
   "tab-timesecret.png",
   "tab-transfer.png",
   "tab-vault.png",
+  "feature-backup.webp",
+  "feature-bip39.webp",
+  "feature-erase.webp",
+  "feature-keepass.webp",
+  "feature-keyfile.webp",
+  "feature-passkey.webp",
+  "feature-password-gen.webp",
+  "feature-shamir.webp",
+  "feature-timesecret.webp",
+  "feature-vault.webp",
   "keeweb/404.html",
   "keeweb/browserconfig.xml",
   "keeweb/build.txt",

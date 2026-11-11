@@ -70,7 +70,8 @@ check('bip39 section head has no feature img',
   !html.slice(html.indexOf('id="section-bip39-plain"'), html.indexOf('id="section-bip39-plain"') + 600).includes('feature-bip39'));
 const qrSideStart = html.indexOf('cm-qr-side-row');
 const qrSideEnd = html.indexOf('id="seed-qr-list"', qrSideStart);
-const qrSideMarkup = qrSideStart >= 0 && qrSideEnd >= 0 ? html.slice(qrSideStart, qrSideEnd) : '';
+const seedQrId = 'id="seed-qr-list"';
+const qrSideMarkup = qrSideStart >= 0 && qrSideEnd >= 0 ? html.slice(qrSideStart, qrSideEnd + seedQrId.length) : '';
 check('bip39 img sits in QR side row beside seed-qr-list',
   qrSideMarkup.includes('feature-bip39.webp') && qrSideMarkup.indexOf('feature-bip39.webp') < qrSideMarkup.indexOf('id="seed-qr-list"'));
 check('encrypted backup output label element exists',

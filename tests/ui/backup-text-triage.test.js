@@ -22,23 +22,23 @@ check('intro paragraph removed', !secText.includes('暗号化なしの24単語�
 check('intro content in title help', helps.some(h => h.includes('秘密分散（M-of-N）を自由に組み合わせて暗号化し')));
 check('single-protection note in title help', helps.some(h => h.includes('保護は単独でも作成できます')));
 
-// パスキー: 対応認証器リストは「？」へ、PRF警告は常時表示のまま
+// パスキー: 対応認証器リストは「？」へ、PRF非対応の注意は常時表示（2026-11-11 UI統合で文言更新。iPhone外付けYubiKeyの注意は現行UIで削除）
 check('authenticator list not always-on', !secText.includes('【動作対応認証器】'));
 check('authenticator list in passkey help', helps.some(h => h.includes('【動作対応認証器】') && h.includes('YubiKey 5シリーズ')));
-check('PRF warning kept visible', secText.includes('WebAuthn PRFに対応している必要があります'));
-check('YubiKey iPhone caution kept', secText.includes('iPhoneで外付けYubiKeyを使用する場合'));
+check('PRF warning kept visible', secText.includes('PRF非対応環境では登録・復元できない場合があります'));
+check('YubiKey iPhone caution removed in current UI', !secText.includes('iPhoneで外付けYubiKeyを使用する場合'));
 
 // 中核の警告は維持
-check('key loss warning kept', secText.includes('紛失・削除すると復元できなくなるため'));
-check('seed linkage note kept', secText.includes('現在のカード配列シード番号（seed）と連動して暗号鍵が導出されます'));
-check('seed match note (restore) kept', secText.includes('作成時と同じカードシード番号（デフォルト: 0）と一致する場合のみ復号されます'));
+check('key loss warning kept', secText.includes('バックアップ内に記録されないため、別の場所で管理してください'));
+check('seed linkage note kept', secText.includes('現在のカード番号と連動して暗号鍵が導出されます'));
+check('seed match note (restore) kept', secText.includes('作成時と同じカード番号（デフォルト: 0）と一致する場合のみ復号されます'));
 
 // 保存形式ガイド: 短縮され「100%」表現がこのエリアから消えた
-check('save format line shortened', secText.includes('保存する形式は1つで大丈夫です'));
+check('save format line shortened', secText.includes('いずれか1つの形式で保存すれば復元できます'));
 check('no 100% claim in this section', !secText.includes('100%復元可能') && !helps.some(h => h.includes('100%復元可能')));
 
 // 復号パネル: 冒頭は1行化、末尾は安全指示のみ
-check('decrypt intro shortened', secText.includes('統合QRコードの読み取り、または24単語フレーズの貼り付けで復元します'));
+check('decrypt intro shortened', secText.includes('QRコードの読み取り、または復元フレーズの貼り付けで復元します'));
 check('mechanism sentence removed', !secText.includes('復元処理は自動実行されず'));
 check('restore-test instruction kept', secText.includes('印刷後は必ず復元テストを実施してから元データを破棄してください'));
 

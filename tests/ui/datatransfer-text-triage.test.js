@@ -19,7 +19,7 @@ function check(name, cond) {
 }
 
 // リード: 技術名は常時表示から消え、仕様（完全オフライン）は残る
-check('lead shortened spec kept', lead && lead.textContent.includes('QRコードだけでファイル・テキストを転送します（完全オフライン）'));
+check('lead shortened spec kept', lead && lead.textContent.includes('端末間のファイル・テキストを完全オフラインで転送します'));
 check('tech terms not always-on', !secText.includes('Systematic LT Fountain'));
 check('tech detail moved to title help', helps.some(h => h.includes('Systematic LT Fountain') && h.includes('CRC32')));
 
@@ -27,8 +27,8 @@ check('tech detail moved to title help', helps.some(h => h.includes('Systematic 
 check('tx status instruction kept', (doc.getElementById('dt-tx-status') || {}).textContent?.includes('「QRコードを準備」を押してください') === true);
 check('text fallback hint kept', (doc.getElementById('dt-tx-text-meta') || {}).textContent?.includes('message.txt として送信されます') === true);
 check('readability hint kept', secText.includes('読み取りづらい場合は 6〜10 枚/秒 に下げて'));
-check('blockmap usage kept', secText.includes('送信ブロックマップ（任意のブロックをタップすると'));
-check('rx status instruction kept', (doc.getElementById('dt-rx-status') || {}).textContent?.includes('送信側でQRコードの連続表示を開始してください') === true);
+check('blockmap usage kept', secText.includes('ブロックマップ（タップでその位置から再生）'));
+check('rx status instruction kept', (doc.getElementById('dt-rx-status') || {}).textContent?.includes('送信側でQR表示を開始してください') === true);
 check('file size label kept', secText.includes('最大64 MiB'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

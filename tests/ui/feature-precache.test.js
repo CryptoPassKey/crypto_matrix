@@ -68,8 +68,13 @@ check('guide hero keeps password-gen img',
   html.slice(html.indexOf('cm-guide-hero'), html.indexOf('cm-guide-hero') + 200).includes('feature-password-gen.webp'));
 check('bip39 section head has no feature img',
   !html.slice(html.indexOf('id="section-bip39-plain"'), html.indexOf('id="section-bip39-plain"') + 600).includes('feature-bip39'));
+const qrSideStart = html.indexOf('cm-qr-side-row');
+const qrSideEnd = html.indexOf('id="seed-qr-list"', qrSideStart);
+const qrSideMarkup = qrSideStart >= 0 && qrSideEnd >= 0 ? html.slice(qrSideStart, qrSideEnd + 50) : '';
 check('bip39 img sits in QR side row beside seed-qr-list',
-  html.includes('cm-qr-side') && html.indexOf('feature-bip39.webp') > html.indexOf('cm-qr-side') && html.indexOf('feature-bip39.webp') < html.indexOf('id="seed-qr-list"'));
+  qrSideMarkup.includes('feature-bip39.webp') && qrSideMarkup.indexOf('feature-bip39.webp') < qrSideMarkup.indexOf('id="seed-qr-list"'));
+check('encrypted backup output label follows selected format',
+  html.includes('id="bq-output-format-label"') && backupQr.includes("outputFormatLabel.textContent=(isArmored?'PGPアーマード形式':'BIP39 24単語ブロック形式')"));
 const themeCss = fs.readFileSync(path.join(ROOT, 'contents', 'theme-cyber.css'), 'utf8');
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));

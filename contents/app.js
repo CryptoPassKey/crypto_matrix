@@ -485,7 +485,7 @@
     window.addEventListener('scroll', place, true);
     renderTour();
   }
-  $('cm-help').addEventListener('click', openTour);
+  // #cm-help はショートカット一覧ボタン（初期チュートリアルは初回ロード時の自動表示のみ）
 
   /* ---------- 起動 ---------- */
   window.addEventListener('load', function () {

@@ -965,14 +965,24 @@
   if (!seen) {
     try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* 保存できなくても今回の表示は開いたままにする */ }
   }
-  btn.addEventListener('click', () => {
+  const toggleGuide = () => {
     collapsed = !collapsed;
     apply(collapsed);
     try {
       localStorage.setItem(KEY, collapsed ? '1' : '0');
       localStorage.setItem(SEEN_KEY, '1');
     } catch (e) { /* 保存できなくても開閉は動作させる */ }
-  });
+  };
+  btn.addEventListener('click', toggleGuide);
+  // 見出し行のどこをタップしても開閉できるようにする（ボタン自体のクリックは二重発火させない）
+  const header = card.querySelector('.verbal-guide-header');
+  if (header) {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('#btn-guide-toggle')) return;
+      toggleGuide();
+    });
+  }
 })();
 
 /* ===== マスの文字配置（セル構造）図解カードの開閉トグル ===== */

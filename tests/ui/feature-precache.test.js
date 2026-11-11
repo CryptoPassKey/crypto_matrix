@@ -61,6 +61,19 @@ check('popover img has onerror fallback', backupQr.includes('helpImg.onerror='))
 check('app.js has feature image error fallback', appJs.includes('読み込み失敗時のフォールバック'));
 check('app.js sweeps broken images via naturalWidth', appJs.includes('naturalWidth'));
 
+// 配置の確定事項（2026-11-11 フィードバック反映）
+check('quick card has no always-on feature img',
+  !html.slice(html.indexOf('id="card-quick"'), html.indexOf('id="cq-collapsible-body"')).includes('feature-'));
+check('guide hero keeps password-gen img',
+  html.slice(html.indexOf('cm-guide-hero'), html.indexOf('cm-guide-hero') + 200).includes('feature-password-gen.webp'));
+check('bip39 section head has no feature img',
+  !html.slice(html.indexOf('id="section-bip39-plain"'), html.indexOf('id="section-bip39-plain"') + 600).includes('feature-bip39'));
+check('bip39 img sits in QR side row beside seed-qr-list',
+  html.includes('cm-qr-side') && html.indexOf('feature-bip39.webp') > html.indexOf('cm-qr-side') && html.indexOf('feature-bip39.webp') < html.indexOf('id="seed-qr-list"'));
+const themeCss = fs.readFileSync(path.join(ROOT, 'contents', 'theme-cyber.css'), 'utf8');
+check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
+check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
+
 // レビュー指摘: フォールバックは静的イラスト専用（再利用されるポップオーバー画像を除外）
 check('app.js fallback excludes help-popover-img',
   appJs.includes("el.id !== 'help-popover-img'") && appJs.includes("!el.classList.contains('help-popover-img')"));

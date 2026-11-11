@@ -64,5 +64,15 @@ check('first visit manual close collapses', collapsed(w), true);
 w = makePage(dumpStorage(w));
 check('after first-visit close, next visit closed', collapsed(w), true);
 
+// 7. 見出し行（タイトル文字）のタップでも開閉できる。ボタン経由は二重発火しない
+w = makePage(dumpStorage(w));
+check('header case starts closed', collapsed(w), true);
+w.document.querySelector('.verbal-guide-title').click();
+check('header title click opens', collapsed(w), false);
+w.document.querySelector('.verbal-guide-title').click();
+check('header title click closes again', collapsed(w), true);
+w.document.getElementById('btn-guide-toggle').click();
+check('button click toggles exactly once', collapsed(w), false);
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

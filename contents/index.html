@@ -49,9 +49,9 @@
   <button type="button" class="cm-map-chip" data-target="tab-quick" data-mod="01"><span class="cm-map-idx">1</span><img src="tab-quick.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></span></button>
   <button type="button" class="cm-map-chip" data-target="tab-recipe" data-mod="02"><span class="cm-map-idx">2</span><img src="tab-recipe.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></span></button>
   <button type="button" class="cm-map-chip" data-target="tab-backup" data-mod="03"><span class="cm-map-idx">3</span><img src="tab-backup.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>バックアップ</span><span class="cm-map-role">設定の保存・復元</span></span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-vault" data-mod="04"><span class="cm-map-idx">4</span><img src="tab-vault.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-vault" data-mod="04"><span class="cm-map-idx">4</span><img src="feature-vault.webp" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
   <button type="button" class="cm-map-chip" data-target="tab-timelock" data-mod="05"><span class="cm-map-idx">5</span><img src="tab-capsule.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></span></button>
-  <button type="button" class="cm-map-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-map-idx">6</span><img src="tab-timesecret.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
+  <button type="button" class="cm-map-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-map-idx">6</span><img src="feature-timesecret.webp" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
   <button type="button" class="cm-map-chip" data-target="tab-datatransfer" data-mod="07"><span class="cm-map-idx">7</span><img src="tab-transfer.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></span></button>
 </nav>
 <div class="cm-info" id="cm-badge-info" hidden><span id="cm-badge-info-text"></span><button type="button" id="cm-badge-info-close">閉じる</button></div>
@@ -86,6 +86,7 @@
         </div>
         <button type="button" id="btn-guide-toggle" class="guide-toggle-btn" aria-expanded="true" aria-controls="verbal-recipe-steps"><span class="guide-toggle-label">閉じる</span><span class="guide-toggle-ico" aria-hidden="true">▾</span></button>
       </div>
+      <div class="cm-guide-hero"><img src="feature-password-gen.webp" class="cm-feature-img-lg" alt="パスワード生成のイメージ" width="160" height="160"></div>
       <ol class="verbal-guide-list" id="verbal-recipe-steps"></ol>
     </div>
 
@@ -287,6 +288,7 @@
     <button type="button" class="btn btn-secondary" id="btn-toggle-cq" style="padding:4px 10px; font-size:0.78rem;">▼ 開く</button>
   </div>
 </h2>
+<img src="feature-password-gen.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
 <div id="cq-collapsible-body" class="mode-section-body">
 <p class="cq-note">物理カード単体でも手作業で再現できます。どちらかを選んで「このモードを使う」を押してください。</p>
 <div class="cq-grid">
@@ -662,6 +664,7 @@
       <div class="section-title">
         <span>復元フレーズ（24単語・暗号化なし）<button type="button" class="help-btn" aria-label="説明を表示" data-help="暗号資産ウォレットなどでも広く使われる国際標準（BIP39）の英単語リストです。現在のカード番号やレシピ設定を24個の英単語に変換し、紙にメモして確実に復元できるようにします。">?</button></span>
       </div>
+      <img src="feature-bip39.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
       <p style="margin:0 0 10px; font-size:0.86rem; color:var(--text-sub);">
         現在の設定を <strong>BIP39規格（24単語）</strong> と <strong>QRコード</strong> として自動作成・表示します（暗号化なし）。
       </p>
@@ -739,6 +742,7 @@
   <button type="button" class="cm-subtab-btn" id="bq-tab-btn-decrypt" role="tab" aria-selected="false" aria-controls="bq-panel-decrypt">復号化</button>
  </div>
  <div id="bq-panel-encrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-encrypt">
+  <img src="feature-backup.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
  <div class="no-print">
   <div class="bq-row">
    <label for="bq-scope">保存形式<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定のみ保存するか、マイレシピ設定・サイト名・合言葉まで含む拡張バックアップにするかを選べます。拡張にすると、カードなしでも全設定を再現できます。">?</button></label>
@@ -758,15 +762,15 @@
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-keyfile" style="width:17px; height:17px;">
-     <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル<button type="button" class="help-btn" aria-label="説明を表示" data-help="手元のファイル（普段の写真やPDFファイルなど）や専用に生成した「.key鍵ファイル」を暗号化キーとして使う方式です。このファイルとパスワード等の両方がないと絶対に復元できなくなります。">?</button>
+     <img src="keyfile-icon.png" class="cm-btn-img" alt="" width="20" height="20">キーファイル<button type="button" class="help-btn" aria-label="説明を表示" data-help-img="feature-keyfile.webp" data-help="手元のファイル（普段の写真やPDFファイルなど）や専用に生成した「.key鍵ファイル」を暗号化キーとして使う方式です。このファイルとパスワード等の両方がないと絶対に復元できなくなります。">?</button>
     </label>
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; font-weight:600;">
      <input type="checkbox" id="bq-opt-passkey" style="width:17px; height:17px;">
-     <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー<button type="button" class="help-btn" aria-label="説明を表示" data-help="iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系等のPRF対応認証器による暗号化。端末の生体認証（Touch ID / Face ID / 指紋認証）でバックアップを強力にロックします。">?</button>
+     <img src="passkey-icon.png" class="cm-btn-img" alt="" width="20" height="20">パスキー<button type="button" class="help-btn" aria-label="説明を表示" data-help-img="feature-passkey.webp" data-help="iCloudキーチェーン・Googleパスワードマネージャー・Windows Hello・YubiKey 5系等のPRF対応認証器による暗号化。端末の生体認証（Touch ID / Face ID / 指紋認証）でバックアップを強力にロックします。">?</button>
     </label>
    </div>
    <div class="bq-row" style="margin-top:10px; margin-bottom:0;">
-    <label for="bq-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散<button type="button" class="help-btn" aria-label="説明を表示" data-help="Shamir M-of-N秘密分散。バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
+    <label for="bq-shamir" style="font-weight:600;"><img src="shamir-icon.png" class="cm-btn-img" alt="" width="20" height="20">秘密分散<button type="button" class="help-btn" aria-label="説明を表示" data-help-img="feature-shamir.webp" data-help="Shamir M-of-N秘密分散。バックアップを複数枚のQRコードに分割し、『3枚中2枚』などの必要枚数が揃わないと元の情報を復元できない数学的暗号技術です。GoogleドライブやDropboxなど複数のクラウドや実家に分散して安全に保管できます。">?</button></label>
     <select id="bq-shamir">
      <option value="1-1" selected>分割なし（1枚のQRに統合）</option>
      <option value="2-3">2-of-3 秘密分散（3シェア中 任意の2枚で復元）</option>
@@ -1875,6 +1879,7 @@
         <button type="button" class="duress-modal-close" id="btn-keyfile-modal-close" aria-label="閉じる">✕</button>
       </div>
       <div class="duress-modal-body">
+        <img src="feature-keepass.webp" class="cm-feature-img-sm" alt="" width="54" height="54">
         <div class="cm-duress-muted" style="font-size:0.86rem; line-height:1.6; margin-bottom:12px;">
           カードの配列シードから、KeePass 2.x / KeePassXC / KeePass で使える暗号キーファイル（.key）を書き出します。<br>
           万が一の紛失や再発行時に、<strong>どのようにキーファイルを復元（再生成）するか</strong>を選択してください。
@@ -1977,7 +1982,7 @@
       </div>
     </div>
     <div class="cm-tablist" role="tablist">
-      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="tab-vault.png" class="cm-tab-ico" alt="" width="20" height="20">データ暗号化</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムカプセル</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="tab-timesecret.png" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><img src="tab-transfer.png" class="cm-tab-ico" alt="" width="20" height="20">データ転送</button>
+      <button type="button" class="cm-tab" role="tab" aria-selected="true" aria-controls="tab-quick"><img src="tab-quick.png" class="cm-tab-ico" alt="" width="20" height="20">かんたんモード</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-recipe"><img src="tab-recipe.png" class="cm-tab-ico" alt="" width="20" height="20">マイレシピ詳細</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-backup"><img src="tab-backup.png" class="cm-tab-ico" alt="" width="20" height="20">バックアップ</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-vault"><img src="feature-vault.webp" class="cm-tab-ico" alt="" width="20" height="20">データ暗号化</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timelock"><img src="tab-capsule.png" class="cm-tab-ico" alt="" width="20" height="20">タイムカプセル</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-timesecret" id="tab-btn-timesecret"><img src="feature-timesecret.webp" class="cm-tab-ico" alt="" width="20" height="20">タイムシークレット</button><button type="button" class="cm-tab" role="tab" aria-selected="false" aria-controls="tab-datatransfer" id="tab-btn-datatransfer"><img src="tab-transfer.png" class="cm-tab-ico" alt="" width="20" height="20">データ転送</button>
     </div>
     <div id="tab-quick" class="cm-panel cm-legacy" role="tabpanel"></div>
     <div id="tab-recipe" class="cm-panel cm-legacy" role="tabpanel" hidden></div>
@@ -1995,7 +2000,7 @@
       <div class="section-card" id="timesecret-section">
         <div class="ts-header-row">
           <h2 class="ts-title">
-            <img src="tab-timesecret.png" width="24" height="24" alt="" style="border-radius:4px;">
+            <img src="feature-timesecret.webp" width="24" height="24" alt="" style="border-radius:4px;">
             <span>タイムシークレット（チェックイン型・時限金庫）</span>
             <button type="button" class="help-btn" id="btn-ts-help" aria-label="タイムシークレットの解説を表示" data-help="一定期間ごとにチェックインすることでデータを維持・保護する時限金庫です。期限切れ時は非抽出可能な専用デバイス鍵を破棄して復号不能化します。暗号化・チェックイン・管理操作の3系統独立認証に対応。クリックで詳細解説を表示します。">?</button>
           </h2>
@@ -2878,6 +2883,7 @@
               </div>
             </div>
 
+            <img id="ts-modal-delete-img" src="feature-erase.webp" class="cm-feature-img-lg" alt="" width="160" height="160" hidden>
             <div id="ts-modal-confirm-wrap" class="ts-modal-confirm-box" hidden>
               <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.81rem; font-weight:700; cursor:pointer; margin:0;">
                 <input type="checkbox" id="ts-modal-confirm-chk" style="margin-top:3px;">
@@ -3151,9 +3157,9 @@
       <button type="button" class="cm-footer-chip" data-target="tab-quick" data-mod="01"><span class="cm-footer-idx">1</span><img src="tab-quick.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>かんたんモード</span><span class="cm-map-role">すぐ生成</span></span></button>
       <button type="button" class="cm-footer-chip" data-target="tab-recipe" data-mod="02"><span class="cm-footer-idx">2</span><img src="tab-recipe.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>マイレシピ詳細</span><span class="cm-map-role">細かく設定</span></span></button>
       <button type="button" class="cm-footer-chip" data-target="tab-backup" data-mod="03"><span class="cm-footer-idx">3</span><img src="tab-backup.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>バックアップ</span><span class="cm-map-role">設定の保存・復元</span></span></button>
-      <button type="button" class="cm-footer-chip" data-target="tab-vault" data-mod="04"><span class="cm-footer-idx">4</span><img src="tab-vault.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-vault" data-mod="04"><span class="cm-footer-idx">4</span><img src="feature-vault.webp" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ暗号化</span><span class="cm-map-role">テキスト・ファイル</span></span></button>
       <button type="button" class="cm-footer-chip" data-target="tab-timelock" data-mod="05"><span class="cm-footer-idx">5</span><img src="tab-capsule.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムカプセル</span><span class="cm-map-role">時間で開錠</span></span></button>
-      <button type="button" class="cm-footer-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-footer-idx">6</span><img src="tab-timesecret.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
+      <button type="button" class="cm-footer-chip" data-target="tab-timesecret" data-mod="06"><span class="cm-footer-idx">6</span><img src="feature-timesecret.webp" alt="" width="22" height="22"><span class="cm-map-txt"><span>タイムシークレット</span><span class="cm-map-role">チェックイン型</span></span></button>
       <button type="button" class="cm-footer-chip" data-target="tab-datatransfer" data-mod="07"><span class="cm-footer-idx">7</span><img src="tab-transfer.png" alt="" width="22" height="22"><span class="cm-map-txt"><span>データ転送</span><span class="cm-map-role">QRで送受信</span></span></button>
     </div>
   </div>

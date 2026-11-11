@@ -2156,6 +2156,8 @@ function initHelpTooltips(){
 
    `</div>`+
 
+   `<img id="help-popover-img" class="help-popover-img" alt="" hidden>`+
+
    `<div class="help-popover-body" id="help-popover-body"></div>`;
 
   document.body.appendChild(popover);
@@ -2194,13 +2196,27 @@ function initHelpTooltips(){
 
   if(bodyEl)bodyEl.textContent=text;
 
+  const helpImg=$('help-popover-img');
+
+  if(helpImg){const src=btn.dataset.helpImg;helpImg.onload=()=>{if(popover.classList.contains('visible'))positionPopover();};helpImg.onerror=()=>{helpImg.hidden=true;if(popover.classList.contains('visible'))positionPopover();};if(src){helpImg.src=src;helpImg.style.display='';helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
+
   popover.classList.add('visible');
 
   popover.setAttribute('aria-hidden','false');
 
 
 
-  const rect=btn.getBoundingClientRect();
+  positionPopover();
+
+ }
+
+
+
+ function positionPopover(){
+
+  if(!activeBtn)return;
+
+  const rect=activeBtn.getBoundingClientRect();
 
   const popWidth=Math.min(320,window.innerWidth-28);
 
@@ -2219,6 +2235,12 @@ function initHelpTooltips(){
    top=rect.top+window.scrollY-popHeight-8;
 
   }
+
+  const minTop=window.scrollY+8;
+
+  const maxTop=window.scrollY+Math.max(8,window.innerHeight-popHeight-8);
+
+  top=Math.max(minTop,Math.min(top,maxTop));
 
   popover.style.left=Math.round(left)+'px';
 

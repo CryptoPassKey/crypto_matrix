@@ -883,8 +883,8 @@
   </div>
   <div class="bq-status" id="bq-status" role="status" aria-live="polite"></div>
   <div id="bq-words-container" style="width:100%; margin-bottom:10px;"></div>
-  <label for="bq-output">暗号化復元フレーズ（BIP39）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
-  <textarea id="bq-output" readonly autocomplete="off" spellcheck="false" placeholder="上のボタンを押すと、暗号化されたBIP39 24単語×必要ブロック数がここに生成されます。"></textarea>
+  <label for="bq-output">暗号化バックアップ出力（<span id="bq-output-format-label">PGPアーマード形式</span>）<button type="button" class="help-btn" aria-label="説明を表示" data-help="QRコードが読めない環境でも、このフレーズをメモしておくことで同じパスワードを復元できます。英単語24個×ブロック数で構成されます。">?</button></label>
+  <textarea id="bq-output" readonly autocomplete="off" spellcheck="false" placeholder="上のボタンを押すと、選択中の形式で暗号化バックアップがここに生成されます。"></textarea>
  </div>
  <div id="bq-print-summary"></div><div id="bq-qr-list"></div>
  </div>

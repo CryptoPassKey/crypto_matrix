@@ -3777,19 +3777,7 @@ html.light body::before {
 }
 .cm-app > *:not(.cm-mobile-dock):not(#sticky-pw-bar) { position: relative; z-index: 1; }
 
-.cm-mobile-dock {
-  display: none !important;
-}
-@media (max-width: 1024px) {
-  .cm-mobile-dock {
-    display: block !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 9999 !important;
-  }
-}
+
 
 /* 2. Left Deck Control Header (.cm-deck-header) */
 .cm-legacy .cm-deck-header {

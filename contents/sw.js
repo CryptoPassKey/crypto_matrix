@@ -158,12 +158,12 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || requestUrl.origin !== location.origin) return;
 
   if (req.mode === 'navigate') {
-    // ページ本体：オンラインなら最新、オフラインならキャッシュ
-    e.respondWith(fetch(req).then((res) => {
+    // ページ本体もキャッシュ優先（アセットと同一方針）。新版の適用は手動更新フローで行う
+    e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req).then((res) => {
       const copy = res.clone();
       caches.open(VERSION).then((c) => c.put(req, copy));
       return res;
-    }).catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match('./'))));
+    })).catch(() => caches.match('./')));
     return;
   }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req)));

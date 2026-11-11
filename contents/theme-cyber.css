@@ -1390,7 +1390,7 @@ html:not(.light) .cm-board .square.stroke-preview-tile {
 .cm-guide-heading { color: #6382b5; }
 html:not(.light) .cm-guide-heading { color: var(--text-sub); }
 .cm-warn-red { color: #e92f2f; }
-html:not(.light) .cm-warn-red { color: var(--danger); }
+html:not(.light) .cm-warn-red { color: #f85d78; }
 .cm-guide-violet { color: #a855f7; }
 html:not(.light) .cm-guide-violet { color: #c084fc; }
 .cm-km-violet { color: #610bf4; }
@@ -1406,7 +1406,7 @@ html.light .cm-legacy .cm-note-muted { color: #7889a1; }
 
 /* ===== T4: 生成要素の状態色クラス（JS の色直接代入から移行） ===== */
 .cm-prot-init { background: #0b121e; color: #34d399; border-color: #1e2d42; }
-html.light .cm-legacy .cm-prot-init { background: var(--surface-sub); color: #0b7a44; border-color: #cfd8e3; }
+html.light .cm-legacy .cm-prot-init { background: var(--surface-sub); color: #096e3c; border-color: #cfd8e3; }
 .cm-prot-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
 html:not(.light) .cm-prot-warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
 .cm-prot-err { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
@@ -1435,7 +1435,7 @@ html.light .cm-legacy .cm-strength-weak { color: #b91c1c; }
 html.light .cm-legacy .cm-strength-mid { color: #b45309; }
 html.light .cm-legacy .cm-strength-strong { color: #065f46; }
 html.light .cm-legacy .cm-seed-chip { color: #b45309; }
-html.light .cm-legacy .duress-modal-body .cm-prot-init { color: #0b7a44 !important; }
+html.light .cm-legacy .duress-modal-body .cm-prot-init { color: #096e3c !important; }
 
 /* ===== T4: パネル・チップ等のテーマクラス（汎用 [style*= ルールの依存解消用） ===== */
 .cm-panel-slate { background: #192129; border-color: #304257; }
@@ -1455,7 +1455,7 @@ html.light .cm-legacy .cm-panel-result-ok { background: var(--surface-sub); bord
 .cm-panel-amber { background: #292119; border-color: #f59e0b; }
 html.light .cm-legacy .cm-panel-amber { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-red { background: #291919; border-color: #ef4444; color: #fca5a5; }
-html.light .cm-legacy .cm-panel-red { background: var(--surface-sub); border-color: #cfd8e3; color: #c62f3b; }
+html.light .cm-legacy .cm-panel-red { background: var(--surface-sub); border-color: #cfd8e3; color: #b02834; }
 .cm-panel-beacon { background: #111827; border-color: #4b5563; }
 html.light .cm-legacy .cm-panel-beacon { background: var(--surface-sub); border-color: #cfd8e3; }
 .cm-panel-sky { background: #192029; border-color: #0284c7; }
@@ -1489,7 +1489,7 @@ html.light .cm-legacy .cm-frame-sky { border-color: #cfd8e3; }
 .cm-frame-amber { border-color: #f59e0b; }
 html.light .cm-legacy .cm-frame-amber { border-color: #cfd8e3; }
 .cm-result-title { color: #1dfbbd; }
-html.light .cm-legacy .cm-result-title { color: #0b7a44; }
+html.light .cm-legacy .cm-result-title { color: #096e3c; }
 .cm-txt-deep { color: #192029; }
 html.light .cm-legacy .cm-txt-deep { color: var(--text-main); }
 .cm-link-neon { color: #1aff78; }
@@ -1499,7 +1499,7 @@ html.light .cm-legacy .cm-link-neon { color: #0b7a44 !important; }
 html:not(.light) .cm-legacy .cm-link-sky { color: #1ab1ff; }
 html.light .cm-legacy .cm-link-sky { color: #0b7a44 !important; }
 .cm-txt-sky { color: #1aaeff; }
-html.light .cm-legacy .cm-txt-sky { color: #0b7a44 !important; }
+html.light .cm-legacy .cm-txt-sky { color: #096e3c !important; }
 .cm-guide-emerald { color: #10b981; }
 html.light .cm-legacy .cm-guide-emerald { color: #0b7a44; }
 .cm-row-goldline { border-bottom: 1px dashed #a88700; }
@@ -1514,7 +1514,7 @@ html:not(.light) #btn-cm-consent-close { color: #8799b5; }
 html:not(.light) .duress-modal-close { color: #8799b5; }
 /* ライトでは汎用の本文色ルール（html.light .cm-legacy *）より優先して現行値を維持する */
 html.light .cm-legacy .cm-guide-heading { color: #3f619b; }
-html.light .cm-legacy .cm-passkey-note { color: #3b65dd; }
+html.light .cm-legacy .cm-passkey-note { color: #2f56c4; }
 html.light .cm-legacy .cm-warn-red { color: var(--danger); }
 html.light .cm-legacy .cm-guide-violet { color: #9333ea; }
 html.light .cm-legacy .cm-km-label { color: #3f619b; }
@@ -2655,7 +2655,7 @@ html.light .cm-legacy #timesecret-section .ts-modal-confirm-box {
   text-decoration: underline;
   padding: 0;
 }
-html.light #timesecret-section .ts-toggle-pw { color: #1f6fc4; }
+html.light #timesecret-section .ts-toggle-pw { color: #1a5da6; }
 #timesecret-section .ts-kf-status {
   font-size: 0.75rem;
   color: var(--text-sub);
@@ -4103,11 +4103,11 @@ html.light .cm-legacy .cm-legend-item.cm-leg-br {
 html.light .cm-legacy .cm-bezel-help-btn {
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
-  color: #0284c7;
+  color: #026aa1;
 }
 html.light .cm-legacy .cm-bezel-help-btn:hover {
   background: #e2e8f0;
-  border-color: #0284c7;
+  border-color: #026aa1;
 }
 
 /* 1マス（セル）の文字構成図パネル (.cm-cell-layout-card) */

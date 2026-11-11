@@ -895,6 +895,24 @@ function stopMatrixTrace() {
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 }
 
+function stepMatrixTrace(delta) {
+  if (!traceIsPaused || !traceStepRunner) return false;
+  const targetIdx = traceCurrentIndex + delta;
+  if (targetIdx < 0) return false;
+  const total = (currentEvalSteps && currentEvalSteps.length) || 0;
+  if (total > 0 && targetIdx >= total) return false;
+  traceStepRunner(targetIdx);
+  const banner = document.getElementById('sim-step-banner');
+  if (banner && currentEvalSteps && currentEvalSteps[targetIdx]) {
+    traceLastBannerText = banner.textContent;
+    banner.textContent = `⏸ [${targetIdx + 1}/${total}文字目] ${currentEvalSteps[targetIdx].log} (←/→で移動, Spaceで再開)`;
+  }
+  return true;
+}
+window.stepMatrixTrace = stepMatrixTrace;
+window.isMatrixTracePaused = () => !!traceIsPaused;
+window.stopMatrixTrace = stopMatrixTrace;
+
 // Scroll the matrix into view without placing it underneath the fixed/sticky app header.
 function scrollMatrixBelowHeader(stageEl) {
   if (!stageEl) return;
@@ -914,7 +932,7 @@ function scrollMatrixBelowHeader(stageEl) {
   }
 }
 
-function playMatrixTrace() {
+function playMatrixTrace(opts = {}) {
   lastPlayTrigger = 'recipe';
   const modeChanged = currentDisplayMode !== 'recipe';
   currentDisplayMode = 'recipe';
@@ -927,8 +945,10 @@ function playMatrixTrace() {
   if (!currentEvalSteps || currentEvalSteps.length === 0) return;
   updateTraceButtonsUI('playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
-  const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  scrollMatrixBelowHeader(stageEl);
+  if (!opts || !opts.skipScroll) {
+    const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
+    scrollMatrixBelowHeader(stageEl);
+  }
 
   const speed = Number(document.getElementById('sim-speed')?.value) || 500;
   const squares = document.querySelectorAll('#div-encrypto-matrix-main .square');
@@ -1750,7 +1770,7 @@ function showStrokePreview(designKey, strokeSteps, previewDurationMs) {
   }
 }
 
-function playStrokeGestureTrace() {
+function playStrokeGestureTrace(opts = {}) {
   lastPlayTrigger = 'stroke';
   currentDisplayMode = 'stroke';
   stopMatrixTrace();
@@ -1762,8 +1782,10 @@ function playStrokeGestureTrace() {
   updateTraceButtonsUI('playing');
   if (window.MatrixCardPreset && window.MatrixCardPreset.syncBlindInputs) window.MatrixCardPreset.syncBlindInputs();
 
-  const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
-  scrollMatrixBelowHeader(stageEl);
+  if (!opts || !opts.skipScroll) {
+    const stageEl = document.getElementById('matrix-stage-box') || document.getElementById('div-encrypto-matrix-main');
+    scrollMatrixBelowHeader(stageEl);
+  }
 
   const site = document.getElementById('sim-site')?.value || '1Password';
   const designKey = getGestureDesignKey(site);
@@ -3169,12 +3191,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('gesture-design-bar')) document.getElementById('gesture-design-bar').style.display = 'none';
     playMatrixTrace();
   });
-  document.getElementById('btn-play-stroke')?.addEventListener('click', playStrokeGestureTrace);
+  document.getElementById('btn-play-stroke')?.addEventListener('click', () => playStrokeGestureTrace());
   document.getElementById('btn-pause-trace')?.addEventListener('click', togglePauseMatrixTrace);
   document.getElementById('btn-stop-trace')?.addEventListener('click', () => {
     stopMatrixTrace();
     const banner = document.getElementById('sim-step-banner');
     if (banner) banner.textContent = '⏹ 再生を停止しました。';
+  });
+
+  // マトリックス盤面クリックで再生／一時停止（再開）をトグル
+  document.getElementById('div-encrypto-matrix-main')?.addEventListener('click', () => {
+    if (traceTimer || strokePreviewTimer || traceIsPaused) {
+      togglePauseMatrixTrace();
+    } else if (currentDisplayMode === 'stroke') {
+      playStrokeGestureTrace({ skipScroll: true });
+    } else if (!document.getElementById('btn-play-trace')?.disabled) {
+      playMatrixTrace({ skipScroll: true });
+    }
   });
 
   document.getElementById('btn-close-gesture-bar')?.addEventListener('click', () => {
@@ -3527,7 +3560,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const seedInput=$('input-seed-number');
   const raw=seedInput?seedInput.value.trim():'';
   if(!raw){
-   const msg='⚠️ カードの配列シード番号が未入力です。画面上部の「カード配列シード番号 (seed)」を入力してください。';
+   const msg='⚠️ カード番号が未入力です。画面上部の「カード番号」を入力してください。';
    if(statusElId&&$(statusElId)){
     if(typeof message==='function')message(statusElId,msg,true);
     else if(typeof setStatus==='function')setStatus(statusElId,msg,true);
@@ -3548,9 +3581,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if(num===0){
    const skipZeroConfirm=(window.__SKIP_SEED_ZERO_CONFIRM__===true)||(localStorage.getItem('cm_allow_seed_zero')==='true');
    if(!skipZeroConfirm){
-    const ok=confirm('カード配列シード番号が初期値の「0」のままです。このままカード番号0で作成しますか？\n（お手持ちのカードに別の番号がある場合は「キャンセル」を押して番号を入力してください）');
+    const ok=confirm('カード番号が初期値の「0」のままです。このままカード番号0で作成しますか？\n（お手持ちのカードに別の番号がある場合は「キャンセル」を押して番号を入力してください）');
     if(!ok){
-     const msg='⚠️ カードのシード番号を入力してください。';
+     const msg='⚠️ カード番号を入力してください。';
      if(statusElId&&$(statusElId)){
       if(typeof message==='function')message(statusElId,msg,true);
       else if(typeof setStatus==='function')setStatus(statusElId,msg,true);
@@ -3843,7 +3876,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if (seedNum === 0) {
     const skipZeroConfirm = (window.__SKIP_SEED_ZERO_CONFIRM__ === true) || (localStorage.getItem('cm_allow_seed_zero') === 'true');
     if (!skipZeroConfirm) {
-     const ok = confirm('カード配列シード番号が初期値の「0」のままです。このままシード番号0でキーファイルを作成しますか？');
+     const ok = confirm('カード番号が初期値の「0」のままです。このままカード番号0でキーファイルを作成しますか？');
      if (!ok) return;
     }
    }
@@ -4037,22 +4070,22 @@ document.addEventListener('DOMContentLoaded', () => {
   syncBlindInputs();
  }
  function getActiveModeLabel(cfg){
-  if(cfg.lenMode===3)return`かんたん生成モード — 銀行などの暗証番号（数字のみ・${cfg.lenVal}桁）`;
-  if(cfg.lenMode===5)return`かんたん生成モード — パスワード（英大小・数字・記号・${cfg.lenVal}文字）`;
-  if(cfg.lenMode===4)return`かんたん生成モード — パスワード（英大小・数字・${cfg.lenVal}文字）`;
-  return'1. マイ・レシピ全組み合わせ設定';
+  if(cfg.lenMode===3)return`暗証番号（${cfg.lenVal}桁）`;
+  if(cfg.lenMode===5)return`パスワード（${cfg.lenVal}文字）`;
+  if(cfg.lenMode===4)return`英数（${cfg.lenVal}文字）`;
+  return'1. マイレシピ';
  }
  let lastActiveModeKind=null;
  function syncCollapseButtons(){
   const cqSec=$('card-quick'),cqBtn=$('btn-toggle-cq');
   if(cqSec&&cqBtn){
    const col=cqSec.classList.contains('is-collapsed');
-   cqBtn.textContent=col?'▼ かんたん生成モードを開く':'▲ 折りたたむ';
+   cqBtn.textContent=col?'▼ 開く':'▲ 折りたたむ';
   }
   const recSec=$('section-recipe-detail'),recBtn=$('btn-toggle-recipe');
   if(recSec&&recBtn){
    const col=recSec.classList.contains('is-collapsed');
-   recBtn.textContent=col?'▼ マイ・レシピ設定を開く':'▲ 折りたたむ';
+   recBtn.textContent=col?'▼ 開く':'▲ 折りたたむ';
   }
  }
  function syncActiveModeUI(cfg){
@@ -4068,31 +4101,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   syncCollapseButtons();
   for(const id of['verbal-mode-badge','live-mode-badge','sticky-mode-badge']){
-   const b=$(id);if(b){b.textContent=`✅ 現在使用中：${modeLabel}`;b.classList.remove('inactive');}
+   const b=$(id);if(b){b.textContent=`✅ 使用中：${modeLabel}`;b.classList.remove('inactive');}
   }
   const cqBadge=$('cq-section-badge');
   if(cqSec)cqSec.classList.toggle('active-mode-section',isCard);
   if(cqBadge){
    cqBadge.classList.toggle('inactive',!isCard);
    cqBadge.textContent=isCard
-    ?`✅ 現在使用中：${isPin?'銀行などの暗証番号（数字のみ）':isSymbol?'パスワード（英大小・数字・記号）':'パスワード（英大小・数字）'}`
-    :'未選択（下の「1. マイ・レシピ全組み合わせ設定」を使用中）';
+    ?`✅ 使用中：${isPin?'暗証番号':isSymbol?'パスワード':'英数'}`
+    :'未選択（1. マイレシピ使用中）';
   }
   const qPinBtn=$('btn-quick-switch-pin'),qSymBtn=$('btn-quick-switch-symbol');
-  if(qPinBtn){qPinBtn.classList.toggle('btn-mode-active',isPin);qPinBtn.classList.toggle('btn-outline',!isPin);qPinBtn.textContent=isPin?'✅ 暗証番号（数字のみ）を使用中':'🔢 暗証番号（数字のみ）を使う';}
-  if(qSymBtn){qSymBtn.classList.toggle('btn-mode-active',isSymbol);qSymBtn.classList.toggle('btn-outline',!isSymbol);qSymBtn.textContent=isSymbol?'✅ パスワード（記号あり）を使用中':'🔐 パスワード（英大小・数字・記号）を使う';}
+  if(qPinBtn){qPinBtn.classList.toggle('btn-mode-active',isPin);qPinBtn.classList.toggle('btn-outline',!isPin);qPinBtn.textContent=isPin?'✅ 暗証番号':'🔢 暗証番号';}
+  if(qSymBtn){qSymBtn.classList.toggle('btn-mode-active',isSymbol);qSymBtn.classList.toggle('btn-outline',!isSymbol);qSymBtn.textContent=isSymbol?'✅ パスワード':'🔐 パスワード';}
   const pinPanel=$('cq-panel-pin'),pinBadge=$('cq-pin-badge'),pinBtn=$('cq-pin-apply');
   if(pinPanel)pinPanel.classList.toggle('active-mode-panel',isPin);
-  if(pinBadge){pinBadge.classList.toggle('inactive',!isPin);pinBadge.textContent=isPin?'✅ 現在使用中':'未選択';}
-  if(pinBtn){pinBtn.classList.toggle('btn-mode-active',isPin);pinBtn.classList.toggle('btn-outline',!isPin);pinBtn.textContent=isPin?'✅ 現在このモードを使用中':'このモードを使う';}
+  if(pinBadge){pinBadge.classList.toggle('inactive',!isPin);pinBadge.textContent=isPin?'✅ 使用中':'未選択';}
+  if(pinBtn){pinBtn.classList.toggle('btn-mode-active',isPin);pinBtn.classList.toggle('btn-outline',!isPin);pinBtn.textContent=isPin?'✅ 使用中':'このモードを使う';}
   const symPanel=$('cq-panel-symbol'),symBadge=$('cq-symbol-badge'),symBtn=$('cq-symbol-apply');
   if(symPanel)symPanel.classList.toggle('active-mode-panel',isSymbol);
-  if(symBadge){symBadge.classList.toggle('inactive',!isSymbol);symBadge.textContent=isSymbol?'✅ 現在使用中':'未選択';}
-  if(symBtn){symBtn.classList.toggle('btn-mode-active',isSymbol);symBtn.classList.toggle('btn-outline',!isSymbol);symBtn.textContent=isSymbol?'✅ 現在このモードを使用中':'このモードを使う';}
+  if(symBadge){symBadge.classList.toggle('inactive',!isSymbol);symBadge.textContent=isSymbol?'✅ 使用中':'未選択';}
+  if(symBtn){symBtn.classList.toggle('btn-mode-active',isSymbol);symBtn.classList.toggle('btn-outline',!isSymbol);symBtn.textContent=isSymbol?'✅ 使用中':'このモードを使う';}
   const recBadge=$('recipe-section-badge'),recBtn=$('btn-use-recipe');
   if(recSec)recSec.classList.toggle('active-mode-section',isRecipe);
-  if(recBadge){recBadge.classList.toggle('inactive',!isRecipe);recBadge.textContent=isRecipe?'✅ 現在使用中':'未選択（上の「かんたん生成モード」を使用中）';}
-  if(recBtn){recBtn.classList.toggle('btn-mode-active',isRecipe);recBtn.classList.toggle('btn-outline',!isRecipe);recBtn.textContent=isRecipe?'✅ 現在このモードを使用中':'このモードを使う';}
+  if(recBadge){recBadge.classList.toggle('inactive',!isRecipe);recBadge.textContent=isRecipe?'✅ 使用中':'未選択（かんたんモード使用中）';}
+  if(recBtn){recBtn.classList.toggle('btn-mode-active',isRecipe);recBtn.classList.toggle('btn-outline',!isRecipe);recBtn.textContent=isRecipe?'✅ 使用中':'このモードを使う';}
   const cqSt=$('cq-status');
   if(cqSt)cqSt.dataset.mode=isCard?'card':'recipe';
  }
@@ -4123,19 +4156,19 @@ document.addEventListener('DOMContentLoaded', () => {
    const input=filtered($('sim-site').value,$('sim-secret').value);
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   const subMode=cfg.lenMode===5?'パスワード（英大小・数字・記号）':cfg.lenMode===4?'パスワード（英大小・数字）':'銀行などの暗証番号（数字のみ）';
-   $('sim-output-meta').textContent=`かんたん生成モード（${subMode}） ／ 出力: ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 理論値: 約${ent.bits} bits`;
-   $('sim-step-banner').textContent='▶ 実際の出力文字があるマス・角が光ります。追読・代替・末尾の文字もカード上で確認できます。';
+   const subMode=cfg.lenMode===5?'パスワード':cfg.lenMode===4?'英数':'暗証番号';
+   $('sim-output-meta').textContent=`かんたんモード（${subMode}） ／ ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 約${ent.bits} bits`;
+   $('sim-step-banner').textContent='▶ 盤面または再生ボタンで、出力文字のマス・角が順番に光ります。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【現在使用中のモード】${getActiveModeLabel(cfg)}\n・適用済みシード：${appliedSeed} ／ カードで探す文字：${input.site} ＋ ${input.secret}（交互配置）\n・出力：${cfg.lenMode===5?'英大小・数字・記号':cfg.lenMode===4?'英大小・数字':'数字のみ'} ${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（文字種・長さからの理論値 ${ent.bits} bits）${cfg.lenMode===5?' ／ 使用可能な左下記号：'+syms:''}`);
+   setStatus('cq-status',`【使用中】${getActiveModeLabel(cfg)}\n・カード番号：${appliedSeed} ／ 探索文字：${input.site} ＋ ${input.secret}（交互）\n・出力：${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（約${ent.bits} bits）${cfg.lenMode===5?' ／ 記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}
   else{
    const pw=currentEvalSteps.map(s=>s.ch).join('');
    const ent=estimatePasswordEntropy(pw);
-   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイ・レシピ全組み合わせ設定 ／ 総文字数: ${currentEvalSteps.length}文字 （記号代替発動: ${currentEvalSteps.filter(s=>s.isFallback).length}箇所） ／ 理論値: 約${ent.bits} bits`;
-   setStatus('cq-status','【現在使用中のモード】1. マイ・レシピ全組み合わせ設定（方向・自由数値・記号代替対応）\n上の「銀行などの暗証番号（数字のみ）」または「パスワード（英大小・数字・記号）」の「このモードを使う」を押すと、かんたん生成モードに切り替わります。');
+   if(pw&&$('sim-output-meta'))$('sim-output-meta').textContent=`1. マイレシピ ／ ${currentEvalSteps.length}文字（代替: ${currentEvalSteps.filter(s=>s.isFallback).length}） ／ 約${ent.bits} bits`;
+   setStatus('cq-status','【使用中】1. マイレシピ\n上の「暗証番号」または「パスワード」の「このモードを使う」を押すと切り替わります。');
   }
   const stickyPw=$('sticky-output-pw'),stickyMeta=$('sticky-output-meta');
   if(stickyPw&&$('sim-output-pw'))stickyPw.innerHTML=$('sim-output-pw').innerHTML;
@@ -5264,7 +5297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const wordsText=groups[0].join(' ');
     const fig=document.createElement('figure'),cap=document.createElement('figcaption'),svg=qrSVG(wordsText);
     if(svg)fig.appendChild(svg);
-    cap.textContent='BIP39 24単語シードフレーズ（設定のみ・暗号化なし）\n24単語（QR 1枚）';
+    cap.textContent='24単語フレーズ（設定のみ・暗号化なし）';
     fig.appendChild(cap);
     qrBox.replaceChildren(fig);
    }
@@ -5284,7 +5317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   box.innerHTML=`
    <div class="bv-no-print cm-bq-bar" style="width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; padding:8px 12px;">
-     <div style="font-size:0.82rem; font-weight:700; color:#334155;">
+     <div style="font-size:0.82rem; font-weight:700; color:var(--text-main);">
        📜 出力形式（現在: <span id="seed-active-format-label">PGPアーマード形式</span>）
      </div>
      <button type="button" class="btn btn-outline" id="btn-toggle-seed-format" style="font-size:0.78rem; padding:4px 10px;">

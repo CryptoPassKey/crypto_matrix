@@ -248,15 +248,16 @@
   }
 
   .matrix-scroll {
-    overflow-x: auto;
-    padding: 6px 4px 10px;
+    overflow-x: visible;
+    padding: 4px 2px 8px;
   }
 
   #div-encrypto-matrix-main {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 8px;
-    min-width: 620px;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
     max-width: 880px;
     margin: 0 auto;
   }
@@ -432,8 +433,8 @@
     display: none;
     margin-top: 10px;
     padding: 10px 14px;
-    background: #19291e;
-    border: 1.5px solid #0eaa47;
+    background: #0b121e;
+    border: 1px solid #1e2d42;
     border-radius: 8px;
   }
 
@@ -696,12 +697,12 @@
     gap: 12px;
   }
 
-  /* HTML内のインライン背景色 */
+  /* マイレシピ詳細：パラメータグループ */
   .field-group {
-    background: #19291e !important;
-    border: 1px solid var(--border-color);
-    border-color: var(--border-color) !important;
-    border-radius: 8px;
+    background: #0d1522 !important;
+    border: 1px solid #1e2d42 !important;
+    border-left: 3px solid #10b981 !important;
+    border-radius: 6px;
     padding: 10px 12px;
     min-width: 0;
   }
@@ -717,17 +718,21 @@
   }
 
   .badge {
-    background: var(--matrix-green);
-    color: #37e172;
-    font-size: 0.7rem;
+    background: #062419;
+    color: #34d399;
+    border: 1px solid #10b981;
+    font-size: 0.72rem;
+    font-weight: 700;
     padding: 1px 6px;
     border-radius: 4px;
+    line-height: 1.2;
   }
 
-  /* インライン指定の青いバッジ */
+  /* インライン指定のバッジ */
   .field-group .badge {
-    background: var(--matrix-green) !important;
-    color: #37e172;
+    background: #062419 !important;
+    color: #34d399 !important;
+    border: 1px solid #10b981 !important;
   }
 
   .sub-row {
@@ -990,7 +995,7 @@
 #btn-sticky-toggle:hover{background:#192029;color:#6382b5}
 #btn-sticky-min-pill{cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease,box-shadow .15s ease}
 #btn-sticky-min-pill:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,201,80,.55)}
-#cq-status{white-space:pre-wrap;overflow-wrap:anywhere;color:#22f770;background:#19291e;border:1px solid #0eaa47;border-left:4px solid #1aff75;border-radius:6px;padding:10px 12px;margin:10px 0;font-weight:600}
+#cq-status{white-space:pre-wrap;overflow-wrap:anywhere;color:#34d399;background:#0b121e;border:1px solid #1e2d42;border-left:4px solid #10b981;border-radius:6px;padding:10px 12px;margin:10px 0;font-weight:600}
 #cq-status[data-mode="recipe"]{background:#192129;border-color:#304257;border-left-color:#1aff75;color:#6382b5}
 #backup-summary{white-space:pre-wrap;overflow-wrap:anywhere;color:#1efa77}
 #cq-status[data-error="true"],#backup-summary[data-error="true"]{background:#291919;border-color:#910000;border-left-color:#e83838;color:#e92f2f}

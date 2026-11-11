@@ -851,7 +851,7 @@
       '1) Crypto Matrix アプリの「⏳ タイムカプセル」タブ →「🔓 タイムカプセル解禁・復元」を開く',
       ...(usesPasskey
         ? ['   ※パスキー保護が含まれるため、作成時と同一のドメイン上で開いてください。']
-        : ['   （または同梱の単体ファイル「timelock-recover.html」を任意のブラウザで開く）']),
+        : ['   （または同梱の単体ファイル「https://crypto-matrix.pages.dev/timelock-recover」を任意のブラウザで開く）']),
       '2) 保存したカプセルファイル (.cmtl) またはアーマード文字列（秘密分散時は任意のMシェア）を読み込む',
       '3) 「drandネットワークから自動取得して検証」を選択する',
       ...(m.mode === 'B'
@@ -889,8 +889,8 @@
   }
 
   function payloadKindLabel(kind) {
-    if (kind === 'sec3_backup') return '暗号化バックアップデータ（二重保護）';
-    if (kind === 'sec4_vault') return 'セキュア保管庫暗号化データ（二重保護）';
+    if (kind === 'sec3_backup') return 'バックアップ暗号化データ（二重保護）';
+    if (kind === 'sec4_vault') return 'データ暗号化（二重保護）';
     if (kind === 'file') return 'バイナリファイル';
     return 'テキスト／パスワード／メモ';
   }
@@ -899,12 +899,7 @@
     if (!Number.isFinite(ms)) return '---';
     const d = new Date(ms);
     const pad = (n) => String(n).padStart(2, '0');
-    const tzOffsetMin = -d.getTimezoneOffset();
-    const sign = tzOffsetMin >= 0 ? '+' : '-';
-    const absMin = Math.abs(tzOffsetMin);
-    const tzH = pad(Math.floor(absMin / 60));
-    const tzM = pad(absMin % 60);
-    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} (UTC${sign}${tzH}:${tzM})`;
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
   function toDatetimeLocalValue(ms) {
@@ -1054,12 +1049,11 @@
     const rInfo = TL.roundForUnlockTime(targetMs, TL.QUICKNET_CHAIN_INFO);
     const previewBox = $('tl-round-preview-box');
     if (previewBox) {
-      const diffSec = (rInfo.diffMs / 1000).toFixed(1);
       const isPast = targetMs <= Date.now();
       previewBox.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:8px; font-size:0.82rem;">
           <div><span style="color:var(--text-sub);">希望解禁時刻：</span><br><strong>${escapeHtml(formatLocalDateTime(rInfo.targetTimeMs))}</strong></div>
-          <div><span style="color:var(--text-sub);">実際の解禁予定時刻（端数切上）：</span><br><strong class="tl-ink-sky">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">(+${diffSec}秒)</span></div>
+          <div><span style="color:var(--text-sub);">実際の解禁予定時刻（端数切上）：</span><br><strong class="tl-ink-sky">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong></div>
           <div><span style="color:var(--text-sub);">drandネットワーク / 周期：</span><br><strong>quicknet</strong> (${TL.QUICKNET_CHAIN_INFO.period}秒周期 / RFC9380)</div>
           <div><span style="color:var(--text-sub);">対象ラウンド番号：</span><br><strong class="tl-ink-amber" style="font-family:monospace; font-size:0.95rem;">Round #${rInfo.round}</strong></div>
         </div>
@@ -1089,7 +1083,7 @@
     if ($('tl-bound-seed-badge')) $('tl-bound-seed-badge').textContent = `#${activeSeed}`;
 
     const reqFactors = [`解禁時刻以降の drand quicknet Round #${rInfo.round} ビーコン署名`];
-    reqFactors.push(`連動カード配列シード (#${activeSeed})`);
+    reqFactors.push(`連動カード番号 (#${activeSeed})`);
     if (shamirN > 1) reqFactors.push(`Shamir秘密分散 全${shamirN}シェア中の任意の${shamirM}シェア`);
     if (mode === 'B') {
       if (optPw?.checked) reqFactors.push('復元用パスワード（12文字以上）');
@@ -1101,7 +1095,6 @@
       }
     }
 
-    const standaloneOk = !(mode === 'B' && optPk?.checked);
     const summaryEl = $('tl-pre-summary-box');
     if (summaryEl) {
       summaryEl.innerHTML = `
@@ -1125,15 +1118,9 @@
             if (shamirN > 1) factorNames.push(`秘密分散(${shamirM}-of-${shamirN})`);
             return `追加保護付きタイムカプセル（時刻解禁 ＋ ${factorNames.join(' ＋ ')}）`;
           })()}</strong><br>
-          ・<strong>連動カード配列シード番号：</strong> <strong class="tl-ink-sky" style="font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（作成時のカード配列シード番号と連動して暗号鍵が導出されます）</span><br>
+          ・<strong>連動カード番号：</strong> <strong class="tl-ink-sky" style="font-family:monospace;">#${escapeHtml(activeSeed)}</strong> <span style="font-size:0.75rem; color:var(--text-sub);">（作成時のカード番号と連動して暗号鍵が導出されます）</span><br>
           ・<strong>解禁予定日時：</strong> <strong class="tl-ink-amber">${escapeHtml(formatLocalDateTime(rInfo.unlockTimeMs))}</strong>（Round #${rInfo.round}）<br>
-          ・<strong>復号に必要な条件：</strong> ${reqFactors.map(escapeHtml).join(' ＋ ')}<br>
-          ・<strong>解禁ツール制限：</strong> <span class="tl-ink-sky" style="font-weight:700;">🔒 本サイトおよび独立復元ツール限定（App-Domain Bindingにより、外部ツールからの直接解凍を遮断）</span><br>
-          ・<strong>独立復元ツール (timelock-recover.html) 対応：</strong> ${
-            standaloneOk
-              ? '<span class="tl-ink-emerald" style="font-weight:700;">⭕ 完全対応（サイト消滅時も単体HTMLで復元可能）</span>'
-              : '<span style="color:#f87171; font-weight:700;">⚠️ 非対応（パスキーPRF併用時は現在のドメイン上でのみ復元可能）</span>'
-          }
+          ・<strong>復号に必要な条件：</strong> ${reqFactors.map(escapeHtml).join(' ＋ ')}
         </div>
       `;
     }
@@ -1172,7 +1159,7 @@
       const qrFn = window.CMQrHelpers?.qrSVG || window.MatrixCardPreset?.qrSVG;
       const svg = qrFn ? qrFn(text) : null;
       if (!svg) throw new Error('no svg');
-      return `<figure class="tl-qr-figure cm-qr-fig" style="margin:0; text-align:center; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:#334155; margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
+      return `<figure class="tl-qr-figure cm-qr-fig" style="margin:0; text-align:center; padding:6px; display:inline-block; flex-shrink:0;">${svg.outerHTML}<figcaption style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">${escapeHtml(caption)}</figcaption></figure>`;
     } catch (_) {
       return `<div class="bv-no-print tl-ink-amber cm-note-warnbox" style="font-size:0.76rem; padding:8px;">⚠️ QRコード生成をスキップしました。</div>`;
     }
@@ -2297,7 +2284,7 @@
       const tabVault = document.querySelector('.cm-tab[aria-controls="tab-vault"]');
       if (tabVault) tabVault.click();
       document.dispatchEvent(new CustomEvent('cm-route-vault-text', { detail: { text: rep.textToCopy } }));
-      tlMessage('tl-decrypt-status', '✅ 「セキュア保管庫」タブの復号欄へ転送しました。復元用パスワードを入力して復元してください。');
+      tlMessage('tl-decrypt-status', '✅ 「データ暗号化」タブの復号欄へ転送しました。パスワードを入力して復号してください。');
     });
 
     $('tl-close-decrypted')?.addEventListener('click', () => {
@@ -2369,7 +2356,7 @@
       const activeSeed = $('input-seed-number')?.value || '0';
       if ($('tl-restore-seed-number')) {
         $('tl-restore-seed-number').value = activeSeed;
-        tlMessage('tl-decrypt-status', `🔑 現在のカード配列シード番号 (#${activeSeed}) を反映しました。`);
+        tlMessage('tl-decrypt-status', `🔑 現在のカード番号 (#${activeSeed}) を反映しました。`);
       }
     });
     $('input-seed-number')?.addEventListener('input', () => {
@@ -2731,8 +2718,8 @@
         extraGuide = `
           <div class="tl-guide-banner cm-panel-ok" style="margin-top:8px; padding:12px 14px; font-size:0.84rem; line-height:1.6;">
             <strong class="tl-ink-emerald" style="font-size:0.92rem;">🎉 タイムカプセルの開封に成功しました！</strong><br>
-            カプセルの中に封入されていたのは【<strong>セキュア保管庫の暗号化データ</strong>】です。<br>
-            上の<strong>『🔄 セキュア保管庫（復号欄）へ送る』</strong>ボタンを押して移動し、復元用パスワードを入力して復号してください。
+            カプセルの中に封入されていたのは【<strong>データ暗号化の暗号化データ</strong>】です。<br>
+            上の<strong>『🔄 データ暗号化（復号欄）へ送る』</strong>ボタンを押して移動し、パスワードを入力して復号してください。
           </div>
         `;
       }

@@ -52,7 +52,7 @@
     var on = navigator.onLine, b = $('cm-net');
     b.className = 'cm-badge ' + (on ? 'cm-b-amber' : 'cm-b-green');
     b.title = on
-      ? '現在ネットワークに接続されています。パスワード算出・バックアップ・保管庫・タイムカプセル暗号化は外部通信ゼロで動作します（タイムカプセル復号時のdrand自動取得のみ公開乱数ビーコンを参照します）。機密操作はオフライン環境での利用がより安全です。'
+      ? '現在ネットワークに接続されています。パスワード算出・バックアップ・データ暗号化・タイムカプセル暗号化は外部通信ゼロで動作します（タイムカプセル復号時のdrand自動取得のみ公開乱数ビーコンを参照します）。機密操作はオフライン環境での利用がより安全です。'
       : 'ネットワーク切断環境で動作中です。シード・合言葉・パスワードが外部に漏れる経路が物理的に存在しない最も安全な状態です（タイムカプセル復号も手動ビーコン入力で完全オフライン実行可能です）。';
     b.innerHTML = (on ? WIFI : WIFI_OFF) + '<span class="cm-hide-sm">' + (on ? 'オンライン' : 'オフライン動作中 · 推奨環境') + '</span>';
   }
@@ -161,13 +161,13 @@
 
     slots.forEach(function (slot) {
       slot.innerHTML =
-        '<div style="margin-top:8px; padding:8px 12px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid ' + (hasSaved ? '#0284c7' : '#475569') + '; display:flex; align-items:center; gap:8px;">' +
-        '<span style="font-size:1.1rem;">' + (hasSaved ? '🔑' : 'ℹ️') + '</span>' +
-        '<div>' +
-        '<div style="font-weight:700; font-size:0.82rem; color:' + (hasSaved ? '#38bdf8' : '#e2e8f0') + ';">' +
+        '<div class="cm-passkey-status-box ' + (hasSaved ? 'is-saved' : 'is-empty') + '">' +
+        '<span class="cm-passkey-status-ico">' + (hasSaved ? '🔑' : 'ℹ️') + '</span>' +
+        '<div class="cm-passkey-status-body">' +
+        '<div class="cm-passkey-status-title">' +
         (hasSaved ? '登録済みパスキーを使用中（同じパスキーで再利用）' : 'このブラウザに登録情報なし（既存パスキーを検索）') +
         '</div>' +
-        '<div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">' +
+        '<div class="cm-passkey-status-desc">' +
         (hasSaved
           ? '暗号化時に同じパスキー（生体認証）で認証します。毎回新しいパスキーは作成されず、このパスキーが再利用されます。'
           : '暗号化時に端末・クラウドに同期された既存パスキーで認証します。既存パスキーが見つからない場合、自動で新規登録されることはありません。') +
@@ -847,12 +847,34 @@
 /* Unit 1 (2026-11-07): feature map chips delegate to the real tab buttons
    (tab switching and URL hash behaviour stay entirely in the existing code). */
 (function () {
+  var MODULE_META = {
+    'tab-quick': { code: '1', name: 'かんたんモード', desc: 'すぐ生成' },
+    'tab-recipe': { code: '2', name: 'マイレシピ詳細', desc: '細かく設定' },
+    'tab-backup': { code: '3', name: 'バックアップ', desc: '設定の保存・復元' },
+    'tab-vault': { code: '4', name: 'データ暗号化', desc: 'テキスト・ファイル' },
+    'tab-timelock': { code: '5', name: 'タイムカプセル', desc: '時間で開錠' },
+    'tab-timesecret': { code: '6', name: 'タイムシークレット', desc: 'チェックイン型' },
+    'tab-datatransfer': { code: '7', name: 'データ転送', desc: 'QRで送受信' }
+  };
   function syncMap() {
     var sel = document.querySelector('.cm-tab[aria-selected="true"]');
     var target = sel ? sel.getAttribute('aria-controls') : null;
-    document.querySelectorAll('.cm-map-chip').forEach(function (chip) {
+    document.querySelectorAll('.cm-map-chip, .cm-footer-chip, .cm-mob-chip:not(.cm-mob-top)').forEach(function (chip) {
       chip.classList.toggle('is-active', chip.getAttribute('data-target') === target);
     });
+    var bay = document.getElementById('cm-module-bay');
+    if (bay && target) bay.setAttribute('data-active-tab', target);
+    var fdock = document.querySelector('.cm-footer-dock');
+    if (fdock && target) fdock.setAttribute('data-active-tab', target);
+    var meta = target && MODULE_META[target];
+    if (meta) {
+      var codeEl = document.getElementById('cm-active-module-code');
+      var nameEl = document.getElementById('cm-active-module-name');
+      var descEl = document.getElementById('cm-active-module-desc');
+      if (codeEl) codeEl.textContent = meta.code;
+      if (nameEl) nameEl.textContent = meta.name;
+      if (descEl) descEl.textContent = meta.desc;
+    }
   }
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.cm-map-chip').forEach(function (chip) {
@@ -861,12 +883,54 @@
         if (!tab) return;
         tab.click();
         syncMap();
-        var list = document.querySelector('.cm-tablist');
-        if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (window.innerWidth < 1024) {
+          var bay = document.getElementById('cm-module-bay') || document.querySelector('.cm-tablist');
+          if (bay) bay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     });
+    document.querySelectorAll('.cm-footer-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var tab = document.querySelector('.cm-tab[aria-controls="' + chip.getAttribute('data-target') + '"]');
+        if (!tab) return;
+        tab.click();
+        syncMap();
+        var bay = document.getElementById('cm-module-bay') || document.querySelector('.cm-tablist');
+        if (bay) bay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    document.querySelectorAll('.cm-mob-chip:not(.cm-mob-top)').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var tab = document.querySelector('.cm-tab[aria-controls="' + chip.getAttribute('data-target') + '"]');
+        if (!tab) return;
+        tab.click();
+        syncMap();
+        var bay = document.getElementById('cm-module-bay') || document.querySelector('.cm-tablist');
+        if (bay) bay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    var btnMobTop = document.getElementById('btn-mob-jump-top');
+    if (btnMobTop) {
+      btnMobTop.addEventListener('click', function () {
+        var st = document.getElementById('matrix-stage-box') || document.querySelector('.matrix-stage');
+        if (st) st.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
     document.querySelectorAll('.cm-tab').forEach(function (tab) { tab.addEventListener('click', syncMap); });
+    document.addEventListener('cm-tab-changed', syncMap);
     window.addEventListener('hashchange', function () { setTimeout(syncMap, 50); });
+    try {
+      var sp = new URLSearchParams(window.location.search);
+      var reqTab = sp.get('tab');
+      if (reqTab) {
+        var t = document.querySelector('.cm-tab[aria-controls="' + reqTab + '"]') || document.querySelector('[data-target="' + reqTab + '"]');
+        if (t) {
+          t.click();
+          syncMap();
+          setTimeout(function () { t.click(); syncMap(); }, 50);
+        }
+      }
+    } catch (e) {}
     syncMap();
   });
 })();
@@ -889,7 +953,12 @@
   };
   let seen = false;
   try {
-    seen = localStorage.getItem(SEEN_KEY) === '1' || localStorage.getItem(KEY) !== null;
+    var sp = new URLSearchParams(window.location.search);
+    if (sp.has('guide')) {
+      seen = sp.get('guide') === '0' || sp.get('guide') === 'collapsed';
+    } else {
+      seen = localStorage.getItem(SEEN_KEY) === '1' || localStorage.getItem(KEY) !== null;
+    }
   } catch (e) { seen = false; }
   let collapsed = seen;
   apply(collapsed);
@@ -904,6 +973,40 @@
       localStorage.setItem(SEEN_KEY, '1');
     } catch (e) { /* 保存できなくても開閉は動作させる */ }
   });
+})();
+
+/* ===== マスの文字配置（セル構造）図解カードの開閉トグル ===== */
+(() => {
+  const btnOpen = document.getElementById('btn-cell-layout-info');
+  const btnClose = document.getElementById('btn-close-cell-layout');
+  const card = document.getElementById('cm-cell-layout-card');
+  if (!card) return;
+  const toggle = (show) => {
+    const isVisible = show !== undefined ? show : card.style.display === 'none';
+    card.style.display = isVisible ? 'block' : 'none';
+    card.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+    if (btnOpen) btnOpen.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+  };
+  if (btnOpen) {
+    btnOpen.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggle();
+      if (card.style.display !== 'none') {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggle(false);
+      if (btnOpen) btnOpen.focus();
+    });
+  }
+  try {
+    var sp = new URLSearchParams(window.location.search);
+    if (sp.get('cellinfo') === '1') toggle(true);
+  } catch (e) {}
 })();
 
 /* ---------- Backup / Encryption nested page switches ---------- */
@@ -973,4 +1076,203 @@
 
   window.cmShowBackupPage = showBackupPage;
   window.cmShowBackupEncryptionMode = showEncryptionMode;
+})();
+
+
+/* Keyboard shortcuts & HUD (v3.28.4):
+   1-7      : モジュール切替（上部チップクリック相当）
+   Space    : 盤面ルート再生 / 一時停止
+   ← / →    : 一時停止中に1文字戻る / 進む
+   M        : 盤面へジャンプ（スクロール）
+   T        : 表示モード切替（ライト ⇄ ダーク）
+   V        : 覗き見防止切替（ぼかし ON ⇄ OFF）
+   ?        : ショートカット一覧モーダルの表示 / 非表示
+   Esc      : モーダルを閉じる / 再生停止
+   Esc × 3  : 🚨 緊急消去（全入力・メモリ・クリップボード消去）
+   ※ 入力中・変換中・修飾キー押下中は誤爆防止のため無効化 */
+(function () {
+  function isTyping(el) {
+    if (!el) return false;
+    var tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+  }
+  function visible(el) {
+    return !!el && el.style.display !== 'none' && el.offsetParent !== null;
+  }
+
+  // Toast HUD notification
+  var toastTimer = null;
+  function showToast(msg, type, duration) {
+    var hub = document.getElementById('cm-toast-hub');
+    if (!hub) return;
+    hub.innerHTML = '';
+    var toast = document.createElement('div');
+    toast.className = 'cm-toast' + (type ? ' is-' + type : '');
+    toast.textContent = msg;
+    hub.appendChild(toast);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 220);
+    }, duration || 2000);
+  }
+  window.cmShowToast = showToast;
+
+  // Shortcuts modal toggle
+  function toggleShortcutsModal(force) {
+    var modal = document.getElementById('cm-shortcuts-modal');
+    if (!modal) return;
+    var show = typeof force === 'boolean' ? force : modal.hasAttribute('hidden');
+    if (show) {
+      modal.removeAttribute('hidden');
+      var closeBtn = document.getElementById('btn-shortcuts-close');
+      if (closeBtn) closeBtn.focus();
+    } else {
+      modal.setAttribute('hidden', '');
+    }
+  }
+  window.cmToggleShortcutsModal = toggleShortcutsModal;
+
+  // Wire up modal close & help button
+  document.addEventListener('DOMContentLoaded', function () {
+    var helpBtn = document.getElementById('cm-help');
+    if (helpBtn) {
+      helpBtn.removeAttribute('disabled');
+      helpBtn.addEventListener('click', function () { toggleShortcutsModal(true); });
+    }
+    var closeBtn = document.getElementById('btn-shortcuts-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () { toggleShortcutsModal(false); });
+    }
+    var modal = document.getElementById('cm-shortcuts-modal');
+    if (modal) {
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) toggleShortcutsModal(false);
+      });
+    }
+  });
+
+  // Esc 3-strike emergency wipe counter
+  var escCount = 0;
+  var escTimer = null;
+
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+
+    // Esc handling (works even while typing if user wants to cancel)
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      var modal = document.getElementById('cm-shortcuts-modal');
+      if (modal && !modal.hasAttribute('hidden')) {
+        e.preventDefault();
+        toggleShortcutsModal(false);
+        escCount = 0;
+        return;
+      }
+      if (isTyping(e.target)) return;
+
+      e.preventDefault();
+      escCount++;
+      clearTimeout(escTimer);
+      escTimer = setTimeout(function () { escCount = 0; }, 1500);
+
+      if (escCount === 1) {
+        if (typeof window.stopMatrixTrace === 'function') {
+          window.stopMatrixTrace();
+        }
+      } else if (escCount === 2) {
+        showToast('⚠️ Esc あと1回で【緊急消去】を実行します', 'warning', 2500);
+      } else if (escCount >= 3) {
+        escCount = 0;
+        var zBtn = document.getElementById('btn-zeroize');
+        if (zBtn) {
+          zBtn.click();
+          showToast('🚨 緊急消去を実行しました（全入力・メモリ・クリップボード消去）', 'danger', 3500);
+        }
+      }
+      return;
+    }
+
+    if (isTyping(e.target)) return;
+
+    // 1-7: Module Jump
+    if (/^[1-7]$/.test(e.key) && !e.shiftKey) {
+      var chips = document.querySelectorAll('.cm-map-chip');
+      var chip = chips[Number(e.key) - 1];
+      if (chip) {
+        e.preventDefault();
+        chip.click();
+        var name = chip.querySelector('.cm-map-txt span')?.textContent || ('モジュール ' + e.key);
+        showToast('▶ ' + e.key + '. ' + name, '', 1500);
+      }
+      return;
+    }
+
+    // Space: Board Playback Pause / Resume
+    if (e.key === ' ' || e.code === 'Space') {
+      var tag = e.target && e.target.tagName;
+      if (tag === 'BUTTON' || tag === 'A') return;
+      var btn = document.getElementById('btn-pause-trace');
+      if (!visible(btn)) btn = document.getElementById('btn-sticky-pause');
+      if (visible(btn)) {
+        e.preventDefault();
+        btn.click();
+      }
+      return;
+    }
+
+    // ← / → : Step backward / forward during pause
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (typeof window.isMatrixTracePaused === 'function' && window.isMatrixTracePaused()) {
+        e.preventDefault();
+        var delta = e.key === 'ArrowLeft' ? -1 : 1;
+        if (typeof window.stepMatrixTrace === 'function') {
+          window.stepMatrixTrace(delta);
+        }
+      }
+      return;
+    }
+
+    // M: Jump to Board
+    if (!e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+      var st = document.getElementById('matrix-stage-box') || document.querySelector('.matrix-stage') || document.getElementById('cm-board');
+      if (st) {
+        e.preventDefault();
+        st.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('▲ 盤面へ移動しました', '', 1400);
+      }
+      return;
+    }
+
+    // T: Toggle Theme (Light / Dark)
+    if (!e.shiftKey && (e.key === 't' || e.key === 'T')) {
+      var tBtn = document.getElementById('cm-theme-toggle');
+      if (tBtn) {
+        e.preventDefault();
+        tBtn.click();
+        var isL = document.documentElement.classList.contains('light');
+        showToast(isL ? '☀️ ライトモード（ホワイトハッカー）' : '🌙 ダークモード（ブラックハッカー）', '', 1600);
+      }
+      return;
+    }
+
+    // V: Toggle Peek Guard (覗き見防止)
+    if (!e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+      var pBtn = document.querySelector('.cm-peek-toggle');
+      if (pBtn) {
+        e.preventDefault();
+        pBtn.click();
+        var isGuard = typeof window.cmIsPeekGuardOn === 'function' ? window.cmIsPeekGuardOn() : false;
+        showToast(isGuard ? '🔒 覗き見防止：ON（秘密情報ぼかし）' : '👁 覗き見防止：OFF（通常表示）', '', 1800);
+      }
+      return;
+    }
+
+    // ?: Toggle Shortcuts Modal
+    if (e.key === '?') {
+      e.preventDefault();
+      toggleShortcutsModal();
+      return;
+    }
+  });
 })();

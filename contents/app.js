@@ -1278,3 +1278,14 @@
     }
   });
 })();
+
+
+/* ===== 機能イラスト（feature-*.webp）の読み込み失敗時のフォールバック =====
+   壊れた画像アイコンを表示せず、該当の画像だけを隠す。 */
+(() => {
+  const isFeatureImg = (el) => el && el.tagName === 'IMG' && (el.getAttribute('src') || '').includes('feature-');
+  const hideBroken = (el) => { el.hidden = true; el.style.display = 'none'; };
+  document.addEventListener('error', (e) => { if (isFeatureImg(e.target)) hideBroken(e.target); }, true);
+  const sweep = () => { document.querySelectorAll('img').forEach((img) => { if (isFeatureImg(img) && img.complete && img.naturalWidth === 0) hideBroken(img); }); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
+})();

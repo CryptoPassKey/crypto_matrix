@@ -2198,7 +2198,7 @@ function initHelpTooltips(){
 
   const helpImg=$('help-popover-img');
 
-  if(helpImg){const src=btn.dataset.helpImg;if(src){helpImg.src=src;helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
+  if(helpImg){const src=btn.dataset.helpImg;helpImg.onload=()=>{if(popover.classList.contains('visible'))positionPopover();};helpImg.onerror=()=>{helpImg.hidden=true;if(popover.classList.contains('visible'))positionPopover();};if(src){helpImg.src=src;helpImg.hidden=false;}else{helpImg.hidden=true;helpImg.removeAttribute('src');}}
 
   popover.classList.add('visible');
 
@@ -2206,7 +2206,17 @@ function initHelpTooltips(){
 
 
 
-  const rect=btn.getBoundingClientRect();
+  positionPopover();
+
+ }
+
+
+
+ function positionPopover(){
+
+  if(!activeBtn)return;
+
+  const rect=activeBtn.getBoundingClientRect();
 
   const popWidth=Math.min(320,window.innerWidth-28);
 
@@ -2225,6 +2235,12 @@ function initHelpTooltips(){
    top=rect.top+window.scrollY-popHeight-8;
 
   }
+
+  const minTop=window.scrollY+8;
+
+  const maxTop=window.scrollY+Math.max(8,window.innerHeight-popHeight-8);
+
+  top=Math.max(minTop,Math.min(top,maxTop));
 
   popover.style.left=Math.round(left)+'px';
 

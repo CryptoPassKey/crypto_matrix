@@ -102,7 +102,7 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.5-trace-no-overflow'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.6-button-key-icons'));
 
 // SW プリキャッシュの行動検証: theme-cyber.css は HTTP キャッシュを再検証して取得し、addAll には含めない
 {

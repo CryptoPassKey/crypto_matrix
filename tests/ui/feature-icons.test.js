@@ -36,8 +36,36 @@ check('restore test button exists', !!testBtn);
 check('restore test button has test icon', !!testBtn && !!testBtn.querySelector('img[src="test-icon.png"]'));
 check('restore test button svg removed', !!testBtn && !testBtn.querySelector('svg'));
 
+// 暗号化・復号ボタンは南京錠アイコンのペア（施錠=lock-icon / 開錠=unlock-icon）で統一
+const tsJs = fs.readFileSync(path.join(ROOT, 'contents', 'timesecret.js'), 'utf8');
+const lockBtns = ['bq-create', 'bv-btn-encrypt', 'tl-btn-encrypt', 'tl-tab-btn-encrypt', 'btn-ts-create-seal'];
+const unlockBtns = ['bq-apply', 'bv-btn-decrypt', 'tl-btn-decrypt', 'tl-tab-btn-decrypt', 'btn-ts-unlock-exec'];
+for (const id of lockBtns) {
+  const b = doc.getElementById(id);
+  check(id + ' has lock icon', !!b && !!b.querySelector('img[src="lock-icon.png"]'));
+}
+for (const id of unlockBtns) {
+  const b = doc.getElementById(id);
+  check(id + ' has unlock icon', !!b && !!b.querySelector('img[src="unlock-icon.png"]'));
+}
+// サブタブはインラインSVGを廃して画像ペアへ
+check('tl-tab-btn-encrypt svg removed', !doc.getElementById('tl-tab-btn-encrypt').querySelector('svg'));
+check('tl-tab-btn-decrypt svg removed', !doc.getElementById('tl-tab-btn-decrypt').querySelector('svg'));
+// TimeSecret復号ボタン: ラベルはspanで、JSはボタン本体ではなくspanを書き換える（画像を消さないため）
+const unlockExec = doc.getElementById('btn-ts-unlock-exec');
+check('unlock exec label span exists', !!unlockExec && !!unlockExec.querySelector('#ts-unlock-exec-label'));
+check('timesecret.js updates label span', tsJs.includes("$('ts-unlock-exec-label')"));
+check('timesecret.js does not overwrite unlock button text', !tsJs.includes("$('btn-ts-unlock-exec').textContent"));
+// 単独復元ツール: 復号ボタンにも開錠アイコン（同ページCSSに .cm-btn-img が必要）
+const recHtml = fs.readFileSync(path.join(ROOT, 'contents', 'timelock-recover.html'), 'utf8');
+const recCss = fs.readFileSync(path.join(ROOT, 'contents', 'timelock-recover.css'), 'utf8');
+const recDom = new JSDOM(recHtml, { url: 'https://localhost/' });
+const recBtn = recDom.window.document.getElementById('rec-btn-decrypt');
+check('recover decrypt button has unlock icon', !!recBtn && !!recBtn.querySelector('img[src="unlock-icon.png"]'));
+check('recover css defines cm-btn-img', recCss.includes('.cm-btn-img'));
+
 // SW プリキャッシュと実ファイルの存在（アップロード漏れ検出）
-for (const f of ['shamir-icon.png', 'test-icon.png', 'passkey-icon.png']) {
+for (const f of ['shamir-icon.png', 'test-icon.png', 'passkey-icon.png', 'lock-icon.png', 'unlock-icon.png']) {
   check('sw precaches ' + f, sw.includes('"' + f + '"'));
   check('file exists contents/' + f, fs.existsSync(path.join(ROOT, 'contents', f)));
 }

@@ -166,7 +166,7 @@ check('center active-char-spot keeps centering without scale',
       for (const sel of m[1].split(',')) {
         const classes = new Set([...sel.matchAll(/\.([\w-]+)/g)].map((x) => x[1]));
         const ids = new Set([...sel.matchAll(/#([\w-]+)/g)].map((x) => x[1]));
-        decls.push({ classes, ids, spec: specOf(sel), order: order++, value: t[1].trim(), important: /!important\s*$/.test(t[1].trim()) });
+        decls.push({ classes, ids, spec: specOf(sel), order: order++, value: t[1].trim().replace(/\s*!important\s*$/, ''), important: /!important\s*$/.test(t[1].trim()) });
       }
     }
   }
@@ -183,14 +183,14 @@ check('center active-char-spot keeps centering without scale',
   const tileProbes = ['active-tile', 'stroke-active-tile', 'fallback-tile', 'stroke-start-tile', 'stroke-preview-tile'];
   for (const cls of tileProbes) {
     const w = winnerFor(['square', cls], boardAnc.classes, boardAnc.ids);
-    check('cascade: .' + cls + ' has no scale transform', w === null || !w.includes('scale('));
+    check('cascade: .' + cls + ' transform winner is exactly none', w === 'none');
   }
   const spotAncClasses = ['cm-board', 'square'];
   const cornerWin = winnerFor(['corner-text', 'active-char-spot'], spotAncClasses, boardAnc.ids);
-  check('cascade: corner active-char-spot has no scale transform', cornerWin === null || !cornerWin.includes('scale('));
+  check('cascade: corner active-char-spot transform winner is exactly none', cornerWin === 'none');
   const centerWin = winnerFor(['center-text', 'active-char-spot'], spotAncClasses, boardAnc.ids);
-  check('cascade: center active-char-spot keeps centering, no scale',
-    !!centerWin && centerWin.includes('translate(-50%, -50%)') && !centerWin.includes('scale('));
+  check('cascade: center active-char-spot transform winner is exactly translate(-50%, -50%)',
+    centerWin === 'translate(-50%, -50%)');
   // アニメーションが transform を上書きしないこと（対象キーフレームは影と枠色のみ）
   const legacyCss = sheets[1];
   for (const kf of ['strokePreviewPulse', 'strokeStartPulse']) {

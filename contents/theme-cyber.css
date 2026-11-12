@@ -4435,6 +4435,14 @@ html.light .cm-board .active-char-spot {
   box-shadow: 0 1px 4px rgba(4, 120, 87, 0.4) !important;
 }
 
+/* 再生ハイライトの拡大 transform が盤面の右端・上端でスクロール領域を広げ、
+   .matrix-scroll に横スクロールバーを出現させてレイアウトをずらすため打ち消す。
+   ハイライト自体は背景・枠・影で維持する（影はスクロール領域を広げない）。 */
+.cm-board #div-encrypto-matrix-main .square.active-tile,
+.cm-board #div-encrypto-matrix-main .square.stroke-active-tile { transform: none !important; }
+.cm-board .corner-text.active-char-spot { transform: none !important; }
+.cm-board .center-text.active-char-spot { transform: translate(-50%, -50%) !important; }
+
 /* 5. DEDICATED CRYPTOGRAPHIC OUTPUT UNIT & TRACE SWITCH BANK (.live-player-bar) */
 .cm-legacy .live-player-bar {
   margin-top: 6px !important;

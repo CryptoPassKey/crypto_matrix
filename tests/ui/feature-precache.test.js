@@ -137,6 +137,14 @@ check('side img shrinks (not hidden) on small screens',
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
 
+// 再生ハイライトの transform 打ち消し（横スクロールバー・レイアウトずれ対策）
+check('active tile transform is neutralized in board',
+  themeCss.includes('.cm-board #div-encrypto-matrix-main .square.active-tile,') && themeCss.includes('.cm-board #div-encrypto-matrix-main .square.stroke-active-tile { transform: none !important; }'));
+check('corner active-char-spot transform is neutralized',
+  themeCss.includes('.cm-board .corner-text.active-char-spot { transform: none !important; }'));
+check('center active-char-spot keeps centering without scale',
+  themeCss.includes('.cm-board .center-text.active-char-spot { transform: translate(-50%, -50%) !important; }'));
+
 // レビュー指摘: フォールバックは静的イラスト専用（再利用されるポップオーバー画像を除外）
 check('app.js fallback excludes help-popover-img',
   appJs.includes("el.id !== 'help-popover-img'") && appJs.includes("!el.classList.contains('help-popover-img')"));

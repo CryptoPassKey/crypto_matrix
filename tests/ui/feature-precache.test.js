@@ -137,6 +137,77 @@ check('side img shrinks (not hidden) on small screens',
 check('theme has cm-qr-side-row layout', themeCss.includes('.cm-qr-side-row') && themeCss.includes('.cm-qr-side img'));
 check('app.js wires guide header click', appJs.includes("querySelector('.verbal-guide-header')") && appJs.includes("closest('#btn-guide-toggle')"));
 
+// 再生ハイライトの transform 打ち消し（横スクロールバー・レイアウトずれ対策）
+check('active tile transform is neutralized in board',
+  themeCss.includes('.cm-board #div-encrypto-matrix-main .square.active-tile,') && themeCss.includes('.cm-board #div-encrypto-matrix-main .square.stroke-active-tile { transform: none !important; }'));
+check('corner active-char-spot transform is neutralized',
+  themeCss.includes('.cm-board .corner-text.active-char-spot { transform: none !important; }'));
+check('center active-char-spot keeps centering without scale',
+  themeCss.includes('.cm-board .center-text.active-char-spot { transform: translate(-50%, -50%) !important; }'));
+
+// 実スタイル評価: app.css → legacy.css → theme-cyber.css の読み込み順でカスケードを計算し、
+// 盤面ハイライト各クラスの transform の勝者を実ファイルから求める（文字列の有無ではなく勝者で判定）。
+// 近似: メディア条件とホバー等の状態疑似クラスは無視し、全ルールを候補にする。
+{
+  const sheets = ['contents/app.css', 'contents/legacy.css', 'contents/theme-cyber.css']
+    .map((f) => fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''));
+  const decls = []; // {classes:Set, ids:Set, spec:[a,b,c], order, value, important}
+  let order = 0;
+  const specOf = (sel) => [
+    (sel.match(/#/g) || []).length,
+    (sel.match(/\./g) || []).length + (sel.match(/\[/g) || []).length + (sel.match(/:(?!:)/g) || []).length,
+    (sel.replace(/#[\w-]+/g, ' ').replace(/\.[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/::?[\w-]+(\([^)]*\))?/g, ' ').match(/[a-zA-Z][\w-]*/g) || []).length,
+  ];
+  for (const css of sheets) {
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const body = m[2];
+      const t = /(?:^|;)\s*transform\s*:\s*([^;]+)/.exec(body);
+      if (!t) continue;
+      for (const sel of m[1].split(',')) {
+        const classes = new Set([...sel.matchAll(/\.([\w-]+)/g)].map((x) => x[1]));
+        const ids = new Set([...sel.matchAll(/#([\w-]+)/g)].map((x) => x[1]));
+        decls.push({ classes, ids, spec: specOf(sel), order: order++, value: t[1].trim().replace(/\s*!important\s*$/, ''), important: /!important\s*$/.test(t[1].trim()) });
+      }
+    }
+  }
+  const cmpSpec = (x, y) => x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+  const winnerFor = (elClasses, ancestorClasses, ancestorIds) => {
+    const avail = new Set([...elClasses, ...ancestorClasses]);
+    const cands = decls.filter((d) =>
+      [...d.classes].every((c) => avail.has(c)) &&
+      [...d.ids].every((i) => ancestorIds.has(i)));
+    cands.sort((x, y) => (Number(y.important) - Number(x.important)) || cmpSpec(y.spec, x.spec) || (y.order - x.order));
+    return cands.length ? cands[0].value : null;
+  };
+  const boardAnc = { classes: ['cm-board'], ids: new Set(['div-encrypto-matrix-main']) };
+  const tileProbes = ['active-tile', 'stroke-active-tile', 'fallback-tile', 'stroke-start-tile', 'stroke-preview-tile'];
+  for (const cls of tileProbes) {
+    const w = winnerFor(['square', cls], boardAnc.classes, boardAnc.ids);
+    check('cascade: .' + cls + ' transform winner is exactly none', w === 'none');
+  }
+  const spotAncClasses = ['cm-board', 'square'];
+  const cornerWin = winnerFor(['corner-text', 'active-char-spot'], spotAncClasses, boardAnc.ids);
+  check('cascade: corner active-char-spot transform winner is exactly none', cornerWin === 'none');
+  const centerWin = winnerFor(['center-text', 'active-char-spot'], spotAncClasses, boardAnc.ids);
+  check('cascade: center active-char-spot transform winner is exactly translate(-50%, -50%)',
+    centerWin === 'translate(-50%, -50%)');
+  // アニメーションが transform を上書きしないこと（対象キーフレームは影と枠色のみ）
+  const legacyCss = sheets[1];
+  for (const kf of ['strokePreviewPulse', 'strokeStartPulse']) {
+    const i = legacyCss.indexOf('@keyframes ' + kf);
+    let block = '';
+    if (i >= 0) {
+      const open = legacyCss.indexOf('{', i);
+      let depth = 0;
+      for (let j = open; j < legacyCss.length; j++) {
+        if (legacyCss[j] === '{') depth++;
+        else if (legacyCss[j] === '}') { depth--; if (depth === 0) { block = legacyCss.slice(open, j + 1); break; } }
+      }
+    }
+    check('keyframes ' + kf + ' does not animate transform', block.length > 0 && !block.includes('transform'));
+  }
+}
+
 // レビュー指摘: フォールバックは静的イラスト専用（再利用されるポップオーバー画像を除外）
 check('app.js fallback excludes help-popover-img',
   appJs.includes("el.id !== 'help-popover-img'") && appJs.includes("!el.classList.contains('help-popover-img')"));

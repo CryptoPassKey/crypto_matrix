@@ -38,8 +38,8 @@ check('restore test button svg removed', !!testBtn && !testBtn.querySelector('sv
 
 // 暗号化・復号ボタンは南京錠アイコンのペア（施錠=lock-icon / 開錠=unlock-icon）で統一
 const tsJs = fs.readFileSync(path.join(ROOT, 'contents', 'timesecret.js'), 'utf8');
-const lockBtns = ['bq-create', 'bv-btn-encrypt', 'tl-btn-encrypt', 'tl-tab-btn-encrypt', 'btn-ts-create-seal'];
-const unlockBtns = ['bq-apply', 'bv-btn-decrypt', 'tl-btn-decrypt', 'tl-tab-btn-decrypt', 'btn-ts-unlock-exec'];
+const lockBtns = ['bq-create', 'bv-btn-encrypt', 'tl-btn-encrypt', 'tl-tab-btn-encrypt', 'btn-ts-create-seal', 'bq-tab-btn-encrypt', 'backup-subtab-btn-encrypt'];
+const unlockBtns = ['bq-apply', 'bv-btn-decrypt', 'tl-btn-decrypt', 'tl-tab-btn-decrypt', 'btn-ts-unlock-exec', 'bq-tab-btn-decrypt'];
 for (const id of lockBtns) {
   const b = doc.getElementById(id);
   check(id + ' has lock icon', !!b && !!b.querySelector('img[src="lock-icon.png"]'));
@@ -63,6 +63,10 @@ const recDom = new JSDOM(recHtml, { url: 'https://localhost/' });
 const recBtn = recDom.window.document.getElementById('rec-btn-decrypt');
 check('recover decrypt button has unlock icon', !!recBtn && !!recBtn.querySelector('img[src="unlock-icon.png"]'));
 check('recover css defines cm-btn-img', recCss.includes('.cm-btn-img'));
+for (const f of ['lock-icon.png', 'unlock-icon.png']) {
+  const sz = fs.statSync(path.join(ROOT, 'contents', f)).size;
+  check(f + ' stays small (<64KB, got ' + Math.round(sz / 1024) + 'KB)', sz < 64 * 1024);
+}
 
 // SW プリキャッシュと実ファイルの存在（アップロード漏れ検出）
 for (const f of ['shamir-icon.png', 'test-icon.png', 'passkey-icon.png', 'lock-icon.png', 'unlock-icon.png']) {

@@ -739,8 +739,8 @@
 <section class="section-card" id="backup-qr" data-ready="false">
  <h2 class="section-title">暗号化バックアップ・復元<button type="button" class="help-btn" aria-label="説明を表示" data-help="設定やサイト・合言葉を、パスワード・キーファイル・パスキー（生体認証／セキュリティキー）・秘密分散（M-of-N）を自由に組み合わせて暗号化し、BIP39フレーズと統合QRコードでバックアップ・復元する領域です。保護は単独でも作成できます。暗号化なしのフレーズとQRコードは上の「復元フレーズ（24単語・暗号化なし）」に自動表示されます。">?</button></h2>
  <div class="cm-subtab-bar cm-subtab-bar-inner" role="tablist" aria-label="暗号化・復号化">
-  <button type="button" class="cm-subtab-btn is-active" id="bq-tab-btn-encrypt" role="tab" aria-selected="true" aria-controls="bq-panel-encrypt">暗号化</button>
-  <button type="button" class="cm-subtab-btn" id="bq-tab-btn-decrypt" role="tab" aria-selected="false" aria-controls="bq-panel-decrypt">復号化</button>
+  <button type="button" class="cm-subtab-btn is-active" id="bq-tab-btn-encrypt" role="tab" aria-selected="true" aria-controls="bq-panel-encrypt"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化</button>
+  <button type="button" class="cm-subtab-btn" id="bq-tab-btn-decrypt" role="tab" aria-selected="false" aria-controls="bq-panel-decrypt"><img src="unlock-icon.png" class="cm-btn-img" alt="" width="20" height="20">復号化</button>
  </div>
  <div id="bq-panel-encrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="bq-tab-btn-encrypt">
  <div class="no-print">
@@ -1993,7 +1993,7 @@
     <div id="tab-backup" class="cm-panel cm-legacy" role="tabpanel" hidden>
       <div class="cm-subtab-bar" role="tablist" aria-label="バックアップ・暗号化">
         <button type="button" class="cm-subtab-btn is-active" id="backup-subtab-btn-backup" role="tab" aria-selected="true" aria-controls="tab-backup-page-backup">バックアップ</button>
-        <button type="button" class="cm-subtab-btn" id="backup-subtab-btn-encrypt" role="tab" aria-selected="false" aria-controls="tab-backup-page-encrypt">暗号化</button>
+        <button type="button" class="cm-subtab-btn" id="backup-subtab-btn-encrypt" role="tab" aria-selected="false" aria-controls="tab-backup-page-encrypt"><img src="lock-icon.png" class="cm-btn-img" alt="" width="20" height="20">暗号化</button>
       </div>
       <div id="tab-backup-page-backup" class="cm-subtab-panel" role="tabpanel" aria-labelledby="backup-subtab-btn-backup"></div>
       <div id="tab-backup-page-encrypt" class="cm-subtab-panel" role="tabpanel" aria-labelledby="backup-subtab-btn-encrypt" hidden></div>

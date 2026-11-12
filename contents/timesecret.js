@@ -4537,7 +4537,8 @@
     if ($('ts-unlock-pk-wrap')) $('ts-unlock-pk-wrap').hidden = !(needFactors && encAuth.usePasskey);
     if ($('btn-ts-unlock-exec')) {
       $('btn-ts-unlock-exec').disabled = !hasDevKey;
-      $('btn-ts-unlock-exec').textContent = needFactors ? '🔓 認証して復号する' : '🔓 ワンクリックで復号する';
+      const unlockLabel = $('ts-unlock-exec-label');
+      if (unlockLabel) unlockLabel.textContent = needFactors ? '認証して復号する' : 'ワンクリックで復号する';
     }
 
     box.hidden = false;

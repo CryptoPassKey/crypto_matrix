@@ -111,4 +111,5 @@
       gap: 8px 16px;
       font-size: 0.85rem;
     }
-  
+
+.cm-btn-img { width: 18px; height: 18px; display: inline-block; vertical-align: -4px; margin-right: 6px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }

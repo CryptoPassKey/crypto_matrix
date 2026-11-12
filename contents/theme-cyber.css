@@ -4440,6 +4440,9 @@ html.light .cm-board .active-char-spot {
    ハイライト自体は背景・枠・影で維持する（影はスクロール領域を広げない）。 */
 .cm-board #div-encrypto-matrix-main .square.active-tile,
 .cm-board #div-encrypto-matrix-main .square.stroke-active-tile { transform: none !important; }
+.cm-board #div-encrypto-matrix-main .square.fallback-tile,
+.cm-board #div-encrypto-matrix-main .square.stroke-start-tile,
+.cm-board #div-encrypto-matrix-main .square.stroke-preview-tile { transform: none !important; }
 .cm-board .corner-text.active-char-spot { transform: none !important; }
 .cm-board .center-text.active-char-spot { transform: translate(-50%, -50%) !important; }
 

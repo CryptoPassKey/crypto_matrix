@@ -102,9 +102,10 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.7-key-icon-artwork'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.29.8-key-icon-revalidate'));
 
-// SW プリキャッシュの行動検証: theme-cyber.css は HTTP キャッシュを再検証して取得し、addAll には含めない
+// SW プリキャッシュの行動検証: theme-cyber.css と鍵アイコン2枚は HTTP キャッシュを
+// 再検証して取得し、addAll には含めない
 {
   const vm = require('vm');
   const listeners = {};
@@ -140,6 +141,15 @@ function completeInstall(reg) {
   check('theme-cyber.css fetched with cache reload',
     fetches.some(([u, o]) => u === 'theme-cyber.css' && o && o.cache === 'reload'));
   check('theme-cyber.css stored via cache.put', puts.includes('theme-cyber.css'));
+  // 鍵アイコン2枚は URL 不変で絵柄だけ差し替わったため、同じ再検証方式にする。
+  // 旧アイコンがブラウザの HTTP キャッシュに残っていると、新しい SW キャッシュへ
+  // 固定されてしまう。
+  for (const icon of ['lock-icon.png', 'unlock-icon.png']) {
+    check('precache addAll excludes ' + icon, !addedAll.includes(icon));
+    check(icon + ' fetched with cache reload',
+      fetches.some(([u, o]) => u === icon && o && o.cache === 'reload'));
+    check(icon + ' stored via cache.put', puts.includes(icon));
+  }
 }
 
   // ===== シナリオA: 「あとで」→ 別の新版では再び出る =====

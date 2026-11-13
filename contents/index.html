@@ -97,11 +97,11 @@
           <span class="cm-bezel-led"></span>
         </div>
         <div class="cm-bezel-legend" role="note" aria-label="マスの四隅・中央の文字配置凡例">
-          <span class="cm-legend-item cm-leg-tl" title="暗証番号用：数字のみ">[左上] 数字</span>
-          <span class="cm-legend-item cm-leg-tr" title="英数パスワード用：英大文字・英小文字・数字">[右上] 英大小数字</span>
+          <span class="cm-legend-item cm-leg-tl" title="暗証番号用：数字のみ">[左上] 数字 1 2 3 4 5 6</span>
+          <span class="cm-legend-item cm-leg-tr" title="英数パスワード用：英大文字・英小文字・数字">[右上] 英大小・数字 A B C a b c 1 2 3</span>
           <span class="cm-legend-item cm-leg-center" title="マスキー：盤面特定用の基準文字">[中央] 基準文字</span>
-          <span class="cm-legend-item cm-leg-bl" title="標準パスワード本文用：英大文字・英小文字・数字・記号">[左下] 英大小数字記号</span>
-          <span class="cm-legend-item cm-leg-br" title="対応文字：英小文字・数字・記号">[右下] 英小数字記号</span>
+          <span class="cm-legend-item cm-leg-bl" title="標準パスワード本文用：英大文字・英小文字・数字・記号">[左下] 英大小・数字・記号 A B C a b c 1 2 3 # @ !</span>
+          <span class="cm-legend-item cm-leg-br" title="対応文字：英小文字・数字・記号">[右下] 英小・数字・記号 a b c 1 2 3 # @ !</span>
           <button type="button" id="btn-cell-layout-info" class="cm-bezel-help-btn" aria-expanded="false" aria-controls="cm-cell-layout-card" title="1マスの文字配置と役割の詳細を表示"><span class="cm-bezel-help-ico">ℹ️</span><span>マス構造</span></button>
         </div>
       </div>
@@ -118,20 +118,20 @@
         <div class="cm-cell-layout-body">
           <div class="cm-cell-layout-preview">
             <div class="cm-cell-preview-box">
-              <div class="cm-prev-corner cm-prev-tl"><span class="cm-prev-tag">左上</span><span class="cm-prev-val">7</span><span class="cm-prev-sub">数字 (0-9)</span></div>
-              <div class="cm-prev-corner cm-prev-tr"><span class="cm-prev-tag">右上</span><span class="cm-prev-val">K</span><span class="cm-prev-sub">英大小数字</span></div>
-              <div class="cm-prev-center"><span class="cm-prev-tag">中央</span><span class="cm-prev-val">a</span><span class="cm-prev-sub">基準文字 (マスキー)</span></div>
-              <div class="cm-prev-corner cm-prev-bl"><span class="cm-prev-tag">左下 ★本文</span><span class="cm-prev-val">#</span><span class="cm-prev-sub">英大小数字記号</span></div>
-              <div class="cm-prev-corner cm-prev-br"><span class="cm-prev-tag">右下</span><span class="cm-prev-val">w</span><span class="cm-prev-sub">英小数字記号(対応)</span></div>
+              <div class="cm-prev-corner cm-prev-tl"><span class="cm-prev-tag">左上</span><span class="cm-prev-val">1</span><span class="cm-prev-sub">数字 1 2 3 4 5 6</span></div>
+              <div class="cm-prev-corner cm-prev-tr"><span class="cm-prev-tag">右上</span><span class="cm-prev-val">A</span><span class="cm-prev-sub">英大小・数字 A B C a b c 1 2 3</span></div>
+              <div class="cm-prev-center"><span class="cm-prev-tag">中央</span><span class="cm-prev-val">a</span><span class="cm-prev-sub">基準文字</span></div>
+              <div class="cm-prev-corner cm-prev-bl"><span class="cm-prev-tag">左下</span><span class="cm-prev-val">#</span><span class="cm-prev-sub">英大小・数字・記号 A B C a b c 1 2 3 # @ !</span></div>
+              <div class="cm-prev-corner cm-prev-br"><span class="cm-prev-tag">右下</span><span class="cm-prev-val">a</span><span class="cm-prev-sub">英小・数字・記号 a b c 1 2 3 # @ !</span></div>
             </div>
           </div>
           <div class="cm-cell-layout-details">
             <ul class="cm-cell-layout-list">
               <li><span class="cm-leg-chip cm-leg-center">[中央] 基準文字</span><p>サイト名や合言葉の文字を探す<strong>インデックスキー</strong>。全40マスに「0〜9」「a〜z」「記号4種」が1文字ずつ重複なく割り当てられています。</p></li>
-              <li><span class="cm-leg-chip cm-leg-bl">[左下] 英大小数字記号</span><p><strong>標準パスワード本文の基本読み取り角</strong>。英大文字・英小文字・数字・記号のすべてを含み、複雑で強固なパスワードを生成します。</p></li>
-              <li><span class="cm-leg-chip cm-leg-tl">[左上] 数字のみ</span><p><strong>銀行ATMやスマートフォンの暗証番号（PIN）</strong>用。0〜9の数字のみを配置しています。</p></li>
-              <li><span class="cm-leg-chip cm-leg-tr">[右上] 英大小数字</span><p><strong>記号が使用できないWebサイト向け</strong>の英数パスワード用。英大文字・英小文字・数字を含みます。</p></li>
-              <li><span class="cm-leg-chip cm-leg-br">[右下] 英小数字記号</span><p><strong>対応文字</strong>。基準文字（0-9, a-z, 記号4種）をシャッフルした配置で、四隅なぞりや交互抽出などに使用します。</p></li>
+              <li><span class="cm-leg-chip cm-leg-bl">[左下] 英大小・数字・記号 A B C a b c 1 2 3 # @ !</span><p><strong>標準パスワード本文の基本読み取り角</strong>。英大文字・英小文字・数字・記号のすべてを含み、複雑で強固なパスワードを生成します。</p></li>
+              <li><span class="cm-leg-chip cm-leg-tl">[左上] 数字 1 2 3 4 5 6</span><p><strong>銀行ATMやスマートフォンの暗証番号（PIN）</strong>用。0〜9の数字のみを配置しています。</p></li>
+              <li><span class="cm-leg-chip cm-leg-tr">[右上] 英大小・数字 A B C a b c 1 2 3</span><p><strong>記号が使用できないWebサイト向け</strong>の英数パスワード用。英大文字・英小文字・数字を含みます。</p></li>
+              <li><span class="cm-leg-chip cm-leg-br">[右下] 英小・数字・記号 a b c 1 2 3 # @ !</span><p><strong>対応文字</strong>。基準文字（0-9, a-z, 記号4種）をシャッフルした配置で、四隅なぞりや交互抽出などに使用します。</p></li>
             </ul>
           </div>
         </div>

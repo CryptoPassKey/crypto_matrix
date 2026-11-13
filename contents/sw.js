@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.29.7-key-icon-artwork';
+const VERSION = 'cm-v3.29.8-key-icon-revalidate';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -123,8 +123,8 @@ const FILES = [
 
 // Files fetched with HTTP-cache revalidation during precache. addAll() may be
 // served a stale copy from the browser HTTP cache right after a deploy, which
-// would pin the old stylesheet into the new worker's cache.
-const REVALIDATE_FILES = ['theme-cyber.css'];
+// would pin the old file into the new worker's cache.
+const REVALIDATE_FILES = ['theme-cyber.css', 'lock-icon.png', 'unlock-icon.png'];
 
 self.addEventListener('install', (e) => {
   // Precache the complete new app. The first rollout upgrades older workers once,

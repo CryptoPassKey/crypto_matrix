@@ -692,11 +692,16 @@ html.light .cm-footer-dock-dot {
   display: none;
 }
 @media (max-width: 1024px) {
-  body {
-    padding-bottom: 54px !important;
+  body.cm-body {
+    /* ドック本体 44px（上下パディング 3px + チップ 38px + 3px）に Safe Area 分を加えた高さ以上を確保し、
+       最下部までスクロールしたときにコンテンツがドックの裏に隠れないようにする。
+       theme-cyber.css の body { padding: 0 !important } より詳細度で勝つよう body.cm-body で指定する */
+    padding-bottom: calc(54px + env(safe-area-inset-bottom, 0px)) !important;
   }
   #sticky-pw-bar {
-    bottom: 46px !important;
+    /* ドックの真上に配置する。ドックは Safe Area 分だけ高くなるため、
+       バーの下端にも同じ inset を加えて重なりを防ぐ（inset 0 では従来どおり 46px） */
+    bottom: calc(46px + env(safe-area-inset-bottom, 0px)) !important;
   }
   .cm-mobile-dock {
     display: block;

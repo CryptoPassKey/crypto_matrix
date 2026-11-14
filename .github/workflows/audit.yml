@@ -57,6 +57,8 @@ jobs:
         run: node tests/ui/sw-update-prompt.test.js
       - name: SW navigate redirect tests
         run: node tests/ui/sw-navigate-redirect.test.js
+      - name: Mobile dock overlap audit
+        run: node tests/ui/mobile-dock-overlap.test.js
       - name: Matrix letter-seed symbols tests
         run: node tests/security/matrix-letter-seed-symbols.test.js
       - name: Matrix numeric-seed restore compat tests

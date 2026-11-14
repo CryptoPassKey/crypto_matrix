@@ -272,7 +272,7 @@ const navRequest = (pathname) => ({ method: 'GET', mode: 'navigate', url: ORIGIN
   check('sw no longer uses cache.addAll', !swSource.includes('.addAll(FILES'));
   check('navigate branch treats redirected hits as misses', swSource.includes('hit && !hit.redirected'));
   check('navigation caching is limited to plain OK responses', swSource.includes('res.ok && !res.redirected'));
-  check('sw version bumped', swSource.includes("cm-v3.30.2-sw-precache-clean"));
+  check('sw version bumped', swSource.includes("cm-v3.30.3-mobile-dock-overlap"));
   check('precache keeps keeweb/index.html', swSource.includes('"keeweb/index.html"'));
   check('precache includes keeweb/ directory URL', swSource.includes('"keeweb/",'));
   const kwSw = fs.readFileSync(path.join(CONTENTS, 'keeweb', 'service-worker.js'), 'utf8');

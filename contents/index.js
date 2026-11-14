@@ -3325,7 +3325,7 @@ document.addEventListener('DOMContentLoaded', () => {
  const originalEvaluate=evaluateRecipeSteps, originalGuide=updateVerbalGuide;
  const originalSimulation=updateSimulationUI, originalMatrix=updateMainMatrix;
  const originalPack=packRecipeTo256Bit, originalUnpack=unpack256BitToRecipe;
- let appliedSeed=0, issue='', backupRequest=0, restoreRequest=0, restoring=false, blindMode=false;
+ let appliedSeed=0, appliedSeedText='0', issue='', backupRequest=0, restoreRequest=0, restoring=false, blindMode=false;
  const cardMode=cfg=>[3,4,5].includes(cfg.lenMode);
  const canonical=s=>String(s??'').replace(/[A-Z]/g,c=>c.toLowerCase()).split('').filter(c=>CENTER_CHARS.includes(c)).join('');
  function setStatus(id,text,error=false){const el=$(id);if(el){el.textContent=text;el.dataset.error=String(error);}}
@@ -3349,7 +3349,10 @@ document.addEventListener('DOMContentLoaded', () => {
  function cardStep(i,corner,label,fallback=false){const t=currentMatrixData[i];return{ch:t[corner],tileIdx:i,corner,isFallback:fallback,log:`${label}: ${Math.floor(i/8)+1}行${i%8+1}列 マス[${t.center}]の${corner==='tl'?'左上':corner==='bl'?'左下':'右上'} → '${t[corner]}'`};}
  function search(start,corner,test,label,includeStart=false){let i=start;for(let hop=0;hop<currentMatrixData.length;hop++){if(!includeStart||hop>0)i=next(i);if(test(currentMatrixData[i][corner]))return cardStep(i,corner,`${label}（${includeStart?hop:hop+1}マス先）`,hop>0||!includeStart);}throw new Error(`${label}に使える文字が見つかりません。`);}
  function preset(mode,L){return{kwOrder:3,kwFilter:0,kwNum:4,shiftDir:0,shiftN:1,shiftM:1,baseCorner:mode==='pin'?3:0,pickPattern:0,symMode:mode==='pin'?3:Number($('cq-symbol-mode').value),symList:mode==='pin'?'':$('cq-symbol-list').value,symFbDir:3,symFbDist:1,symFbCorner:0,preTarget:0,prePattern:0,preOffset:0,sufTarget:0,sufPattern:0,sufOffset:0,ancTile:0,ancMode:0,ancPos:4,postMode:0,lenMode:mode==='pin'?3:5,lenVal:L};}
- updateMainMatrix=function(seed){originalMatrix(seed);appliedSeed=parseSeedValue(seed);};
+ // 【使用中】表示用のシード表記: 数字シードは数値表記（従来どおり）、それ以外は入力文字列のまま保持する。
+ // 数値化した appliedSeed を表示すると、英数字シードでは FNV-1a ハッシュの数字がカード番号として表示されてしまう。
+ function seedLabelOf(seed){if(typeof seed==='string'){const t=seed.trim();if(!t)return'0';return/^[+-]?\d+$/.test(t)?String(parseSeedValue(t)):t;}if(typeof seed==='number'&&Number.isFinite(seed))return String(Math.trunc(seed));return String(parseSeedValue(seed));}
+ updateMainMatrix=function(seed){originalMatrix(seed);appliedSeed=parseSeedValue(seed);appliedSeedText=seedLabelOf(seed);};
  evaluateRecipeSteps=function(siteRaw,secretRaw,cfg){
   if(!cardMode(cfg))return originalEvaluate(siteRaw,secretRaw,cfg);
   issue='';
@@ -4162,7 +4165,7 @@ document.addEventListener('DOMContentLoaded', () => {
    $('sim-output-meta').textContent=`かんたんモード（${subMode}） ／ ${currentEvalSteps.length}${cfg.lenMode===3?'桁':'文字'} ／ 約${ent.bits} bits`;
    $('sim-step-banner').textContent='▶ 盤面または再生ボタンで、出力文字のマス・角が順番に光ります。';
    const syms=cfg.lenMode===5?validateSymbols(cfg).join(''):'';
-   setStatus('cq-status',`【使用中】${getActiveModeLabel(cfg)}\n・カード番号：${appliedSeed} ／ 探索文字：${input.site} ＋ ${input.secret}（交互）\n・出力：${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（約${ent.bits} bits）${cfg.lenMode===5?' ／ 記号：'+syms:''}`);
+   setStatus('cq-status',`【使用中】${getActiveModeLabel(cfg)}\n・カード番号：${appliedSeedText} ／ 探索文字：${input.site} ＋ ${input.secret}（交互）\n・出力：${cfg.lenVal}${cfg.lenMode===3?'桁':'文字'}（約${ent.bits} bits）${cfg.lenMode===5?' ／ 記号：'+syms:''}`);
    if(cfg.lenMode===3&&cfg.lenVal>=4&&cfg.lenVal<=12)$('cq-pin-length').value=String(cfg.lenVal);
    if(cfg.lenMode===5){if(cfg.lenVal>=16&&cfg.lenVal<=32)$('cq-symbol-length').value=String(cfg.lenVal);if([0,1,2].includes(cfg.symMode))$('cq-symbol-mode').value=String(cfg.symMode);$('cq-symbol-list').value=cfg.symList;}
   }else if(issue){$('sim-output-meta').textContent=issue;setStatus('cq-status',issue,true);}

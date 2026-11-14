@@ -102,7 +102,7 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.30.2-sw-precache-clean'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.30.3-mobile-dock-overlap'));
 
 // SW プリキャッシュの行動検証: theme-cyber.css と鍵アイコン2枚は HTTP キャッシュを
 // 再検証して取得し、一括プリキャッシュには含めない

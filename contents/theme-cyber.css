@@ -673,7 +673,8 @@ html:not(.light) .cm-need-tag {
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 100vw !important;
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    /* バーはドックの上に浮くため、バー自身は Safe Area 分を内側に足さない（ドック側が担う） */
+    padding: 8px 10px !important;
     gap: 8px !important;
     align-items: stretch !important;
     flex-direction: column !important;

@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.30.1-keeweb-redirect';
+const VERSION = 'cm-v3.30.2-sw-precache-clean';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -127,15 +127,43 @@ const FILES = [
 // would pin the old file into the new worker's cache.
 const REVALIDATE_FILES = ['theme-cyber.css', 'lock-icon.png', 'unlock-icon.png'];
 
+// プリキャッシュ時に、ホストのリダイレクトを経た応答は redirected フラグを落として保存する。
+// Cloudflare Pages は Clean URLs で .html を正規形へ 308 する（index.html → ./、
+// keeweb/index.html → keeweb/ 等）。素の cache.addAll() では redirected=true の応答が
+// 保存され、Chrome はそれをナビゲーションに使うことを拒否する
+// （"a redirected response was used for a request whose redirect mode is not 'follow'"）。
+// 同じステータス／ヘッダー／本文で応答を作り直して保存すればフラグが落ちる。
+// content-encoding と content-length は、fetch 時点でデコード済みの本文には合わないため除外する。
+function storeClean(cache, request, response) {
+  if (!response.redirected) return cache.put(request, response);
+  const headers = new Headers();
+  response.headers.forEach((value, name) => {
+    if (name !== 'content-encoding' && name !== 'content-length') headers.append(name, value);
+  });
+  return response.arrayBuffer().then((body) => cache.put(request, new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: headers,
+  })));
+}
+
+// 1ファイルをプリキャッシュする。取得が OK でない場合はインストールを失敗させる
+// （置き換え前の cache.addAll() と同じ失敗動作）。
+function precacheFile(cache, file, init) {
+  return fetch(file, init).then((res) => {
+    if (!res.ok) throw new Error('precache failed: ' + file);
+    return storeClean(cache, file, res);
+  });
+}
+
 self.addEventListener('install', (e) => {
   // Precache the complete new app. The first rollout upgrades older workers once,
   // because those old app pages do not yet contain the manual-update controls.
   // After this release is active, later updates wait for an explicit user request.
   e.waitUntil(
     caches.open(VERSION)
-      .then((c) => c.addAll(FILES.filter((f) => !REVALIDATE_FILES.includes(f)))
-        .then(() => Promise.all(REVALIDATE_FILES.map((f) => fetch(f, { cache: 'reload' })
-          .then((r) => { if (!r.ok) throw new Error('precache failed: ' + f); return c.put(f, r); })))))
+      .then((c) => Promise.all(FILES.filter((f) => !REVALIDATE_FILES.includes(f)).map((f) => precacheFile(c, f)))
+        .then(() => Promise.all(REVALIDATE_FILES.map((f) => precacheFile(c, f, { cache: 'reload' })))))
       .then(() => caches.open(MANUAL_UPDATE_MARKER))
       .then((marker) => marker.match('./enabled'))
       .then((enabled) => enabled ? undefined : self.skipWaiting())
@@ -170,34 +198,28 @@ self.addEventListener('notificationclick', (e) => {
     })
   );
 });
-// リダイレクトを経た応答（redirected）は、ナビゲーション要求（redirect: 'manual'）へ
-// そのまま返すとブラウザがネットワークエラーにする（Cloudflare Pages の
-// /keeweb/index.html → /keeweb/ のような Clean URLs リダイレクトで発生する）。
-// 本文・ステータス・ヘッダーを保ったまま、リダイレクト履歴のない応答に作り直す。
-// 注意: 作り直した応答では Response.url（最終URL）が空になる。表示には影響しないが、
-// 応答URLそのものに依存する用途には使わないこと。
-// 再構築に失敗した場合は元の応答を返す（失敗をアプリ本体への置き換えで隠さない）。
-function cleanRedirectedResponse(res) {
-  if (!res || !res.redirected) return res;
-  return res.blob().then((body) => new Response(body, {
-    status: res.status,
-    statusText: res.statusText,
-    headers: res.headers
-  })).catch(() => res);
-}
-
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   const requestUrl = new URL(req.url);
   if (req.method !== 'GET' || requestUrl.origin !== location.origin) return;
 
   if (req.mode === 'navigate') {
-    // ページ本体もキャッシュ優先（アセットと同一方針）。新版の適用は手動更新フローで行う
-    e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req).then((res) => {
-      const copy = res.clone();
-      caches.open(VERSION).then((c) => c.put(req, copy));
-      return res;
-    })).then((res) => cleanRedirectedResponse(res)).catch(() => caches.match('./')));
+    // ページ本体もキャッシュ優先（アセットと同一方針）。新版の適用は手動更新フローで行う。
+    // ただし redirected なキャッシュヒットは使えない（旧版で保存された可能性がある）ため、
+    // ミスとして扱ってネットワークへフォールバックする。fetch が opaqueredirect を
+    // 返した場合（Cloudflare Pages の 308 や GitHub Pages のディレクトリ 301）は
+    // 加工せずそのまま返し、ブラウザ自身にリダイレクトを追従させる。
+    // キャッシュへ保存するのは素の OK 応答のみで、保存失敗はページ表示を妨げない。
+    e.respondWith(caches.match(req, { ignoreSearch: true }).then((hit) => {
+      if (hit && !hit.redirected) return hit;
+      return fetch(req).then((res) => {
+        if (res && res.ok && !res.redirected) {
+          const copy = res.clone();
+          caches.open(VERSION).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      });
+    }).catch(() => caches.match('./')));
     return;
   }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req)));

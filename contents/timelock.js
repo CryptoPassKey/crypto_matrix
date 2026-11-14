@@ -1953,7 +1953,7 @@
 
         const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
         if (openFn) openFn(transferId);
-        else window.open('keeweb/index.html', 'CryptoPassKeyKeeWeb');
+        else window.open('keeweb/', 'CryptoPassKeyKeeWeb');
 
         tlMessage('tl-encrypt-status', '📥 KeePassで新規エントリーの自動作成・保存を開始しました。');
       } catch (err) {
@@ -2596,7 +2596,7 @@
 
               const openFn = window.MatrixCardPreset?.openKeeWeb || window.openKeeWeb;
               if (openFn) openFn(transferId);
-              else window.open('keeweb/index.html', 'CryptoPassKeyKeeWeb');
+              else window.open('keeweb/', 'CryptoPassKeyKeeWeb');
             } catch (err) {
               btn.innerHTML = origLabel;
               btn.dataset.kwBusy = '0';

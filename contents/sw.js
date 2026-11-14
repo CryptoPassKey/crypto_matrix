@@ -1,6 +1,6 @@
 // Crypto Matrix — オフライン用 Service Worker（ビルド不要の手書き版）
 // 版を上げると古いキャッシュは自動で削除される。ファイルを差し替えたら VERSION を変えること。
-const VERSION = 'cm-v3.30.0-numeric-seed-text';
+const VERSION = 'cm-v3.30.1-keeweb-redirect';
 const MANUAL_UPDATE_MARKER = 'cm-manual-update-enabled';
 const FILES = [
   "./",
@@ -169,6 +169,19 @@ self.addEventListener('notificationclick', (e) => {
     })
   );
 });
+// リダイレクトを経た応答（redirected）は、ナビゲーション要求（redirect: 'manual'）へ
+// そのまま返すとブラウザがネットワークエラーにする（Cloudflare Pages の
+// /keeweb/index.html → /keeweb/ のような Clean URLs リダイレクトで発生する）。
+// 本文・ステータス・ヘッダーを保ったまま、リダイレクト履歴のない応答に作り直す。
+function cleanRedirectedResponse(res) {
+  if (!res || !res.redirected) return res;
+  return res.blob().then((body) => new Response(body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers
+  }));
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   const requestUrl = new URL(req.url);
@@ -180,7 +193,7 @@ self.addEventListener('fetch', (e) => {
       const copy = res.clone();
       caches.open(VERSION).then((c) => c.put(req, copy));
       return res;
-    })).catch(() => caches.match('./')));
+    })).then((res) => cleanRedirectedResponse(res)).catch(() => caches.match('./')));
     return;
   }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req)));

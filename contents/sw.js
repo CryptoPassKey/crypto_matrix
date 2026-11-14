@@ -174,13 +174,16 @@ self.addEventListener('notificationclick', (e) => {
 // そのまま返すとブラウザがネットワークエラーにする（Cloudflare Pages の
 // /keeweb/index.html → /keeweb/ のような Clean URLs リダイレクトで発生する）。
 // 本文・ステータス・ヘッダーを保ったまま、リダイレクト履歴のない応答に作り直す。
+// 注意: 作り直した応答では Response.url（最終URL）が空になる。表示には影響しないが、
+// 応答URLそのものに依存する用途には使わないこと。
+// 再構築に失敗した場合は元の応答を返す（失敗をアプリ本体への置き換えで隠さない）。
 function cleanRedirectedResponse(res) {
   if (!res || !res.redirected) return res;
   return res.blob().then((body) => new Response(body, {
     status: res.status,
     statusText: res.statusText,
     headers: res.headers
-  }));
+  })).catch(() => res);
 }
 
 self.addEventListener('fetch', (e) => {

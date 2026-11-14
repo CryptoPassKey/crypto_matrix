@@ -27,11 +27,12 @@ function check(name, cond, extra) {
 }
 function eq(name, actual, expected) { check(name, actual === expected, `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`); }
 
-function redirectedResponse(bodyText) {
+function redirectedResponse(bodyText, opts = {}) {
   return {
-    redirected: true, status: 200, statusText: 'OK',
+    redirected: true, status: 200, statusText: 'OK', type: 'basic',
+    url: BASE + 'keeweb/',
     headers: new Headers({ 'content-type': 'text/html' }),
-    blob: async () => new Blob([bodyText], { type: 'text/html' }),
+    blob: opts.blob || (async () => new Blob([bodyText], { type: 'text/html' })),
     clone() { return this; },
   };
 }
@@ -146,6 +147,22 @@ async function dispatchFetch(listeners, request) {
     });
     const res = await dispatchFetch(listeners, { method: 'GET', url: BASE + 'keeweb/app.js', mode: 'cors' });
     check('keeweb sw returns subresource responses untouched', res === redir);
+  }
+
+  // ===== 6c. 再構築に失敗した場合は元の応答を返す（本体への置き換えで隠さない） =====
+  {
+    const broken = redirectedResponse('BROKEN', { blob: async () => { throw new Error('blob failed'); } });
+    const { listeners } = loadSw(swPath, { entries: { 'keeweb/index.html': broken } });
+    const res = await dispatchFetch(listeners, { method: 'GET', url: BASE + 'keeweb/index.html', mode: 'navigate' });
+    check('main sw returns the original response when the rebuild fails', res === broken);
+  }
+  {
+    const broken = redirectedResponse('BROKEN-KW', { blob: async () => { throw new Error('blob failed'); } });
+    const { listeners } = loadSw(path.join(CONTENTS, 'keeweb', 'service-worker.js'), {
+      fetchImpl: async () => broken,
+    });
+    const res = await dispatchFetch(listeners, { method: 'GET', url: BASE + 'keeweb/index.html', mode: 'navigate' });
+    check('keeweb sw returns the original response when the rebuild fails', res === broken);
   }
 
   // ===== 7. 静的ガード: 内部リンクは keeweb/ に統一し、プリキャッシュは維持する =====

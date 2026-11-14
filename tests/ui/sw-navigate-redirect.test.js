@@ -138,6 +138,16 @@ async function dispatchFetch(listeners, request) {
     eq('keeweb sw preserves the body', await res.text(), 'KEEWEB-OWN');
   }
 
+  // ===== 6b. KeeWeb 側 SW: ナビゲーション以外では元の応答を維持する =====
+  {
+    const redir = redirectedResponse('KEEWEB-ASSET');
+    const { listeners } = loadSw(path.join(CONTENTS, 'keeweb', 'service-worker.js'), {
+      fetchImpl: async () => redir,
+    });
+    const res = await dispatchFetch(listeners, { method: 'GET', url: BASE + 'keeweb/app.js', mode: 'cors' });
+    check('keeweb sw returns subresource responses untouched', res === redir);
+  }
+
   // ===== 7. 静的ガード: 内部リンクは keeweb/ に統一し、プリキャッシュは維持する =====
   const indexJs = fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8');
   const timelockJs = fs.readFileSync(path.join(CONTENTS, 'timelock.js'), 'utf8');
@@ -148,6 +158,7 @@ async function dispatchFetch(listeners, request) {
   eq('generator links use keeweb/ form', (indexHtml.match(/href="keeweb\/#generator/g) || []).length, 8);
   check('no index.html keeweb links remain in index.html', !indexHtml.includes('keeweb/index.html'));
   check('precache still includes keeweb/index.html for offline use', swJs.includes('"keeweb/index.html"'));
+  check('precache also includes the keeweb/ directory URL', swJs.includes('"keeweb/",'));
   check('sw navigate branch cleans redirected responses', swJs.includes('cleanRedirectedResponse'));
   check('sw version bumped', swJs.includes("cm-v3.30.1-keeweb-redirect"));
 

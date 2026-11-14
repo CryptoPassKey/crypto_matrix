@@ -17,7 +17,8 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request.url).then((response) => response || fetch(event.request)).then((response) => {
             // A response that went through a redirect cannot be handed back to a
             // navigation request (redirect: 'manual'); rebuild it without history.
-            if (!response || !response.redirected) {
+            // Subresources keep the original response untouched.
+            if (!response || !response.redirected || event.request.mode !== 'navigate') {
                 return response;
             }
             return response.blob().then((body) => new Response(body, {

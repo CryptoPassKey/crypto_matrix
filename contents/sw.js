@@ -81,6 +81,7 @@ const FILES = [
   "keeweb/icons/mstile-310x310.png",
   "keeweb/icons/mstile-70x70.png",
   "keeweb/icons/safari-pinned-tab.svg",
+  "keeweb/",
   "keeweb/index.html",
   "keeweb/manifest.json",
   "keeweb/oauth-result/dropbox.html",

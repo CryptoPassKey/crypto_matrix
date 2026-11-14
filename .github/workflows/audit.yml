@@ -93,6 +93,8 @@ jobs:
         run: node tests/ui/datatransfer-text-triage.test.js
       - name: SW update prompt tests
         run: node tests/ui/sw-update-prompt.test.js
+      - name: Quick seed label tests
+        run: node tests/ui/quick-seed-label.test.js
 
       - name: Passkey identifier foundation tests
         run: node tests/security/passkey-id.test.js

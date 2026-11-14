@@ -102,10 +102,10 @@ function completeInstall(reg) {
   check('app.js wires updatefound to the prompt', appJs.includes("addEventListener('updatefound'") && appJs.includes('cmShowUpdatePrompt(reg.waiting || installing)'));
   check('app.js guards first install via controller', appJs.includes("installing.state === 'installed' && navigator.serviceWorker.controller"));
   check('app.css defines the prompt styles', appCss.includes('.cm-update-prompt') && appCss.includes('.cm-update-prompt.is-visible'));
-  check('sw.js version bumped for this change', swJs.includes('cm-v3.30.0-numeric-seed-text'));
+  check('sw.js version bumped for this change', swJs.includes('cm-v3.30.2-sw-precache-clean'));
 
 // SW プリキャッシュの行動検証: theme-cyber.css と鍵アイコン2枚は HTTP キャッシュを
-// 再検証して取得し、addAll には含めない
+// 再検証して取得し、一括プリキャッシュには含めない
 {
   const vm = require('vm');
   const listeners = {};
@@ -137,7 +137,8 @@ function completeInstall(reg) {
   let installed;
   listeners.install({ waitUntil: (pr) => { installed = pr; } });
   await installed;
-  check('precache addAll excludes theme-cyber.css', !addedAll.includes('theme-cyber.css') && addedAll.includes('app.css'));
+  check('bulk precache excludes theme-cyber.css',
+    !fetches.some(([u, o]) => u === 'theme-cyber.css' && !(o && o.cache === 'reload')) && fetches.some(([u]) => u === 'app.css'));
   check('theme-cyber.css fetched with cache reload',
     fetches.some(([u, o]) => u === 'theme-cyber.css' && o && o.cache === 'reload'));
   check('theme-cyber.css stored via cache.put', puts.includes('theme-cyber.css'));
@@ -145,7 +146,7 @@ function completeInstall(reg) {
   // 旧アイコンがブラウザの HTTP キャッシュに残っていると、新しい SW キャッシュへ
   // 固定されてしまう。
   for (const icon of ['lock-icon.png', 'unlock-icon.png']) {
-    check('precache addAll excludes ' + icon, !addedAll.includes(icon));
+    check('bulk precache excludes ' + icon, !fetches.some(([u, o]) => u === icon && !(o && o.cache === 'reload')));
     check(icon + ' fetched with cache reload',
       fetches.some(([u, o]) => u === icon && o && o.cache === 'reload'));
     check(icon + ' stored via cache.put', puts.includes(icon));

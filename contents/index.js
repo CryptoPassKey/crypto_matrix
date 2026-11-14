@@ -2260,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (_) {}
     }
-    const win = trackKeeWebWindow(window.open('keeweb/index.html', KEEWEB_WINDOW_NAME));
+    const win = trackKeeWebWindow(window.open('keeweb/', KEEWEB_WINDOW_NAME));
     try { win?.focus(); } catch (_) {}
     return win;
   }

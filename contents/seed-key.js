@@ -16,6 +16,7 @@
  *   正規シードキーになる。
  */
 window.CMSeedKey = (() => {
+  const textEncoder = new TextEncoder();
   function trimSeed(seedText) {
     return String(seedText == null ? '' : seedText).trim();
   }
@@ -66,7 +67,7 @@ window.CMSeedKey = (() => {
     const t = trimSeed(seedText);
     if (t === '') return false;
     if (isV2Seed(t)) return true;
-    if (new TextEncoder().encode(t).length > 23) return false;
+    if (textEncoder.encode(t).length > 23) return false;
     const parseSeedValueFn =
       (typeof window !== 'undefined' && typeof window.parseSeedValue === 'function')
         ? window.parseSeedValue

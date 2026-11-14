@@ -1582,6 +1582,27 @@ async function ingest(text){
 
    if(!MatrixCardPreset.isFrame(bytes)){
 
+    if(words.length===48&&offset===0){
+
+     // コア（24単語）＋シード文字列ブロック（24単語）の単一フレーズとして取り込む
+     const head=unpack256BitToRecipe(bytes);
+
+     if(!head.seedTextFollows)throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
+
+     const seedBlockBytes=await bip39WordsToEntropy(words.slice(24,48).join(' '));
+
+     if(MatrixCardPreset.isFrame(seedBlockBytes))throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
+
+     unpackSeedTextBlock(seedBlockBytes,bytes);
+
+     parts=null;$('bq-import').value=words.join(' ');clearPending();stopCamera();
+
+     message('bq-scan-status','48単語のBIP39復元QRを読み取りました。「読み込み・検証して内容を確認」を押してください。');
+
+     return true;
+
+    }
+
     if(words.length!==24)throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
 
     unpack256BitToRecipe(bytes);

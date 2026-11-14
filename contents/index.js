@@ -2105,11 +2105,12 @@ async function generateAndRenderSeedPhrase() {
     const seedVal = document.getElementById('input-seed-number')?.value || '0';
     const seedText = (typeof window !== 'undefined' && window.CMSeedKey) ? window.CMSeedKey.trimSeed(seedVal) : seedVal;
     const isV2 = inc && typeof window !== 'undefined' && window.CMSeedKey && window.CMSeedKey.classify(seedVal) === 'v2';
+    const textSeed = inc && typeof window !== 'undefined' && window.CMSeedKey && window.CMSeedKey.seedNeedsTextBackup(seedVal) ? seedText : null;
     const useV6 = isV2 && typeof window !== 'undefined' && window.CMRecipeV6 && window.CMRecipeV6.canPack(cfg, seedText);
     const entropy = useV6 ? window.CMRecipeV6.pack(cfg, true, seedText) : packRecipeTo256Bit(cfg, inc, seedVal);
     let words = await entropyToBip39Words(entropy);
-    if (isV2 && !useV6) {
-      const seedBlock = packSeedTextBlock(seedText, entropy);
+    if (textSeed && !useV6) {
+      const seedBlock = packSeedTextBlock(textSeed, entropy);
       words = words.concat(await entropyToBip39Words(seedBlock));
     }
     currentMnemonicWords = words;

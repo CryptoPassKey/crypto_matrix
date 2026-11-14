@@ -70,6 +70,18 @@ async function rejects(name, promise) {
     indexJs.includes('packSeedTextBlock(textSeed,core)'));
   check('restore preview prefers seedText over seedNumber',
     backupQrJs.includes("(d.seedText!==undefined&&d.seedText!=='')?d.seedText:d.seedNumber"));
+  // フレーズ生成は定義が二重にある（先行定義＋後段の再代入）。どちらも同じ振り分けを使うこと
+  const firstGenStart = indexJs.indexOf('async function generateAndRenderSeedPhrase()');
+  const firstGen = indexJs.slice(firstGenStart, indexJs.indexOf('function restoreRecipeFromSeedInput', firstGenStart));
+  check('first phrase generator also uses seedNeedsTextBackup',
+    firstGen.includes('window.CMSeedKey.seedNeedsTextBackup(seedVal)'));
+  check('first phrase generator has no legacy v2-only block condition',
+    !firstGen.includes('if (isV2 && !useV6)'));
+  // スキャナー／ファイル取り込み（ingest）がコア＋シードブロックの48単語を受け付けること
+  check('ingest accepts a 48-word core+seed-block pair',
+    backupQrJs.includes('words.length===48&&offset===0'));
+  check('ingest validates the seed block against the core',
+    backupQrJs.includes('unpackSeedTextBlock(seedBlockBytes,bytes)'));
   for (const f of ['timelock.js', 'timesecret.js', 'seed-vault.js', 'timelock-recover.js']) {
     const src = fs.readFileSync(path.join(CONTENTS, f), 'utf8');
     check(`${f} does not canonicalize seeds (no cross-feature unification)`,
@@ -171,6 +183,53 @@ async function rejects(name, promise) {
     const d = await P.decodeExtendedBip39(words, PW, { seedNum: '7' });
     eq('[enc 7] no seedText carried', d.seedText, undefined);
     eq('[enc 7] seedNumber restored', d.seedNumber, 7);
+  }
+
+  // ===== 4b. ファイル／QR取り込み（ingest）経由の48単語 =====
+  {
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    async function waitFor(fn, label, timeout = 10000) {
+      const t0 = Date.now();
+      while (Date.now() - t0 < timeout) { if (fn()) return; await sleep(100); }
+      throw new Error('timeout: ' + label);
+    }
+    async function importTxt(text) {
+      const file = { name: 'backup.txt', type: 'text/plain', text: async () => text, arrayBuffer: async () => new ArrayBuffer(0) };
+      w.document.dispatchEvent(new w.CustomEvent('cm-route-backup-files', { detail: { files: [file] } }));
+      await sleep(300);
+    }
+    await setup('007');
+    const words = await genWords();
+    $('input-seed-number').value = '999'; w.updateMainMatrix('999');
+    await importTxt(words.join(' '));
+    await waitFor(() => $('bq-import').value.trim().split(/\s+/).filter(Boolean).length === 48, 'ingest 48');
+    check('ingest takes the 48-word phrase as one backup', $('bq-scan-status').textContent.includes('48単語'), $('bq-scan-status').textContent);
+    $('bq-review').click();
+    await waitFor(() => !$('bq-preview').hidden, 'preview');
+    check('ingest preview shows the original text 007', $('bq-preview').textContent.includes('カード配列シード番号：007'));
+    check('ingest preview enables apply', !$('bq-apply').disabled);
+    $('bq-apply').click();
+    await waitFor(() => $('input-seed-number').value === '007', 'apply 007');
+    check('ingest apply restores the original text 007', true);
+    // 無関係な2コアの48単語は混在エラーで取り込まない
+    await setup('424242'); const coreA = await genWords();
+    await setup('555555'); const coreB = await genWords();
+    $('bq-import').value = '';
+    await importTxt([...coreA, ...coreB].join(' '));
+    await sleep(500);
+    check('ingest rejects two unrelated cores as mixed', $('bq-scan-status').textContent.includes('混在'), $('bq-scan-status').textContent);
+    check('ingest imports nothing when mixed', $('bq-import').value.trim() === '');
+    // 別バックアップのシードブロックは対応付け不一致で拒否
+    await setup('008'); const other = await genWords();
+    $('bq-import').value = '';
+    await importTxt([...words.slice(0, 24), ...other.slice(24)].join(' '));
+    await sleep(500);
+    check('ingest rejects a seed block from another backup', $('bq-scan-status').textContent.includes('対応しません'), $('bq-scan-status').textContent);
+    // 従来の24単語はそのまま取り込める
+    $('bq-import').value = '';
+    await importTxt(coreA.join(' '));
+    await waitFor(() => $('bq-import').value.trim().split(/\s+/).length === 24, 'ingest 24');
+    check('ingest still takes a plain 24-word phrase', $('bq-scan-status').textContent.includes('24単語'), $('bq-scan-status').textContent);
   }
 
   // ===== 5. Shamir（秘密分散） =====

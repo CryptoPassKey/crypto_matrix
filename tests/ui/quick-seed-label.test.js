@@ -19,6 +19,7 @@ const { loadApp} = require(path.join(__dirname, '..', 'compatibility', 'load-app
 
 const CONTENTS = path.join(__dirname, '..', '..', 'contents');
 const indexJs = fs.readFileSync(path.join(CONTENTS, 'index.js'), 'utf8');
+const legacyCss = fs.readFileSync(path.join(CONTENTS, 'legacy.css'), 'utf8');
 
 let pass = 0, fail = 0;
 function check(name, ok, detail) {
@@ -34,6 +35,12 @@ check('wrapper records the applied seed label',
 indexJs.includes('appliedSeedText=seedLabelOf(seed)'));
 check('status template prints the applied seed label',
 indexJs.includes('カード番号：${appliedSeedText} ／'));
+// ブラインド表示ではシード入力欄がマスクされるため、シード文字列を出す
+// cq-status も同じぼかし対象でなければならない（再生中の一時表示は除く）。
+const blindRule = (legacyCss.match(/body\.blind-mode[^{]*\{[^}]*blur\(8px\)[^}]*\}/) || [''])[0];
+check('blind-mode blur rule exists', blindRule.length > 0);
+check('blind-mode blur covers cq-status',
+blindRule.includes('body.blind-mode:not(.trace-playing) #cq-status'));
 
 const w = await loadApp(CONTENTS);
 const $ = id => w.document.getElementById(id);

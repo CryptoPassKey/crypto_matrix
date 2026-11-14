@@ -1140,6 +1140,7 @@
 /* ブラインド表示：保護対象を実際にぼかす。通常のホバーでは解除しない。 */
 body.blind-mode:not(.trace-playing) #sim-output-pw,
 body.blind-mode:not(.trace-playing) #sticky-output-pw,
+body.blind-mode:not(.trace-playing) #cq-status,
 body.blind-mode #seed-words-container,
 body.blind-mode #seed-qr-list {
  filter: blur(8px) !important;

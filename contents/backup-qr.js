@@ -1321,7 +1321,7 @@ async function review(){
 
    ...(protLine?[protLine]:[]),
 
-   `読み方：${profileLabel(pCode)} ／ カード配列シード番号：${d.includeCardSeed?d.seedNumber:'未保存（現在のカードを使用）'}`,
+   `読み方：${profileLabel(pCode)} ／ カード配列シード番号：${d.includeCardSeed?((d.seedText!==undefined&&d.seedText!=='')?d.seedText:d.seedNumber):'未保存（現在のカードを使用）'}`,
 
    d.full?`サイト名：${d.site}\n合言葉：保存あり（安全のためここには表示しません）`:'サイト名・合言葉：含まれていません（現在ページ上部に入力されている値を使用します）',
 
@@ -1581,6 +1581,27 @@ async function ingest(text){
    const bytes=await bip39WordsToEntropy(phrase24);
 
    if(!MatrixCardPreset.isFrame(bytes)){
+
+    if(words.length===48&&offset===0){
+
+     // コア（24単語）＋シード文字列ブロック（24単語）の単一フレーズとして取り込む
+     const head=unpack256BitToRecipe(bytes);
+
+     if(!head.seedTextFollows)throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
+
+     const seedBlockBytes=await bip39WordsToEntropy(words.slice(24,48).join(' '));
+
+     if(MatrixCardPreset.isFrame(seedBlockBytes))throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
+
+     unpackSeedTextBlock(seedBlockBytes,bytes);
+
+     parts=null;$('bq-import').value=words.join(' ');clearPending();stopCamera();
+
+     message('bq-scan-status','48単語のBIP39復元QRを読み取りました。「読み込み・検証して内容を確認」を押してください。');
+
+     return true;
+
+    }
 
     if(words.length!==24)throw Error('単一24単語フレーズと拡張ブロックが混在しています。');
 

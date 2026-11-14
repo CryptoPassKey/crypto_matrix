@@ -71,6 +71,8 @@ jobs:
         run: node tests/security/matrix-board-freeze.test.js
       - name: Backup seed canonicalization tests
         run: node tests/security/backup-seed-canonical.test.js
+      - name: Numeric seed text backup tests
+        run: node tests/security/numeric-seed-text-backup.test.js
       - name: Guide first-visit tests
         run: node tests/ui/guide-first-visit.test.js
       - name: Feature icons tests

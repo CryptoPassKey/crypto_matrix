@@ -16,6 +16,7 @@
  *   正規シードキーになる。
  */
 window.CMSeedKey = (() => {
+  const textEncoder = new TextEncoder();
   function trimSeed(seedText) {
     return String(seedText == null ? '' : seedText).trim();
   }
@@ -54,6 +55,27 @@ window.CMSeedKey = (() => {
     return t;
   }
 
+  // バックアップのコア（32bit欄）だけでは原文を再現できないシードかどうか。
+  // - v2 シード: 数値欄には FNV-1a ハッシュしか残らないため、常に対象。
+  // - 数値シード: コアから復元される文字列 String(parseSeedValue(t) >>> 0) が
+  //   入力文字列と一致しない場合のみ対象（先頭ゼロ・符号・32bit超）。
+  //   一致する通常の数値シードは従来どおりコアのみで保存する。
+  // - 数値シードで原文がシードブロックの容量（23バイト）を超える場合は、
+  //   従来形式（コアのみ）を維持する。ブロックに収まる v2 シードの扱いは
+  //   packSeedTextBlock 側の従来どおり（容量超過はエラー）。
+  function seedNeedsTextBackup(seedText) {
+    const t = trimSeed(seedText);
+    if (t === '') return false;
+    if (isV2Seed(t)) return true;
+    if (textEncoder.encode(t).length > 23) return false;
+    const parseSeedValueFn =
+      (typeof window !== 'undefined' && typeof window.parseSeedValue === 'function')
+        ? window.parseSeedValue
+        : (typeof parseSeedValue === 'function' ? parseSeedValue : null);
+    if (!parseSeedValueFn) return false;
+    return String(parseSeedValueFn(t) >>> 0) !== t;
+  }
+
   // v2 シードの自動生成（設計 §4）: 74種プール（数字＋英大小＋記号12。
   // '#' と '&' は URL 埋め込みとの相性のため自動生成から除外）から
   // 12文字を CSPRNG＋棄却サンプリングで引く（約74.5bit）。
@@ -79,5 +101,5 @@ window.CMSeedKey = (() => {
     }
   }
 
-  return { trimSeed, isNumericSeed, isV2Seed, classify, canonicalSeedKey, generateSeed };
+  return { trimSeed, isNumericSeed, isV2Seed, classify, canonicalSeedKey, seedNeedsTextBackup, generateSeed };
 })();
